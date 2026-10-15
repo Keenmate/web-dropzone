@@ -64,7 +64,7 @@ test.describe('individual --dz-* override', () => {
 
 test.describe('--base-* integration', () => {
     test('base-* variables are readable on the host', async ({ page }) => {
-        expect(await cssvar(page, 'base-themed', '--base-accent-color')).toBe('rgb(20, 184, 166)');
+        expect(await cssvar(page, 'base-themed', '--base-primary-color')).toBe('rgb(20, 184, 166)');
         expect(await cssvar(page, 'base-themed', '--base-text-color-1')).toBe('rgb(15, 23, 42)');
         expect(await cssvar(page, 'base-themed', '--base-border-color')).toBe('rgb(125, 211, 252)');
         expect(await cssvar(page, 'base-themed', '--base-input-background')).toBe('rgb(240, 253, 250)');

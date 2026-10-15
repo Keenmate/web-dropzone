@@ -417,7 +417,7 @@ The component integrates with KeenMate's theme designer `--base-*` variables:
 
 ```css
 web-dropzone {
-  --dz-accent-color: var(--base-accent-color);
+  --dz-accent-color: var(--base-primary-color);
   --dz-text-color-1: var(--base-text-color-1);
   --dz-border-color: var(--base-border-color);
 }

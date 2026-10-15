@@ -80,12 +80,12 @@
      framework-class and per-instance overrides live in dark-mode.css. */
 
   /* Accent Colors */
-  --dz-accent-color: var(--base-accent-color, light-dark(#3b82f6, #60a5fa));
-  --dz-accent-color-hover: var(--base-accent-color-hover, light-dark(#2563eb, #3b82f6));
-  --dz-accent-color-active: var(--base-accent-color-active, light-dark(#1d4ed8, #2563eb));
+  --dz-accent-color: var(--base-primary-color, light-dark(#3b82f6, #60a5fa));
+  --dz-accent-color-hover: var(--base-primary-color-hover, light-dark(#2563eb, #3b82f6));
+  --dz-accent-color-active: var(--base-primary-color-active, light-dark(#1d4ed8, #2563eb));
 
   /* Accent Light Tints (selected-row backgrounds, range highlights) */
-  --dz-accent-color-light: var(--base-accent-color-light,
+  --dz-accent-color-light: var(--base-primary-bg-subtle,
     color-mix(in srgb, var(--dz-accent-color) 15%, transparent));
   --dz-accent-color-light-hover: color-mix(in srgb, var(--dz-accent-color) 22%, transparent);
 
@@ -94,7 +94,7 @@
   --dz-text-color-2: var(--base-text-color-2, light-dark(#353b47, #d4d4d4));
   --dz-text-color-3: var(--base-text-color-3, light-dark(#6b7280, #a3a3a3));
   --dz-text-color-4: light-dark(#a0a3a9, #6b7280);  /* Component-local; no canonical 4th tier. */
-  --dz-text-on-accent: var(--base-text-color-on-accent, #ffffff);
+  --dz-text-on-accent: var(--base-on-primary-text-color, #ffffff);
 
   /* Surfaces */
   --dz-background: var(--base-main-bg, light-dark(#ffffff, #1a1a1a));

@@ -47,7 +47,7 @@ CSS lives entirely in the renderer. Override at either layer:
 ```css
 /* Cross-component (shared with web-grid, web-multiselect, web-player, …) */
 :root {
-  --base-accent-color: #14b8a6;
+  --base-primary-color: #14b8a6;
   --base-main-bg: #ffffff;
 }
 
@@ -59,8 +59,8 @@ web-dropzone {
 ```
 
 The component reads the canonical `--base-*` taxonomy (`--base-main-bg`,
-`--base-elevated-bg`, `--base-hover-bg`, `--base-accent-color`,
-`--base-text-color-1/2/3`, `--base-text-color-on-accent`,
+`--base-elevated-bg`, `--base-hover-bg`, `--base-primary-color`,
+`--base-text-color-1/2/3`, `--base-on-primary-text-color`,
 `--base-border-color`, `--base-danger-color`, plus the `--base-success-color`
 and `--base-warning-color` local extensions). See
 [`component-variables.manifest.json`](https://github.com/keenmate/web-dropzone/blob/main/packages/web-dropzone/component-variables.manifest.json)

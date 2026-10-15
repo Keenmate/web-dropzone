@@ -124,8 +124,8 @@
             --base-border-color: #334155;
             --base-primary-bg: #1e293b;
             --base-primary-bg-hover: #2c3a52;
-            --base-accent-color: #818cf8;
-            --base-text-on-accent: #ffffff;
+            --base-primary-color: #818cf8;
+            --base-on-primary-text-color: #ffffff;
         }
 
         /* NEON */
@@ -139,8 +139,8 @@
             --base-border-color: #ff00ff;
             --base-primary-bg: #0a0a0a;
             --base-primary-bg-hover: #1a001a;
-            --base-accent-color: #ff00ff;
-            --base-text-on-accent: #ffffff;
+            --base-primary-color: #ff00ff;
+            --base-on-primary-text-color: #ffffff;
             --base-success-color: #00ff00;
             --base-danger-color: #ff0066;
         }
@@ -154,8 +154,8 @@
             --base-border-color: #cbd5e1;
             --base-primary-bg: #f1f5f9;
             --base-primary-bg-hover: #e2e8f0;
-            --base-accent-color: #0369a1;
-            --base-accent-color-hover: #0284c7;
+            --base-primary-color: #0369a1;
+            --base-primary-color-hover: #0284c7;
             --base-border-radius-sm: 0.2;
             --base-border-radius-md: 0.3;
             --base-border-radius-lg: 0.4;
@@ -171,9 +171,9 @@
             --base-border-color: #fcd34d;
             --base-primary-bg: #fef3c7;
             --base-primary-bg-hover: #fde68a;
-            --base-accent-color: #ea580c;
-            --base-accent-color-hover: #c2410c;
-            --base-text-on-accent: #ffffff;
+            --base-primary-color: #ea580c;
+            --base-primary-color-hover: #c2410c;
+            --base-on-primary-text-color: #ffffff;
             --base-border-radius-md: 1.0;
             --base-border-radius-lg: 1.5;
         }
@@ -188,9 +188,9 @@
             --base-border-color: #047857;
             --base-primary-bg: #065f46;
             --base-primary-bg-hover: #047857;
-            --base-accent-color: #34d399;
-            --base-accent-color-hover: #10b981;
-            --base-text-on-accent: #064e3b;
+            --base-primary-color: #34d399;
+            --base-primary-color-hover: #10b981;
+            --base-on-primary-text-color: #064e3b;
         }
 
         /* MINIMAL (component-level vars) */
@@ -325,7 +325,7 @@ web-dropzone { --dz-font-family: 'Inter', sans-serif; }</code></pre>
                 <div class="note-title">Contract</div>
                 <ul>
                     <li><strong>Typography:</strong> <code>--base-font-family</code>, <code>--base-font-size-xs|sm|base|lg</code> (unitless multipliers), <code>--base-font-weight-normal|medium|semibold</code></li>
-                    <li><strong>Colors:</strong> <code>--base-accent-color[-hover|-active|-light]</code>, <code>--base-text-color-1..4</code>, <code>--base-text-on-accent</code>, <code>--base-border-color</code>, <code>--base-primary-bg[-hover]</code>, <code>--base-input-background</code>, <code>--base-success-color</code>, <code>--base-danger-color</code>, <code>--base-warning-color</code></li>
+                    <li><strong>Colors:</strong> <code>--base-primary-color[-hover|-active|-light]</code>, <code>--base-text-color-1..4</code>, <code>--base-on-primary-text-color</code>, <code>--base-border-color</code>, <code>--base-primary-bg[-hover]</code>, <code>--base-input-background</code>, <code>--base-success-color</code>, <code>--base-danger-color</code>, <code>--base-warning-color</code></li>
                     <li><strong>Radii:</strong> <code>--base-border-radius-sm|md|lg</code> (unitless multipliers)</li>
                 </ul>
             </div>
@@ -341,11 +341,11 @@ web-dropzone { --dz-font-family: 'Inter', sans-serif; }</code></pre>
             <div class="control-section">
                 <h3>Accent</h3>
                 <div class="control-grid">
-                    <label>--base-accent-color
-                        <input type="color" value="#3b82f6" data-var="--base-accent-color">
+                    <label>--base-primary-color
+                        <input type="color" value="#3b82f6" data-var="--base-primary-color">
                     </label>
-                    <label>--base-text-on-accent
-                        <input type="color" value="#ffffff" data-var="--base-text-on-accent">
+                    <label>--base-on-primary-text-color
+                        <input type="color" value="#ffffff" data-var="--base-on-primary-text-color">
                     </label>
                 </div>
             </div>
@@ -521,7 +521,7 @@ web-dropzone { --dz-font-family: 'Inter', sans-serif; }</code></pre>
             <div class="code-block">
                 <pre><code>.app-shell {
     /* Level 1 — cross-component palette */
-    --base-accent-color: #818cf8;
+    --base-primary-color: #818cf8;
     --base-text-color-1: #e2e8f0;
     --base-border-color: #334155;
     --base-input-background: #1e293b;

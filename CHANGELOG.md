@@ -18,6 +18,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Reads `--base-primary-*` (was `--base-accent-*`)**, following `@keenmate/base-css-variables`
+  2.0.0, which drops the `accent` names: `--base-primary-color[-hover|-active]`,
+  `--base-primary-bg-subtle[-hover]` (was `-color-light[-hover]`) and `--base-on-primary-text-color`
+  (was `--base-text-color-on-accent`). The component's own `--*-accent-*` tokens keep their names.
+  Docs, examples and manifest updated.
+- **Reads the 2.0.0 type-stating names:** `--base-outline-width` / `--base-focused-outline` /
+  `--base-highlighted-outline` (were `-ring`), `--base-*-text-color` (was `-text`),
+  `--base-on-<role>-text-color` (was `--base-text-on-<role>`), `--base-input-text-color` (was
+  `--base-input-color`), `--base-input-icon-color` / `-icon-bg-hover` (were `--base-input-clear-*`),
+  `--base-tooltip-text-color` (the `--base-tooltip-color` duplicate is gone) — whichever of these
+  the component uses.
 - **All icons reworked to Lucide.** The remaining emoji glyphs are gone: the 10 file-type category icons (🖼️🎬🎵📄📝📊📦💻📃📁), the drop-zone / minimal prompt icon (📤 → `cloud-upload`), the drag-overlay icon (📎 → `upload`), and the popover / rolling-list idle summary (📎 → `paperclip`). All are now inline Lucide SVG (24/24, `currentColor`, stroke-2) sized to `1em` so they inherit the container's `--dz-rem`-derived font-size — matching the visual language and sizing model of `web-multiselect`. The two identical file-icon maps were deduped into a single source in `icons.ts`.
 - **`--dz-icon-remove` aligned to Lucide `x`.** The per-row remove button and the indicator drawer's close button now use the same 24/24 Lucide `x` mask as `web-multiselect`'s `--ms-icon-remove` (was a bespoke 12/12 X path).
 - **Examples image serve stage switched from Caddy to nginx** (see Added) — the old `Caddyfile` is removed.
