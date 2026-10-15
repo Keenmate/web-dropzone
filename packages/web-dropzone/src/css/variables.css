@@ -428,7 +428,7 @@
   --dz-popover-bg: var(--dz-background);
   --dz-popover-border: 1px solid var(--dz-border-color);
   --dz-popover-border-radius: calc(var(--base-border-radius-lg, 0.8) * var(--dz-rem, 10px));
-  --dz-popover-box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --dz-popover-box-shadow: 0 20px 25px -5px var(--base-shadow-color, rgba(0, 0, 0, 0.1)), 0 8px 10px -6px var(--base-shadow-color, rgba(0, 0, 0, 0.1));
   --dz-popover-z-index: 10000;
 
   /* Popover Header */

@@ -17,6 +17,7 @@
     { "name": "base-primary-bg-subtle", "required": false, "usage": "Light tint of accent — selected-row backgrounds, range highlights." },
     { "name": "base-text-color-1", "required": false, "usage": "Primary body text — file names, dropzone prompt." },
     { "name": "base-text-color-2", "required": false, "usage": "Secondary text — file metadata, summary line." },
+    { "name": "base-shadow-color", "required": false, "usage": "Shadow colour for the popover, drag indicator and overlay hover (one tone with pure-admin)" },
     { "name": "base-text-color-3", "required": false, "usage": "Muted text — hints, empty state, file-size labels." },
     { "name": "base-on-primary-text-color", "required": false, "usage": "Text laid over accent surfaces — progress fill labels." },
     { "name": "base-main-bg", "required": false, "usage": "Primary surface — dropzone card, popover body, file-item background." },

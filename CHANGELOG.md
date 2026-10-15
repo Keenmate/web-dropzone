@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Shadows share one tone with pure-admin: `--base-shadow-color`.** Popover, drag indicator and
+  overlay hover keep their sizes but take their colour from `--base-shadow-color` (falls back to the
+  previous black when the base layer is absent). Status-icon drop shadows over previews unchanged.
+
 ### Added
 
 - **Consumer file-icon overrides — `fileIcons` map + `fileIconCallback`** (JS-only config properties, no HTML attribute). Each file row's icon resolves from the file's *category* by default; these hooks let you override per **extension** or per **category**, or take full control:
