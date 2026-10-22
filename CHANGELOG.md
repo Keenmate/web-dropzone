@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Built on `@keenmate/web-components-core` 1.0.0-rc15** — the input table uses its renamed
+  `shouldReflect` flag. No change to the element's attributes, properties or events.
 - **Shadows share one tone with pure-admin: `--base-shadow-color`.** Popover, drag indicator and
   overlay hover keep their sizes but take their colour from `--base-shadow-color` (falls back to the
   previous black when the base layer is absent). Status-icon drop shadows over previews unchanged.

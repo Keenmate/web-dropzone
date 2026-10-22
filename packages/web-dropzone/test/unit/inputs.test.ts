@@ -59,7 +59,7 @@ describe('<web-dropzone> input table (BlissElement)', () => {
     it('reflects a property write back to its attribute', () => {
         el = document.createElement('web-dropzone');
         el.maxFileCount = 3;
-        expect(el.getAttribute('max-file-count')).toBe('3'); // reflect: true
+        expect(el.getAttribute('max-file-count')).toBe('3'); // shouldReflect: true
         expect(el.maxFileCount).toBe(3);
     });
 
