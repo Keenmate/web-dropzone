@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Dark / light follows the page in every browser, and no longer from the OS alone.** The
+  page signal (`data-theme`, `data-bs-theme`, `.dark` / `.light` on `<html>` / `<body>`) comes
+  from `@keenmate/web-components-core` as `data-context-theme` — on `<web-dropzone>` and on the
+  satellites — instead of `:host-context()` (no Firefox support, partial Safari). The
+  `prefers-color-scheme` rule is gone, so on an unsignalled page the dropzone matches the page
+  (to follow the OS, declare `html { color-scheme: light dark }`). Dark mode now flips
+  `color-scheme` instead of redeclaring every `--dz-*` color, so a page's `--base-*` theme is
+  no longer overwritten in dark mode. A themed wrapper needs `theme-source="closest"`.
 - **Built on `@keenmate/web-components-core` 1.0.0-rc15** — the input table uses its renamed
   `shouldReflect` flag. No change to the element's attributes, properties or events.
 - **Shadows share one tone with pure-admin: `--base-shadow-color`.** Popover, drag indicator and

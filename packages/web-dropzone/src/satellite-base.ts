@@ -11,6 +11,7 @@
 
 import type { DropzoneElement } from './web-component';
 import type { DropzoneStoreAPI } from '@keenmate/web-dropzone-core';
+import { observeThemeContext, THEME_CONTEXT_ATTRIBUTE, THEME_SOURCE_ATTRIBUTE } from '@keenmate/web-components-core';
 
 /**
  * Look up the `<web-dropzone>` element a satellite binds to via its `for=`
@@ -202,7 +203,11 @@ export abstract class SatelliteElement extends SatelliteBaseElement {
     /** Optional pre-bind DOM setup. Default no-op. */
     protected setupBeforeBind(): void { /* override in subclasses if needed */ }
 
+    /** Unsubscribe from core's theme context; set while connected. */
+    private themeUnsub: (() => void) | null = null;
+
     connectedCallback(): void {
+        this.subscribeThemeContext();
         this.setupBeforeBind();
         if (this.programmaticStoreEl) {
             this.storeEl = this.programmaticStoreEl;
@@ -218,7 +223,22 @@ export abstract class SatelliteElement extends SatelliteBaseElement {
     }
 
     disconnectedCallback(): void {
+        this.themeUnsub?.();
+        this.themeUnsub = null;
         this.teardownStoreBinding();
+    }
+
+    /**
+     * Satellites aren't BlissElements, so mirror the page theme onto the host
+     * the way BlissElement does: core's theme context (page signal, or the
+     * `theme-source` attribute) → `data-context-theme`, which dark-mode.css reads.
+     */
+    private subscribeThemeContext(): void {
+        this.themeUnsub?.();
+        this.themeUnsub = observeThemeContext(this, this.getAttribute(THEME_SOURCE_ATTRIBUTE) || null, (scheme) => {
+            if (scheme) this.setAttribute(THEME_CONTEXT_ATTRIBUTE, scheme);
+            else this.removeAttribute(THEME_CONTEXT_ATTRIBUTE);
+        });
     }
 
     /**
