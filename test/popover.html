@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — popover</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-dropzone { display: block; width: 360px; }
+        .spacer { height: 380px; }
+    </style>
+</head>
+<body>
+    <h1>popover — placement, dismissal, summary-template</h1>
+    <p>Targeted by <code>e2e/popover.spec.ts</code>.</p>
+    <button id="outside" type="button">outside</button>
+
+    <div class="fixture">
+        <div class="fixture-label">default placement (bottom-start), summary-template="{count} docs · {size}"</div>
+        <web-dropzone id="pop" accept="*/*" display-mode="compact" summary-template="{count} docs · {size}"></web-dropzone>
+    </div>
+
+    <div class="spacer"></div>
+
+    <div class="fixture">
+        <div class="fixture-label">popover-placement="top-end"</div>
+        <web-dropzone id="top" style="margin-left: 300px" accept="*/*" display-mode="compact" popover-placement="top-end"></web-dropzone>
+    </div>
+
+    <script type="module">
+        import '/src/index.ts';
+        import { installAddNamed } from './fixture-kit.js';
+        installAddNamed();
+        customElements.whenDefined('web-dropzone').then(() => { window.__ready = true; });
+    </script>
+</body>
+</html>

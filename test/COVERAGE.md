@@ -27,6 +27,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `icon` attribute on minimal selector                          | ✓      | `display.spec.ts` | `display.html` |
 | Count badge on button when files exist                        | ✓      | `appearance.spec.ts` | `appearance.html` |
 | Count badge on minimal when files exist                       | ✗      |                  |                |
+| `multiple` default / `multiple="false"` / `el.multiple` live on the native input + dialog | ✓ | `display.spec.ts` | `display.html` |
 
 ## 2. List appearance
 
@@ -62,6 +63,9 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `validateCallback` (custom sync rule)                         | ✓      | `validation.spec.ts` | `validation.html`  |
 | Duplicate detection — `dedupe-mode="name"` (default)          | ✓      | `validation-rules.spec.ts` | `validation-rules.html` |
 | `dedupe-mode="none"` allows duplicates                        | ✓      | `validation-rules.spec.ts` | `validation-rules.html` |
+| `dedupe-mode="name-size"` (across adds and within one batch)  | ✓      | `validation-rules.spec.ts` | `validation-rules.html` |
+| `accept=".pdf,.docx"` extension list, case-insensitive        | ✓      | `validation-rules.spec.ts` | `validation-rules.html` |
+| One batch → one `files-reject` with mixed codes (type/size/count) | ✓  | `validation-rules.spec.ts` | `validation-rules.html` |
 | `beforeFilesAddCallback` async gate (accept)                | ✓      | `gates.spec.ts`      | `gates.html`       |
 | `beforeFilesAddCallback` async gate (cancel, code='cancelled') | ✓   | `gates.spec.ts`      | `gates.html`       |
 | `beforeFilesAddCallback` receives ctx `{ files, existingFiles }` | ✓      | `gates.spec.ts`      | `gates.html`       |
@@ -77,7 +81,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `file-remove` fires with `{ file }`-only detail              | ✓      | `events.spec.ts` | `events.html` |
 | `change` fires with empty detail (native input convention)    | ✓      | `events.spec.ts` | `events.html` |
 | `files-change` rAF-coalesces a multi-file batch              | ✓      | `events.spec.ts` | `events.html` |
-| `files-reject` carries grouped rejections                   | △      | `validation.spec.ts` | `validation.html` |
+| `files-reject` carries grouped rejections                   | ✓      | `validation.spec.ts`, `validation-rules.spec.ts` | `validation.html`, `validation-rules.html` |
 | `file-progress` / `file-status-change` during upload         | ✓      | `upload.spec.ts` | `upload.html`  |
 | `file-update` after handler post-merges metadata             | ✓      | `events-extra.spec.ts` | `events-extra.html` |
 | `file-delete` only for files with server state (with `file-remove`; `clear()` too) | ✓ | `events-extra.spec.ts` | `events-extra.html` |
@@ -151,6 +155,11 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `mode="headless"` still fires every event                     | ✓      | `architecture.spec.ts` | `architecture.html` |
 | Multiple pickers contribute to one store (Mode A: shared)     | ✓      | `architecture.spec.ts` | `architecture.html` |
 | Multiple independent stores on one page                       | ✓      | `architecture.spec.ts` | `architecture.html` |
+| Picker `label` / `hint` / `selector-appearance` / `disabled` (per picker) | ✓ | `satellites-extra.spec.ts` | `satellites-extra.html` |
+| Picker `inside="true"` + nested list (files-inside layout)    | ✓      | `satellites-extra.spec.ts` | `satellites-extra.html` |
+| List `empty-message`, `list-appearance` (+ live change)       | ✓      | `satellites-extra.spec.ts` | `satellites-extra.html` |
+| Indicator `position` / `drawer` (auto toggles, off = status chip) / `label` | ✓ | `satellites-extra.spec.ts` | `satellites-extra.html` |
+| Progress `data-empty` / `data-status` (uploading → paused → error → complete) | ✓ | `satellites-extra.spec.ts` | `satellites-extra.html` |
 
 ## 8. Drag overlay
 
@@ -285,3 +294,37 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | A move doesn't rebuild (`ready` once)                         | ✗      | `lifecycle.spec.ts` (test.fail NOTES #4) | `lifecycle.html` |
 | After a move: drops work, controller live                     | ✓      | `lifecycle.spec.ts` | `lifecycle.html` |
 | Moved overlay dropzone: one overlay; removed one: none        | ✓      | `lifecycle.spec.ts` | `lifecycle.html` |
+
+## 18. Allowlists (`controls` / `item-controls`)
+
+| Feature                                                       | Status | Spec              | Fixture         |
+| ------------------------------------------------------------- | :----: | ----------------- | --------------- |
+| `controls` unset / subset / unknown tokens ignored            | ✓      | `controls.spec.ts` | `controls.html` |
+| `controls` change after build remounts surfaces               | ✓      | `controls.spec.ts` | `controls.html` |
+| `item-controls` renders only the listed row parts (+ live)    | ✓      | `controls.spec.ts` | `controls.html` |
+
+## 19. Persistence (`storage-key`)
+
+| Feature                                                       | Status | Spec                 | Fixture            |
+| ------------------------------------------------------------- | :----: | -------------------- | ------------------ |
+| Popover resize writes `dz-state:<key>` to localStorage        | ✓      | `persistence.spec.ts` | `persistence.html` |
+| Reload restores the popover size                              | ✓      | `persistence.spec.ts` | `persistence.html` |
+| No `storage-key` → nothing written                            | ✓      | `persistence.spec.ts` | `persistence.html` |
+| `persistStateCallback({ key, state })` / `loadStateCallback({ key })` | ✓ | `persistence.spec.ts` | `persistence.html` |
+
+## 20. Popover (compact)
+
+| Feature                                                       | Status | Spec             | Fixture        |
+| ------------------------------------------------------------- | :----: | ---------------- | -------------- |
+| Default placement bottom-start; `popover-placement="top-end"` | ✓      | `popover.spec.ts` | `popover.html` |
+| Escape / outside click close; inside click stays; summary toggles; Enter opens | ✓ | `popover.spec.ts` | `popover.html` |
+| `summary-template` `{count}` / `{size}` (+ default, live change) | ✓   | `popover.spec.ts` | `popover.html` |
+
+## 21. File icons
+
+| Feature                                                       | Status | Spec           | Fixture      |
+| ------------------------------------------------------------- | :----: | -------------- | ------------ |
+| Built-in category icon + modifier class                       | ✓      | `icons.spec.ts` | `icons.html` |
+| `fileIcons` by extension (case/dot-insensitive) and category  | ✓      | `icons.spec.ts` | `icons.html` |
+| `getFileIconCallback` wins; `null` falls back; ctx shape      | ✓      | `icons.spec.ts` | `icons.html` |
+| `fileIcons` assigned after rows exist re-renders              | ✓      | `icons.spec.ts` | `icons.html` |

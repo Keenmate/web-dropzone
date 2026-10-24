@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — persistence (storage-key)</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>web-dropzone { display: block; max-width: 420px; }</style>
+</head>
+<body>
+    <h1>persistence — storage-key / persistStateCallback / loadStateCallback</h1>
+    <p>Targeted by <code>e2e/persistence.spec.ts</code>. The persisted UI state is the user-resized popover size.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">storage-key="docs" → localStorage dz-state:docs</div>
+        <web-dropzone id="ls" storage-key="docs" accept="*/*" display-mode="compact"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">storage-key="cb" + persistStateCallback / loadStateCallback (in-memory sink)</div>
+        <web-dropzone id="cb" storage-key="cb" accept="*/*" display-mode="compact"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">no storage-key → nothing persisted</div>
+        <web-dropzone id="none" accept="*/*" display-mode="compact"></web-dropzone>
+    </div>
+
+    <script type="module">
+        import '/src/index.ts';
+        import { installAddNamed } from './fixture-kit.js';
+        installAddNamed();
+
+        // In-memory sink for #cb; every call is recorded for the spec.
+        window.__persistCalls = [];
+        window.__loadCalls = [];
+        window.__sink = { popoverWidth: 333, popoverHeight: 222 };
+        customElements.whenDefined('web-dropzone').then(() => {
+            const cb = document.getElementById('cb');
+            cb.persistStateCallback = ({ key, state }) => {
+                window.__persistCalls.push({ key, state });
+                window.__sink = state;
+            };
+            cb.loadStateCallback = ({ key }) => {
+                window.__loadCalls.push({ key });
+                return window.__sink;
+            };
+            window.__ready = true;
+        });
+    </script>
+</body>
+</html>

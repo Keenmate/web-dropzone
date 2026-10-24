@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — file icons</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>web-dropzone { display: block; max-width: 420px; }</style>
+</head>
+<body>
+    <h1>fileIcons map + getFileIconCallback</h1>
+    <p>Targeted by <code>e2e/icons.spec.ts</code>.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">default icons (detailed rows)</div>
+        <web-dropzone id="plain" accept="*/*" display-mode="detailed"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">fileIcons = { '.PDF': ext, text: category }</div>
+        <web-dropzone id="map" accept="*/*" display-mode="detailed"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">getFileIconCallback (returns null for non-.csv → falls back to fileIcons / default)</div>
+        <web-dropzone id="cb" accept="*/*" display-mode="detailed"></web-dropzone>
+    </div>
+
+    <script type="module">
+        import '/src/index.ts';
+        import { installAddNamed } from './fixture-kit.js';
+
+        window.__addTyped = (id, specs) => document.getElementById(id).addFiles(
+            specs.map((s) => new File(['x'], s.name, { type: s.type ?? '' })));
+        installAddNamed();
+
+        customElements.whenDefined('web-dropzone').then(() => {
+            document.getElementById('map').fileIcons = {
+                '.PDF': '<i class="ico-pdf">P</i>',
+                text: '<i class="ico-text">T</i>',
+            };
+            const cb = document.getElementById('cb');
+            cb.fileIcons = { text: '<i class="ico-text">T</i>' };
+            window.__iconCtx = [];
+            cb.getFileIconCallback = (ctx) => {
+                window.__iconCtx.push({ name: ctx.file.name, hasController: !!ctx.controller, isElement: ctx.element === cb });
+                return ctx.file.name.endsWith('.csv') ? '<i class="ico-csv">C</i>' : null;
+            };
+            window.__ready = true;
+        });
+    </script>
+</body>
+</html>

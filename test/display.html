@@ -37,6 +37,12 @@
         <web-dropzone id="native-i18n" selector-appearance="native" list-appearance="none" accept="*/*" select-files-text="Vybrat soubory" no-file-chosen-text="Žádný soubor"></web-dropzone>
     </div>
 
+    <div class="fixture">
+        <div class="fixture-label">multiple — default (no attribute) vs multiple="false"</div>
+        <web-dropzone id="multi-default" selector-appearance="card" list-appearance="list" accept="*/*"></web-dropzone>
+        <web-dropzone id="single" selector-appearance="card" list-appearance="list" accept="*/*" multiple="false"></web-dropzone>
+    </div>
+
     <script type="module">
         import '/src/index.ts';
     </script>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — controls / item-controls allowlists</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>web-dropzone { display: block; max-width: 420px; }</style>
+</head>
+<body>
+    <h1>controls / item-controls</h1>
+    <p>Targeted by <code>e2e/controls.spec.ts</code>.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">no allowlists (everything renders)</div>
+        <web-dropzone id="all" accept="*/*" display-mode="detailed"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">controls="picker"</div>
+        <web-dropzone id="picker-only" accept="*/*" display-mode="detailed" controls="picker"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">controls="list, overall-progress" (spaces + order tolerated)</div>
+        <web-dropzone id="no-picker" accept="*/*" display-mode="detailed" controls="list, overall-progress"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">controls="picker,list,bogus" (unknown tokens ignored)</div>
+        <web-dropzone id="no-progress" accept="*/*" display-mode="detailed" controls="picker,list,bogus"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">item-controls="name,remove" (detailed rows)</div>
+        <web-dropzone id="parts" accept="*/*" display-mode="detailed" item-controls="name,remove"></web-dropzone>
+    </div>
+
+    <script type="module">
+        import '/src/index.ts';
+        import { installAddNamed } from './fixture-kit.js';
+        installAddNamed();
+        customElements.whenDefined('web-dropzone').then(() => { window.__ready = true; });
+    </script>
+</body>
+</html>

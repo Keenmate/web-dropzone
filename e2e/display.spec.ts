@@ -87,3 +87,27 @@ test.describe('native + custom no-file-chosen-text', () => {
         await expect(i18n.locator('.dz__native__label')).toHaveText('Žádný soubor');
     });
 });
+
+test.describe('multiple', () => {
+    const input = (page: import('@playwright/test').Page, id: string) => dz(page, id).locator('input[type="file"]');
+
+    test('default: the native input allows multiple files and el.multiple is true', async ({ page }) => {
+        await expect(input(page, 'multi-default')).toHaveAttribute('multiple', '');
+        expect(await dz(page, 'multi-default').evaluate((el: any) => el.multiple)).toBe(true);
+    });
+
+    test('multiple="false": single-file input; the file dialog is single-select', async ({ page }) => {
+        await expect(input(page, 'single')).not.toHaveAttribute('multiple');
+        expect(await dz(page, 'single').evaluate((el: any) => el.multiple)).toBe(false);
+        const chooser = page.waitForEvent('filechooser');
+        await dz(page, 'single').locator('.dz__dropzone').click();
+        expect((await chooser).isMultiple()).toBe(false);
+    });
+
+    test('el.multiple toggles the native input live', async ({ page }) => {
+        await dz(page, 'multi-default').evaluate(async (el: any) => { el.multiple = false; await el.whenSettled(); });
+        await expect(input(page, 'multi-default')).not.toHaveAttribute('multiple');
+        await dz(page, 'single').evaluate(async (el: any) => { el.multiple = true; await el.whenSettled(); });
+        await expect(input(page, 'single')).toHaveAttribute('multiple', '');
+    });
+});

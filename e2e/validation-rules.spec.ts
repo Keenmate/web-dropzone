@@ -96,3 +96,53 @@ test.describe('dedupe-mode="none"', () => {
         expect(await dz(page, 'dedupe-none').evaluate((el: any) => el.files.length)).toBe(2);
     });
 });
+
+test.describe('dedupe-mode="name-size"', () => {
+    test('same name + same size is rejected as duplicate; same name + other size is accepted', async ({ page }) => {
+        await stage(page, 'dedupe-ns', [{ name: 'r.txt', size: 64 }]);
+        await stage(page, 'dedupe-ns', [{ name: 'r.txt', size: 64 }]);
+        await expect(log(page, 'dedupe-ns')).toContainText('duplicate r.txt');
+        await stage(page, 'dedupe-ns', [{ name: 'r.txt', size: 65 }]);
+        expect(await dz(page, 'dedupe-ns').evaluate((el: any) => el.files.map((f: any) => f.size))).toEqual([64, 65]);
+    });
+
+    test('a duplicate inside one batch is caught too', async ({ page }) => {
+        await stage(page, 'dedupe-ns', [{ name: 'b.txt', size: 10 }, { name: 'b.txt', size: 10 }]);
+        expect(await dz(page, 'dedupe-ns').evaluate((el: any) => el.files.length)).toBe(1);
+        await expect(log(page, 'dedupe-ns')).toContainText('duplicate b.txt');
+    });
+});
+
+test.describe('accept extension list', () => {
+    test('listed extensions pass regardless of case; others are rejected with code="type"', async ({ page }) => {
+        await stage(page, 'accept-ext', [
+            { name: 'a.pdf', size: 10, type: 'application/pdf' },
+            { name: 'B.PDF', size: 10, type: 'application/pdf' },
+            { name: 'c.Docx', size: 10 },
+            { name: 'd.txt', size: 10, type: 'text/plain' },
+            { name: 'pdf', size: 10 },
+        ]);
+        expect(await dz(page, 'accept-ext').evaluate((el: any) => el.files.map((f: any) => f.name)))
+            .toEqual(['a.pdf', 'B.PDF', 'c.Docx']);
+        await expect(log(page, 'accept-ext')).toContainText('type d.txt');
+        await expect(log(page, 'accept-ext')).toContainText('type pdf');
+    });
+});
+
+test.describe('mixed rejection codes', () => {
+    test('one batch → ONE files-reject carrying every rejected file with its own code', async ({ page }) => {
+        await stage(page, 'mixed', [
+            { name: 'ok1.txt', size: 10 },
+            { name: 'pic.png', size: 10, type: 'image/png' },
+            { name: 'big.txt', size: 500 },
+            { name: 'ok2.txt', size: 10 },
+            { name: 'over.txt', size: 10 },
+        ]);
+        expect(await dz(page, 'mixed').evaluate((el: any) => el.files.map((f: any) => f.name))).toEqual(['ok1.txt', 'ok2.txt']);
+        expect(await page.evaluate(() => (window as any).__mixedRejectEvents)).toBe(1);
+        const text = await log(page, 'mixed').textContent();
+        expect(text).toContain('type pic.png');
+        expect(text).toContain('size big.txt');
+        expect(text).toContain('count over.txt');
+    });
+});

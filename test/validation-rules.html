@@ -46,6 +46,24 @@
         <web-dropzone id="dedupe-none" dedupe-mode="none" accept="*/*" display-mode="detailed"></web-dropzone>
     </div>
 
+    <div class="fixture">
+        <div class="fixture-label">dedupe-mode="name-size" — same name + same size is a duplicate, same name + other size is not</div>
+        <web-dropzone id="dedupe-ns" dedupe-mode="name-size" accept="*/*" display-mode="detailed"></web-dropzone>
+        <div class="event-log" id="dedupe-ns-log"></div>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">accept=".pdf,.docx" — extension list, matched case-insensitively</div>
+        <web-dropzone id="accept-ext" accept=".pdf,.docx" display-mode="detailed"></web-dropzone>
+        <div class="event-log" id="accept-ext-log"></div>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">accept=".txt" max-file-size="100" max-file-count="2" — one batch, mixed rejection codes</div>
+        <web-dropzone id="mixed" accept=".txt" max-file-size="100" max-file-count="2" display-mode="detailed"></web-dropzone>
+        <div class="event-log" id="mixed-log"></div>
+    </div>
+
     <script type="module">
         import '/src/index.ts';
 
@@ -60,7 +78,10 @@
                 }
             });
         };
-        ['min-size', 'max-total', 'min-count', 'dedupe-name'].forEach(wireLog);
+        ['min-size', 'max-total', 'min-count', 'dedupe-name', 'dedupe-ns', 'accept-ext', 'mixed'].forEach(wireLog);
+        // Number of files-reject dispatches on #mixed (one batch → one event).
+        window.__mixedRejectEvents = 0;
+        document.getElementById('mixed').addEventListener('files-reject', () => { window.__mixedRejectEvents++; });
 
         // Track submit attempts on the min-count form
         document.getElementById('min-count-form').addEventListener('submit', (e) => {
