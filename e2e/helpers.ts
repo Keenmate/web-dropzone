@@ -63,3 +63,15 @@ export async function logLines(page: Page, area: string): Promise<string[]> {
     const text = await page.getByTestId(`${area}-log`).textContent();
     return (text ?? '').split('\n').filter(Boolean);
 }
+
+/**
+ * Count native file dialogs (`filechooser` events) for the rest of the test.
+ * Call it BEFORE `page.goto` (e.g. in beforeEach): Playwright enables
+ * file-chooser interception asynchronously when the first listener is added,
+ * so a listener attached right before a click/keypress can miss the event.
+ */
+export function trackFileChoosers(page: Page): () => number {
+    let n = 0;
+    page.on('filechooser', () => { n++; });
+    return () => n;
+}

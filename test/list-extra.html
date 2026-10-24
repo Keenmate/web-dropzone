@@ -50,6 +50,16 @@
         <web-dropzone id="grid-overlay" list-appearance="grid" grid-status="overlay" accept="image/*" max-file-count="10"></web-dropzone>
     </div>
 
+    <div class="fixture">
+        <div class="fixture-label">rolling-rotation="vertical" (outgoing row animates out)</div>
+        <web-dropzone id="roll-v" list-appearance="rolling" rolling-rotation="vertical" accept="*/*" auto-upload="false"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">rolling + render callbacks (structural; the spec assigns them)</div>
+        <web-dropzone id="roll-cb" mode="structural" list-appearance="rolling" accept="*/*" auto-upload="false"></web-dropzone>
+    </div>
+
     <script type="module">
         import '/src/index.ts';
         // Resolve uploads immediately so grid tiles reach `complete` — lets the

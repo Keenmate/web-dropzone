@@ -84,3 +84,16 @@ test.describe('button selector count badge', () => {
         await expect(b.locator('.dz__button__badge')).toHaveText('3');
     });
 });
+
+test.describe('minimal selector count badge', () => {
+    test('badge appears after add, follows removals, disappears when empty', async ({ page }) => {
+        const m = dz(page, 'minimal-badge');
+        await expect(m.locator('.dz__minimal__badge')).toHaveCount(0);
+        await addNamed(page, 'minimal-badge', ['a.txt', 'b.txt']);
+        await expect(m.locator('.dz__minimal__badge')).toHaveText('2');
+        await m.evaluate((el: any) => el.removeFile(el.files[0].id));
+        await expect(m.locator('.dz__minimal__badge')).toHaveText('1');
+        await m.evaluate((el: any) => el.clear());
+        await expect(m.locator('.dz__minimal__badge')).toHaveCount(0);
+    });
+});

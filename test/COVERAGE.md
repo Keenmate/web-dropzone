@@ -26,7 +26,9 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `card-size="minimal" \| "compact" \| "big"`                   | ✓      | `appearance.spec.ts` | `appearance.html` |
 | `icon` attribute on minimal selector                          | ✓      | `display.spec.ts` | `display.html` |
 | Count badge on button when files exist                        | ✓      | `appearance.spec.ts` | `appearance.html` |
-| Count badge on minimal when files exist                       | ✗      |                  |                |
+| Count badge on minimal when files exist (follows remove / clear) | ✓   | `appearance.spec.ts` | `appearance.html` |
+| `prompt-text` / `hint-text` / `empty-message` + live update   | ✓      | `display.spec.ts` | `display.html` |
+| `overlay-text` / `overlay-icon` + live update                 | ✓      | `display.spec.ts` | `display.html` |
 | `multiple` default / `multiple="false"` / `el.multiple` live on the native input + dialog | ✓ | `display.spec.ts` | `display.html` |
 
 ## 2. List appearance
@@ -40,6 +42,8 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `list-appearance="badges"` + `show-thumbnails`                | ✓      | `list-extra.spec.ts` | `list-extra.html` |
 | `list-appearance="popover"` summary + popover open + rows     | ✓      | `list-extra.spec.ts` | `list-extra.html` |
 | `list-appearance="rolling"`                                   | ✓      | `list-extra.spec.ts` | `list-extra.html` |
+| `rolling-rotation` slide-in / vertical (leaving row) / live change | ✓   | `list-extra.spec.ts` | `list-extra.html` |
+| Rolling render callbacks (body: markup / false / null; file-info + progress slots) | ✓ | `list-extra.spec.ts` | `list-extra.html` |
 | `list-appearance="none"`                                      | ✓      | `list.spec.ts` | `list.html` |
 | `max-visible-files` "Show N more" toggle (satellite renderer) | ✓      | `list.spec.ts` | `list.html` |
 | `--dz-file-list-max-height` (works through satellite)         | ✓      | `list-extra.spec.ts` | `list-extra.html` |
@@ -102,6 +106,8 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `controller.getOverallProgress()` aggregate                   | ✓      | `api.spec.ts`    | `api.html`    |
 | `el.controller` is a DropzoneController (method signatures)  | ✓      | `api.spec.ts`    | `api.html`    |
 | `.files` getter on host element                               | ✓      | `api.spec.ts`    | `api.html`    |
+| `uploadFile(id)` bypasses the concurrency cap; no duplicate run | ✓     | `api.spec.ts`    | `api.html`    |
+| `destroy()` aborts in-flight uploads, tears the UI down        | ✓     | `api.spec.ts`    | `api.html`    |
 
 ## 5. Upload pipeline
 
@@ -328,3 +334,14 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `fileIcons` by extension (case/dot-insensitive) and category  | ✓      | `icons.spec.ts` | `icons.html` |
 | `getFileIconCallback` wins; `null` falls back; ctx shape      | ✓      | `icons.spec.ts` | `icons.html` |
 | `fileIcons` assigned after rows exist re-renders              | ✓      | `icons.spec.ts` | `icons.html` |
+
+## 22. Keyboard + accessibility
+
+| Feature                                                       | Status | Spec          | Fixture     |
+| ------------------------------------------------------------- | :----: | ------------- | ----------- |
+| Card: one tab stop, `:focus-within` ring, Enter / Space open the dialog | ✓ | `a11y.spec.ts` | `a11y.html` |
+| Card control named after the prompt                           | ✗      | `a11y.spec.ts` (test.fail NOTES #13) | `a11y.html` |
+| Button: Enter opens the dialog; button / minimal accessible names | ✓  | `a11y.spec.ts` | `a11y.html` |
+| Button / minimal: single tab stop                             | ✗      | `a11y.spec.ts` (test.fail NOTES #14) | `a11y.html` |
+| Disabled dropzone skipped by Tab                              | ✓      | `a11y.spec.ts` | `a11y.html` |
+| Row ✕ named "Remove <file>"; Enter removes; status pill labelled | ✓   | `a11y.spec.ts` | `a11y.html` |

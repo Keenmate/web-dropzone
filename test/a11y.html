@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — keyboard + accessibility</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>web-dropzone { display: block; max-width: 420px; }</style>
+</head>
+<body>
+    <h1>keyboard + accessible names</h1>
+    <p>Targeted by <code>e2e/a11y.spec.ts</code>.</p>
+
+    <button id="start" type="button">start</button>
+    <div class="fixture">
+        <div class="fixture-label">card, prompt-text="Drop reports"</div>
+        <web-dropzone id="card" accept="*/*" display-mode="list" prompt-text="Drop reports"></web-dropzone>
+    </div>
+    <button id="after-card" type="button">after card</button>
+
+    <div class="fixture">
+        <div class="fixture-label">button, select-files-text="Browse files"</div>
+        <web-dropzone id="btn" accept="*/*" selector-appearance="button" list-appearance="list" select-files-text="Browse files"></web-dropzone>
+    </div>
+    <button id="after-btn" type="button">after button</button>
+
+    <div class="fixture">
+        <div class="fixture-label">minimal, prompt-text="Attach files"</div>
+        <web-dropzone id="min" accept="*/*" selector-appearance="minimal" list-appearance="list" prompt-text="Attach files"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">disabled card</div>
+        <button id="before-dis" type="button">before disabled</button>
+        <web-dropzone id="dis" disabled accept="*/*" display-mode="list"></web-dropzone>
+        <button id="after-dis" type="button">after disabled</button>
+    </div>
+
+    <script type="module">
+        import '/src/index.ts';
+        import { installAddNamed } from './fixture-kit.js';
+        installAddNamed();
+        customElements.whenDefined('web-dropzone').then(() => { window.__ready = true; });
+    </script>
+</body>
+</html>

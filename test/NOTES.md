@@ -193,6 +193,33 @@ supports the Mode B options.
 **Suggestion:** forward the optional `opts` (cheap, non-breaking). Not pinned as a
 failing test — the element-level signature is a design decision.
 
+## 13. The card's keyboard control has no meaningful accessible name (new, a11y)
+
+**Where:** `packages/web-dropzone/src/web-component-picker.ts` card branch (~233-260) —
+the only focusable element is the visually-hidden `<input type="file">`, rendered
+without `aria-label` / `aria-labelledby`.
+
+**Symptom:** a screen reader announces the card as "Choose File" — the prompt text
+(`prompt-text`, e.g. "Drop reports") is not part of the name.
+
+**Suggested fix:** `aria-label="${promptText}"` (or `aria-labelledby` pointing at
+`.dz__dropzone__text`) on the input.
+
+**Test status:** `a11y.spec.ts` › "the card control is named after the prompt" — `test.fail`.
+
+## 14. Button / minimal selectors have two tab stops (new, a11y)
+
+**Where:** `web-component-picker.ts` — the hidden file input is rendered (focusable) in
+every appearance; button / minimal add their own `<button>` after it.
+
+**Symptom:** Tab lands on an invisible input first (no focus ring — the
+`:focus-within` ring is card-only), then on the visible button.
+
+**Suggested fix:** `tabindex="-1"` on the input when the appearance has its own
+button (button / minimal / native).
+
+**Test status:** `a11y.spec.ts` › "the button selector is a single tab stop" — `test.fail`.
+
 ---
 
 ## Observations (not bugs)

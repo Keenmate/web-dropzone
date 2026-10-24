@@ -185,3 +185,31 @@ test.describe('controller.getOverallProgress aggregate', () => {
         expect(agg.totalBytes).toBeGreaterThan(0);
     });
 });
+
+test.describe('uploadFile(id) / destroy()', () => {
+    const pendingIds = (page: import('@playwright/test').Page) =>
+        page.evaluate(() => Array.from((window as any).__pending.keys()));
+
+    test('uploadFile(id) starts that file immediately, bypassing the concurrency cap (1)', async ({ page }) => {
+        await addNamed(page, 'upload', ['q1.txt', 'q2.txt']);
+        await dz(page, 'upload').evaluate((el: any) => { void el.uploadAll(); });
+        await expect.poll(() => pendingIds(page)).toEqual(['q1.txt']); // concurrency 1 → q2 waits
+        await dz(page, 'upload').evaluate((el: any) => { void el.uploadFile(el.files[1].id); });
+        await expect.poll(() => pendingIds(page)).toEqual(['q1.txt', 'q2.txt']);
+        // A second call for a file already in flight is a no-op (no duplicate handler run).
+        await dz(page, 'upload').evaluate((el: any) => { void el.uploadFile(el.files[1].id); });
+        await page.waitForTimeout(100);
+        expect(await pendingIds(page)).toEqual(['q1.txt', 'q2.txt']);
+    });
+
+    test('destroy() aborts in-flight uploads and tears the UI down', async ({ page }) => {
+        await addNamed(page, 'upload', ['d.txt']);
+        await dz(page, 'upload').evaluate((el: any) => { void el.uploadAll(); });
+        await expect.poll(() => pendingIds(page)).toEqual(['d.txt']);
+        await dz(page, 'upload').evaluate((el: any) => el.destroy());
+        // The handler saw its AbortSignal fire (the fixture drops aborted pumps).
+        await expect.poll(() => pendingIds(page)).toEqual([]);
+        await expect(dz(page, 'upload').locator('.dz__file-item')).toHaveCount(0);
+        await expect(dz(page, 'upload').locator('.dz__dropzone')).toHaveCount(0);
+    });
+});

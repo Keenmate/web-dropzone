@@ -160,3 +160,68 @@ test.describe('popover content', () => {
         await expect(p.locator('.dz__popover__row')).toHaveCount(3);
     });
 });
+
+test.describe('rolling-rotation', () => {
+    const removeFront = (page: import('@playwright/test').Page, id: string) =>
+        dz(page, id).evaluate((el: any) => el.removeFile(el.files[0].id));
+
+    test('default slide-in: the front row is replaced in place (no leaving row)', async ({ page }) => {
+        await addNamed(page, 'rolling', ['a.txt', 'b.txt']);
+        const r = dz(page, 'rolling');
+        await expect(r.locator('.dz__file-list--rolling')).toHaveAttribute('data-rotation', 'slide-in');
+        await removeFront(page, 'rolling');
+        await expect(r.locator('.dz__rolling__current .dz__file-item__name')).toHaveText('b.txt');
+        await expect(r.locator('.dz__rolling__current--leaving')).toHaveCount(0);
+    });
+
+    test('vertical: the outgoing row stays briefly as --leaving, then is removed', async ({ page }) => {
+        await addNamed(page, 'roll-v', ['a.txt', 'b.txt']);
+        const r = dz(page, 'roll-v');
+        await expect(r.locator('.dz__file-list--rolling')).toHaveAttribute('data-rotation', 'vertical');
+        await removeFront(page, 'roll-v');
+        await expect(r.locator('.dz__rolling__current--leaving')).toHaveCount(1);
+        await expect(r.locator('.dz__rolling__current:not(.dz__rolling__current--leaving) .dz__file-item__name')).toHaveText('b.txt');
+        await expect(r.locator('.dz__rolling__current--leaving')).toHaveCount(0, { timeout: 2000 });
+    });
+
+    test('a live rolling-rotation change applies to the wrapper', async ({ page }) => {
+        await addNamed(page, 'roll-v', ['a.txt']);
+        await dz(page, 'roll-v').evaluate(async (el: any) => { el.setAttribute('rolling-rotation', 'horizontal'); await el.whenSettled(); });
+        await expect(dz(page, 'roll-v').locator('.dz__file-list--rolling')).toHaveAttribute('data-rotation', 'horizontal');
+    });
+});
+
+test.describe('rolling render callbacks', () => {
+    const set = (page: import('@playwright/test').Page, fn: string) =>
+        dz(page, 'roll-cb').evaluate(async (el: any, fn) => {
+            // eslint-disable-next-line no-new-func
+            new Function('el', fn)(el);
+            await el.whenSettled();
+        }, fn);
+
+    test('renderRollingBodyCallback: markup replaces the body; false hides it; null restores the default', async ({ page }) => {
+        await set(page, `el.renderRollingBodyCallback = (a) => '<div class="my-body">' + a.files.length + ' in queue</div>';`);
+        await addNamed(page, 'roll-cb', ['a.txt', 'b.txt']);
+        const r = dz(page, 'roll-cb');
+        await expect(r.locator('.my-body')).toHaveText('2 in queue');
+        await expect(r.locator('.dz__rolling__current')).toHaveCount(0);
+
+        await set(page, `el.renderRollingBodyCallback = () => false;`);
+        await addNamed(page, 'roll-cb', ['c.txt']);
+        await expect(r.locator('.dz__file-list--rolling')).toBeHidden();
+
+        await set(page, `el.renderRollingBodyCallback = () => null;`);
+        await addNamed(page, 'roll-cb', ['d.txt']);
+        await expect(r.locator('.dz__rolling__current')).toHaveCount(1);
+    });
+
+    test('renderRollingFileInfoCallback / renderRollingProgressCallback fill the row slots', async ({ page }) => {
+        await set(page, `
+            el.renderRollingFileInfoCallback = (a) => '<b class="fi">' + a.currentFile.name.toUpperCase() + '</b>';
+            el.renderRollingProgressCallback = (a) => '<i class="pg">' + a.overallPercent + '%</i>';`);
+        await addNamed(page, 'roll-cb', ['a.txt']);
+        const cur = dz(page, 'roll-cb').locator('.dz__rolling__current');
+        await expect(cur.locator('.fi')).toHaveText('A.TXT');
+        await expect(cur.locator('.pg')).toHaveText('0%');
+    });
+});

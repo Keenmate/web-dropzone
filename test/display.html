@@ -43,6 +43,18 @@
         <web-dropzone id="single" selector-appearance="card" list-appearance="list" accept="*/*" multiple="false"></web-dropzone>
     </div>
 
+    <div class="fixture">
+        <div class="fixture-label">prompt-text / hint-text / empty-message</div>
+        <web-dropzone id="texts" selector-appearance="card" list-appearance="list" accept="*/*"
+            prompt-text="Drag reports here" hint-text="Max 10 MB" empty-message="Nothing uploaded yet"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">overlay-text / overlay-icon</div>
+        <div id="ov-target" style="min-height: 60px; border: 1px dashed #cbd5e0;">overlay target</div>
+        <web-dropzone id="ov" overlay-target="ov-target" overlay-text="Drop to attach" overlay-icon="📥" accept="*/*" style="display:none"></web-dropzone>
+    </div>
+
     <script type="module">
         import '/src/index.ts';
     </script>

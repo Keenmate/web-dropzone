@@ -1,4 +1,4 @@
-import { test, expect, dz } from './fixtures';
+import { test, expect, dz, dragFiles } from './fixtures';
 
 /**
  * Section 1 — selector-appearance.
@@ -109,5 +109,38 @@ test.describe('multiple', () => {
         await expect(input(page, 'multi-default')).not.toHaveAttribute('multiple');
         await dz(page, 'single').evaluate(async (el: any) => { el.multiple = true; await el.whenSettled(); });
         await expect(input(page, 'single')).toHaveAttribute('multiple', '');
+    });
+});
+
+test.describe('text inputs', () => {
+    const card = (page: import('@playwright/test').Page) => dz(page, 'texts').locator('.dz__dropzone--card');
+    const setAttr = (page: import('@playwright/test').Page, id: string, name: string, value: string) =>
+        dz(page, id).evaluate(async (el: any, { name, value }) => { el.setAttribute(name, value); await el.whenSettled(); }, { name, value });
+
+    test('prompt-text and hint-text render in the card; live changes re-render', async ({ page }) => {
+        await expect(card(page).locator('.dz__dropzone__text')).toHaveText('Drag reports here');
+        await expect(card(page).locator('.dz__dropzone__hint')).toHaveText('Max 10 MB');
+        await setAttr(page, 'texts', 'prompt-text', 'Drop invoices');
+        await setAttr(page, 'texts', 'hint-text', 'PDF only');
+        await expect(card(page).locator('.dz__dropzone__text')).toHaveText('Drop invoices');
+        await expect(card(page).locator('.dz__dropzone__hint')).toHaveText('PDF only');
+    });
+
+    test('empty-message renders while empty; a live change re-renders', async ({ page }) => {
+        await expect(dz(page, 'texts').locator('.dz__empty')).toHaveText('Nothing uploaded yet');
+        await setAttr(page, 'texts', 'empty-message', 'Still empty');
+        await expect(dz(page, 'texts').locator('.dz__empty')).toHaveText('Still empty');
+    });
+
+    test('overlay-text / overlay-icon render in the overlay; live changes apply to the next drag', async ({ page }) => {
+        await dragFiles(page.locator('body'), 'dragenter');
+        await expect(page.locator('.dz__overlay__text')).toHaveText('Drop to attach');
+        await expect(page.locator('.dz__overlay__icon')).toHaveText('📥');
+        await page.keyboard.press('Escape');
+        await expect(page.locator('.dz__overlay')).toHaveCount(0);
+
+        await setAttr(page, 'ov', 'overlay-text', 'Release!');
+        await dragFiles(page.locator('body'), 'dragenter');
+        await expect(page.locator('.dz__overlay__text')).toHaveText('Release!');
     });
 });
