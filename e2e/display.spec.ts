@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from '@playwright/test';
+import { test, expect, dz } from './fixtures';
 
 /**
  * Section 1 — selector-appearance.
@@ -8,10 +8,6 @@ import { test, expect, Page, Locator } from '@playwright/test';
  */
 
 const PAGE = '/test/display.html';
-
-function dz(page: Page, id: string): Locator {
-    return page.locator(`#${id}`);
-}
 
 test.beforeEach(async ({ page }) => {
     await page.goto(PAGE);

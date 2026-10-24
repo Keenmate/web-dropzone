@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from '@playwright/test';
+import { test, expect, type Page, dz, log } from './fixtures';
 
 /**
  * Section 14 — additional validation rules.
@@ -9,14 +9,6 @@ import { test, expect, Page, Locator } from '@playwright/test';
  */
 
 const PAGE = '/test/validation-rules.html';
-
-function dz(page: Page, id: string): Locator {
-    return page.locator(`#${id}`);
-}
-
-function log(page: Page, id: string): Locator {
-    return page.locator(`#${id}-log`);
-}
 
 async function stage(page: Page, id: string, specs: Array<{ name: string; size: number; type?: string }>): Promise<void> {
     await page.evaluate(({ id, specs }) => (window as any).__stage(id, specs), { id, specs });

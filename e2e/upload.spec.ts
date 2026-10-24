@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from '@playwright/test';
+import { test, expect, dz, addNamed, pendingNames, resolveUpload, pumpProgress } from './fixtures';
 
 /**
  * Section 7 — upload pipeline.
@@ -14,26 +14,6 @@ import { test, expect, Page, Locator } from '@playwright/test';
  */
 
 const PAGE = '/test/upload.html';
-
-function dz(page: Page, id: string): Locator {
-    return page.locator(`#${id}`);
-}
-
-async function addNamed(page: Page, id: string, names: string[]): Promise<void> {
-    await page.evaluate(({ id, names }) => (window as any).__addNamed(id, names), { id, names });
-}
-
-async function pendingNames(page: Page): Promise<string[]> {
-    return page.evaluate(() => (window as any).__pendingNames());
-}
-
-async function resolveUpload(page: Page, name: string, outcome: 'ok' | 'fail' = 'ok'): Promise<void> {
-    await page.evaluate(({ name, outcome }) => (window as any).__resolve(name, outcome), { name, outcome });
-}
-
-async function pumpProgress(page: Page, name: string, pct: number): Promise<void> {
-    await page.evaluate(({ name, pct }) => (window as any).__progress(name, pct), { name, pct });
-}
 
 test.beforeEach(async ({ page }) => {
     await page.goto(PAGE);

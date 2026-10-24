@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from '@playwright/test';
+import { test, expect, type Page, dz } from './fixtures';
 
 /**
  * Section 5b — host-framework form delegation (`el.form` / `event.target.form`).
@@ -17,10 +17,6 @@ import { test, expect, Page, Locator } from '@playwright/test';
  */
 
 const PAGE = '/test/form.html';
-
-function dz(page: Page, id: string): Locator {
-    return page.locator(`#${id}`);
-}
 
 async function stage(page: Page, id: string, names: string[]): Promise<void> {
     await page.evaluate(({ id, names }) => (window as any).__stage(id, names), { id, names });

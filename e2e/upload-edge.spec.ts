@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from '@playwright/test';
+import { test, expect, dz, addNamed, pendingNames, resolveUpload, pumpProgress } from './fixtures';
 
 /**
  * Section 16 — upload pipeline edge cases.
@@ -10,26 +10,6 @@ import { test, expect, Page, Locator } from '@playwright/test';
  */
 
 const PAGE = '/test/upload-edge.html';
-
-function dz(page: Page, id: string): Locator {
-    return page.locator(`#${id}`);
-}
-
-async function addNamed(page: Page, id: string, names: string[]): Promise<void> {
-    await page.evaluate(({ id, names }) => (window as any).__addNamed(id, names), { id, names });
-}
-
-async function pendingNames(page: Page): Promise<string[]> {
-    return page.evaluate(() => (window as any).__pendingNames());
-}
-
-async function resolveUpload(page: Page, name: string, outcome: 'ok' | 'fail' = 'ok'): Promise<void> {
-    await page.evaluate(({ name, outcome }) => (window as any).__resolve(name, outcome), { name, outcome });
-}
-
-async function pumpProgress(page: Page, name: string, pct: number): Promise<void> {
-    await page.evaluate(({ name, pct }) => (window as any).__progress(name, pct), { name, pct });
-}
 
 test.beforeEach(async ({ page }) => {
     await page.goto(PAGE);
@@ -46,9 +26,11 @@ test.describe('progress-throttle', () => {
         for (let i = 1; i <= 10; i++) await pumpProgress(page, 't.txt', i * 10);
 
         // With a 200ms throttle, leading + trailing edge → at most ~2 events.
-        const count = await page.evaluate(() => (window as any).__throttleCount);
-        expect(count).toBeLessThan(10);
-        expect(count).toBeGreaterThan(0);
+        // The leading edge may already have been spent on the upload start
+        // (before the counter reset), so wait for the trailing edge.
+        const count = () => page.evaluate(() => (window as any).__throttleCount);
+        await expect.poll(count).toBeGreaterThan(0);
+        expect(await count()).toBeLessThan(10);
     });
 });
 

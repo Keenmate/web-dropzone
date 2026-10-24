@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from '@playwright/test';
+import { test, expect, type Page, dz, addNamed } from './fixtures';
 
 /**
  * Section 19 — remaining list-appearance variants.
@@ -11,14 +11,6 @@ import { test, expect, Page, Locator } from '@playwright/test';
  */
 
 const PAGE = '/test/list-extra.html';
-
-function dz(page: Page, id: string): Locator {
-    return page.locator(`#${id}`);
-}
-
-async function addNamed(page: Page, id: string, names: string[]): Promise<void> {
-    await page.evaluate(({ id, names }) => (window as any).__addNamed(id, names), { id, names });
-}
 
 async function addPng(page: Page, id: string, count: number): Promise<void> {
     await page.evaluate(({ id, count }) => (window as any).__addPng(id, count), { id, count });

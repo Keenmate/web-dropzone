@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from '@playwright/test';
+import { test, expect, type Page, dz, log } from './fixtures';
 
 /**
  * Section 5 — form integration.
@@ -11,14 +11,6 @@ import { test, expect, Page, Locator } from '@playwright/test';
  */
 
 const PAGE = '/test/form.html';
-
-function dz(page: Page, id: string): Locator {
-    return page.locator(`#${id}`);
-}
-
-function log(page: Page, id: string): Locator {
-    return page.locator(`#${id}-log`);
-}
 
 async function stage(page: Page, id: string, names: string[]): Promise<void> {
     await page.evaluate(

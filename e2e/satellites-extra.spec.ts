@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from '@playwright/test';
+import { test, expect, addNamed } from './fixtures';
 
 /**
  * Section 18 — indicator + progress satellites.
@@ -17,22 +17,6 @@ import { test, expect, Page, Locator } from '@playwright/test';
  */
 
 const PAGE = '/test/satellites-extra.html';
-
-function dz(page: Page, id: string): Locator {
-    return page.locator(`#${id}`);
-}
-
-async function addNamed(page: Page, id: string, names: string[]): Promise<void> {
-    await page.evaluate(({ id, names }) => (window as any).__addNamed(id, names), { id, names });
-}
-
-async function pendingNames(page: Page): Promise<string[]> {
-    return page.evaluate(() => (window as any).__pendingNames());
-}
-
-async function pumpProgress(page: Page, name: string, pct: number): Promise<void> {
-    await page.evaluate(({ name, pct }) => (window as any).__progress(name, pct), { name, pct });
-}
 
 test.beforeEach(async ({ page }) => {
     await page.goto(PAGE);

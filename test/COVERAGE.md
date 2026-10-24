@@ -43,6 +43,8 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `max-visible-files` "Show N more" toggle (satellite renderer) | ✓      | `list.spec.ts` | `list.html` |
 | `--dz-file-list-max-height` (works through satellite)         | ✓      | `list-extra.spec.ts` | `list-extra.html` |
 | `files-inside` layout                                         | ✓      | `list.spec.ts` | `list.html` |
+| `grid-layout="natural"` (equal-height justified rows)         | ✓      | `list-extra.spec.ts` | `list-extra.html` |
+| `grid-status="overlay"` (finished-tile veil + glyph)          | ✓      | `list-extra.spec.ts` | `list-extra.html` |
 | Legacy `display-mode` shorthand → orthogonal axes             | ✓      | `appearance.spec.ts` | `appearance.html`  |
 | Orthogonal attr overrides `display-mode` shorthand            | ✓      | `appearance.spec.ts` | `appearance.html`  |
 
@@ -148,12 +150,12 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `overlay-target` activates whole-area overlay                 | △      | `drag-overlay.spec.ts` | `drag-overlay.html` |
 | Two overlays don't steal each other's drags                   | ✗      |                       |                    |
 | Overlay enter / leave events                                  | △      | `drag-overlay.spec.ts` | `drag-overlay.html` |
+| `overlay-target="#id"` (documented selector form)             | ✗      | — NOTES.md #1          |                    |
 
-> **Known limitation:** Browser security blocks JS from synthesizing
-> `DragEvent` objects whose `DataTransfer.types` includes `"Files"`.
-> Two drag-overlay scenarios are marked `.fixme()` until a CDP-level
-> drag-injection helper is wired up. The contract still works in real
-> browsers — examples-drag-overlay.html exercises it manually.
+> Drags are synthetic: a constructed `DataTransfer` carrying real `File`
+> objects reports `types` including `"Files"` in Chromium, so
+> `page.evaluate` → `dispatchEvent(new DragEvent(...))` exercises the real
+> overlay code path (fixture helper `window.__drag`).
 
 ## 9. Form integration
 
@@ -163,7 +165,11 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Zero-files → no FormData entry under the configured name      | ✓      | `form.spec.ts` | `form.html` |
 | `form.reset()` clears selection (formResetCallback)           | ✓      | `form.spec.ts` | `form.html` |
 | Unnamed dropzone → no FormData entry at all                   | ✓      | `form.spec.ts` | `form.html` |
-| `min-file-count` blocks form submit via setValidity           | ✗      |                |             |
+| `min-file-count` blocks form submit via setValidity           | ✓      | `validation-rules.spec.ts` | `validation-rules.html` |
+| `el.form` resolves the owning `<form>` (even unnamed)         | ✓      | `form-delegation.spec.ts` | `form.html` |
+| Delegated `change` listener resolves `event.target.form`      | ✓      | `form-delegation.spec.ts` | `form.html` |
+| Dropzone outside any `<form>` → `el.form === null`            | ✓      | `form-delegation.spec.ts` | `form.html` |
+| `value-format` changes the submitted shape                    | ✗      | — NOTES.md #3 (no-op)  |             |
 
 ## 10. Theming
 
@@ -176,6 +182,9 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Disabled host carries `dz__dropzone--disabled` modifier       | ✓      | `theming.spec.ts` | `theming.html` |
 | Disabled host still accepts programmatic addFiles             | ✓      | `theming.spec.ts` | `theming.html` |
 | RTL (`dir="rtl"`) on parent inherits to the host              | ✓      | `theming.spec.ts` | `theming.html` |
+| Theme context: no page signal → inherits page, no `data-context-theme` | ✓ | `theme-context.spec.ts` | `theme-context.html` |
+| Theme context: `<html data-theme / data-bs-theme / .dark>` → dark (host + satellites) | ✓ | `theme-context.spec.ts` | `theme-context.html` |
+| Theme context: light page signal beats OS dark; per-instance `data-theme` wins; live switch | ✓ | `theme-context.spec.ts` | `theme-context.html` |
 
 
 ## 11. Logging

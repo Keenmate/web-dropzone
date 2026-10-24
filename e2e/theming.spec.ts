@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from '@playwright/test';
+import { test, expect, type Page, dz } from './fixtures';
 
 /**
  * Section 12 — CSS variable theming.
@@ -10,10 +10,6 @@ import { test, expect, Page, Locator } from '@playwright/test';
  */
 
 const PAGE = '/test/theming.html';
-
-function dz(page: Page, id: string): Locator {
-    return page.locator(`#${id}`);
-}
 
 async function cssvar(page: Page, id: string, name: string): Promise<string> {
     return page.evaluate(

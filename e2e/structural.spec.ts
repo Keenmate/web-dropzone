@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from '@playwright/test';
+import { test, expect, dz, addNamed } from './fixtures';
 
 /**
  * Section 9 — structural mode (mode="structural").
@@ -9,14 +9,6 @@ import { test, expect, Page, Locator } from '@playwright/test';
  */
 
 const PAGE = '/test/structural.html';
-
-function dz(page: Page, id: string): Locator {
-    return page.locator(`#${id}`);
-}
-
-async function addNamed(page: Page, id: string, names: string[]): Promise<void> {
-    await page.evaluate(({ id, names }) => (window as any).__addNamed(id, names), { id, names });
-}
 
 test.beforeEach(async ({ page }) => {
     await page.goto(PAGE);

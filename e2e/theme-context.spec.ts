@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Page } from './fixtures';
 
 /**
  * Dark / light via @keenmate/web-components-core's theme context: core detects the
@@ -9,7 +9,7 @@ import { test, expect, type Page } from '@playwright/test';
  * no prefers-color-scheme rule (same as web-multiselect / web-treeview).
  */
 
-const PAGE = '/test/satellites-extra.html';
+const PAGE = '/test/theme-context.html';
 const HOSTS = ['web-dropzone', 'web-dropzone-indicator', 'web-dropzone-progress'];
 
 const scheme = (page: Page, sel: string) =>

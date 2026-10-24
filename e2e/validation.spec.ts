@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from '@playwright/test';
+import { test, expect, type Locator, dz, log } from './fixtures';
 
 /**
  * Section 2 — validation gates.
@@ -11,14 +11,6 @@ import { test, expect, Page, Locator } from '@playwright/test';
  */
 
 const PAGE = '/test/validation.html';
-
-function dz(page: Page, id: string): Locator {
-    return page.locator(`#${id}`);
-}
-
-function log(page: Page, id: string): Locator {
-    return page.locator(`#${id}-log`);
-}
 
 async function addFiles(p: Locator, specs: Array<{ name: string; size: number; type?: string }>): Promise<void> {
     await p.evaluate((el: any, specs) => {

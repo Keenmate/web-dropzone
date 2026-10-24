@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from '@playwright/test';
+import { test, expect, type Page, dz } from './fixtures';
 
 /**
  * Section 4 — list-appearance.
@@ -11,10 +11,6 @@ import { test, expect, Page, Locator } from '@playwright/test';
  */
 
 const PAGE = '/test/list.html';
-
-function dz(page: Page, id: string): Locator {
-    return page.locator(`#${id}`);
-}
 
 async function stage(page: Page, id: string, count: number, type?: string): Promise<void> {
     await page.evaluate(

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — theme context</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-dropzone, web-dropzone-indicator, web-dropzone-progress { display: block; margin-top: 8px; max-width: 420px; }
+    </style>
+</head>
+<body>
+    <h1>theme context (data-context-theme)</h1>
+    <p>Targeted by <code>e2e/theme-context.spec.ts</code>. No page theme signal at load.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">a rendered dropzone + an indicator and a progress satellite bound to it</div>
+        <web-dropzone id="dz" accept="*/*" display-mode="list"></web-dropzone>
+        <web-dropzone-indicator for="dz"></web-dropzone-indicator>
+        <web-dropzone-progress for="dz"></web-dropzone-progress>
+    </div>
+
+    <script type="module">
+        import '/src/index.ts';
+    </script>
+</body>
+</html>

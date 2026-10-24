@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from '@playwright/test';
+import { test, expect, type Page, dz } from './fixtures';
 
 /**
  * Section 3 — event contract.
@@ -21,10 +21,6 @@ import { test, expect, Page, Locator } from '@playwright/test';
  */
 
 const PAGE = '/test/events.html';
-
-function dz(page: Page, id: string): Locator {
-    return page.locator(`#${id}`);
-}
 
 async function getEvents(page: Page, type: string): Promise<any[]> {
     return page.evaluate((t) => (window as any).__events[t], type);
