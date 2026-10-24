@@ -51,7 +51,7 @@
                 `<div class="custom-prompt">CUSTOM PROMPT</div>`;
 
             // 2) String-returning row callback
-            document.getElementById('item-str').renderFileItemCallback = (file) =>
+            document.getElementById('item-str').renderFileItemCallback = ({ file }) =>
                 `<div class="my-row" data-file-id="${file.id}">STR:${file.name}</div>`;
 
             // 3) HTMLElement-returning row callback. Listeners attached during
@@ -60,7 +60,7 @@
             //    instead of re-rendering. We expose window.__updateCounts so
             //    the spec can assert listener survival.
             window.__updateCounts = new Map();
-            document.getElementById('item-el').renderFileItemCallback = (file) => {
+            document.getElementById('item-el').renderFileItemCallback = ({ file }) => {
                 const row = document.createElement('div');
                 row.className = 'my-row-el';
                 row.dataset.fileId = file.id;
@@ -74,15 +74,15 @@
 
             // 4) renderListWrapperCallback — wrap rows in a <table>
             const wrapEl = document.getElementById('wrapper');
-            wrapEl.renderListWrapperCallback = (rowsHtml) =>
+            wrapEl.renderListWrapperCallback = ({ rowsHtml }) =>
                 `<table class="my-table"><tbody>${rowsHtml}</tbody></table>`;
-            wrapEl.renderFileItemCallback = (file) =>
+            wrapEl.renderFileItemCallback = ({ file }) =>
                 `<tr data-file-id="${file.id}"><td>WRAP:${file.name}</td></tr>`;
 
             // 5) Set the SAME callbacks on the non-structural dropzone — they
             //    must be ignored (hard switch). Specs assert the normal
             //    .dz__file-item--list rows still render instead.
-            document.getElementById('ignored').renderFileItemCallback = (file) =>
+            document.getElementById('ignored').renderFileItemCallback = ({ file }) =>
                 `<div class="should-be-ignored">${file.name}</div>`;
         });
 

@@ -127,7 +127,7 @@ test.describe('reorder-completed', () => {
 
         // The completed file's id should land at the end of the ordered set.
         const lastName = await dz(page, 'reorder').evaluate((el: any) => {
-            const store = el.getStore();
+            const store = el.controller;
             const ordered = store.getFiles().slice().sort((a: any, b: any) => {
                 // Use the renderer's getOrderedFiles via the same heuristic —
                 // completed files reorder after the rest.

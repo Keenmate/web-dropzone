@@ -1,17 +1,17 @@
 /**
- * WebDropzone - Renderer subclass of DropzoneCore.
+ * WebDropzone - Renderer subclass of DropzoneEngine.
  *
  * Phase A · Steps 1+2 of the core/renderer split (see ARCHITECTURE.md). All
- * non-DOM state and pipelines were moved to `./core/dropzone-core.ts`;
+ * non-DOM state and pipelines live in `DropzoneEngine`
+ * (`@keenmate/web-dropzone-core`);
  * this file owns rendering, the popover surface, the drag overlay, and
  * the DOM event wiring. Public API of `WebDropzone` is unchanged — both
  * core methods (inherited) and renderer methods are reachable as before.
  *
- * Step 2: state-change wiring runs through substrate events instead of
- * protected hooks. The renderer subscribes to `file-progress`,
- * `file-status-changed`, `file-updated`, `file-added`, `file-removed`,
- * and `change` on the host element and patches the DOM from those
- * listeners. Lifecycle hooks (`render`, `renderFileList`, `attach/
+ * State-change wiring: the engine's `notify()` calls the renderer's
+ * `onEngineEvent` hook (`file-progress`, `file-status-change`,
+ * `file-update`, `file-add`, `file-remove`, `change`) BEFORE the event is
+ * emitted, and the renderer patches the DOM there. Lifecycle hooks (`render`, `renderFileList`, `attach/
  * detachEventListeners`, `setup/cleanupOverlay`, `applyReorderToRenderer`,
  * `onDestroy`) stay as method overrides — they're not state-driven.
  *
@@ -24,13 +24,13 @@
 
 import { anchor } from '@keenmate/web-components-core/positioning';
 import type { Placement } from '@keenmate/web-components-core/positioning';
+import { dispatch } from '@keenmate/web-components-core';
 import {
     initLogger,
     uiLogger,
     interactionLogger,
-    dispatchComposedEvent,
     escapeHtml,
-    DropzoneCore,
+    DropzoneEngine,
     DEFAULT_CONFIG,
     formatFileSize,
     getFileTypeCategory,
@@ -46,14 +46,16 @@ import {
 } from './row-patching';
 import type {
     DropzoneConfig,
+    DropzoneEngineHost,
+    DropzoneEngineEventName,
+    EngineEventDetail,
     FileState,
     DisplayMode,
     SelectorAppearance,
     ListAppearance,
     DropzoneControl,
     RollingRotation,
-    CardSize,
-    FileItemRenderContext
+    CardSize
 } from '@keenmate/web-dropzone-core';
 
 // Re-export the shared pure helpers so existing consumers
@@ -124,16 +126,16 @@ function resolveDisplayConfig(config: DropzoneConfig): {
 }
 
 /**
- * WebDropzone - Renderer subclass of `DropzoneCore`.
+ * WebDropzone - Renderer subclass of `DropzoneEngine`.
  *
  * Inherits the file state, validation, upload pipeline, event emission,
  * reorder timers, persisted-state load/save, and overall-progress data
- * methods from `DropzoneCore`. This class adds the DOM rendering layer
+ * methods from `DropzoneEngine`. This class adds the DOM rendering layer
  * (popover, drag overlay, satellite mounting, click/keydown wiring) and
  * overrides the protected hooks declared on the base so core mutations
  * write back into the DOM.
  */
-export class WebDropzone extends DropzoneCore {
+export class WebDropzone extends DropzoneEngine {
     private dragActive = false;
     private popover: HTMLElement | null = null;
     private isPopoverOpen = false;
@@ -208,15 +210,14 @@ export class WebDropzone extends DropzoneCore {
     private boundHandleWindowBlur: () => void;
 
     /**
-     * Cleanup function returned by `attachSubstrateEventListeners`. Removes
-     * every renderer subscription (`file-progress`, `change`, etc.) from
-     * the host element. Called from `detachEventListeners` so a config-
-     * driven rebuild (`updateConfig`) doesn't double-subscribe.
+     * Whether `onEngineEvent` reacts. On between `attachEventListeners` and
+     * `detachEventListeners` (off during an `updateConfig` re-render and
+     * after destroy), mirroring the old substrate-listener lifetime.
      */
-    private substrateEventCleanup: (() => void) | null = null;
+    private isEngineEventWiringActive = false;
 
-    constructor(element: HTMLElement, config: DropzoneConfig = {}) {
-        super(element, config);
+    constructor(element: HTMLElement, config: DropzoneConfig = {}, host?: DropzoneEngineHost) {
+        super(element, config, host);
 
         // Bind event handlers
         this.boundHandleDragOver = this.handleDragOver.bind(this);
@@ -241,9 +242,8 @@ export class WebDropzone extends DropzoneCore {
     //
     // Only lifecycle / structural hooks are overridden here. State-change
     // wiring (per-file row patches, summary / selector badge / overall
-    // progress, popover refresh) runs through substrate-event listeners
-    // attached in `attachEventListeners` — see
-    // `attachSubstrateEventListeners` below.
+    // progress, popover refresh) runs through the engine's `onEngineEvent`
+    // / `onConfigApplied` hooks — see below.
     // ========================================================================
 
     /** Final teardown — close the popover (if open) then wipe the host
@@ -296,7 +296,7 @@ export class WebDropzone extends DropzoneCore {
      *
      * Notes on the satellite path:
      *  - `popover` is satellite — the list satellite renders the summary
-     *    anchor and dispatches `dz-summary-click`. The popover wrapper
+     *    anchor and dispatches `summary-activate`. The popover wrapper
      *    (Floating UI + resize + persistence) stays in-class and opens on
      *    that event via the bridge in `mountSatellites`.
      *  - `files-inside` is satellite — the picker satellite gets
@@ -381,20 +381,21 @@ export class WebDropzone extends DropzoneCore {
                 list.setAttribute('nested', 'true');
             }
             list.bindToStore?.(host);
-            // Rolling appearance's queue button dispatches `dz-queue-open`
+            // Rolling appearance's queue button dispatches `queue-open`
             // (the satellite owns no popover of its own). Bridge it to the
             // in-class popover so the convenience form behaves the same as
             // before. Standalone satellite consumers handle the event
-            // themselves.
+            // themselves. (Non-composed: inside this shadow root it never
+            // reaches the page.)
             if (listAppearance === 'rolling') {
-                list.addEventListener('dz-queue-open', () => this.togglePopover());
+                list.addEventListener('queue-open', () => this.togglePopover());
             }
             // Popover summary anchor: list satellite renders the summary
-            // line and fires `dz-summary-click` on activation. Convenience
+            // line and fires `summary-activate` on activation. Convenience
             // form opens the in-class popover from that event; standalone
             // consumers wire any UI.
             if (listAppearance === 'popover') {
-                list.addEventListener('dz-summary-click', () => this.togglePopover());
+                list.addEventListener('summary-activate', () => this.togglePopover());
             }
             if (insideMode && picker) {
                 // List becomes a light-DOM child of the picker so the
@@ -572,7 +573,7 @@ export class WebDropzone extends DropzoneCore {
      */
     private renderCardContent(cardSize: CardSize): string {
         if (this.isStructuralMode() && this.config.renderPromptCallback) {
-            const result = this.config.renderPromptCallback();
+            const result = this.config.renderPromptCallback(this.ctx({}));
             return typeof result === 'string' ? result : result.outerHTML;
         }
 
@@ -618,7 +619,7 @@ export class WebDropzone extends DropzoneCore {
     }
 
     /**
-     * Renderer-side reorder hook. Called from `DropzoneCore.scheduleReorder`'s
+     * Renderer-side reorder hook. Called from `DropzoneEngine.scheduleReorder`'s
      * timer when a file's reorder window elapses. Flips the inline row's
      * `data-reorder-bucket`, re-sorts the popover tbody if open, and
      * re-renders the cap-bounded list so any newly-eligible row drops out
@@ -701,7 +702,7 @@ export class WebDropzone extends DropzoneCore {
      * actions kicks off parallel uploads.
      */
     private bindListRemoveHandlers(root: ParentNode): void {
-        root.querySelectorAll<HTMLElement>('[data-action="remove"]').forEach(btn => {
+        root.querySelectorAll<HTMLElement>('[data-dz-action="remove"]').forEach(btn => {
             if (btn.dataset.dzBoundRemove === '1') return;
             btn.dataset.dzBoundRemove = '1';
             btn.addEventListener('click', (e) => {
@@ -710,7 +711,7 @@ export class WebDropzone extends DropzoneCore {
                 if (id) this.handleUserRemoveClick(id);
             });
         });
-        root.querySelectorAll<HTMLElement>('[data-action="row-action"]').forEach(btn => {
+        root.querySelectorAll<HTMLElement>('[data-dz-action="row-action"]').forEach(btn => {
             if (btn.dataset.dzBoundRowAction === '1') return;
             btn.dataset.dzBoundRowAction = '1';
             btn.addEventListener('click', (e) => {
@@ -732,7 +733,7 @@ export class WebDropzone extends DropzoneCore {
      * after a per-row X click.
      */
     private bindPopoverRemoveHandlers(root: ParentNode): void {
-        root.querySelectorAll('[data-action="remove"]').forEach(btn => {
+        root.querySelectorAll('[data-dz-action="remove"]').forEach(btn => {
             btn.addEventListener('click', () => {
                 const id = (btn as HTMLElement).dataset.fileId;
                 if (!id) return;
@@ -749,7 +750,7 @@ export class WebDropzone extends DropzoneCore {
         // takes care of the in-place patch (button swap + status pill swap),
         // so the row stays put and the click registered on the button doesn't
         // get torn out from under the user.
-        root.querySelectorAll('[data-action="row-action"]').forEach(btn => {
+        root.querySelectorAll('[data-dz-action="row-action"]').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const id = (btn as HTMLElement).dataset.fileId;
@@ -764,10 +765,10 @@ export class WebDropzone extends DropzoneCore {
      *   - `uploading` → cancelFile (abort + status flips to `cancelled`,
      *      row stays in the list with the Retry button available).
      *   - everything else → removeFile (drop from the list, fire
-     *      file-removed / file-deleted as appropriate).
+     *      file-remove / file-delete as appropriate).
      *
      * Apps that want single-click removal everywhere can listen to
-     * `file-removed` / `file-deleted` and bypass the two-step UX by
+     * `file-remove` / `file-delete` and bypass the two-step UX by
      * calling `removeFile(id)` directly from their own click handler.
      */
     private handleUserRemoveClick(id: string): void {
@@ -816,10 +817,10 @@ export class WebDropzone extends DropzoneCore {
 
                 if (cachedRowEl && existing === cachedRowEl) {
                     // Event-driven update: hand control to the consumer
-                    // via a CustomEvent on the row itself. Bubbles +
-                    // composed so listeners on the store element (or
-                    // anywhere above) can also observe.
-                    dispatchComposedEvent(cachedRowEl, 'file-row-update', { file });
+                    // via a CustomEvent on the row itself. Bubbles, not
+                    // composed (SPEC §12.5) — it stays inside the shadow
+                    // root; consumers listen on the row they returned.
+                    dispatch(cachedRowEl, 'file-row-update', this.ctx({ file }));
                 } else if (hasCustomRenderer) {
                     const next = this.htmlToElement(this.renderFileItem(file, index, false));
                     if (next) {
@@ -1118,7 +1119,7 @@ export class WebDropzone extends DropzoneCore {
             // Wrapper callback path. Element identity is sacrificed here
             // because the wrapper signature is string-based — documented.
             const itemsHtml = rows.map(r => typeof r.node === 'string' ? r.node : r.node.outerHTML).join('');
-            const wrapped = wrapperCb(itemsHtml, visible);
+            const wrapped = wrapperCb(this.ctx({ rowsHtml: itemsHtml, files: visible }));
             if (typeof wrapped === 'string') {
                 targetEl.innerHTML = wrapped + toggle;
             } else {
@@ -1166,8 +1167,7 @@ export class WebDropzone extends DropzoneCore {
         const { listAppearance } = resolveDisplayConfig(this.config);
         if (this.isStructuralMode() && this.config.renderFileItemCallback) {
             const displayMode = this.config.displayMode ?? this.deriveLegacyDisplayMode(listAppearance);
-            const context: FileItemRenderContext = { index, displayMode, isInPopover: false };
-            return this.config.renderFileItemCallback(file, context);
+            return this.config.renderFileItemCallback(this.ctx({ file, index, displayMode, isInPopover: false }));
         }
         // Fall through to the string-only path — same selection logic as
         // renderFileItem, popover branch removed.
@@ -1232,7 +1232,7 @@ export class WebDropzone extends DropzoneCore {
         // Status-surface body callback: lets users own the entire rolling
         // container (no animation slots, no queue badge). Skipped when
         // returns null (library default). `false` hides the rolling block.
-        const args = buildStatusSurfaceArgs(this.files, this);
+        const args = buildStatusSurfaceArgs(this.files, this.controller, this.contextElement);
         const bodyResult = this.isStructuralMode() && this.config.renderRollingBodyCallback
             ? this.config.renderRollingBodyCallback(args)
             : null;
@@ -1275,7 +1275,7 @@ export class WebDropzone extends DropzoneCore {
             // Same front, nothing to animate. Per-row tick updates land via
             // patchInlineRowInPlace elsewhere; here we just keep the badge
             // count fresh + refresh slot callbacks (so a re-render driven
-            // by file-status-changed picks up the new state).
+            // by file-status-change picks up the new state).
             this.applyRollingSlots(previousCurrent, args);
             this.updateRollingQueueButton(targetEl, queueCount, showQueueBtn);
             return;
@@ -1363,7 +1363,7 @@ export class WebDropzone extends DropzoneCore {
             queueBtn = document.createElement('button');
             queueBtn.type = 'button';
             queueBtn.className = 'dz__rolling__queue';
-            queueBtn.dataset.action = 'open-queue';
+            queueBtn.dataset.dzAction = 'open-queue';
             queueBtn.innerHTML = '<span class="dz__rolling__queue-count"></span>';
             queueBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -1406,21 +1406,21 @@ export class WebDropzone extends DropzoneCore {
 
         if (this.showAllList) {
             return isBadges
-                ? `<button type="button" class="dz__badge dz__badge--more" data-action="toggle-visible" aria-label="Show fewer">−</button>`
-                : `<button type="button" class="dz__show-more" data-action="toggle-visible">Show less</button>`;
+                ? `<button type="button" class="dz__badge dz__badge--more" data-dz-action="toggle-visible" aria-label="Show fewer">−</button>`
+                : `<button type="button" class="dz__show-more" data-dz-action="toggle-visible">Show less</button>`;
         }
 
         const hidden = this.files.length - cap;
         return isBadges
-            ? `<button type="button" class="dz__badge dz__badge--more" data-action="toggle-visible" aria-label="Show ${hidden} more">+${hidden}</button>`
-            : `<button type="button" class="dz__show-more" data-action="toggle-visible">Show ${hidden} more</button>`;
+            ? `<button type="button" class="dz__badge dz__badge--more" data-dz-action="toggle-visible" aria-label="Show ${hidden} more">+${hidden}</button>`
+            : `<button type="button" class="dz__show-more" data-dz-action="toggle-visible">Show ${hidden} more</button>`;
     }
 
     /** Attach the "Show more / Show less" click handler within a subtree.
      *  Only used by the inline list — the popover scrolls internally, so its
      *  body is never sliced. */
     private bindToggleHandler(root: ParentNode): void {
-        root.querySelectorAll('[data-action="toggle-visible"]').forEach(btn => {
+        root.querySelectorAll('[data-dz-action="toggle-visible"]').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.showAllList = !this.showAllList;
@@ -1437,8 +1437,7 @@ export class WebDropzone extends DropzoneCore {
         // derived from listAppearance.
         if (this.isStructuralMode() && this.config.renderFileItemCallback) {
             const displayMode = this.config.displayMode ?? this.deriveLegacyDisplayMode(listAppearance);
-            const context: FileItemRenderContext = { index, displayMode, isInPopover };
-            const result = this.config.renderFileItemCallback(file, context);
+            const result = this.config.renderFileItemCallback(this.ctx({ file, index, displayMode, isInPopover }));
             return typeof result === 'string' ? result : result.outerHTML;
         }
 
@@ -1522,9 +1521,11 @@ export class WebDropzone extends DropzoneCore {
             // `itemControls` allowlist → a Set the row templates filter on.
             // Undefined (absent) keeps the default "render every part" path.
             parts: this.config.itemControls ? new Set(this.config.itemControls) : undefined,
-            // Consumer icon overrides (fileIcons map + fileIconCallback). The
-            // config satisfies FileIconOverrides structurally, so pass it whole.
-            iconOverrides: this.config
+            // Consumer icon overrides (fileIcons map + getFileIconCallback). The
+            // config satisfies FileIconOverrides structurally, so pass it whole;
+            // the context base gives the per-row ctx its controller / element.
+            iconOverrides: this.config,
+            iconContext: this.contextBase
         };
     }
 
@@ -1636,7 +1637,7 @@ export class WebDropzone extends DropzoneCore {
 
         let content: string;
         if (this.isStructuralMode() && this.config.renderSummaryCallback) {
-            const result = this.config.renderSummaryCallback(this.files);
+            const result = this.config.renderSummaryCallback(this.ctx({ files: this.getFiles() }));
             content = typeof result === 'string' ? result : result.outerHTML;
         } else {
             const totalSize = this.files.reduce((sum, f) => sum + f.size, 0);
@@ -1765,8 +1766,8 @@ export class WebDropzone extends DropzoneCore {
                 <div class="dz__popover__header">
                     <span class="dz__popover__count">${escapeHtml(this.getFileCountLabel())}</span>
                     <div class="dz__popover__actions">
-                        ${this.config.isDisabled ? '' : `<button type="button" class="dz__popover__action" data-action="add-more">Add more</button>`}
-                        <button type="button" class="dz__popover__action" data-action="clear">Clear all</button>
+                        ${this.config.isDisabled ? '' : `<button type="button" class="dz__popover__action" data-dz-action="add-more">Add more</button>`}
+                        <button type="button" class="dz__popover__action" data-dz-action="clear">Clear all</button>
                     </div>
                 </div>
                 <div class="dz__popover__limits">${escapeHtml(this.getLimitsHint())}</div>
@@ -1787,7 +1788,7 @@ export class WebDropzone extends DropzoneCore {
         this.positionPopover();
 
         // Add event handlers
-        this.popover.querySelector('[data-action="clear"]')?.addEventListener('click', async () => {
+        this.popover.querySelector('[data-dz-action="clear"]')?.addEventListener('click', async () => {
             // User-initiated clear runs the confirm gate (if set). Popover
             // stays open until the user resolves so the dialog has surrounding
             // context, then closes.
@@ -1795,7 +1796,7 @@ export class WebDropzone extends DropzoneCore {
             this.closePopover();
         });
 
-        this.popover.querySelector('[data-action="add-more"]')?.addEventListener('click', () => {
+        this.popover.querySelector('[data-dz-action="add-more"]')?.addEventListener('click', () => {
             // Open the native file picker without dismissing the popover. The
             // input lives inside the dropzone (not the popover), so the
             // synthesised click from inputEl.click() would otherwise be picked
@@ -2008,13 +2009,13 @@ export class WebDropzone extends DropzoneCore {
         const pipelineActive = !!this.config.uploadFileCallback;
         const out: string[] = [];
         if (pipelineActive && o.uploadingCount > 0) {
-            out.push(`<button type="button" class="dz__overall-progress__action" data-action="pause-all">Pause all</button>`);
+            out.push(`<button type="button" class="dz__overall-progress__action" data-dz-action="pause-all">Pause all</button>`);
         }
         if (pipelineActive && o.pausedCount > 0) {
-            out.push(`<button type="button" class="dz__overall-progress__action" data-action="resume-all">Resume all</button>`);
+            out.push(`<button type="button" class="dz__overall-progress__action" data-dz-action="resume-all">Resume all</button>`);
         }
         if (o.failedCount > 0) {
-            out.push(`<button type="button" class="dz__overall-progress__action" data-action="retry-all">Retry all</button>`);
+            out.push(`<button type="button" class="dz__overall-progress__action" data-dz-action="retry-all">Retry all</button>`);
         }
         return out.join('');
     }
@@ -2040,19 +2041,19 @@ export class WebDropzone extends DropzoneCore {
      * the initial popover render, and the popover's footer refresh.
      */
     private bindOverallProgressHandlers(root: ParentNode): void {
-        root.querySelectorAll('[data-action="retry-all"]').forEach(btn => {
+        root.querySelectorAll('[data-dz-action="retry-all"]').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.retryAll();
             });
         });
-        root.querySelectorAll('[data-action="pause-all"]').forEach(btn => {
+        root.querySelectorAll('[data-dz-action="pause-all"]').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.pauseAll();
             });
         });
-        root.querySelectorAll('[data-action="resume-all"]').forEach(btn => {
+        root.querySelectorAll('[data-dz-action="resume-all"]').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 void this.resumeAll();
@@ -2294,11 +2295,9 @@ export class WebDropzone extends DropzoneCore {
             this.inputEl.addEventListener('change', this.boundHandleInputChange);
         }
 
-        // Substrate-event wiring (Phase A · Step 2). Replaces the direct
-        // method-dispatched hooks (patchFileRow / updateSummary / etc.) —
-        // the renderer reacts to events on its own host element instead
-        // of being called back by core. See `attachSubstrateEventListeners`.
-        this.attachSubstrateEventListeners();
+        // Engine-event wiring: `onEngineEvent` / `onConfigApplied` patch the
+        // DOM from engine happenings while this flag is on.
+        this.isEngineEventWiringActive = true;
     }
 
     protected override detachEventListeners(): void {
@@ -2316,122 +2315,76 @@ export class WebDropzone extends DropzoneCore {
         document.removeEventListener('click', this.boundHandleDocumentClick);
         document.removeEventListener('keydown', this.boundHandleKeyDown);
 
-        // Symmetric teardown for the substrate-event subscriptions wired in
-        // `attachEventListeners`. Without this, a `updateConfig` cycle
-        // (which calls detach then attach) would double-subscribe.
-        if (this.substrateEventCleanup) {
-            this.substrateEventCleanup();
-            this.substrateEventCleanup = null;
-        }
+        // Symmetric with `attachEventListeners`.
+        this.isEngineEventWiringActive = false;
     }
 
     /**
-     * Wire renderer-side reactions to the substrate events dispatched by
-     * `DropzoneCore`. Replaces the protected-hook pattern from Phase A ·
-     * Step 1 (`patchFileRow`, `updateSummary`, `updateOverallProgress`,
-     * `updatePopoverContent`, `onFileRemoved`, `onClearAll`,
-     * `isPopoverOpenForCore`) — none of those exist on core any more.
-     *
-     * Events bubble + composed off the host element, so a single
-     * `addEventListener` per type covers in-shadow, light-DOM, and
-     * cross-shadow consumers alike. Stored cleanup is invoked by
-     * `detachEventListeners`.
+     * Renderer-side reactions to engine happenings — called by the engine's
+     * `notify` BEFORE the event is emitted, so the DOM is current when
+     * consumers' listeners run. Inactive between `detachEventListeners` and
+     * `attachEventListeners` (an `updateConfig` re-render, destroy).
      */
-    private attachSubstrateEventListeners(): void {
-        // Granular per-file events ----------------------------------------
+    protected override onEngineEvent<K extends DropzoneEngineEventName>(name: K, detail: EngineEventDetail<K>): void {
+        if (!this.isEngineEventWiringActive) return;
+        switch (name) {
+            case 'file-progress':
+            case 'file-status-change':
+            case 'file-update': {
+                // Per-file row patch. patchFileRow's tail also refreshes the
+                // overall progress strip, so per-tick refreshes need nothing more.
+                const file = (detail as EngineEventDetail<'file-progress'>).file;
+                if (file) this.patchFileRow(file);
+                break;
+            }
+            case 'file-add':
+                // Add-more flow: when the popover is open and the user adds
+                // files via the "Add more" affordance, refresh the popover body
+                // so the new rows appear immediately.
+                if (this.isPopoverOpen) this.updatePopoverContent();
+                break;
+            case 'file-remove': {
+                const file = (detail as EngineEventDetail<'file-remove'>).file;
+                if (file) this.fileRowElements.delete(file.id);
+                break;
+            }
+            case 'change':
+                this.refreshAggregateSurfaces();
+                break;
+        }
+    }
 
-        const onFileProgress = (e: Event): void => {
-            const file = (e as CustomEvent<{ file: FileState }>).detail?.file;
-            if (!file) return;
-            this.patchFileRow(file);
-            // updateOverallProgress also handled inside patchFileRow's tail
-            // (it calls this.updateOverallProgress); calling it again here
-            // would be redundant. The tail path covers per-tick refreshes
-            // for both surfaces. Status changes and full-list changes still
-            // need their own listener entries below.
-        };
+    /** A config re-render (`updateConfig`) refreshes the same surfaces as `change`. */
+    protected override onConfigApplied(): void {
+        if (this.isEngineEventWiringActive) this.refreshAggregateSurfaces();
+    }
 
-        const onFileStatusChanged = (e: Event): void => {
-            const file = (e as CustomEvent<{ file: FileState }>).detail?.file;
-            if (!file) return;
-            this.patchFileRow(file);
-        };
+    /**
+     * Summary line, selector badge, overall progress strip and the open
+     * popover all depend on aggregate state — refreshed on every selection
+     * change (add / remove / clear) and after a config re-render.
+     */
+    private refreshAggregateSurfaces(): void {
+        // updateSummary already invokes updateSelectorBadge +
+        // updateOverallProgress internally, so no separate calls needed.
+        this.updateSummary();
 
-        const onFileUpdated = (e: Event): void => {
-            const file = (e as CustomEvent<{ file: FileState }>).detail?.file;
-            if (!file) return;
-            this.patchFileRow(file);
-        };
-
-        const onFileAdded = (_e: Event): void => {
-            // Add-more flow: when the popover is open and the user adds
-            // files via the "Add more" affordance, refresh the popover body
-            // so the new rows appear immediately. Replaces the
-            // `isPopoverOpenForCore` reverse-call hook.
-            if (this.isPopoverOpen) {
+        // Popover body refresh — only meaningful when open. If everything
+        // was just cleared, close the popover so it doesn't sit empty over
+        // the page.
+        if (this.isPopoverOpen) {
+            if (this.files.length === 0) {
+                this.closePopover();
+            } else {
                 this.updatePopoverContent();
             }
-        };
+        }
 
-        const onFileRemoved = (e: Event): void => {
-            const file = (e as CustomEvent<{ file: FileState }>).detail?.file;
-            if (!file) return;
-            this.fileRowElements.delete(file.id);
-        };
-
-        // Coarse "files changed" tick ------------------------------------
-
-        const onChange = (_e: Event): void => {
-            // Summary line, selector badge, and overall progress strip all
-            // depend on aggregate state. They used to be flushed by
-            // dedicated hooks called from add / remove / clear; now we
-            // refresh them all in one listener gated on the `change`
-            // event (fires from emitChangeEvent on every add/remove/clear,
-            // and from updateConfig after a re-render).
-            this.updateSummary();
-            // updateSummary already invokes updateSelectorBadge +
-            // updateOverallProgress internally, so no separate calls needed.
-
-            // Popover body refresh — only meaningful when open. Add-more
-            // also re-renders via the file-added listener above; the
-            // change listener catches removes / clears / external mutations.
-            if (this.isPopoverOpen) {
-                // If everything was just cleared, close the popover so it
-                // doesn't sit empty over the page.
-                if (this.files.length === 0) {
-                    this.closePopover();
-                } else {
-                    this.updatePopoverContent();
-                }
-            }
-
-            // Renderer-only flag reset on clear: the "Show all" toggle is
-            // a UI state that loses meaning once the queue is empty.
-            if (this.files.length === 0) {
-                this.showAllList = false;
-            }
-        };
-
-        const host = this.element;
-        host.addEventListener('file-progress',        onFileProgress);
-        host.addEventListener('file-status-changed',  onFileStatusChanged);
-        host.addEventListener('file-updated',         onFileUpdated);
-        host.addEventListener('file-added',           onFileAdded);
-        host.addEventListener('file-removed',         onFileRemoved);
-        host.addEventListener('change',               onChange);
-        // A config re-render (updateConfig) fires `dz-config-changed`, not the
-        // public `change` — refresh the same surfaces off it.
-        host.addEventListener('dz-config-changed',    onChange);
-
-        this.substrateEventCleanup = (): void => {
-            host.removeEventListener('file-progress',       onFileProgress);
-            host.removeEventListener('file-status-changed', onFileStatusChanged);
-            host.removeEventListener('file-updated',        onFileUpdated);
-            host.removeEventListener('file-added',          onFileAdded);
-            host.removeEventListener('file-removed',        onFileRemoved);
-            host.removeEventListener('change',              onChange);
-            host.removeEventListener('dz-config-changed',   onChange);
-        };
+        // Renderer-only flag reset on clear: the "Show all" toggle is
+        // a UI state that loses meaning once the queue is empty.
+        if (this.files.length === 0) {
+            this.showAllList = false;
+        }
     }
 
     private handleDragOver(e: DragEvent): void {
@@ -2478,8 +2431,8 @@ export class WebDropzone extends DropzoneCore {
 
     private handleClick(e: MouseEvent): void {
         // Don't trigger if clicking on remove or row-action button
-        if ((e.target as HTMLElement).closest('[data-action="remove"]')) return;
-        if ((e.target as HTMLElement).closest('[data-action="row-action"]')) return;
+        if ((e.target as HTMLElement).closest('[data-dz-action="remove"]')) return;
+        if ((e.target as HTMLElement).closest('[data-dz-action="row-action"]')) return;
 
         // The hidden input sits inside the dropzone, so when we open the file
         // picker programmatically (popover's "Add more", the dropzone's own
@@ -2674,9 +2627,7 @@ export class WebDropzone extends DropzoneCore {
                 transition: 'filter 140ms ease, border-color 140ms ease, box-shadow 140ms ease',
             });
             this.dragOverlay.classList.add('dz__overlay--hover');
-            dispatchComposedEvent(this.element, 'overlay-enter', {
-                overlayElement: this.dragOverlay
-            });
+            this.notify('overlay-enter', { overlayElement: this.dragOverlay });
         };
         const revertOverlayHover = (): void => {
             if (!this.dragOverlay || !isOverlayHovered) return;
@@ -2687,9 +2638,7 @@ export class WebDropzone extends DropzoneCore {
                 boxShadow: '',
             });
             this.dragOverlay.classList.remove('dz__overlay--hover');
-            dispatchComposedEvent(this.element, 'overlay-leave', {
-                overlayElement: this.dragOverlay
-            });
+            this.notify('overlay-leave', { overlayElement: this.dragOverlay });
         };
 
         // Handle drag events on overlay

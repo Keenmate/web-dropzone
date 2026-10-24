@@ -360,7 +360,7 @@
 }
 
 /* Per-badge action button (pause / resume / retry) — small inline
-   glyph sitting after the filename. Same data-action="row-action"
+   glyph sitting after the filename. Same data-dz-action="row-action"
    wiring as list/detailed, but display:none when no action applies
    so the badge shrinks rather than reserving an empty slot (badges
    are inline-flex; layout reservation isn't meaningful since each

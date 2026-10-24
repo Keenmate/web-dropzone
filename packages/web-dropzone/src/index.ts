@@ -29,13 +29,14 @@ export type {
     StatusSurfaceArgs,
     StatusSurfaceCallback,
     StatusSurfaceResult,
-    StatusAggregate,
-    DropzoneStoreAPI
+    StatusAggregate
 } from '@keenmate/web-dropzone-core';
 export { createDropzoneSpinner, STATUS_ICONS, STATUS_LABELS, ACTION_ICONS, ACTION_LABELS, actionForStatus } from '@keenmate/web-dropzone-core';
 export type { RowAction } from '@keenmate/web-dropzone-core';
 
-// Export the base class if users want direct access
+// The renderer class, for standalone use without the custom element (it
+// extends the headless `DropzoneEngine`; `<web-dropzone>` never exposes it —
+// the element's public API is `el.controller`).
 export { WebDropzone } from './dropzone';
 export { formatFileSize, getFileTypeCategory, getFileIcon, isImageFile, createImagePreview } from '@keenmate/web-dropzone-core';
 
@@ -48,24 +49,48 @@ export type {
     FileState,
     ValidationResult,
     RejectedFile,
-    FileItemRenderContext,
     DropzoneConfig,
-    FileAddedEventDetail,
-    FileRemovedEventDetail,
-    FilesRejectedEventDetail,
-    ChangeEventDetail,
-    DropzoneEventDetail,
     FileTypeCategory,
     FileIconOverrides,
     AddFilesOptions,
     OverallProgress,
-    FileProgressEventDetail,
-    FileStatusChangedEventDetail,
-    FileUpdatedEventDetail,
-    FileRowUpdateEventDetail,
-    FilesChangedEventDetail,
     DropzoneControl,
-    FileItemPart
+    FileItemPart,
+    FileUploadHandler,
+    FileUploadResult,
+    // Interaction model — controller, callback contexts, event details
+    DropzoneController,
+    DropzoneContext,
+    ValidateContext,
+    BeforeFilesAddContext,
+    BeforeFilesRemoveContext,
+    FileIconContext,
+    FileUploadContext,
+    PersistStateContext,
+    LoadStateContext,
+    FileItemRenderContext,
+    ListWrapperRenderContext,
+    PromptRenderContext,
+    SummaryRenderContext,
+    CustomStylesContext,
+    DropzoneEventMap,
+    DropzoneListEventMap,
+    FileAddEventDetail,
+    FileRemoveEventDetail,
+    FilesChangeEventDetail,
+    ChangeEventDetail,
+    FilesRejectEventDetail,
+    FileRetryEventDetail,
+    FileUploadCompleteEventDetail,
+    FileDeleteEventDetail,
+    FileProgressEventDetail,
+    FileStatusChangeEventDetail,
+    FileUpdateEventDetail,
+    OverlayEventDetail,
+    ReadyEventDetail,
+    FileRowUpdateEventDetail,
+    SummaryActivateEventDetail,
+    QueueOpenEventDetail
 } from '@keenmate/web-dropzone-core';
 
 export { FILE_TYPE_ICONS, UI_ICONS } from '@keenmate/web-dropzone-core';
@@ -98,7 +123,7 @@ export {
 // upgrade with no programmatic binding — emitting a "store not found"
 // warning. Satellites tolerate the reverse race (store not yet upgraded)
 // via `resolveStoreElement` (tag-name check) + `whenStoreReady` (waits
-// for the `store-ready` event).
+// for the store's `ready` event).
 
 // Type declarations for build-time constants
 declare const __VERSION__: string;

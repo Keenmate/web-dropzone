@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — interaction model</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-dropzone { display: block; max-width: 420px; }
+    </style>
+</head>
+<body>
+    <h1>Interaction model — events, twins, controller, ctx, before-hooks</h1>
+    <p>Targeted by <code>e2e/interaction-model.spec.ts</code>.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">events + on* twins (bulk, list)</div>
+        <web-dropzone id="events" display-mode="list" accept="*/*"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">beforeFilesAddCallback — false cancels, File[] replaces</div>
+        <web-dropzone id="add-gate" display-mode="list" accept="*/*"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">beforeFilesRemoveCallback (row ✕) + validateCallback + getFileIconCallback</div>
+        <web-dropzone id="callbacks" display-mode="detailed" accept="*/*"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">uploadFileCallback ctx + file-upload-complete</div>
+        <web-dropzone id="upload" display-mode="list" accept="*/*"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">structural: render callbacks + file-row-update (not composed)</div>
+        <web-dropzone id="structural" mode="structural" display-mode="list" accept="*/*"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">structural rolling: renderRolling*Callback as element inputs</div>
+        <web-dropzone id="rolling" mode="structural" list-appearance="rolling" accept="*/*"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">structural compact: renderSummaryCallback + loadStateCallback</div>
+        <web-dropzone id="compact" mode="structural" display-mode="compact" storage-key="im-compact" accept="*/*"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">satellites: list (popover / rolling) + picker uploadFileCallback</div>
+        <web-dropzone id="sat-store"></web-dropzone>
+        <web-dropzone-picker id="sat-picker" for="sat-store"></web-dropzone-picker>
+        <web-dropzone-list id="sat-summary" for="sat-store" list-appearance="popover"></web-dropzone-list>
+        <web-dropzone-list id="sat-rolling" for="sat-store" list-appearance="rolling"></web-dropzone-list>
+    </div>
+
+    <script type="module">
+        import '/src/index.ts';
+
+        // Every observation goes into one ordered log; details are checked
+        // in the page (the controller / element can't cross page.evaluate).
+        window.__log = [];
+        window.__checks = [];
+        const log = (s) => window.__log.push(s);
+        const check = (label, detail, el) => {
+            window.__checks.push({
+                label,
+                hasController: detail.controller === el.controller,
+                hasElement: detail.element === el,
+                keys: Object.keys(detail).sort().join(','),
+                json: JSON.stringify(detail, (k, v) => (v instanceof File ? `File(${v.name})` : v))
+            });
+        };
+
+        const EVENTS = [
+            'file-add', 'file-remove', 'files-change', 'change', 'files-reject', 'file-retry',
+            'file-upload-complete', 'file-delete', 'file-progress', 'file-status-change',
+            'file-update', 'overlay-enter', 'overlay-leave', 'ready'
+        ];
+        const twinOf = (name) => 'on' + name.split('-').map(p => p[0].toUpperCase() + p.slice(1)).join('');
+
+        // Old (pre-2.0) names — must never fire.
+        const OLD = ['file-added', 'file-removed', 'files-changed', 'files-rejected', 'file-uploaded',
+            'file-deleted', 'file-status-changed', 'file-updated', 'store-ready', 'dz-summary-click', 'dz-queue-open'];
+
+        // `composed` is read off each event; a document-level listener proves
+        // the events still bubble out of the light DOM.
+        const events = document.getElementById('events');
+        for (const name of EVENTS) {
+            events[twinOf(name)] = (detail) => { log(`twin:${name}`); check(`twin:${name}`, detail, events); };
+            events.addEventListener(name, (e) => {
+                log(`event:${name}`);
+                if (e.composed) log(`composed:${name}`);
+            });
+        }
+        // The twin and the DOM event share ONE detail object.
+        window.__sameDetail = {};
+        events.onFileAdd = (d) => { window.__twinDetail = d; log('twin:file-add'); check('twin:file-add', d, events); };
+        events.addEventListener('file-add', (e) => { window.__sameDetail['file-add'] = e.detail === window.__twinDetail; });
+        for (const name of OLD) events.addEventListener(name, () => log(`OLD:${name}`));
+        document.addEventListener('file-add', (e) => { if (e.target === events) log('document:file-add'); });
+
+        customElements.whenDefined('web-dropzone').then(() => {
+            // ===== before-hooks =====
+            const addGate = document.getElementById('add-gate');
+            window.__addMode = 'continue';
+            addGate.beforeFilesAddCallback = async (ctx) => {
+                check('beforeFilesAdd', ctx, addGate);
+                log(`beforeFilesAdd files=${ctx.files.map(f => f.name).join(',')} existing=${ctx.existingFiles.length}`);
+                await new Promise(r => setTimeout(r, 10));
+                if (window.__addMode === 'cancel') return false;
+                if (window.__addMode === 'replace') {
+                    return ctx.files.map(f => new File([new Uint8Array(4)], `renamed-${f.name}`, { type: 'text/plain' }));
+                }
+                return undefined;
+            };
+            addGate.addEventListener('files-reject', (e) => {
+                for (const r of e.detail.rejectedFiles) log(`reject:${r.validation.code}:${r.file.name}`);
+            });
+
+            const cb = document.getElementById('callbacks');
+            window.__allowRemove = false;
+            cb.beforeFilesRemoveCallback = (ctx) => {
+                check('beforeFilesRemove', ctx, cb);
+                log(`beforeFilesRemove files=${ctx.files.map(f => f.name).join(',')} all=${ctx.allFiles.length}`);
+                return window.__allowRemove ? undefined : false;
+            };
+            cb.validateCallback = (ctx) => {
+                check('validate', ctx, cb);
+                return ctx.file.name.startsWith('bad') ? { valid: false, error: 'bad name' } : { valid: true };
+            };
+            cb.getFileIconCallback = (ctx) => {
+                if (!window.__iconChecked) { window.__iconChecked = true; check('getFileIcon', ctx, cb); }
+                return ctx.file.name.endsWith('.star') ? '<span class="im-star">★</span>' : null;
+            };
+            cb.getCustomStylesCallback = (ctx) => {
+                check('getCustomStyles', ctx, cb);
+                return '.dz__host { outline: 1px dashed rgb(1, 2, 3); }';
+            };
+
+            // ===== upload =====
+            const up = document.getElementById('upload');
+            window.__uploads = new Map();
+            up.uploadFileCallback = (ctx) => {
+                check('uploadFile', ctx, up);
+                log(`upload ${ctx.file.name} startBytes=${ctx.startBytes} startPercent=${ctx.startPercent} signal=${ctx.signal instanceof AbortSignal}`);
+                return new Promise((resolve) => window.__uploads.set(ctx.file.name, { ctx, resolve }));
+            };
+            window.__progress = (name, pct) => window.__uploads.get(name).ctx.setProgress(pct);
+            window.__finish = (name) => window.__uploads.get(name).resolve({ metadata: { serverId: 42 } });
+            up.onFileUploadComplete = (d) => { check('twin:file-upload-complete', d, up); log(`complete ${d.file.name} meta=${d.file.metadata?.serverId}`); };
+
+            // ===== structural =====
+            const st = document.getElementById('structural');
+            st.renderPromptCallback = (ctx) => { check('renderPrompt', ctx, st); return '<div class="im-prompt">Custom prompt</div>'; };
+            st.renderFileItemCallback = (ctx) => {
+                check('renderFileItem', ctx, st);
+                const row = document.createElement('div');
+                row.className = 'im-row';
+                row.dataset.fileId = ctx.file.id;
+                row.textContent = `${ctx.index}:${ctx.file.name}:${ctx.displayMode}:${ctx.isInPopover}`;
+                row.addEventListener('file-row-update', (e) => {
+                    if (!window.__rowUpdateChecked) { window.__rowUpdateChecked = true; check('file-row-update', e.detail, st); }
+                    log(`row-update ${e.detail.file.name} composed=${e.composed}`);
+                });
+                return row;
+            };
+            st.addEventListener('file-row-update', () => log('HOST:file-row-update'));
+
+            // ===== rolling (inputs) =====
+            const ro = document.getElementById('rolling');
+            ro.renderRollingBodyCallback = (args) => {
+                if (!window.__rollingChecked) { window.__rollingChecked = true; check('renderRollingBody', args, ro); }
+                return `<div class="im-rolling">${args.aggregate.total} files · ${typeof args.controller.pauseAll}</div>`;
+            };
+
+            // ===== compact (summary + persistence) =====
+            const cp = document.getElementById('compact');
+            cp.renderSummaryCallback = (ctx) => {
+                check('renderSummary', ctx, cp);
+                return `<div class="dz__summary__line im-summary" tabindex="0" role="button">${ctx.files.length} staged</div>`;
+            };
+            cp.loadStateCallback = (ctx) => {
+                check('loadState', ctx, cp);
+                log(`loadState key=${ctx.key}`);
+                return null;
+            };
+
+            // ===== satellites =====
+            const store = document.getElementById('sat-store');
+            const picker = document.getElementById('sat-picker');
+            picker.uploadFileCallback = (ctx) => {
+                check('picker uploadFile', ctx, store);
+                log(`picker-upload ${ctx.file.name}`);
+                return Promise.resolve();
+            };
+            for (const id of ['sat-summary', 'sat-rolling']) {
+                const list = document.getElementById(id);
+                for (const name of ['summary-activate', 'queue-open']) {
+                    list.addEventListener(name, (e) => {
+                        check(`${id}:${name}`, e.detail, store);
+                        log(`${id}:${name} composed=${e.composed}`);
+                    });
+                }
+            }
+        });
+
+        window.__addNamed = (id, names) => {
+            const dz = document.getElementById(id);
+            const files = names.map(n => new File([new Uint8Array(64)], n, { type: 'text/plain' }));
+            return dz.controller.addFiles(files);
+        };
+    </script>
+</body>
+</html>

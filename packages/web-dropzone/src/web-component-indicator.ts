@@ -53,7 +53,6 @@ import type {
     StatusSurfaceArgs,
     StatusSurfaceCallback
 } from './status-surface';
-import type { DropzoneStoreAPI } from '@keenmate/web-dropzone-core';
 import type { DropzoneElement } from './web-component';
 import type { FileState, FileStatus } from '@keenmate/web-dropzone-core';
 
@@ -297,12 +296,12 @@ export class DropzoneIndicatorElement extends SatelliteElement {
 
     protected attachStoreSubscriptions(storeEl: DropzoneElement): () => void {
         return subscribeStoreEvents(storeEl, {
-            'file-added':           () => this.scheduleRefresh(),
-            'file-removed':         () => this.scheduleRefresh(),
+            'file-add':           () => this.scheduleRefresh(),
+            'file-remove':         () => this.scheduleRefresh(),
             'change':               () => this.scheduleRefresh(),
             'dz-config-changed':    () => this.scheduleRefresh(),
             'file-progress':        () => this.scheduleRefresh(),
-            'file-status-changed':  () => this.scheduleRefresh()
+            'file-status-change':  () => this.scheduleRefresh()
         });
     }
 
@@ -366,7 +365,7 @@ export class DropzoneIndicatorElement extends SatelliteElement {
     private refresh(): void {
         if (!this.store) return;
         const files = this.store.getFiles();
-        const args = buildStatusSurfaceArgs(files, this.store);
+        const args = buildStatusSurfaceArgs(files, this.storeEl!.controller, this.storeEl!);
 
         // ---- Chip dataset (drives color + 'empty' state via CSS) --------
         const nextStatus = args.overallStatus;

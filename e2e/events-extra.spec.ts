@@ -1,11 +1,11 @@
 import { test, expect, Page, Locator } from '@playwright/test';
 
 /**
- * Section 17 — file-updated, file-row-update, renderSummaryCallback.
+ * Section 17 — file-update, file-row-update, renderSummaryCallback.
  *
  * Fixture: test/events-extra.html.
  *
- *   - file-updated covers any FileState field write OTHER than
+ *   - file-update covers any FileState field write OTHER than
  *     progress/status (which have their own events). Fires from
  *     generatePreview (previewUrl) and the upload handler's post-success
  *     merge (metadata / downloadUrl / name).
@@ -46,12 +46,12 @@ test.beforeEach(async ({ page }) => {
     await page.waitForFunction(() => typeof (window as any).__addNamed === 'function');
 });
 
-test.describe('file-updated', () => {
+test.describe('file-update', () => {
     test('fires when the upload handler post-merges metadata onto the FileState', async ({ page }) => {
         await addNamed(page, 'updated', ['m.txt']);
         await expect.poll(() => pendingNames(page)).toContain('m.txt');
         // Handler resolves with { metadata } — the store merges and fires
-        // file-updated.
+        // file-update.
         await resolveUpload(page, 'm.txt', { metadata: { uploadId: 'abc' } });
         await expect(page.locator('#updated-log')).toContainText('updated m.txt');
     });

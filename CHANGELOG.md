@@ -7,6 +7,97 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+Proposed target: **2.0.0-rc01** (package.json unchanged until decided) — a major: the event,
+callback and store-access API below is breaking, so `^1.x` consumers must not auto-pull it.
+
+### Changed — BREAKING (interaction model, web-components-core rc15)
+
+Events and callbacks follow the shared KeenMate interaction model (web-components-core
+SPEC §12.5). No aliases — rename on upgrade.
+
+**Every callback takes ONE `ctx` argument; every ctx and every event detail carries
+`controller` (the public `DropzoneController`, also `el.controller`) and `element` (the
+`<web-dropzone>` host)** — both non-enumerable, so `JSON.stringify` / `Object.keys` / logs see
+only the data (a spread `{ ...detail }` drops them).
+
+**Store access**
+
+| Old | New |
+|---|---|
+| `el.getStore()` → the internal `WebDropzone` (`DropzoneStoreAPI`) | `el.controller` — the `DropzoneController` facade, built once, delegating to the live store (survives a rebuild); `controller.isReady` tells whether the store is built |
+| `DropzoneStoreAPI` (type) | `DropzoneController` (+ `createDropzoneController(getTarget)`) |
+| `DropzoneCore` (headless class) | `DropzoneEngine` — still exported for standalone use (`engine.controller` is its facade); `<web-dropzone>` never exposes it |
+| satellite `getStore()` | satellite `controller` (the bound store's controller, `null` until bound) |
+| `StatusSurfaceArgs.store` | `StatusSurfaceArgs.controller` (+ `element`) |
+| `dispatchComposedEvent` (export) | removed — events go through `emit()` / core `dispatch()` |
+
+**Events** — present tense, bubble, **not composed** (they no longer cross shadow roots; a
+listener on the element or any light-DOM ancestor still gets them), declared in the element's
+event table, each with a camelCase `on*` twin property that receives the same detail first
+(`el.onFileAdd = ({ file }) => …`).
+
+| Old | New | Detail |
+|---|---|---|
+| `file-added` | `file-add` / `onFileAdd` | `{ file }` |
+| `file-removed` | `file-remove` / `onFileRemove` | `{ file }` |
+| `files-changed` | `files-change` / `onFilesChange` | `{ changedIds, files }` |
+| `change` (no detail) | `change` / `onChange` | `{ files }` |
+| `files-rejected` | `files-reject` / `onFilesReject` | `{ rejectedFiles }` |
+| `file-retry` | `file-retry` / `onFileRetry` | `{ file }` |
+| `file-uploaded` | `file-upload-complete` / `onFileUploadComplete` | `{ file }` |
+| `file-deleted` | `file-delete` / `onFileDelete` | `{ file }` |
+| `file-progress` | `file-progress` / `onFileProgress` | `{ id, progress, status, file }` |
+| `file-status-changed` | `file-status-change` / `onFileStatusChange` | `{ id, prevStatus, nextStatus, file }` |
+| `file-updated` | `file-update` / `onFileUpdate` | `{ file }` |
+| `overlay-enter` / `overlay-leave` | same + `onOverlayEnter` / `onOverlayLeave` | `{ overlayElement }` |
+| `store-ready` | `ready` / `onReady` (the `data-ready` attribute stays) | context only |
+| `<web-dropzone-list>` `dz-summary-click` | `summary-activate` | context of the bound store |
+| `<web-dropzone-list>` `dz-queue-open` | `queue-open` | context of the bound store |
+| `file-row-update` (composed) | `file-row-update` — bubbles on the row element, not composed; listen on the row a `renderFileItemCallback` returned | `{ file }` + context |
+| `dz-config-changed` | internal re-render signal (non-bubbling) — not public API | — |
+
+**Callbacks**
+
+| Old | New |
+|---|---|
+| `beforeFilesAddedCallback(files, existingFiles)` → `boolean` | `beforeFilesAddCallback({ files, existingFiles })` — `false` cancels (files reported in `files-reject`, code `cancelled`), a `File[]` replaces the batch (validated again; the documented-but-ignored replacement now works), nothing continues; async OK |
+| `beforeFilesRemovedCallback(files, allFiles)` → `boolean` | `beforeFilesRemoveCallback({ files, allFiles })` — `false` cancels (only `false`: a falsy `undefined` used to cancel, now continues); async OK |
+| `validateCallback(file, existingFiles)` | `validateCallback({ file, existingFiles })` |
+| `fileIconCallback(file)` | `getFileIconCallback({ file })` |
+| `uploadFileCallback(file, onProgress, signal, context)` | `uploadFileCallback({ file, signal, setProgress, startBytes, startPercent, metadata, setMetadata, uploadMetadata })` |
+| picker `uploadCallback` / `FileState.uploadCallback` / `addFiles(files, { uploadCallback })` | `uploadFileCallback` (same ctx) |
+| `persistStateCallback(key, state)` / `loadStateCallback(key)` | `persistStateCallback({ key, state })` / `loadStateCallback({ key })` |
+| `renderFileItemCallback(file, { index, displayMode, isInPopover })` | `renderFileItemCallback({ file, index, displayMode, isInPopover })` |
+| `renderListWrapperCallback(rowsHtml, files)` | `renderListWrapperCallback({ rowsHtml, files })` |
+| `renderPromptCallback()` / `renderSummaryCallback(files)` | `renderPromptCallback(ctx)` / `renderSummaryCallback({ files })` |
+| `renderRolling{Body,FileInfo,Progress}Callback(args)` — config only | same ctx (`args.controller` replaces `args.store`), now settable `<web-dropzone>` inputs |
+| indicator `render{Body,FileInfo,Progress}Callback(args)` | names unchanged (the indicator has one surface; the store's `Rolling` prefix names its surface); `args.controller` replaces `args.store` |
+| `customStylesCallback()` | `getCustomStylesCallback(ctx)` |
+
+**Internal controls** — the built-in row / list / popover buttons use `data-dz-action`
+(`remove`, `row-action`, `toggle-visible`, `add-more`, `clear`, `pause-all`, `resume-all`,
+`retry-all`, `open-queue`) instead of `data-action` (reserved for action items). Structural-mode
+rows that relied on auto-wired remove / row-action buttons rename
+`data-action="remove"` → `data-dz-action="remove"` and `data-action="row-action"` →
+`data-dz-action="row-action"`.
+
+Types renamed with the events: `FileAddedEventDetail` → `FileAddEventDetail`, `FileRemovedEventDetail`
+→ `FileRemoveEventDetail`, `FilesRejectedEventDetail` → `FilesRejectEventDetail`,
+`FileUploadedEventDetail` → `FileUploadCompleteEventDetail`, `FileDeletedEventDetail` →
+`FileDeleteEventDetail`, `FileStatusChangedEventDetail` → `FileStatusChangeEventDetail`,
+`FileUpdatedEventDetail` → `FileUpdateEventDetail`, `FilesChangedEventDetail` →
+`FilesChangeEventDetail`; `DropzoneEventDetail` → `DropzoneEventMap`. New: `DropzoneContext`, one
+`*Context` type per callback, `OverlayEventDetail`, `ReadyEventDetail`,
+`SummaryActivateEventDetail`, `QueueOpenEventDetail`, `DropzoneListEventMap`.
+
+### Fixed
+
+- **Satellites bound with `for=` kept a dead store after the store rebuilt** (a mode flip, or
+  a DOM move of `<web-dropzone>`) — they held the old engine instance. They now hold the
+  store's controller, which always reaches the live store.
+- **Docs listed wrong event details** (`file-added` `{ file, files }`, `files-rejected`
+  `{ files, errors }`, `change` `{ files }` while it had none). README / ARCHITECTURE now match.
+
 ### Changed
 
 - **Dark / light follows the page in every browser, and no longer from the OS alone.** The
@@ -18,7 +109,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `color-scheme` instead of redeclaring every `--dz-*` color, so a page's `--base-*` theme is
   no longer overwritten in dark mode. A themed wrapper needs `theme-source="closest"`.
 - **Built on `@keenmate/web-components-core` 1.0.0-rc15** — the input table uses its renamed
-  `shouldReflect` flag. No change to the element's attributes, properties or events.
+  `shouldReflect` flag (that rename alone changes nothing public).
 - **Shadows share one tone with pure-admin: `--base-shadow-color`.** Popover, drag indicator and
   overlay hover keep their sizes but take their colour from `--base-shadow-color` (falls back to the
   previous black when the base layer is absent). Status-icon drop shadows over previews unchanged.

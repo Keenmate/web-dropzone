@@ -1,6 +1,6 @@
 /**
  * Shared module-level helpers + the default config object — referenced by
- * BOTH `core/dropzone-core.ts` (validation + add pipeline) and
+ * BOTH `dropzone-engine.ts` (validation + add pipeline) and
  * `dropzone.ts` (renderer methods). Extracted into its own module so the
  * core and the renderer can import them without circular dependencies.
  *
@@ -15,6 +15,7 @@ import type {
     FileTypeCategory,
     FileIconOverrides
 } from './types';
+import type { FileIconContext } from './interaction';
 import { FILE_TYPE_ICONS, UI_ICONS } from './icons';
 
 /**
@@ -23,7 +24,7 @@ import { FILE_TYPE_ICONS, UI_ICONS } from './icons';
  * is either a callback (no default) or a runtime-resolved reference
  * (`container`, `hostElement`, `overlayTarget`).
  */
-export const DEFAULT_CONFIG: Required<Omit<DropzoneConfig, 'fileIcons' | 'fileIconCallback' | 'validateCallback' | 'beforeFilesAddedCallback' | 'beforeFilesRemovedCallback' | 'uploadFileCallback' | 'renderFileItemCallback' | 'renderListWrapperCallback' | 'renderPromptCallback' | 'renderSummaryCallback' | 'customStylesCallback' | 'persistStateCallback' | 'loadStateCallback' | 'storageKey' | 'container' | 'hostElement' | 'overlayTarget' | 'selectorAppearance' | 'listAppearance' | 'gridLayout' | 'gridStatus' | 'controls' | 'itemControls' | 'cardSize' | 'isShowThumbnailsEnabled' | 'retryPolicy' | 'rollingRotation' | 'isHeadless' | 'renderRollingBodyCallback' | 'renderRollingFileInfoCallback' | 'renderRollingProgressCallback'>> = {
+export const DEFAULT_CONFIG: Required<Omit<DropzoneConfig, 'fileIcons' | 'getFileIconCallback' | 'validateCallback' | 'beforeFilesAddCallback' | 'beforeFilesRemoveCallback' | 'uploadFileCallback' | 'renderFileItemCallback' | 'renderListWrapperCallback' | 'renderPromptCallback' | 'renderSummaryCallback' | 'getCustomStylesCallback' | 'persistStateCallback' | 'loadStateCallback' | 'storageKey' | 'container' | 'hostElement' | 'overlayTarget' | 'selectorAppearance' | 'listAppearance' | 'gridLayout' | 'gridStatus' | 'controls' | 'itemControls' | 'cardSize' | 'isShowThumbnailsEnabled' | 'retryPolicy' | 'rollingRotation' | 'isHeadless' | 'renderRollingBodyCallback' | 'renderRollingFileInfoCallback' | 'renderRollingProgressCallback'>> = {
     isMultipleEnabled: true,
     accept: '',
     maxFileSize: 0,
@@ -129,18 +130,25 @@ function lookupIconMap(map: Record<string, string>, probe: string): string | und
 
 /**
  * Resolve the icon markup for a file. Resolution order, first hit wins:
- *   1. `overrides.fileIconCallback(file)` (non-null return)
+ *   1. `overrides.getFileIconCallback({ file })` (non-null return)
  *   2. `overrides.fileIcons[<extension>]`  (e.g. `psd`)
  *   3. `overrides.fileIcons[<category>]`   (e.g. `archive`)
  *   4. built-in Lucide category icon
  *
- * `overrides` is any object exposing `fileIcons` / `fileIconCallback` — a full
- * `DropzoneConfig` qualifies, so renderers pass `this.config` directly. Returns
- * a raw HTML string (see the XSS caveat on `DropzoneConfig.fileIcons`).
+ * `overrides` is any object exposing `fileIcons` / `getFileIconCallback` — a
+ * full `DropzoneConfig` qualifies, so renderers pass `this.config` directly.
+ * `contextBase` (a store's context prototype — `controller` / `element` as
+ * inherited getters) becomes the callback ctx's prototype, so the ctx carries
+ * them non-enumerably without a per-row allocation of its own. Returns a raw
+ * HTML string (see the XSS caveat on `DropzoneConfig.fileIcons`).
  */
-export function getFileIcon(file: File, overrides?: FileIconOverrides): string {
-    const fromCallback = overrides?.fileIconCallback?.(file);
-    if (fromCallback != null) return fromCallback;
+export function getFileIcon(file: File, overrides?: FileIconOverrides, contextBase?: object): string {
+    const callback = overrides?.getFileIconCallback;
+    if (callback) {
+        const ctx = Object.assign(Object.create(contextBase ?? Object.prototype) as object, { file }) as FileIconContext;
+        const fromCallback = callback(ctx);
+        if (fromCallback != null) return fromCallback;
+    }
 
     const map = overrides?.fileIcons;
     if (map) {

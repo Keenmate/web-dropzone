@@ -11,8 +11,48 @@
  * import paths.
  */
 
-// ---- Class --------------------------------------------------------------
-export { DropzoneCore } from './dropzone-core';
+// ---- Engine (standalone / headless use) + public controller facade -------
+export { DropzoneEngine } from './dropzone-engine';
+export type { DropzoneEngineHost } from './dropzone-engine';
+export { createDropzoneController } from './controller';
+export type { DropzoneController } from './controller';
+
+// ---- Interaction model: callback contexts, event details, event map -----
+export type {
+    DropzoneContext,
+    ValidateContext,
+    BeforeFilesAddContext,
+    BeforeFilesRemoveContext,
+    FileIconContext,
+    FileUploadContext,
+    PersistStateContext,
+    LoadStateContext,
+    FileItemRenderContext,
+    ListWrapperRenderContext,
+    PromptRenderContext,
+    SummaryRenderContext,
+    CustomStylesContext,
+    FileAddEventDetail,
+    FileRemoveEventDetail,
+    FilesChangeEventDetail,
+    ChangeEventDetail,
+    FilesRejectEventDetail,
+    FileRetryEventDetail,
+    FileUploadCompleteEventDetail,
+    FileDeleteEventDetail,
+    FileProgressEventDetail,
+    FileStatusChangeEventDetail,
+    FileUpdateEventDetail,
+    OverlayEventDetail,
+    ReadyEventDetail,
+    FileRowUpdateEventDetail,
+    SummaryActivateEventDetail,
+    QueueOpenEventDetail,
+    DropzoneEventMap,
+    DropzoneListEventMap,
+    DropzoneEngineEventName,
+    EngineEventDetail
+} from './interaction';
 
 // ---- Pure helpers + default config -------------------------------------
 export {
@@ -48,9 +88,8 @@ export {
 } from './icons';
 export type { RowAction } from './icons';
 
-// ---- Public store contract + status-surface types ----------------------
+// ---- Status-surface types ----------------------------------------------
 export type {
-    DropzoneStoreAPI,
     StatusAggregate,
     StatusSurfaceArgs,
     StatusSurfaceCallback,
@@ -67,19 +106,9 @@ export type {
     ValueFormat,
     FileState,
     FileUploadHandler,
-    FileUploadContext,
     FileUploadResult,
     ValidationResult,
     RejectedFile,
-    FileItemRenderContext,
-    FileAddedEventDetail,
-    FileRemovedEventDetail,
-    FilesRejectedEventDetail,
-    ChangeEventDetail,
-    FileRetryEventDetail,
-    FileUploadedEventDetail,
-    FileDeletedEventDetail,
-    DropzoneEventDetail,
     FileTypeCategory,
     FileIconOverrides,
     AddFilesOptions,
@@ -87,11 +116,6 @@ export type {
     DedupeMode,
     ProgressMode,
     RetryPolicy,
-    FileProgressEventDetail,
-    FileStatusChangedEventDetail,
-    FileUpdatedEventDetail,
-    FileRowUpdateEventDetail,
-    FilesChangedEventDetail,
     SelectorAppearance,
     ListAppearance,
     DropzoneControl,
@@ -118,4 +142,4 @@ export {
 // ---- DOM helpers shared with renderers ---------------------------------
 // Tiny + zero-project-dependency, so they live in core to avoid a renderer
 // → core cycle. Pure DOM primitives — safe to use from either side.
-export { dispatchComposedEvent, escapeHtml } from './dom-utils';
+export { escapeHtml } from './dom-utils';

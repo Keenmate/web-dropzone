@@ -37,7 +37,7 @@ test.describe('badges + show-thumbnails', () => {
         await expect(d.locator('.dz__badge-icon')).toHaveCount(2);
         // Regression: `show-thumbnails` must produce an actual <img> preview,
         // not the file-type icon fallback. The previewUrl lands asynchronously
-        // (FileReader → data URL → store `file-updated`), so wait for the swap.
+        // (FileReader → data URL → store `file-update`), so wait for the swap.
         const imgs = d.locator('.dz__badge-icon img');
         await expect(imgs).toHaveCount(2);
         // And the <img> points at a decoded data URL, not an empty src.

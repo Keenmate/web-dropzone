@@ -12,7 +12,14 @@
  * dropzone-specific: the bridge from the merged `config` to the headless store
  * (`WebDropzone` in `dropzone.ts`), the operating-mode resolution, form-value
  * sync (real `File` blobs via `setFormValue`), custom-style injection, and the
- * `store-ready` handshake the satellites depend on.
+ * `ready` event the satellites wait for.
+ *
+ * Interaction model (web-components-core SPEC §12.5): the engine notifies,
+ * the element emits. Every engine happening arrives through the host's
+ * `notify` and goes out via `this.emit()` — the camelCase `on*` twin gets the
+ * detail, then a bubbling, non-composed DOM event fires on the host; every
+ * detail carries `controller` (`el.controller`, a `DropzoneController`) and
+ * `element`. The engine itself is never exposed.
  *
  * Reactivity: the store applies EVERY config change in place (`updateConfig`
  * always returns true), so almost every input is `on: 'update'`. The single
@@ -34,10 +41,29 @@ import {
     toCustom,
     type InputDef,
     type Converter,
+    type EventDef,
 } from '@keenmate/web-components-core';
 import { WebDropzone } from './dropzone';
-import { initLogger, dispatchComposedEvent } from '@keenmate/web-dropzone-core';
-import type { DropzoneStoreAPI } from '@keenmate/web-dropzone-core';
+import { linkStoreController } from './store-link';
+import { initLogger, createDropzoneController } from '@keenmate/web-dropzone-core';
+import type {
+    DropzoneController,
+    DropzoneEngineHost,
+    DropzoneEventMap,
+    FileAddEventDetail,
+    FileRemoveEventDetail,
+    FilesChangeEventDetail,
+    ChangeEventDetail,
+    FilesRejectEventDetail,
+    FileRetryEventDetail,
+    FileUploadCompleteEventDetail,
+    FileDeleteEventDetail,
+    FileProgressEventDetail,
+    FileStatusChangeEventDetail,
+    FileUpdateEventDetail,
+    OverlayEventDetail,
+    ReadyEventDetail
+} from '@keenmate/web-dropzone-core';
 import type {
     DropzoneConfig,
     DisplayMode,
@@ -217,21 +243,46 @@ const INPUTS: readonly InputDef[] = [
     // ── Persistence ───────────────────────────────────────────────────────────
     { configKey: 'storageKey',              attribute: 'storage-key',         converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'Opaque key scoping persisted UI state. Unset disables persistence.' },
 
-    // ── Callbacks (property-only) ─────────────────────────────────────────────
-    { configKey: 'validateCallback',            converter: cb(),      on: 'update', type: '(file: File, existingFiles: FileState[]) => ValidationResult', description: 'Custom per-file validation.' },
-    { configKey: 'beforeFilesAddedCallback',    converter: cb(),      on: 'update', type: '(files: File[]) => boolean | File[] | Promise<boolean | File[]>', description: 'Async confirmation / transform gate before files are added.' },
-    { configKey: 'beforeFilesRemovedCallback',  converter: cb(),      on: 'update', type: '(files: FileState[]) => boolean | Promise<boolean>', description: 'Async confirmation gate before files are removed.' },
-    { configKey: 'uploadFileCallback',          converter: cb(),      on: 'update', type: 'FileUploadHandler', description: 'Component-driven upload handler. When set, added files run through the worker pool.' },
-    { configKey: 'retryPolicy',                 converter: toValue(), on: 'update', type: 'RetryPolicy', description: 'Retry policy applied when uploadFileCallback rejects. Property-only object.' },
-    { configKey: 'fileIcons',                   converter: toValue(), on: 'update', type: 'Record<string, string>', description: 'Icon overrides keyed by extension or category (raw HTML — NOT sanitized). Property-only object.' },
-    { configKey: 'fileIconCallback',            converter: cb(),      on: 'update', type: '(file: File) => string | null', description: 'Full-control file-icon resolver (raw HTML — NOT sanitized). Return null to fall back to fileIcons / category.' },
-    { configKey: 'renderFileItemCallback',      converter: cb(),      on: 'update', type: '(file: FileState, context: FileItemRenderContext) => string | HTMLElement', description: 'Custom render for a single file row (structural mode).' },
-    { configKey: 'renderListWrapperCallback',   converter: cb(),      on: 'update', type: '(rowsHtml: string, files: FileState[]) => string | HTMLElement', description: 'Custom wrapper around the rendered file rows.' },
-    { configKey: 'renderPromptCallback',        converter: cb(),      on: 'update', type: '() => string | HTMLElement', description: 'Custom render for the drop-area prompt.' },
-    { configKey: 'renderSummaryCallback',       converter: cb(),      on: 'update', type: '(files: FileState[]) => string | HTMLElement', description: 'Custom render for the compact-mode summary.' },
-    { configKey: 'customStylesCallback',        converter: cb(),      on: 'update', type: '() => string', description: 'Returns a CSS string injected into the shadow root (prepended so @import/@font-face work).' },
-    { configKey: 'persistStateCallback',        converter: cb(),      on: 'update', type: '(key: string, state: DropzoneState) => void | Promise<void>', description: 'Custom persistence sink (defaults to localStorage).' },
-    { configKey: 'loadStateCallback',           converter: cb(),      on: 'update', type: '(key: string) => DropzoneState | null | Promise<DropzoneState | null>', description: 'Custom persistence source paired with persistStateCallback.' },
+    // ── Callbacks (property-only) — each takes ONE ctx carrying `controller` + `element` ──
+    { configKey: 'validateCallback',              converter: cb(),      on: 'update', type: '(ctx: ValidateContext) => ValidationResult', description: 'Custom per-file validation, after the built-in size / type checks. `ctx`: `{ file, existingFiles }`. Sync.' },
+    { configKey: 'beforeFilesAddCallback',        converter: cb(),      on: 'update', type: '(ctx: BeforeFilesAddContext) => false | File[] | void | Promise<false | File[] | void>', description: 'Gate before a validated batch is added. `ctx`: `{ files, existingFiles }`. `false` cancels (files reported in `files-reject` with code `cancelled`); a `File[]` replaces the batch (validated again); may be async.' },
+    { configKey: 'beforeFilesRemoveCallback',     converter: cb(),      on: 'update', type: '(ctx: BeforeFilesRemoveContext) => false | void | Promise<false | void>', description: 'Gate before a user-initiated removal (row ✕, Clear all) or `removeFile` / `clear` with `{ confirm: true }`. `ctx`: `{ files, allFiles }`. `false` cancels; may be async.' },
+    { configKey: 'uploadFileCallback',            converter: cb(),      on: 'update', type: '(ctx: FileUploadContext) => Promise<void | FileUploadResult>', description: 'Component-driven upload handler; added files run through the worker pool. `ctx`: `{ file, signal, setProgress, startBytes, startPercent, metadata, setMetadata, uploadMetadata }`.' },
+    { configKey: 'retryPolicy',                   converter: toValue(), on: 'update', type: 'RetryPolicy', description: 'Retry policy applied when uploadFileCallback rejects. Property-only object.' },
+    { configKey: 'fileIcons',                     converter: toValue(), on: 'update', type: 'Record<string, string>', description: 'Icon overrides keyed by extension or category (raw HTML — NOT sanitized). Property-only object.' },
+    { configKey: 'getFileIconCallback',           converter: cb(),      on: 'update', type: '(ctx: FileIconContext) => string | null | undefined', description: 'Full-control file-icon resolver (raw HTML — NOT sanitized). `ctx`: `{ file }`. Return null to fall back to fileIcons / category.' },
+    { configKey: 'renderFileItemCallback',        converter: cb(),      on: 'update', type: '(ctx: FileItemRenderContext) => string | HTMLElement', description: 'Custom render for a single file row (structural mode). `ctx`: `{ file, index, displayMode, isInPopover }`.' },
+    { configKey: 'renderListWrapperCallback',     converter: cb(),      on: 'update', type: '(ctx: ListWrapperRenderContext) => string | HTMLElement', description: 'Custom wrapper around the rendered file rows (structural mode). `ctx`: `{ rowsHtml, files }`.' },
+    { configKey: 'renderPromptCallback',          converter: cb(),      on: 'update', type: '(ctx: PromptRenderContext) => string | HTMLElement', description: 'Custom render for the drop-area prompt (structural mode). `ctx`: context only.' },
+    { configKey: 'renderSummaryCallback',         converter: cb(),      on: 'update', type: '(ctx: SummaryRenderContext) => string | HTMLElement', description: 'Custom render for the compact-mode summary (structural mode). `ctx`: `{ files }`.' },
+    { configKey: 'renderRollingBodyCallback',     converter: cb(),      on: 'update', type: 'StatusSurfaceCallback', description: 'Rolling list appearance (structural mode): replace the whole rolling body. `ctx`: `StatusSurfaceArgs`. `null` → default, `false` → hide.' },
+    { configKey: 'renderRollingFileInfoCallback', converter: cb(),      on: 'update', type: 'StatusSurfaceCallback', description: 'Rolling list appearance (structural mode): the file-info slot of the current row. `ctx`: `StatusSurfaceArgs`.' },
+    { configKey: 'renderRollingProgressCallback', converter: cb(),      on: 'update', type: 'StatusSurfaceCallback', description: 'Rolling list appearance (structural mode): the progress slot of the current row. `ctx`: `StatusSurfaceArgs`.' },
+    { configKey: 'getCustomStylesCallback',       converter: cb(),      on: 'update', type: '(ctx: CustomStylesContext) => string | null | undefined', description: 'Returns a CSS string injected into the shadow root (prepended so @import/@font-face work). `ctx`: context only.' },
+    { configKey: 'persistStateCallback',          converter: cb(),      on: 'update', type: '(ctx: PersistStateContext) => void | Promise<void>', description: 'Custom persistence sink (defaults to localStorage). `ctx`: `{ key, state }`.' },
+    { configKey: 'loadStateCallback',             converter: cb(),      on: 'update', type: '(ctx: LoadStateContext) => DropzoneState | null | Promise<DropzoneState | null>', description: 'Custom persistence source paired with persistStateCallback. `ctx`: `{ key }`.' },
+];
+
+/**
+ * Event table (core SPEC §12.5): every happening is one DOM event (bubbles,
+ * NOT composed) + a camelCase `on*` twin property called first with the same
+ * detail. Every detail carries `controller` + `element` (non-enumerable).
+ */
+const EVENTS: readonly EventDef[] = [
+    { name: 'file-add', description: 'A file entered the dropzone (one event per file). `detail`: `{ file }`. Twin: `onFileAdd(detail)`.' },
+    { name: 'file-remove', description: 'A file left the dropzone (one event per file; also on Clear all). `detail`: `{ file }`. Twin: `onFileRemove(detail)`.' },
+    { name: 'files-change', description: 'Coalesced "queue updated" tick, at most once per animation frame. `detail`: `{ changedIds, files }`. Twin: `onFilesChange(detail)`.' },
+    { name: 'change', description: 'The selection changed (add / remove / clear). `detail`: `{ files }`. Twin: `onChange(detail)`.' },
+    { name: 'files-reject', description: 'Files failed validation, or `beforeFilesAddCallback` cancelled the add (code `cancelled`). `detail`: `{ rejectedFiles: [{ file, validation: { valid, error, code } }] }`. Twin: `onFilesReject(detail)`.' },
+    { name: 'file-retry', description: 'A failed / cancelled file was re-queued (status already `pending`). `detail`: `{ file }`. Twin: `onFileRetry(detail)`.' },
+    { name: 'file-upload-complete', description: '`uploadFileCallback` resolved for a file. `detail`: `{ file }`. Twin: `onFileUploadComplete(detail)`.' },
+    { name: 'file-delete', description: 'A removed file had server-side state (completed, or metadata stashed via `setMetadata`) — fires with `file-remove`; wire your server DELETE here. `detail`: `{ file }`. Twin: `onFileDelete(detail)`.' },
+    { name: 'file-progress', description: 'A file\'s progress changed. `detail`: `{ id, progress, status, file }`. Twin: `onFileProgress(detail)`.' },
+    { name: 'file-status-change', description: 'A file\'s status transitioned. `detail`: `{ id, prevStatus, nextStatus, file }`. Twin: `onFileStatusChange(detail)`.' },
+    { name: 'file-update', description: 'A file field other than progress / status changed (preview generated, upload result merged). `detail`: `{ file }`. Twin: `onFileUpdate(detail)`.' },
+    { name: 'overlay-enter', description: 'A drag entered the drag overlay (`overlay-target`). `detail`: `{ overlayElement }`. Twin: `onOverlayEnter(detail)`.' },
+    { name: 'overlay-leave', description: 'A drag left the drag overlay. `detail`: `{ overlayElement }`. Twin: `onOverlayLeave(detail)`.' },
+    { name: 'ready', description: 'The store was built (first connect, and again after a rebuild — a mode flip or a DOM move); `el.controller` is live. `detail`: `controller` / `element`. Twin: `onReady(detail)`. The `data-ready` attribute follows on the next frame.' },
 ];
 
 // Track instances for the global API (window.components['web-dropzone']).
@@ -244,7 +295,7 @@ export function getAllInstances(): DropzoneElement[] {
 /**
  * DropzoneElement - <web-dropzone> custom element
  */
-export class DropzoneElement extends BlissElement {
+export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneController> {
     // Opt into the form-associated custom element lifecycle so the surrounding
     // <form> sees this element in form.elements, form.reset(), and FormData
     // submissions. Core owns the single attachInternals() (exposed lazily via
@@ -252,12 +303,44 @@ export class DropzoneElement extends BlissElement {
     static formAssociated = true;
 
     protected static override inputs = INPUTS;
+    protected static override events = EVENTS;
+
+    // `on*` twins — called with the event detail (core installs the accessors).
+    declare onFileAdd: ((detail: FileAddEventDetail) => void) | null;
+    declare onFileRemove: ((detail: FileRemoveEventDetail) => void) | null;
+    declare onFilesChange: ((detail: FilesChangeEventDetail) => void) | null;
+    declare onChange: ((detail: ChangeEventDetail) => void) | null;
+    declare onFilesReject: ((detail: FilesRejectEventDetail) => void) | null;
+    declare onFileRetry: ((detail: FileRetryEventDetail) => void) | null;
+    declare onFileUploadComplete: ((detail: FileUploadCompleteEventDetail) => void) | null;
+    declare onFileDelete: ((detail: FileDeleteEventDetail) => void) | null;
+    declare onFileProgress: ((detail: FileProgressEventDetail) => void) | null;
+    declare onFileStatusChange: ((detail: FileStatusChangeEventDetail) => void) | null;
+    declare onFileUpdate: ((detail: FileUpdateEventDetail) => void) | null;
+    declare onOverlayEnter: ((detail: OverlayEventDetail) => void) | null;
+    declare onOverlayLeave: ((detail: OverlayEventDetail) => void) | null;
+    declare onReady: ((detail: ReadyEventDetail) => void) | null;
 
     #shadow: ShadowRoot;
     #dropzone?: WebDropzone;
     #container: HTMLElement;
     #customStyleSheet?: HTMLStyleElement;
-    #boundSyncFormValue = (): void => this.#syncFormValue();
+
+    /**
+     * What the engine reports to — built once, so every engine (each rebuild)
+     * shares it: `element` / `controller` for every ctx, and `notify` routing
+     * engine happenings to `emit()`.
+     */
+    readonly #engineHost: DropzoneEngineHost = {
+        element: this,
+        getController: () => this.controller,
+        notify: (name, detail) => {
+            // Re-stamp the form value before listeners run, so a `change`
+            // handler reading the form sees the new selection.
+            if (name === 'change') this.#syncFormValue();
+            this.emit(name, detail as never);
+        }
+    };
 
     constructor() {
         super();
@@ -272,17 +355,22 @@ export class DropzoneElement extends BlissElement {
         this.#container = document.createElement('div');
         this.#container.className = 'dz__host';
         this.#shadow.appendChild(this.#container);
+
+        // Satellites bind through a NON-flushing twin of `el.controller`
+        // (see store-link.ts): they read the store while it is emitting.
+        linkStoreController(this, createDropzoneController(() => this.#dropzone));
     }
 
     /**
-     * Underlying store — exposed as the `DropzoneStoreAPI` contract so consumers
-     * stay decoupled from the concrete implementation. Used by satellite
-     * renderers (`<web-dropzone-picker>`, `<web-dropzone-list>`, …) to resolve
-     * their `for="<store-id>"` reference. Returns undefined before the store is
-     * built; satellites handle the timing race via `store-ready` re-resolution.
+     * The public facade (`el.controller`): built once, delegates to the live
+     * store (flushing pending input writes first), so it survives rebuilds.
+     * Satellites bind through it too.
      */
-    getStore(): DropzoneStoreAPI | undefined {
-        return this.#dropzone;
+    protected override createController(): DropzoneController {
+        return createDropzoneController(() => {
+            this.flush();
+            return this.#dropzone;
+        });
     }
 
     /**
@@ -321,11 +409,11 @@ export class DropzoneElement extends BlissElement {
         }
 
         // Custom styles are a shadow-root concern, not a store rebuild.
-        if ('customStylesCallback' in partial) this.#injectCustomStyles();
+        if ('getCustomStylesCallback' in partial) this.#injectCustomStyles();
 
         const storePartial: Record<string, unknown> = {};
         for (const [key, value] of Object.entries(partial)) {
-            if (key === 'customStylesCallback') continue; // handled above
+            if (key === 'getCustomStylesCallback') continue; // handled above
             storePartial[key] = value === null ? undefined : value;
         }
         if (this.#dropzone && Object.keys(storePartial).length > 0) {
@@ -346,10 +434,6 @@ export class DropzoneElement extends BlissElement {
         instances.add(this);
         if (!this.#dropzone) this.#buildStore();
 
-        // The store dispatches a composed `change` event after every mutation
-        // (add / remove / clear); we re-stamp the form value off it.
-        this.addEventListener('change', this.#boundSyncFormValue);
-
         // FOUC prevention — expose [data-ready] once initialized.
         if (typeof requestAnimationFrame === 'function') {
             requestAnimationFrame(() => this.setAttribute('data-ready', ''));
@@ -363,7 +447,6 @@ export class DropzoneElement extends BlissElement {
     /** Deactivate: stop listeners and tear the store down (rebuilt on next connect). */
     protected override disconnect(): void {
         instances.delete(this);
-        this.removeEventListener('change', this.#boundSyncFormValue);
         this.#dropzone?.destroy();
         this.#dropzone = undefined;
         initLogger.debug('DropzoneElement disconnected');
@@ -381,13 +464,13 @@ export class DropzoneElement extends BlissElement {
         const config = this.#assembleConfig();
         this.#injectCustomStyles();
 
-        this.#dropzone = new WebDropzone(this.#container, config);
+        this.#dropzone = new WebDropzone(this.#container, config, this.#engineHost);
         this.#syncFormValue();
 
-        // Notify satellite renderers (`<web-dropzone-picker for=>`, …) that the
-        // store is now resolvable via `getStore()`. Bubbles + composed so
-        // listeners in other shadow roots pick it up.
-        dispatchComposedEvent(this, 'store-ready');
+        // The store is live: `el.controller` now reaches it. Satellite
+        // renderers (`<web-dropzone-picker for=>`, …) that connected first
+        // wait for this event.
+        this.emit('ready');
 
         initLogger.debug('Dropzone initialized', { config });
     }
@@ -430,7 +513,7 @@ export class DropzoneElement extends BlissElement {
     }
 
     /**
-     * Inject styles from `customStylesCallback` into the shadow root. The
+     * Inject styles from `getCustomStylesCallback(ctx)` into the shadow root. The
      * stylesheet is *prepended* (before the base stylesheet) so `@import` /
      * `@font-face` rules — which must appear at the top of a stylesheet — take
      * effect. Replaces the previous custom-styles element if one was injected.
@@ -440,10 +523,10 @@ export class DropzoneElement extends BlissElement {
             this.#customStyleSheet.remove();
             this.#customStyleSheet = undefined;
         }
-        const callback = this.config.customStylesCallback as (() => string) | null | undefined;
+        const callback = this.config.getCustomStylesCallback as ((ctx: object) => string | null | undefined) | null | undefined;
         if (typeof callback !== 'function') return;
 
-        const css = callback();
+        const css = callback(this.withContext({}));
         if (!css) return;
 
         const sheet = document.createElement('style');
@@ -685,4 +768,4 @@ if (typeof window !== 'undefined' && typeof customElements !== 'undefined') {
 // satellite instances that already have their `bindToStore` method. The reverse
 // race (satellites parsed in HTML upgrade before the store) is handled by
 // `whenStoreReady` — satellites tolerate an un-upgraded store and wait for
-// `store-ready`.
+// `ready`.

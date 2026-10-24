@@ -13,7 +13,7 @@
     <p>Targeted by <code>e2e/events.spec.ts</code>.</p>
 
     <div class="fixture">
-        <div class="fixture-label">programmatic add → file-added + change + files-changed</div>
+        <div class="fixture-label">programmatic add → file-add + change + files-change</div>
         <web-dropzone id="events" accept="*/*" display-mode="detailed"></web-dropzone>
         <button id="add-one" type="button">addFiles(one)</button>
         <button id="add-two" type="button">addFiles(two)</button>
@@ -28,12 +28,12 @@
         // detail (or a snapshot) at the moment of dispatch — keeping it
         // serializable so page.evaluate() can hand it back cleanly.
         window.__events = {
-            'file-added': [],
-            'file-removed': [],
-            'files-rejected': [],
+            'file-add': [],
+            'file-remove': [],
+            'files-reject': [],
             'change': [],
-            'files-changed': [],
-            'file-updated': []
+            'files-change': [],
+            'file-update': []
         };
 
         const dz = document.getElementById('events');
@@ -51,11 +51,8 @@
 
         function serialize(d) {
             // Detail can contain non-cloneable things (File objects), so we
-            // flatten what specs need to read. Per the 1.0 event contract,
-            // `change` carries an empty detail — when CustomEvent is built
-            // without a detail it actually arrives as null, but specs assert
-            // {} for that case, so we treat null/undefined as the empty
-            // object explicitly.
+            // flatten what specs need to read. `controller` / `element` are
+            // non-enumerable on every detail, so Object.entries skips them.
             if (d == null) return {};
             const out = {};
             for (const [k, v] of Object.entries(d)) {

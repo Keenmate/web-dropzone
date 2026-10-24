@@ -7,7 +7,7 @@ import { test, expect, Page, Locator } from '@playwright/test';
  *
  *   1. Headless store + standalone satellites bound via `for=` — verifies
  *      that picker and list satellites resolve their `for=` reference
- *      and bind to the underlying DropzoneCore instance.
+ *      and bind to the underlying DropzoneEngine instance.
  *
  *   2. Two independent stores on one page — each satellite stays bound
  *      to its own store; adds to A don't leak to B.
@@ -30,7 +30,7 @@ test.beforeEach(async ({ page }) => {
 
 test.describe('headless store + standalone satellites', () => {
     test('picker resolves its for= and exposes the bound store', async ({ page }) => {
-        // Satellite waits for the store-ready event; give it a frame.
+        // Satellite waits for the ready event; give it a frame.
         await expect.poll(() => page.evaluate(() =>
             (window as any).__satelliteHasStore('web-dropzone-picker[for="store-headless"]')
         )).toBe(true);
@@ -62,12 +62,12 @@ test.describe('two independent stores', () => {
     test('each picker binds to its own store', async ({ page }) => {
         const aBound = await page.evaluate(() => {
             const picker = document.querySelector('web-dropzone-picker[for="store-a"]') as any;
-            const store = picker.getStore();
+            const store = picker.controller;
             return store?.getFiles().length;
         });
         const bBound = await page.evaluate(() => {
             const picker = document.querySelector('web-dropzone-picker[for="store-b"]') as any;
-            const store = picker.getStore();
+            const store = picker.controller;
             return store?.getFiles().length;
         });
         // Both started empty — adding to A doesn't have to happen here; we
@@ -107,10 +107,10 @@ test.describe('mode="headless"', () => {
         expect(hasInternals).toBe(false);
     });
 
-    test('headless store still fires file-added when files are programmatically added', async ({ page }) => {
+    test('headless store still fires file-add when files are programmatically added', async ({ page }) => {
         const dispatched = await dz(page, 'store-headless').evaluate(async (el: any) => {
             return new Promise<boolean>((resolve) => {
-                el.addEventListener('file-added', () => resolve(true), { once: true });
+                el.addEventListener('file-add', () => resolve(true), { once: true });
                 el.addFiles([new File(['x'], 'h.txt')]);
                 // Safety net so the test doesn't hang on a regression.
                 setTimeout(() => resolve(false), 1000);

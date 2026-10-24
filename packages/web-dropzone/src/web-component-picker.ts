@@ -7,7 +7,7 @@
  * (drag-drop, click → native file dialog) and routes them.
  *
  * Mode B per-picker upload binding (see ARCHITECTURE.md): if the picker has
- * `uploadCallback` and/or `uploadMetadata` JS properties set, those are
+ * `uploadFileCallback` and/or `uploadMetadata` JS properties set, those are
  * stamped onto every FileState the picker contributes. The store's upload
  * loop then uses each file's stamped handler instead of the store-level
  * one — so two pickers bound to the same store can route to different
@@ -21,7 +21,6 @@ import {
     resolveEnumAttribute
 } from './satellite-base';
 import { escapeHtml, UI_ICONS } from '@keenmate/web-dropzone-core';
-import type { DropzoneStoreAPI } from '@keenmate/web-dropzone-core';
 import type { DropzoneElement } from './web-component';
 import type {
     SelectorAppearance,
@@ -48,10 +47,10 @@ export class DropzonePickerElement extends SatelliteElement {
 
     // Mode B per-picker upload binding (see ARCHITECTURE.md). These are
     // JS-only properties — there's no HTML attribute equivalent because the
-    // value is a function (uploadCallback) or an arbitrary object
+    // value is a function (uploadFileCallback) or an arbitrary object
     // (uploadMetadata). The store stamps both onto every contributed
     // FileState at add-time.
-    private _uploadCallback: FileUploadHandler | null = null;
+    private _uploadFileCallback: FileUploadHandler | null = null;
     private _uploadMetadata: Record<string, unknown> | null = null;
 
     constructor() {
@@ -71,7 +70,7 @@ export class DropzonePickerElement extends SatelliteElement {
         this.shadow.appendChild(this.container);
 
         // Pre-upgrade rescue for the two JS-only props.
-        this.upgradeProperty('uploadCallback');
+        this.upgradeProperty('uploadFileCallback');
         this.upgradeProperty('uploadMetadata');
     }
 
@@ -83,11 +82,11 @@ export class DropzonePickerElement extends SatelliteElement {
         }
     }
 
-    get uploadCallback(): FileUploadHandler | null {
-        return this._uploadCallback;
+    get uploadFileCallback(): FileUploadHandler | null {
+        return this._uploadFileCallback;
     }
-    set uploadCallback(value: FileUploadHandler | null) {
-        this._uploadCallback = value;
+    set uploadFileCallback(value: FileUploadHandler | null) {
+        this._uploadFileCallback = value;
     }
 
     get uploadMetadata(): Record<string, unknown> | null {
@@ -120,8 +119,8 @@ export class DropzonePickerElement extends SatelliteElement {
      */
     protected attachStoreSubscriptions(storeEl: DropzoneElement): () => void {
         return subscribeStoreEvents(storeEl, {
-            'file-added':   () => this.render(),
-            'file-removed': () => this.render(),
+            'file-add':   () => this.render(),
+            'file-remove': () => this.render(),
             'change':       () => this.render(),
             // Config re-render (e.g. accept / multiple / disabled changed).
             'dz-config-changed': () => this.render()
@@ -401,14 +400,14 @@ export class DropzonePickerElement extends SatelliteElement {
 
     /**
      * Push collected files into the bound store, stamping per-picker Mode B
-     * routing (uploadCallback / uploadMetadata) if either was set on this
+     * routing (uploadFileCallback / uploadMetadata) if either was set on this
      * element. The store applies its own validation, dedupe, and caps —
      * the picker never rejects files itself.
      */
     private contributeFiles(files: File[]): void {
         if (!this.store) return;
-        const opts: { uploadCallback?: FileUploadHandler; uploadMetadata?: Record<string, unknown> } = {};
-        if (this._uploadCallback) opts.uploadCallback = this._uploadCallback;
+        const opts: { uploadFileCallback?: FileUploadHandler; uploadMetadata?: Record<string, unknown> } = {};
+        if (this._uploadFileCallback) opts.uploadFileCallback = this._uploadFileCallback;
         if (this._uploadMetadata) opts.uploadMetadata = this._uploadMetadata;
         this.store.addFiles(files, opts);
     }

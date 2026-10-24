@@ -38,7 +38,7 @@
         window.__resolve = (name) => {
             const e = pending.get(name); pending.delete(name); e.resolve();
         };
-        function handler(file, onProgress, signal) {
+        function handler({ file, setProgress: onProgress, signal }) {
             return new Promise((resolve, reject) => {
                 pending.set(file.name, { resolve, reject, onProgress, signal });
                 signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')));

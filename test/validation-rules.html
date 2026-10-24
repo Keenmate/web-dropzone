@@ -54,7 +54,7 @@
             const dz = document.getElementById(id);
             const log = document.getElementById(`${id}-log`);
             if (!log) return;
-            dz.addEventListener('files-rejected', (e) => {
+            dz.addEventListener('files-reject', (e) => {
                 for (const r of e.detail.rejectedFiles) {
                     log.textContent += `${r.validation.code} ${r.file.name}\n`;
                 }

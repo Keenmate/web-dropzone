@@ -133,7 +133,7 @@ test.describe('file-progress events', () => {
         expect(text).toContain('progress p.txt=75');
     });
 
-    test('status transitions fire file-status-changed (uploading → complete)', async ({ page }) => {
+    test('status transitions fire file-status-change (uploading → complete)', async ({ page }) => {
         await addNamed(page, 'events', ['s.txt']);
         await expect.poll(() => pendingNames(page)).toContain('s.txt');
         await resolveUpload(page, 's.txt', 'ok');

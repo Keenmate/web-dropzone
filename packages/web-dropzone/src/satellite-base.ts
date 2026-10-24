@@ -10,8 +10,9 @@
  */
 
 import type { DropzoneElement } from './web-component';
-import type { DropzoneStoreAPI } from '@keenmate/web-dropzone-core';
-import { observeThemeContext, THEME_CONTEXT_ATTRIBUTE, THEME_SOURCE_ATTRIBUTE } from '@keenmate/web-components-core';
+import type { DropzoneController, DropzoneContext } from '@keenmate/web-dropzone-core';
+import { dispatch, observeThemeContext, withComponentContext, THEME_CONTEXT_ATTRIBUTE, THEME_SOURCE_ATTRIBUTE } from '@keenmate/web-components-core';
+import { storeControllerOf } from './store-link';
 
 /**
  * Look up the `<web-dropzone>` element a satellite binds to via its `for=`
@@ -20,7 +21,7 @@ import { observeThemeContext, THEME_CONTEXT_ATTRIBUTE, THEME_SOURCE_ATTRIBUTE } 
  * be upgraded or initialized — callers should pair this with
  * `whenStoreReady`, which handles both races.
  *
- * Note: we check by `tagName` rather than duck-typing on `getStore` because
+ * Note: we check by `tagName` rather than duck-typing on `controller` because
  * the store custom element may not have upgraded yet (satellites can
  * register before `<web-dropzone>` does — see index.ts).
  */
@@ -33,39 +34,76 @@ export function resolveStoreElement(forId: string | null): DropzoneElement | nul
 }
 
 /**
- * Resolve a store's underlying `WebDropzone` instance, waiting if the store
- * hasn't upgraded or run its `connectedCallback` yet. Resolves with the
- * instance once available; calls `onResolved` exactly once. Returns a
- * teardown function that cancels the wait if the satellite is disconnected
- * before resolution.
+ * The store's satellite-side controller once the store is built (`isReady`),
+ * else undefined. It is the non-flushing twin of `storeEl.controller` (see
+ * store-link.ts) — undefined until the element has upgraded.
+ */
+function readyController(storeEl: DropzoneElement): DropzoneController | undefined {
+    const controller = storeControllerOf(storeEl);
+    return controller?.isReady ? controller : undefined;
+}
+
+/**
+ * Resolve a store's controller (the satellite-side twin of `storeEl.controller`), waiting if the
+ * store hasn't upgraded or built yet. Calls `onResolved` exactly once.
+ * Returns a teardown function that cancels the wait if the satellite is
+ * disconnected before resolution.
  *
  * Race handling: a satellite can connect before the store does — either
  * because the store hasn't upgraded yet (custom element registration
- * order) or because its `connectedCallback` hasn't run yet. In both cases
- * `getStore` is either missing or returns undefined. We listen for
- * `store-ready` (dispatched at the end of `initializeDropzone()`) and
- * re-check then. The listener is attached even on the un-upgraded element —
- * `addEventListener` is inherited from `HTMLElement`, so the upgrade
- * preserves it.
+ * order) or because its first build hasn't run yet. We listen for the
+ * store's `ready` event and re-check then. The listener is attached even on
+ * the un-upgraded element — `addEventListener` is inherited from
+ * `HTMLElement`, so the upgrade preserves it.
+ *
+ * The controller delegates to the store's CURRENT engine, so a satellite
+ * keeps working across store rebuilds (mode flip, DOM move).
  */
 export function whenStoreReady(
     storeEl: DropzoneElement,
-    onResolved: (store: DropzoneStoreAPI) => void
+    onResolved: (store: DropzoneController) => void
 ): () => void {
-    const immediate = typeof storeEl.getStore === 'function' ? storeEl.getStore() : undefined;
+    const immediate = readyController(storeEl);
     if (immediate) {
         onResolved(immediate);
         return () => { /* nothing to tear down */ };
     }
     const handler = () => {
-        const ready = typeof storeEl.getStore === 'function' ? storeEl.getStore() : undefined;
+        const ready = readyController(storeEl);
         if (ready) {
-            storeEl.removeEventListener('store-ready', handler);
+            storeEl.removeEventListener('ready', handler);
             onResolved(ready);
         }
     };
-    storeEl.addEventListener('store-ready', handler);
-    return () => storeEl.removeEventListener('store-ready', handler);
+    storeEl.addEventListener('ready', handler);
+    return () => storeEl.removeEventListener('ready', handler);
+}
+
+/**
+ * A context prototype for a store: `controller` / `element` as getters, so
+ * a ctx built with `Object.create(base)` inherits them non-enumerably (the
+ * per-row icon callback ctx in the list satellite).
+ */
+export function createStoreContextBase(storeEl: DropzoneElement): DropzoneContext {
+    return Object.create(Object.prototype, {
+        controller: { get: () => storeEl.controller },
+        element: { get: () => storeEl }
+    }) as DropzoneContext;
+}
+
+/**
+ * Fire a satellite event (SPEC §12.5): bubbles, NOT composed, dispatched on
+ * the satellite; the detail carries the bound store's `controller` /
+ * `element` (non-enumerable).
+ */
+export function dispatchSatelliteEvent(
+    satellite: HTMLElement,
+    storeEl: DropzoneElement | null,
+    name: string,
+    detail: object = {}
+): boolean {
+    const payload = storeEl ? withComponentContext(detail, storeEl.controller, storeEl as HTMLElement) : detail;
+    return dispatch(satellite, name, payload);
 }
 
 /**
@@ -73,9 +111,8 @@ export function whenStoreReady(
  * function that removes every listener. Each handler receives the live
  * CustomEvent so satellites can read `event.detail` directly.
  *
- * Events bubble + composed from the store, so listening on the store
- * element itself is sufficient — satellites in other shadow roots receive
- * the dispatch the same way the host page would.
+ * Events are dispatched on the store element itself (bubbling, not
+ * composed), so listening there works from any shadow root.
  */
 export function subscribeStoreEvents(
     storeEl: DropzoneElement,
@@ -115,7 +152,7 @@ export function resolveEnumAttribute<T extends string>(
  * the same task collapse into a single deferred invocation; the next call
  * after the microtask flushes schedules a fresh one. Used by satellites to
  * debounce per-event refreshes so a burst of `file-progress` / `change` /
- * `file-status-changed` events in one frame results in exactly one render.
+ * `file-status-change` events in one frame results in exactly one render.
  */
 export function createMicrotaskScheduler(fn: () => void): () => void {
     let scheduled = false;
@@ -174,7 +211,11 @@ const SatelliteBaseElement = (typeof HTMLElement !== 'undefined' ? HTMLElement :
  *    diagnostic names the specific element type.
  */
 export abstract class SatelliteElement extends SatelliteBaseElement {
-    protected store: DropzoneStoreAPI | null = null;
+    /**
+     * The bound store, once it is built — the store's non-flushing
+     * satellite-side controller (internal; the public one is `controller`).
+     */
+    protected store: DropzoneController | null = null;
     protected storeEl: DropzoneElement | null = null;
     /**
      * Set by `bindToStore()` for satellites mounted inside another shadow
@@ -192,12 +233,12 @@ export abstract class SatelliteElement extends SatelliteBaseElement {
 
     protected abstract attachStoreSubscriptions(
         storeEl: DropzoneElement,
-        store: DropzoneStoreAPI
+        store: DropzoneController
     ): () => void;
 
     protected abstract onStoreReady(
         storeEl: DropzoneElement,
-        store: DropzoneStoreAPI
+        store: DropzoneController
     ): void;
 
     /** Optional pre-bind DOM setup. Default no-op. */
@@ -273,13 +314,14 @@ export abstract class SatelliteElement extends SatelliteBaseElement {
         this.storeEl = null;
     }
 
+
     /**
-     * Resolved store, or `null` until the store has connected. Public so
-     * consumer code (e.g. a callback set on the host) can reach the bound
-     * store without going through the original element reference.
+     * The bound store's public controller (the same object as the store's
+     * `el.controller`), or `null` until the store is built. Lets consumer
+     * code reach the store from a satellite reference.
      */
-    getStore(): DropzoneStoreAPI | null {
-        return this.store;
+    get controller(): DropzoneController | null {
+        return this.store && this.storeEl ? this.storeEl.controller : null;
     }
 
     private waitForStore(): void {

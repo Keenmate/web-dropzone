@@ -39,10 +39,10 @@ test.beforeEach(async ({ page }) => {
 });
 
 test.describe('addFiles / files getter / getFile', () => {
-    test('addFiles populates the queue; getStore().getFiles() returns a snapshot copy', async ({ page }) => {
+    test('addFiles populates the queue; controller.getFiles() returns a snapshot copy', async ({ page }) => {
         await addNamed(page, 'api', ['a.txt', 'b.txt']);
         const result = await dz(page, 'api').evaluate((el: any) => {
-            const store = el.getStore();
+            const store = el.controller;
             const snap1 = store.getFiles();
             const snap2 = store.getFiles();
             // getFiles always returns a fresh copy — mutating snap1 must
@@ -98,9 +98,9 @@ test.describe('removeFile / clear', () => {
     });
 });
 
-test.describe('getStore().getConfig', () => {
+test.describe('controller.getConfig', () => {
     test('returns the merged config (declared attrs win over DEFAULT_CONFIG)', async ({ page }) => {
-        const cfg = await dz(page, 'api').evaluate((el: any) => el.getStore().getConfig());
+        const cfg = await dz(page, 'api').evaluate((el: any) => el.controller.getConfig());
         // `accept` was declared on the element
         expect(cfg.accept).toBe('*/*');
         expect(cfg.maxFileCount).toBe(10);
@@ -109,10 +109,10 @@ test.describe('getStore().getConfig', () => {
     });
 });
 
-test.describe('getStore (web-component element)', () => {
-    test('exposes the underlying DropzoneStoreAPI on the host element', async ({ page }) => {
+test.describe('controller (web-component element)', () => {
+    test('exposes the underlying DropzoneController on the host element', async ({ page }) => {
         const sig = await dz(page, 'api').evaluate((el: any) => {
-            const store = el.getStore?.();
+            const store = el.controller;
             if (!store) return null;
             return {
                 hasGetFiles: typeof store.getFiles === 'function',
@@ -180,10 +180,10 @@ test.describe('upload lifecycle (uploadFileCallback wired)', () => {
     });
 });
 
-test.describe('getStore().getOverallProgress aggregate', () => {
+test.describe('controller.getOverallProgress aggregate', () => {
     test('returns a byte-weighted percent + per-status counts', async ({ page }) => {
         await addNamed(page, 'upload', ['a.txt', 'b.txt']);
-        const agg = await dz(page, 'upload').evaluate((el: any) => el.getStore().getOverallProgress());
+        const agg = await dz(page, 'upload').evaluate((el: any) => el.controller.getOverallProgress());
         expect(agg).toEqual(
             expect.objectContaining({
                 uploadedBytes: expect.any(Number),

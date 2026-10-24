@@ -4,8 +4,8 @@ import { test, expect, Page, Locator } from '@playwright/test';
  * Section 5b — host-framework form delegation (`el.form` / `event.target.form`).
  *
  * `<web-dropzone>` is a form-associated custom element, so — via core's
- * `BlissElement` — it exposes a real `el.form`, and a composed `change` event
- * retargets to the host so a delegated ancestor listener can read
+ * `BlissElement` — it exposes a real `el.form`, and its `change` event (fired
+ * on the host, bubbling) reaches a delegated ancestor listener that reads
  * `event.target.form`. This is exactly what Phoenix LiveView's `phx-change`
  * delegation depends on (it dropped changes when a v2 regression removed `.form`).
  * jsdom/happy-dom can't wire real `ElementInternals.form`, so this REAL-browser
@@ -32,7 +32,7 @@ test.beforeEach(async ({ page }) => {
 
 test.describe('el.form / event.target.form (host-framework delegation)', () => {
     test('a delegated change listener resolves the owning <form> via event.target.form', async ({ page }) => {
-        // Add a file → the store dispatches a composed `change`; the body-level
+        // Add a file → the host dispatches a bubbling `change`; the body-level
         // listener reads `event.target.form` (the LiveView phx-change shape).
         await stage(page, 'named', ['a.txt']);
         await expect(page.locator('#delegation-log')).toHaveText('named -> named-form');

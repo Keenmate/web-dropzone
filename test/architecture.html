@@ -59,7 +59,7 @@
         // Probe helper: does a satellite have its store bound?
         window.__satelliteHasStore = (sel) => {
             const el = document.querySelector(sel);
-            return !!el?.getStore?.();
+            return !!el?.controller;
         };
     </script>
 </body>

@@ -60,24 +60,24 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `validateCallback` (custom sync rule)                         | ✓      | `validation.spec.ts` | `validation.html`  |
 | Duplicate detection — `dedupe-mode="name"` (default)          | ✓      | `validation-rules.spec.ts` | `validation-rules.html` |
 | `dedupe-mode="none"` allows duplicates                        | ✓      | `validation-rules.spec.ts` | `validation-rules.html` |
-| `beforeFilesAddedCallback` async gate (accept)                | ✓      | `gates.spec.ts`      | `gates.html`       |
-| `beforeFilesAddedCallback` async gate (cancel, code='cancelled') | ✓   | `gates.spec.ts`      | `gates.html`       |
-| `beforeFilesAddedCallback` receives (files, existingFiles)    | ✓      | `gates.spec.ts`      | `gates.html`       |
-| `beforeFilesRemovedCallback` accepts removal via `{ confirm: true }` | ✓ | `gates.spec.ts`     | `gates.html`       |
-| `beforeFilesRemovedCallback` rejects removal — file stays     | ✓      | `gates.spec.ts`      | `gates.html`       |
+| `beforeFilesAddCallback` async gate (accept)                | ✓      | `gates.spec.ts`      | `gates.html`       |
+| `beforeFilesAddCallback` async gate (cancel, code='cancelled') | ✓   | `gates.spec.ts`      | `gates.html`       |
+| `beforeFilesAddCallback` receives ctx `{ files, existingFiles }` | ✓      | `gates.spec.ts`      | `gates.html`       |
+| `beforeFilesRemoveCallback` accepts removal via `{ confirm: true }` | ✓ | `gates.spec.ts`     | `gates.html`       |
+| `beforeFilesRemoveCallback` rejects removal — file stays     | ✓      | `gates.spec.ts`      | `gates.html`       |
 | Programmatic `removeFile()` skips the gate by default          | ✓      | `gates.spec.ts`      | `gates.html`       |
 
 ## 4. Events & API
 
 | Feature                                                       | Status | Spec             | Fixture       |
 | ------------------------------------------------------------- | :----: | ---------------- | ------------- |
-| `file-added` fires with `{ file }`-only detail                | ✓      | `events.spec.ts` | `events.html` |
-| `file-removed` fires with `{ file }`-only detail              | ✓      | `events.spec.ts` | `events.html` |
+| `file-add` fires with `{ file }`-only detail                | ✓      | `events.spec.ts` | `events.html` |
+| `file-remove` fires with `{ file }`-only detail              | ✓      | `events.spec.ts` | `events.html` |
 | `change` fires with empty detail (native input convention)    | ✓      | `events.spec.ts` | `events.html` |
-| `files-changed` rAF-coalesces a multi-file batch              | ✓      | `events.spec.ts` | `events.html` |
-| `files-rejected` carries grouped rejections                   | △      | `validation.spec.ts` | `validation.html` |
-| `file-progress` / `file-status-changed` during upload         | ✓      | `upload.spec.ts` | `upload.html`  |
-| `file-updated` after handler post-merges metadata             | ✓      | `events-extra.spec.ts` | `events-extra.html` |
+| `files-change` rAF-coalesces a multi-file batch              | ✓      | `events.spec.ts` | `events.html` |
+| `files-reject` carries grouped rejections                   | △      | `validation.spec.ts` | `validation.html` |
+| `file-progress` / `file-status-change` during upload         | ✓      | `upload.spec.ts` | `upload.html`  |
+| `file-update` after handler post-merges metadata             | ✓      | `events-extra.spec.ts` | `events-extra.html` |
 | `file-row-update` on element-returning row callbacks (initial) | ✓     | `structural.spec.ts` | `structural.html` |
 | `file-row-update` on progress ticks (listener survival)       | ✓      | `events-extra.spec.ts` | `events-extra.html` |
 | `overlay-enter` / `overlay-leave` during drag (Playwright limit) | △    | `drag-overlay.spec.ts` | `drag-overlay.html` |
@@ -88,10 +88,10 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Public methods: `resumeFile`, `retryFile`                     | ✓      | `upload-edge.spec.ts` | `upload-edge.html` |
 | Public methods: `pauseAll`, `resumeAll`, `retryAll`           | ✓      | `upload-edge.spec.ts` | `upload-edge.html` |
 | `uploadAll` returns + drives worker pool                      | ✓      | `api.spec.ts`    | `api.html`    |
-| `getStore().getFiles()` returns mutable copy                  | ✓      | `api.spec.ts`    | `api.html`    |
-| `getStore().getConfig()` returns merged config                | ✓      | `api.spec.ts`    | `api.html`    |
-| `getStore().getOverallProgress()` aggregate                   | ✓      | `api.spec.ts`    | `api.html`    |
-| `getStore()` returns DropzoneStoreAPI (method signatures)     | ✓      | `api.spec.ts`    | `api.html`    |
+| `controller.getFiles()` returns mutable copy                  | ✓      | `api.spec.ts`    | `api.html`    |
+| `controller.getConfig()` returns merged config                | ✓      | `api.spec.ts`    | `api.html`    |
+| `controller.getOverallProgress()` aggregate                   | ✓      | `api.spec.ts`    | `api.html`    |
+| `el.controller` is a DropzoneController (method signatures)  | ✓      | `api.spec.ts`    | `api.html`    |
 | `.files` getter on host element                               | ✓      | `api.spec.ts`    | `api.html`    |
 
 ## 5. Upload pipeline
@@ -106,7 +106,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `concurrency` cap holds N workers active                      | ✓      | `upload.spec.ts` | `upload.html` |
 | Worker slot rotates on completion                             | ✓      | `upload.spec.ts` | `upload.html` |
 | `file-progress` event fires per onProgress() pump             | ✓      | `upload.spec.ts` | `upload.html` |
-| `file-status-changed` event fires per status transition       | ✓      | `upload.spec.ts` | `upload.html` |
+| `file-status-change` event fires per status transition       | ✓      | `upload.spec.ts` | `upload.html` |
 | Resume from `context.startBytes` / `startPercent` after pause | ✓      | `upload-edge.spec.ts` | `upload-edge.html` |
 | Retry from error re-invokes the handler                       | ✓      | `upload-edge.spec.ts` | `upload-edge.html` |
 | Per-file pause / resume / cancel via X button (UI path)       | ✗      |                  |                |
@@ -188,3 +188,23 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `version()` matches `config.version`                          | ✓      | `logging.spec.ts` | `logging.html` |
 | `getInstances()` returns mounted host elements                | ✓      | `logging.spec.ts` | `logging.html` |
 | `logging.setLogLevel / setCategoryLevel / getCategories`      | ✓      | `logging.spec.ts` | `logging.html` |
+
+## 12. Interaction model (events, twins, controller, ctx)
+
+| Feature                                                       | Status | Spec                          | Fixture                   |
+| ------------------------------------------------------------- | :----: | ----------------------------- | ------------------------- |
+| Present-tense events; `on*` twin runs first with the same detail | ✓   | `interaction-model.spec.ts`   | `interaction-model.html`  |
+| Events not composed, still bubble to `document`; old names never fire | ✓ | `interaction-model.spec.ts` | `interaction-model.html` |
+| Details / ctx carry `controller` + `element`, non-enumerable  | ✓      | `interaction-model.spec.ts`   | `interaction-model.html`  |
+| `change` detail `{ files }`; `files-reject` / `file-retry` / `file-status-change` context | ✓ | `interaction-model.spec.ts` | `interaction-model.html` |
+| `ready` (+ twin) on build; `data-ready`; `controller.isReady`  | ✓      | `interaction-model.spec.ts`   | `interaction-model.html`  |
+| `el.controller` stable across a rebuild; no `getStore` / engine | ✓     | `interaction-model.spec.ts`   | `interaction-model.html`  |
+| `beforeFilesAddCallback` — `false` cancels, `File[]` replaces, nothing continues | ✓ | `interaction-model.spec.ts` | `interaction-model.html` |
+| `beforeFilesRemoveCallback` via row ✕ (`data-dz-action="remove"`) | ✓   | `interaction-model.spec.ts`   | `interaction-model.html`  |
+| `validateCallback` / `getFileIconCallback` / `getCustomStylesCallback` ctx | ✓ | `interaction-model.spec.ts` | `interaction-model.html` |
+| `uploadFileCallback(ctx)` + `file-upload-complete` twin       | ✓      | `interaction-model.spec.ts`   | `interaction-model.html`  |
+| Structural render callbacks ctx; `file-row-update` not composed | ✓     | `interaction-model.spec.ts`   | `interaction-model.html`  |
+| `renderRollingBodyCallback` settable as an element input      | ✓      | `interaction-model.spec.ts`   | `interaction-model.html`  |
+| `renderSummaryCallback` + `loadStateCallback` ctx             | ✓      | `interaction-model.spec.ts`   | `interaction-model.html`  |
+| Picker `uploadFileCallback`; list `summary-activate` / `queue-open` carry store context | ✓ | `interaction-model.spec.ts` | `interaction-model.html` |
+| Element unit: controller defaults, `ready` twin, add / change twins | ✓  | `packages/web-dropzone/test/unit/interaction.test.ts` | — |

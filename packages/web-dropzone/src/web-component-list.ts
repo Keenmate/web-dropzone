@@ -3,15 +3,15 @@
  *
  * A read-mostly view of a store's `FileState[]`, rendered in one of several
  * appearances (list / detailed / grid / badges / rolling). Subscribes to
- * the store's substrate events (file-added, file-removed, file-progress,
- * file-status-changed, change) so it stays in sync without polling. Action
+ * the store's substrate events (file-add, file-remove, file-progress,
+ * file-status-change, change) so it stays in sync without polling. Action
  * buttons (remove, pause, resume, cancel, retry) call back through to the
  * store's public API.
  *
  * Rolling appearance shows a single "front" file (highest-priority active
  * one — see `getFrontFile`) with rotation animations. A queue badge button
- * sits in the top-right corner; clicking it dispatches a `dz-queue-open`
- * CustomEvent (bubbles + composed) — popover wiring is up to the consumer.
+ * sits in the top-right corner; clicking it dispatches a `queue-open`
+ * CustomEvent (bubbles, not composed; detail carries the store's `controller` / `element`) — popover wiring is up to the consumer.
  * The convenience form (`<web-dropzone>`) listens for this event and opens
  * its built-in popover; standalone satellite consumers can wire any UI.
  *
@@ -24,11 +24,12 @@ import {
     SatelliteElement,
     subscribeStoreEvents,
     resolveEnumAttribute,
-    createMicrotaskScheduler
+    createMicrotaskScheduler,
+    createStoreContextBase,
+    dispatchSatelliteEvent
 } from './satellite-base';
 import {
     escapeHtml,
-    dispatchComposedEvent,
     isImageFile,
     createImagePreview,
     formatFileSize,
@@ -48,9 +49,10 @@ import {
     renderGridItem,
     renderBadgeItem
 } from './row-templates';
+import type { RowTemplateOptions } from './row-templates';
+import type { DropzoneContext } from '@keenmate/web-dropzone-core';
 import { buildStatusSurfaceArgs, StatusSurface } from './status-surface';
 import type { StatusSurfaceArgs } from './status-surface';
-import type { DropzoneStoreAPI } from '@keenmate/web-dropzone-core';
 import type { DropzoneElement } from './web-component';
 import type { FileState, ListAppearance, RollingRotation } from '@keenmate/web-dropzone-core';
 
@@ -71,7 +73,7 @@ export class DropzoneListElement extends SatelliteElement {
     private container: HTMLElement;
     /**
      * Coalesces structural re-render requests within the same microtask.
-     * Adding N files at once dispatches N × file-added plus one change —
+     * Adding N files at once dispatches N × file-add plus one change —
      * without coalescing we'd rebuild the list N+1 times (and destroy the
      * row a user might be mid-click on). With it: one rebuild per burst.
      */
@@ -90,6 +92,17 @@ export class DropzoneListElement extends SatelliteElement {
      * the next burst. Reset to false on a full clear in the change handler.
      */
     private showAll = false;
+    /** Context prototype for per-row icon ctx — rebuilt when the bound store changes. */
+    private contextBase: { storeEl: DropzoneElement; base: DropzoneContext } | null = null;
+
+    private iconContext(): DropzoneContext | undefined {
+        const storeEl = this.storeEl;
+        if (!storeEl) return undefined;
+        if (this.contextBase?.storeEl !== storeEl) {
+            this.contextBase = { storeEl, base: createStoreContextBase(storeEl) };
+        }
+        return this.contextBase.base;
+    }
 
     constructor() {
         super();
@@ -119,22 +132,22 @@ export class DropzoneListElement extends SatelliteElement {
             // add / remove / change → structural; coalesce burst events
             // (one re-render per microtask) so a bulk drop doesn't churn
             // DOM rows while the user is mid-click on an existing row.
-            'file-added':   () => this.scheduleRenderAll(),
-            'file-removed': () => this.scheduleRenderAll(),
+            'file-add':   () => this.scheduleRenderAll(),
+            'file-remove': () => this.scheduleRenderAll(),
             'change':       () => this.scheduleRenderAll(),
             // Config re-render (e.g. `item-controls` changed) → re-render rows.
             'dz-config-changed': () => this.scheduleRenderAll(),
             // progress / status changes → patch the affected row in place
             // (rendering at 50ms ticks across 20 files would burn DOM otherwise).
             'file-progress': (e) => this.patchRow((e as CustomEvent).detail.id),
-            // A previewUrl landing (async image preview) arrives as file-updated;
+            // A previewUrl landing (async image preview) arrives as file-update;
             // swap the row's icon slot for the <img> without a full re-render.
-            'file-updated': (e) => this.patchPreview((e as CustomEvent).detail.file.id),
+            'file-update': (e) => this.patchPreview((e as CustomEvent).detail.file.id),
             // Status changes need extra handling for rolling (front-file
             // pick may shift — patchRow alone can't reflect that) and for
             // popover (the summary's status icon depends on aggregate
             // state, not the per-file row).
-            'file-status-changed': (e) => {
+            'file-status-change': (e) => {
                 this.patchRow((e as CustomEvent).detail.id);
                 const appearance = this.resolveAppearance();
                 if (appearance === 'rolling' && this.store) {
@@ -240,19 +253,19 @@ export class DropzoneListElement extends SatelliteElement {
         const isBadges = appearance === 'badges';
         if (this.showAll) {
             return isBadges
-                ? `<button type="button" class="dz__badge dz__badge--more" data-action="toggle-visible" aria-label="Show fewer">−</button>`
-                : `<button type="button" class="dz__show-more" data-action="toggle-visible">Show less</button>`;
+                ? `<button type="button" class="dz__badge dz__badge--more" data-dz-action="toggle-visible" aria-label="Show fewer">−</button>`
+                : `<button type="button" class="dz__show-more" data-dz-action="toggle-visible">Show less</button>`;
         }
         const hidden = total - cap;
         return isBadges
-            ? `<button type="button" class="dz__badge dz__badge--more" data-action="toggle-visible" aria-label="Show ${hidden} more">+${hidden}</button>`
-            : `<button type="button" class="dz__show-more" data-action="toggle-visible">Show ${hidden} more</button>`;
+            ? `<button type="button" class="dz__badge dz__badge--more" data-dz-action="toggle-visible" aria-label="Show ${hidden} more">+${hidden}</button>`
+            : `<button type="button" class="dz__show-more" data-dz-action="toggle-visible">Show ${hidden} more</button>`;
     }
 
     /** Bind the toggle button's click handler (only present when the
      *  max-visible cap is active and over). */
     private bindToggleHandler(): void {
-        const btn = this.container.querySelector<HTMLElement>('[data-action="toggle-visible"]');
+        const btn = this.container.querySelector<HTMLElement>('[data-dz-action="toggle-visible"]');
         if (!btn) return;
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -270,7 +283,7 @@ export class DropzoneListElement extends SatelliteElement {
      * the click target for the popover. The actual popover wrapper is
      * external to this satellite — the convenience form's `<web-dropzone>`
      * renders it in-class, and standalone consumers wire any UI they want
-     * by listening for `dz-summary-click` (bubbles + composed).
+     * by listening for `summary-activate` (bubbles, not composed).
      *
      * The summary subtree is re-rendered on every store change. That's
      * cheap (one line of DOM) and avoids the per-tick patching dance the
@@ -280,7 +293,7 @@ export class DropzoneListElement extends SatelliteElement {
     private renderSummary(files: FileState[]): void {
         if (!this.store) return;
         const cfg = this.store.getConfig();
-        const args = buildStatusSurfaceArgs(files, this.store);
+        const args = buildStatusSurfaceArgs(files, this.storeEl!.controller, this.storeEl!);
         const status = args.overallStatus === 'idle' ? 'pending' : args.overallStatus;
         const icon = status === 'pending'
             ? UI_ICONS.paperclip
@@ -307,7 +320,7 @@ export class DropzoneListElement extends SatelliteElement {
 
         const line = this.container.querySelector('.dz__summary__line');
         if (!line) return;
-        const fire = () => dispatchComposedEvent(this, 'dz-summary-click');
+        const fire = () => dispatchSatelliteEvent(this, this.storeEl, 'summary-activate');
         line.addEventListener('click', fire);
         line.addEventListener('keydown', (e) => {
             const ke = e as KeyboardEvent;
@@ -326,8 +339,10 @@ export class DropzoneListElement extends SatelliteElement {
         const parts = ic ? new Set(ic) : undefined;
         const useThumbnail = this.shouldShowThumbnails(appearance);
         // Store config satisfies FileIconOverrides structurally → forward it so
-        // the satellite honours the same fileIcons / fileIconCallback overrides.
-        const opts = { parts, useThumbnail, iconOverrides: cfg };
+        // the satellite honours the same fileIcons / getFileIconCallback
+        // overrides; the context base gives each per-row ctx the store's
+        // controller / element.
+        const opts: RowTemplateOptions = { parts, useThumbnail, iconOverrides: cfg, iconContext: this.iconContext() };
         if (appearance === 'badges')   return renderBadgeItem(file, opts);
         if (appearance === 'grid')     return renderGridItem(file, opts);
         if (appearance === 'detailed') return renderDetailedItem(file, opts);
@@ -418,7 +433,7 @@ export class DropzoneListElement extends SatelliteElement {
         // Status-surface body callback — when set, the user owns the entire
         // rolling container (no animation slots, no queue badge). Returning
         // `false` hides the surface; `null` falls through to the default.
-        const args = buildStatusSurfaceArgs(files, this.store);
+        const args = buildStatusSurfaceArgs(files, this.storeEl!.controller, this.storeEl!);
         const bodyResult = cfg.renderRollingBodyCallback
             ? cfg.renderRollingBodyCallback(args)
             : null;
@@ -457,7 +472,7 @@ export class DropzoneListElement extends SatelliteElement {
         if (previousCurrent && previousFrontId === front.id) {
             // Same front file. Per-row ticks land via patchRow; here we
             // just refresh the queue count + re-apply slot callbacks so
-            // a render driven by file-status-changed picks up the new
+            // a render driven by file-status-change picks up the new
             // status / progress numbers inside the slot subtrees.
             this.applyRollingSlots(previousCurrent, args);
             this.updateRollingQueueButton(wrapper, queueCount, showQueueBtn);
@@ -519,7 +534,7 @@ export class DropzoneListElement extends SatelliteElement {
      * the current file count. Created once and reused across re-renders so
      * its click handler isn't repeatedly rebound (and so the badge doesn't
      * flicker during a front-file swap). On click, dispatches a
-     * `dz-queue-open` CustomEvent (bubbles + composed) — popover wiring
+     * `queue-open` CustomEvent (bubbles, not composed) — popover wiring
      * happens externally (convenience form listens; standalone users wire
      * their own).
      */
@@ -529,11 +544,11 @@ export class DropzoneListElement extends SatelliteElement {
             queueBtn = document.createElement('button');
             queueBtn.type = 'button';
             queueBtn.className = 'dz__rolling__queue';
-            queueBtn.dataset.action = 'open-queue';
+            queueBtn.dataset.dzAction = 'open-queue';
             queueBtn.innerHTML = '<span class="dz__rolling__queue-count"></span>';
             queueBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                dispatchComposedEvent(this, 'dz-queue-open');
+                dispatchSatelliteEvent(this, this.storeEl, 'queue-open');
             });
             wrapper.appendChild(queueBtn);
         }
@@ -562,7 +577,7 @@ export class DropzoneListElement extends SatelliteElement {
         // Action button (pause / resume / retry). Slot is always in the DOM;
         // only react when `data-row-action` is set (i.e. not the hidden /
         // inert placeholder shape).
-        const actionBtn = target.closest<HTMLElement>('[data-action="row-action"]');
+        const actionBtn = target.closest<HTMLElement>('[data-dz-action="row-action"]');
         if (actionBtn) {
             const id = actionBtn.getAttribute('data-file-id');
             const action = actionBtn.getAttribute('data-row-action');
@@ -577,10 +592,10 @@ export class DropzoneListElement extends SatelliteElement {
         // cancel-vs-remove semantics: clicking X on an uploading file cancels
         // the upload (no gate) and leaves the row in the list as 'cancelled';
         // clicking X on anything else routes through removeFile with the
-        // confirm flag so `beforeFilesRemovedCallback` (if set) gets the
+        // confirm flag so `beforeFilesRemoveCallback` (if set) gets the
         // chance to veto. Programmatic `removeFile(id)` callers are still
         // un-gated by default.
-        const removeBtn = target.closest<HTMLElement>('[data-action="remove"]');
+        const removeBtn = target.closest<HTMLElement>('[data-dz-action="remove"]');
         if (removeBtn) {
             const id = removeBtn.getAttribute('data-file-id');
             if (!id) return;
@@ -600,10 +615,10 @@ export class DropzoneListElement extends SatelliteElement {
 
     /**
      * One-shot icon-slot → `<img>` swap when a file's `previewUrl` lands
-     * asynchronously (store emits `file-updated`). Only the appearances whose
+     * asynchronously (store emits `file-update`). Only the appearances whose
      * templates honor `useThumbnail` are patched — badges / detailed / grid —
      * and only when `show-thumbnails` resolves on for that appearance. Skips if
-     * the slot is already an image, so repeated `file-updated` ticks are cheap.
+     * the slot is already an image, so repeated `file-update` ticks are cheap.
      */
     private patchPreview(id: string): void {
         if (!this.store) return;
@@ -652,7 +667,7 @@ export class DropzoneListElement extends SatelliteElement {
             }
             patchStatusIcon(row, 'dz__badge-status', file.status);
             patchActionButton(
-                row.querySelector<HTMLElement>('[data-action="row-action"]'),
+                row.querySelector<HTMLElement>('[data-dz-action="row-action"]'),
                 file,
                 'dz__badge-action'
             );
@@ -671,7 +686,7 @@ export class DropzoneListElement extends SatelliteElement {
         }
         patchStatusIcon(row, `${prefix}__status`, file.status);
         patchActionButton(
-            row.querySelector<HTMLElement>('[data-action="row-action"]'),
+            row.querySelector<HTMLElement>('[data-dz-action="row-action"]'),
             file,
             `${prefix}__action`
         );

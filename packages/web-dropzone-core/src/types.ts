@@ -7,6 +7,21 @@
 // directly (it never declared it; it was resolving through the renderer's
 // hoisted copy).
 import type { Placement } from '@keenmate/web-components-core/positioning';
+import type {
+    ValidateContext,
+    BeforeFilesAddContext,
+    BeforeFilesRemoveContext,
+    FileIconContext,
+    FileUploadContext,
+    PersistStateContext,
+    LoadStateContext,
+    FileItemRenderContext,
+    ListWrapperRenderContext,
+    PromptRenderContext,
+    SummaryRenderContext,
+    CustomStylesContext
+} from './interaction';
+import type { StatusSurfaceCallback } from './store-api';
 
 /**
  * Display mode — single-axis legacy shorthand for the orthogonal
@@ -158,12 +173,12 @@ export type FileStatus = 'pending' | 'uploading' | 'complete' | 'error' | 'pause
 
 /**
  * Contract between the handler and the component about what
- * `onProgress(p)` means, and what the component does with it when the
+ * `ctx.setProgress(p)` means, and what the component does with it when the
  * upload attempt rejects. The handler always drives the bar — the mode
  * controls whether the bar can go BACKWARDS on failure.
  *
  * - `optimistic` (default) — the handler is free to call
- *   `onProgress(p)` BEFORE the bytes are confirmed (e.g. as soon as
+ *   `ctx.setProgress(p)` BEFORE the bytes are confirmed (e.g. as soon as
  *   they're flushed to the socket, or per simulated tick). If the
  *   attempt ultimately rejects, the bar snaps back to the value it had
  *   at the start of the attempt — those unconfirmed bytes never landed
@@ -172,7 +187,7 @@ export type FileStatus = 'pending' | 'uploading' | 'complete' | 'error' | 'pause
  *   `XMLHttpRequest.upload.progress` and "sent" doesn't yet mean
  *   "acknowledged".
  *
- * - `pessimistic` — the handler must only call `onProgress(p)` AFTER a
+ * - `pessimistic` — the handler must only call `ctx.setProgress(p)` AFTER a
  *   chunk has been confirmed by the server (or for whole-file uploads,
  *   it just doesn't tick during the attempt and the bar jumps from the
  *   baseline to 100% on resolve). The component won't snap back on
@@ -183,71 +198,6 @@ export type FileStatus = 'pending' | 'uploading' | 'complete' | 'error' | 'pause
 export type ProgressMode = 'optimistic' | 'pessimistic';
 
 /**
- * Per-file upload handler. Called once per file by the component's worker
- * pool when `uploadFileCallback` is set. Returns a Promise that resolves on
- * success or rejects on failure. The component drives `file.progress` and
- * `file.status` from the lifecycle of this Promise — the handler should only
- * report progress via `onProgress(percent)` and respect `signal.aborted`.
- *
- * Mirrors svelte-fluentui's `FileUploadHandler`. The signal fires when the
- * file is paused / cancelled / removed; handlers should bail out via AbortError.
- */
-/**
- * Per-call context handed to the upload handler. Carries resume state so the
- * handler can pick up where a previous attempt left off — without it, the
- * handler can't know whether this is a fresh upload, a resume after pause,
- * or a fresh retry.
- *
- * Resume flow:
- * 1. First call — `startBytes=0`, `startPercent=0`, `metadata=undefined`.
- * 2. Handler does its thing (e.g. POST initiates a tus.io session, returns
- *    the Location header). Calls `setMetadata({ uploadUrl })` to stash it
- *    so the next attempt can find it. Calls `onProgress(percent)` as bytes
- *    land.
- * 3. User pauses → AbortSignal fires → handler rejects with AbortError.
- *    Component preserves `file.progress` and `file.metadata`.
- * 4. User resumes → handler is called again. `startBytes` reflects the last
- *    reported progress; `metadata.uploadUrl` is still there. Handler does a
- *    `HEAD uploadUrl` to confirm server-side offset, then resumes from
- *    `startBytes` (HTTP Content-Range / tus.io PATCH / S3 multipart / etc).
- */
-export interface FileUploadContext {
-    /**
-     * Byte offset to resume from. 0 for a fresh upload, > 0 when resuming
-     * after a pause. Computed from `file.progress` × `file.size` so the
-     * accuracy depends on what the handler reported via `onProgress` before
-     * the pause.
-     */
-    startBytes: number;
-    /** Same as startBytes expressed as a 0..100 percent. Convenience for
-     *  handlers that work in percent (e.g. progress simulators). */
-    startPercent: number;
-    /**
-     * Current value of `FileState.metadata` — merged from any prior
-     * `FileUploadResult.metadata` AND any prior `context.setMetadata` calls.
-     * Use this to recover e.g. a tus.io session URL or S3 upload-id stashed
-     * during a previous attempt.
-     */
-    metadata: Readonly<Record<string, unknown>> | undefined;
-    /**
-     * Stash partial server state mid-stream. The patch is shallow-merged
-     * into `FileState.metadata` immediately, so the next runUpload call
-     * (after pause / retry) sees it in `context.metadata`. Useful for
-     * session URLs (tus.io Location header) or upload-ids (S3 multipart)
-     * learned from the first request and reused on resume.
-     */
-    setMetadata(patch: Record<string, unknown>): void;
-    /**
-     * Per-file metadata stamped at add-time by the contributing picker
-     * (Mode B — see ARCHITECTURE.md). Distinct from `metadata`, which the
-     * handler populates on success. Use this to carry bucket names,
-     * tenant ids, or any other "where does this file go" hint that the
-     * picker decided when the user dropped the file.
-     */
-    uploadMetadata: Readonly<Record<string, unknown>> | undefined;
-}
-
-/**
  * Options accepted by `WebDropzone.addFiles(files, opts)`. Pickers use this
  * to stamp Mode B routing info onto each new FileState — the same handler /
  * metadata then survive through pause / resume / retry. Omitting opts (or
@@ -255,8 +205,8 @@ export interface FileUploadContext {
  */
 export interface AddFilesOptions {
     /** Per-file upload handler override. Stamped onto every accepted file
-     *  in this batch as `FileState.uploadCallback`. */
-    uploadCallback?: FileUploadHandler;
+     *  in this batch as `FileState.uploadFileCallback`. */
+    uploadFileCallback?: FileUploadHandler;
     /** Per-file metadata stamped onto every accepted file in this batch
      *  as `FileState.uploadMetadata`. */
     uploadMetadata?: Record<string, unknown>;
@@ -282,12 +232,15 @@ export interface OverallProgress {
     aggregateStatus: 'uploading' | 'paused' | 'error' | 'complete';
 }
 
-export type FileUploadHandler = (
-    file: File,
-    onProgress: (percent: number) => void,
-    signal: AbortSignal,
-    context: FileUploadContext
-) => Promise<void | FileUploadResult>;
+/**
+ * Per-file upload handler (`uploadFileCallback`). Called once per attempt by
+ * the worker pool with one {@link FileUploadContext}: `file`, `signal`,
+ * `setProgress(percent)`, resume state (`startBytes`, `startPercent`,
+ * `metadata`, `setMetadata`) and `uploadMetadata`, plus `controller` /
+ * `element`. Resolve on success (optionally with a {@link FileUploadResult}),
+ * reject on failure; abort when `signal` fires (pause / cancel / remove).
+ */
+export type FileUploadHandler = (ctx: FileUploadContext) => Promise<void | FileUploadResult>;
 
 /**
  * Retry policy applied when `uploadFileCallback` rejects. Each retry waits
@@ -347,15 +300,15 @@ export interface FileState {
      * Per-file upload handler override (Mode B — see ARCHITECTURE.md).
      * Stamped at add-time by the contributing picker so a shared store can
      * route different files to different endpoints. The upload loop calls
-     * `file.uploadCallback ?? store.config.uploadFileCallback`, so Mode A
+     * `file.uploadFileCallback ?? store.config.uploadFileCallback`, so Mode A
      * (single shared handler) is unchanged when this is undefined.
      */
-    uploadCallback?: FileUploadHandler;
+    uploadFileCallback?: FileUploadHandler;
     /**
      * Per-file metadata stamped at add-time (Mode B). Distinct from
      * `metadata`, which the upload handler populates after upload — this
      * field carries inputs handed to the handler (e.g. bucket name,
-     * tenant id) and is exposed via `FileUploadContext.uploadMetadata`.
+     * tenant id) and is exposed to the handler as `ctx.uploadMetadata`.
      */
     uploadMetadata?: Record<string, unknown>;
 }
@@ -404,18 +357,6 @@ export interface RejectedFile {
     file: File;
     /** Validation result with error details */
     validation: ValidationResult;
-}
-
-/**
- * Context provided to renderFileItemCallback
- */
-export interface FileItemRenderContext {
-    /** Index of the file in the list */
-    index: number;
-    /** Current display mode */
-    displayMode: DisplayMode;
-    /** Whether this item is in the compact popover */
-    isInPopover: boolean;
 }
 
 /**
@@ -619,12 +560,12 @@ export interface DropzoneConfig {
     // CALLBACKS
     // ========================================================================
 
-    /** Sync technical-validation gate — returns ValidationResult to accept
-     *  or reject a file before it enters the queue. Runs LAST among the
-     *  built-in checks (size / type / count / duplicate). Pure: must return
-     *  immediately. For user-facing async confirmation see
-     *  `beforeFilesAddedCallback`. */
-    validateCallback?: ((file: File, existingFiles: FileState[]) => ValidationResult) | null;
+    /** Sync technical-validation gate — `validateCallback({ file,
+     *  existingFiles })` returns a ValidationResult to accept or reject a
+     *  file before it enters the queue. Runs after the built-in size / type
+     *  checks. Pure: must return immediately. For user-facing async
+     *  confirmation see `beforeFilesAddCallback`. */
+    validateCallback?: ((ctx: ValidateContext) => ValidationResult) | null;
 
     /**
      * Icon overrides layered on top of the built-in category icons, keyed by
@@ -640,33 +581,34 @@ export interface DropzoneConfig {
     fileIcons?: Record<string, string> | null;
 
     /**
-     * Full-control icon resolver, consulted BEFORE `fileIcons` and the
-     * built-in categories. Return an HTML string to use it, or `null` /
-     * `undefined` to fall through to `fileIcons` → category → default.
+     * Full-control icon resolver — `getFileIconCallback({ file })`,
+     * consulted BEFORE `fileIcons` and the built-in categories. Return an
+     * HTML string to use it, or `null` / `undefined` to fall through to
+     * `fileIcons` → category → default. Runs per rendered row (sync).
      *
      * ⚠️ Raw HTML — same caveat as `fileIcons`: NOT sanitized.
      */
-    fileIconCallback?: ((file: File) => string | null | undefined) | null;
+    getFileIconCallback?: ((ctx: FileIconContext) => string | null | undefined) | null;
 
-    /** Async user-confirmation gate fired once per add batch AFTER all
-     *  sync validation passes. Receives the array of File objects that
-     *  survived validation. Resolve `true` to accept; resolve `false` to
-     *  cancel — the files are then emitted via `files-rejected` with
-     *  `code: 'cancelled'`. While the promise is pending the files do NOT
-     *  appear in the dropzone (no `file-added`, not in `dz.files`); the
-     *  consumer is responsible for showing the confirmation UI. */
-    beforeFilesAddedCallback?:
-        ((files: File[], existingFiles: FileState[]) => boolean | Promise<boolean>) | null;
+    /** Gate fired once per add batch AFTER all sync validation passes —
+     *  `beforeFilesAddCallback({ files, existingFiles })`; may be async.
+     *  Return `false` to cancel — the files are then reported via
+     *  `files-reject` with `code: 'cancelled'`; return a `File[]` to add
+     *  those instead (they are validated again; the hook is not re-run);
+     *  return nothing to continue. While a promise is pending the files do
+     *  NOT appear in the dropzone (no `file-add`, not in `files`); the
+     *  consumer shows any confirmation UI. A throw cancels. */
+    beforeFilesAddCallback?:
+        ((ctx: BeforeFilesAddContext) => false | File[] | void | Promise<false | File[] | void>) | null;
 
-    /** Async user-confirmation gate fired before a user-initiated removal.
-     *  Receives the batch about to leave (single-row → `[file]`; clear-all
-     *  → all files). Resolve `true` to proceed; resolve `false` to cancel
-     *  (no state change, no events fire). Programmatic `removeFile(id)` /
-     *  `clear()` skip this gate by default — pass `{ confirm: true }` to
-     *  opt in. The row X button and the popover Clear button always run
-     *  the gate. */
-    beforeFilesRemovedCallback?:
-        ((files: FileState[], allFiles: FileState[]) => boolean | Promise<boolean>) | null;
+    /** Gate fired before a user-initiated removal —
+     *  `beforeFilesRemoveCallback({ files, allFiles })`; may be async.
+     *  `files` is the batch about to leave (row ✕ → `[file]`; Clear all →
+     *  every file). Return `false` to cancel (no state change, no events);
+     *  anything else proceeds. Programmatic `removeFile(id)` / `clear()`
+     *  skip this gate unless called with `{ confirm: true }`. A throw cancels. */
+    beforeFilesRemoveCallback?:
+        ((ctx: BeforeFilesRemoveContext) => false | void | Promise<false | void>) | null;
     /**
      * Per-file upload handler. When set, the component takes ownership of the
      * upload lifecycle: a worker pool runs queued files at the configured
@@ -674,7 +616,7 @@ export interface DropzoneConfig {
      * outcome, and exposes Pause / Resume / Cancel via the public API.
      *
      * When unset, the component stays in the "app drives uploads" mode —
-     * files are merely added and emit `file-added`; the app is expected to
+     * files are merely added and emit `file-add`; the app is expected to
      * call `updateFileProgress` / `setFileStatus` manually.
      */
     uploadFileCallback?: FileUploadHandler | null;
@@ -693,7 +635,7 @@ export interface DropzoneConfig {
     isAutoUploadEnabled?: boolean;
     /**
      * Controls whether the progress bar reflects the handler's optimistic
-     * `onProgress` ticks (bytes sent) or only confirmed server-acknowledged
+     * `ctx.setProgress` ticks (bytes sent) or only confirmed server-acknowledged
      * progress. See {@link ProgressMode}. Defaults to `'optimistic'`.
      */
     progressMode?: ProgressMode;
@@ -719,7 +661,7 @@ export interface DropzoneConfig {
      * `this.files` array order is NOT mutated — the visual reordering is
      * pure CSS (`order: 1` on completed rows) for the inline list
      * appearances and a stable sort in the render path for the popover
-     * table. So `file-added` / `file-removed` event order and form
+     * table. So `file-add` / `file-remove` event order and form
      * submission order remain deterministic. Default `false`.
      *
      * Useful when uploads finish out of order and the user needs to see
@@ -760,26 +702,27 @@ export interface DropzoneConfig {
      */
     storageKey?: string;
     /**
-     * Custom persistence sink. Called whenever a piece of state changes
-     * (currently: popover dimensions after the user finishes a resize).
-     * The full state object is passed every time so the implementation
-     * can choose to merge / overwrite as it sees fit. Return a promise
-     * if the write is async — failures are swallowed; the component
-     * keeps working with in-memory state. Falls back to `localStorage`
-     * with key `dz-state:${storageKey}` when not set.
+     * Custom persistence sink — `persistStateCallback({ key, state })`.
+     * Called whenever a piece of state changes (currently: popover
+     * dimensions after the user finishes a resize). The full state object
+     * is passed every time so the implementation can merge / overwrite as
+     * it sees fit. Return a promise if the write is async — failures are
+     * swallowed; the component keeps working with in-memory state. Falls
+     * back to `localStorage` with key `dz-state:${storageKey}` when not set.
      */
-    persistStateCallback?: ((key: string, state: DropzoneState) => void | Promise<void>) | null;
+    persistStateCallback?: ((ctx: PersistStateContext) => void | Promise<void>) | null;
     /**
-     * Custom persistence source. Called once when the popover is about
-     * to open, to restore the user's last-known dimensions. Return
-     * `null` or `undefined` when no state exists for the key. Falls
-     * back to `localStorage` lookup at `dz-state:${storageKey}` when
-     * not set.
+     * Custom persistence source — `loadStateCallback({ key })`. Called
+     * when the popover is about to open, to restore the user's last-known
+     * dimensions. Return `null` or `undefined` when no state exists for the
+     * key. Falls back to `localStorage` lookup at `dz-state:${storageKey}`
+     * when not set.
      */
-    loadStateCallback?: ((key: string) => DropzoneState | null | Promise<DropzoneState | null>) | null;
+    loadStateCallback?: ((ctx: LoadStateContext) => DropzoneState | null | undefined | Promise<DropzoneState | null | undefined>) | null;
 
     /**
-     * Custom renderer for a single file row.
+     * Custom renderer for a single file row —
+     * `renderFileItemCallback({ file, index, displayMode, isInPopover })`.
      *
      * Return type drives the framework's update strategy:
      *  - **string** — framework swaps `outerHTML` on every state change.
@@ -787,19 +730,20 @@ export interface DropzoneConfig {
      *    style are lost on every tick.
      *  - **HTMLElement** — framework preserves the element across state
      *    changes and instead dispatches `file-row-update` events on it
-     *    (detail: `{ file }`). Listeners attached during the initial
-     *    render survive; the consumer mutates the existing DOM inside
-     *    the event handler.
+     *    (detail: `{ file }` + `controller` / `element`; bubbles, not
+     *    composed — listen on the row). Listeners attached during the
+     *    initial render survive; the consumer mutates the existing DOM
+     *    inside the event handler.
      *
      * Only honored when `mode === 'structural'`. See `DropzoneMode`.
      */
-    renderFileItemCallback?: ((file: FileState, context: FileItemRenderContext) => string | HTMLElement) | null;
+    renderFileItemCallback?: ((ctx: FileItemRenderContext) => string | HTMLElement) | null;
     /**
-     * Custom renderer for the list wrapper. Receives the rows as an
-     * HTML string and the files array; returns the wrapper HTML/element
-     * that will contain them. Useful for table-style layouts:
+     * Custom renderer for the list wrapper —
+     * `renderListWrapperCallback({ rowsHtml, files })`. Returns the wrapper
+     * HTML/element that will contain the rows. Useful for table-style layouts:
      *
-     *   renderListWrapperCallback = (rowsHtml) => `
+     *   renderListWrapperCallback = ({ rowsHtml }) => `
      *       <table>
      *         <thead><tr><th>Name</th><th>Size</th></tr></thead>
      *         <tbody>${rowsHtml}</tbody>
@@ -810,27 +754,28 @@ export interface DropzoneConfig {
      * to the string path — element identity is not preserved when the
      * wrapper callback is set.
      */
-    renderListWrapperCallback?: ((rowsHtml: string, files: FileState[]) => string | HTMLElement) | null;
-    /** Custom renderer for dropzone prompt content */
-    renderPromptCallback?: (() => string | HTMLElement) | null;
-    /** Custom renderer for compact summary content */
-    renderSummaryCallback?: ((files: FileState[]) => string | HTMLElement) | null;
+    renderListWrapperCallback?: ((ctx: ListWrapperRenderContext) => string | HTMLElement) | null;
+    /** Custom renderer for the drop-area prompt — `renderPromptCallback(ctx)` (context only). */
+    renderPromptCallback?: ((ctx: PromptRenderContext) => string | HTMLElement) | null;
+    /** Custom renderer for the compact summary — `renderSummaryCallback({ files })`. */
+    renderSummaryCallback?: ((ctx: SummaryRenderContext) => string | HTMLElement) | null;
     /**
-     * Custom rendering for the rolling list appearance. Three structural
-     * callbacks share the same `StatusSurfaceCallback` contract as the
-     * `<web-dropzone-indicator>` element — see `./store-api.ts`.
+     * Custom rendering for the rolling list appearance (structural mode).
+     * Three callbacks share the `StatusSurfaceCallback` contract of the
+     * `<web-dropzone-indicator>`'s `render{Body,FileInfo,Progress}Callback`
+     * — one `StatusSurfaceArgs` ctx (+ `controller` / `element`).
      * Each part is replaceable piecemeal; `null` returns yield to the
      * library's polished default. `false` from body hides the rolling
      * block (useful while idle). Memoization rules: string equality
      * skips DOM writes, element identity preserves WAAPI animations.
      */
-    renderRollingBodyCallback?: import('./store-api').StatusSurfaceCallback | null;
+    renderRollingBodyCallback?: StatusSurfaceCallback | null;
     /** File-info slot inside the rolling current row — name, icon, status. */
-    renderRollingFileInfoCallback?: import('./store-api').StatusSurfaceCallback | null;
+    renderRollingFileInfoCallback?: StatusSurfaceCallback | null;
     /** Progress slot inside the rolling current row — bar + percent. */
-    renderRollingProgressCallback?: import('./store-api').StatusSurfaceCallback | null;
-    /** Callback to inject custom CSS into Shadow DOM */
-    customStylesCallback?: (() => string) | null;
+    renderRollingProgressCallback?: StatusSurfaceCallback | null;
+    /** `getCustomStylesCallback(ctx)` — return CSS injected into the shadow root (prepended). */
+    getCustomStylesCallback?: ((ctx: CustomStylesContext) => string | null | undefined) | null;
 
     // ========================================================================
     // OTHER OPTIONS
@@ -841,173 +786,6 @@ export interface DropzoneConfig {
     /** Host element for appending hidden inputs (for form integration with shadow DOM) */
     hostElement?: HTMLElement;
 }
-
-/**
- * Event detail structure for file-added event.
- * The host element is on `e.target`; the full file list is on
- * `e.target.files`. Detail carries only the file that triggered the event.
- */
-export interface FileAddedEventDetail {
-    /** The file that was added */
-    file: FileState;
-}
-
-/**
- * Event detail structure for file-removed event. See FileAddedEventDetail
- * for the snapshot-via-`e.target.files` convention.
- */
-export interface FileRemovedEventDetail {
-    /** The file that was removed */
-    file: FileState;
-}
-
-/**
- * Event detail structure for files-rejected event
- */
-export interface FilesRejectedEventDetail {
-    /** Files that were rejected */
-    rejectedFiles: RejectedFile[];
-}
-
-/**
- * Event detail structure for change event. Mirrors the native DOM
- * convention (`<input type="file">` fires `change` with no detail; the
- * file list is on `e.target.files`). Read `e.target.files` for the
- * current snapshot, or subscribe to `files-changed` for an rAF-coalesced
- * `{ changedIds, files }` payload.
- */
-export interface ChangeEventDetail {
-    // empty by design
-}
-
-/**
- * Event detail structure for file-retry event — dispatched when the user
- * triggers a retry (per-file via API, or "Retry all" in the overall progress
- * strip). The component has already reset `file.status` to 'pending' and
- * `file.progress` to 0 before this event fires; the app's existing upload
- * logic should re-run for `file`.
- */
-export interface FileRetryEventDetail {
-    /** The file being retried */
-    file: FileState;
-}
-
-/**
- * Event detail for file-uploaded — fires when the component-driven worker
- * pool completes a file successfully. Only dispatched when
- * `uploadFileCallback` is set.
- */
-export interface FileUploadedEventDetail {
-    /** The file that finished uploading */
-    file: FileState;
-}
-
-/**
- * Event detail for file-deleted — dispatched in addition to file-removed
- * whenever the removed file had `status === 'complete'`. Lets apps wire
- * a server-side DELETE separate from the cosmetic "user dropped a pending
- * file before it uploaded" case. The metadata is whatever the upload
- * handler returned via `FileUploadResult.metadata`.
- */
-export interface FileDeletedEventDetail {
-    /** The completed file being removed (includes metadata, downloadUrl) */
-    file: FileState;
-}
-
-/**
- * Event detail for file-progress — dispatched whenever a file's progress
- * value changes. Substrate for satellite renderers (`<web-dropzone-list>`,
- * `<web-dropzone-indicator>`, …) so they can subscribe to per-file ticks
- * across shadow boundaries without polling. See ARCHITECTURE.md.
- */
-export interface FileProgressEventDetail {
-    /** The id of the file whose progress changed */
-    id: string;
-    /** Current progress (0–100, clamped) */
-    progress: number;
-    /** Current status — included so progress-only subscribers don't also
-     *  need to listen to file-status-changed for the common case. */
-    status: FileState['status'];
-    /** Live reference to the full file state, post-mutation */
-    file: FileState;
-}
-
-/**
- * Event detail for file-status-changed — dispatched whenever a file's
- * status transitions (pending → uploading, uploading → complete, etc.).
- * `prevStatus` and `nextStatus` are always different; no-op mutations
- * are suppressed at the source. Substrate for satellite renderers.
- */
-export interface FileStatusChangedEventDetail {
-    /** The id of the file whose status changed */
-    id: string;
-    /** Status before the transition */
-    prevStatus: FileState['status'];
-    /** Status after the transition */
-    nextStatus: FileState['status'];
-    /** Live reference to the full file state, post-transition */
-    file: FileState;
-}
-
-/**
- * Event detail for `file-updated` — dispatched whenever a field on a
- * `FileState` OTHER than `progress` or `status` changes. Covers the
- * "catch-all post-mutation refresh" signal: e.g. `previewUrl` arriving
- * from `generatePreview`, `metadata` / `downloadUrl` / `name` returned
- * from a successful upload handler, etc.
- *
- * Progress and status changes have their own dedicated events
- * (`file-progress`, `file-status-changed`) — subscribers that care
- * about every mutation should listen to all three.
- *
- * Substrate for satellite renderers — bubbles + composed.
- */
-export interface FileUpdatedEventDetail {
-    /** Live reference to the full file state, post-mutation */
-    file: FileState;
-}
-
-/**
- * Event detail for `file-row-update` — dispatched on element-returning
- * `renderFileItemCallback` outputs when a file's state changes (instead
- * of re-rendering the row). The consumer listens on the element they
- * returned and mutates its DOM in place. Bubbles + composed so listeners
- * on the store or further up also receive it.
- */
-export interface FileRowUpdateEventDetail {
-    /** Live reference to the full file state, post-mutation */
-    file: FileState;
-}
-
-/**
- * Event detail for `files-changed` — a coalesced "queue updated" tick
- * dispatched once per animation frame. Aggregates all granular events
- * (`file-added` / `file-removed` / `file-progress` /
- * `file-status-changed`) that happened within the window. Mode-3 /
- * reactive consumers subscribe to this in place of the four granular
- * events to get one diff per frame.
- */
-export interface FilesChangedEventDetail {
-    /** Set of file ids that triggered the tick (alive or removed). */
-    changedIds: string[];
-    /** Current snapshot of the full files list. */
-    files: FileState[];
-}
-
-/**
- * Helper type for all dropzone event details
- */
-export type DropzoneEventDetail =
-    | FileAddedEventDetail
-    | FileRemovedEventDetail
-    | FilesRejectedEventDetail
-    | ChangeEventDetail
-    | FileRetryEventDetail
-    | FileUploadedEventDetail
-    | FileDeletedEventDetail
-    | FileProgressEventDetail
-    | FileStatusChangedEventDetail
-    | FileUpdatedEventDetail;
 
 /**
  * File type categories for icon mapping
@@ -1032,10 +810,10 @@ export type FileTypeCategory =
  * The two consumer icon-override hooks, as a standalone slice so `getFileIcon`
  * can take them without depending on the whole `DropzoneConfig`. A full
  * `DropzoneConfig` is structurally assignable to this, so renderers can just
- * pass `this.config`. See `DropzoneConfig.fileIcons` / `.fileIconCallback` for
+ * pass `this.config`. See `DropzoneConfig.fileIcons` / `.getFileIconCallback` for
  * the resolution order and the raw-HTML (XSS) caveat.
  */
 export interface FileIconOverrides {
     fileIcons?: Record<string, string> | null;
-    fileIconCallback?: ((file: File) => string | null | undefined) | null;
+    getFileIconCallback?: ((ctx: FileIconContext) => string | null | undefined) | null;
 }

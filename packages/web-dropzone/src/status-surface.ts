@@ -40,18 +40,18 @@
  *
  * This module owns the IMPLEMENTATION (compute / pick / build helpers and
  * the `StatusSurface` memoization class). The PUBLIC TYPES
- * (`DropzoneStoreAPI`, `StatusSurfaceArgs`, `StatusSurfaceCallback`,
+ * (`StatusSurfaceArgs`, `StatusSurfaceCallback`,
  * `StatusSurfaceResult`, `StatusAggregate`) live in `core/store-api.ts` so
  * `core/types.ts`'s `DropzoneConfig` can reference them without crossing
  * the eventual package boundary back into the renderer.
  */
 
-import type { FileState } from '@keenmate/web-dropzone-core';
+import { withComponentContext } from '@keenmate/web-components-core';
+import type { FileState, DropzoneController } from '@keenmate/web-dropzone-core';
 import type {
     StatusAggregate,
     StatusSurfaceArgs,
-    StatusSurfaceResult,
-    DropzoneStoreAPI
+    StatusSurfaceResult
 } from '@keenmate/web-dropzone-core';
 
 // Re-export the public surface types so existing renderer-internal imports
@@ -60,8 +60,7 @@ export type {
     StatusAggregate,
     StatusSurfaceArgs,
     StatusSurfaceResult,
-    StatusSurfaceCallback,
-    DropzoneStoreAPI
+    StatusSurfaceCallback
 } from '@keenmate/web-dropzone-core';
 
 /**
@@ -135,26 +134,27 @@ export function pickCurrentFile(files: ReadonlyArray<FileState>): FileState | un
 }
 
 /**
- * Builds a fully-populated `StatusSurfaceArgs` from a file list + store.
+ * Builds a fully-populated `StatusSurfaceArgs` from a file list + the store's
+ * `controller` / `element` (attached non-enumerably — the component context).
  * Used by every surface to standardize the data passed to callbacks.
  */
 export function buildStatusSurfaceArgs(
     files: ReadonlyArray<FileState>,
-    store: DropzoneStoreAPI
+    controller: DropzoneController,
+    element: HTMLElement
 ): StatusSurfaceArgs {
     const aggregate = computeStatusAggregate(files);
     const overallPercent = computeOverallPercent(files);
     const currentFile = pickCurrentFile(files);
-    return {
+    return withComponentContext({
         currentFile,
         currentFilePercent: currentFile?.progress,
         currentFileStatus: currentFile?.status,
         aggregate,
         overallPercent,
         overallStatus: aggregate.overallStatus,
-        files,
-        store
-    };
+        files
+    }, controller, element);
 }
 
 /**

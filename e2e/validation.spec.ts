@@ -6,7 +6,7 @@ import { test, expect, Page, Locator } from '@playwright/test';
  * Fixture: test/validation.html. Four dropzones, each with one validation
  * rule. Every dropzone has a sibling `.event-log` that receives one line
  * per rejection in the form `<code> <name>` — specs assert on its
- * textContent rather than poking at the files-rejected detail directly,
+ * textContent rather than poking at the files-reject detail directly,
  * which keeps the assertions simple and robust to detail-shape evolution.
  */
 
@@ -43,7 +43,7 @@ test.describe('max-file-size', () => {
         await expect(log(page, 'size')).toHaveText('');
     });
 
-    test('files above the limit fire files-rejected with code="size"', async ({ page }) => {
+    test('files above the limit fire files-reject with code="size"', async ({ page }) => {
         const p = dz(page, 'size');
         await addFiles(p, [{ name: 'big.txt', size: 2048 }]);
         expect(await p.evaluate((el: any) => el.files.length)).toBe(0);
@@ -61,7 +61,7 @@ test.describe('max-file-count', () => {
         expect(await p.evaluate((el: any) => el.files.length)).toBe(2);
     });
 
-    test('files past the cap fire files-rejected with code="count"', async ({ page }) => {
+    test('files past the cap fire files-reject with code="count"', async ({ page }) => {
         const p = dz(page, 'count');
         await addFiles(p, [
             { name: 'a.txt', size: 10 },
@@ -80,7 +80,7 @@ test.describe('accept (type filter)', () => {
         expect(await p.evaluate((el: any) => el.files.length)).toBe(1);
     });
 
-    test('non-matching MIME types fire files-rejected with code="type"', async ({ page }) => {
+    test('non-matching MIME types fire files-reject with code="type"', async ({ page }) => {
         const p = dz(page, 'type');
         await addFiles(p, [{ name: 'doc.pdf', size: 10, type: 'application/pdf' }]);
         expect(await p.evaluate((el: any) => el.files.length)).toBe(0);

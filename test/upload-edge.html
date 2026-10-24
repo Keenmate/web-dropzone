@@ -70,12 +70,12 @@
             return e ? { startBytes: e.startBytes, startPercent: e.startPercent } : null;
         };
 
-        function handler(file, onProgress, signal, context) {
+        function handler({ file, setProgress: onProgress, signal, startBytes, startPercent }) {
             return new Promise((resolve, reject) => {
                 pending.set(file.name, {
                     resolve, reject, onProgress, signal,
-                    startBytes: context?.startBytes ?? 0,
-                    startPercent: context?.startPercent ?? 0
+                    startBytes,
+                    startPercent
                 });
                 signal?.addEventListener('abort', () => {
                     pending.delete(file.name);

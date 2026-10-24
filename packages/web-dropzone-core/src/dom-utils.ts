@@ -18,21 +18,3 @@ export function escapeHtml(text: string): string {
     div.textContent = text;
     return div.innerHTML;
 }
-
-/**
- * Dispatch a CustomEvent with the project's canonical bubbles + composed
- * flags so listeners in any ancestor shadow root (including the host page)
- * receive it without manual replay. `detail` is left untyped on the helper
- * surface — call sites assert their own event-specific detail shape.
- */
-export function dispatchComposedEvent<T>(
-    target: EventTarget,
-    type: string,
-    detail?: T
-): boolean {
-    return target.dispatchEvent(new CustomEvent<T>(type, {
-        detail,
-        bubbles: true,
-        composed: true,
-    }));
-}

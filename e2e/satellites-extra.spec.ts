@@ -12,7 +12,7 @@ import { test, expect, Page, Locator } from '@playwright/test';
  *     (counts + percent).
  *
  * Both satellites should resolve their `for=` reference, bind to the
- * store on `store-ready`, and reflect every change as files are
+ * store on `ready`, and reflect every change as files are
  * added / progressed / completed.
  */
 
@@ -40,10 +40,10 @@ test.beforeEach(async ({ page }) => {
 });
 
 test.describe('<web-dropzone-indicator>', () => {
-    test('binds to its for= store after store-ready', async ({ page }) => {
+    test('binds to its for= store after ready', async ({ page }) => {
         await expect.poll(() => page.evaluate(() => {
             const el = document.querySelector('web-dropzone-indicator') as any;
-            return !!el?.getStore?.();
+            return !!el?.controller;
         })).toBe(true);
     });
 
@@ -57,10 +57,10 @@ test.describe('<web-dropzone-indicator>', () => {
 });
 
 test.describe('<web-dropzone-progress>', () => {
-    test('binds to its for= store after store-ready', async ({ page }) => {
+    test('binds to its for= store after ready', async ({ page }) => {
         await expect.poll(() => page.evaluate(() => {
             const el = document.querySelector('web-dropzone-progress') as any;
-            return !!el?.getStore?.();
+            return !!el?.controller;
         })).toBe(true);
     });
 

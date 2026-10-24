@@ -79,22 +79,27 @@ export interface RowTemplateOptions {
      */
     parts?: ReadonlySet<FileItemPart>;
     /**
-     * Consumer icon overrides (`fileIcons` map + `fileIconCallback`) forwarded
+     * Consumer icon overrides (`fileIcons` map + `getFileIconCallback`) forwarded
      * to `getFileIcon`. A full `DropzoneConfig` satisfies this, so callers pass
      * their store config straight through. Absent → built-in category icons.
      */
     iconOverrides?: FileIconOverrides;
+    /**
+     * Prototype for the `getFileIconCallback` ctx — the store's context base
+     * (`controller` / `element` getters), so the per-row ctx inherits them.
+     */
+    iconContext?: object;
 }
 
 /**
  * Inner content for the icon slot — `<img>` when thumbnail mode is on and
  * the file already has a preview URL, else the file-type emoji.
  */
-export function renderPlaceholderInner(file: FileState, useThumbnail: boolean, iconOverrides?: FileIconOverrides): string {
+export function renderPlaceholderInner(file: FileState, useThumbnail: boolean, iconOverrides?: FileIconOverrides, iconContext?: object): string {
     if (useThumbnail && file.previewUrl) {
         return `<img src="${file.previewUrl}" alt="">`;
     }
-    return getFileIcon(file.file, iconOverrides);
+    return getFileIcon(file.file, iconOverrides, iconContext);
 }
 
 /**
@@ -113,7 +118,7 @@ export function renderRowActionButton(file: FileState, baseClass: string): strin
     const title = action ? ACTION_LABELS[action] : '';
     const dataAction = action ?? '';
     const icon = action ? ACTION_ICONS[action] : '';
-    return `<button type="button" class="${cls}" data-action="row-action" data-row-action="${dataAction}" data-file-id="${file.id}" aria-label="${label}" title="${title}"${inert}>${icon}</button>`;
+    return `<button type="button" class="${cls}" data-dz-action="row-action" data-row-action="${dataAction}" data-file-id="${file.id}" aria-label="${label}" title="${title}"${inert}>${icon}</button>`;
 }
 
 /**
@@ -123,7 +128,7 @@ export function renderRowActionButton(file: FileState, baseClass: string): strin
 export function removeButtonAttrs(file: FileState, baseClass: string, removable = true): string {
     const cls = removable ? baseClass : `${baseClass} ${baseClass}--hidden`;
     const inert = removable ? '' : ' tabindex="-1" aria-hidden="true"';
-    return `class="${cls}" data-action="remove" data-file-id="${file.id}" aria-label="Remove ${escapeHtml(file.name)}"${inert}`;
+    return `class="${cls}" data-dz-action="remove" data-file-id="${file.id}" aria-label="Remove ${escapeHtml(file.name)}"${inert}`;
 }
 
 export function renderListItem(file: FileState, opts: RowTemplateOptions = {}): string {
@@ -149,7 +154,7 @@ export function renderListItem(file: FileState, opts: RowTemplateOptions = {}): 
 export function renderDetailedItem(file: FileState, opts: RowTemplateOptions = {}): string {
     const category = getFileTypeCategory(file.file);
     const useThumbnail = opts.useThumbnail ?? false;
-    const inner = renderPlaceholderInner(file, useThumbnail, opts.iconOverrides);
+    const inner = renderPlaceholderInner(file, useThumbnail, opts.iconOverrides, opts.iconContext);
     const reorderAttr = opts.reorderEligible ? ' data-reorder-bucket="complete"' : '';
     const removable = opts.removable !== false;
     const p = opts.parts;
@@ -189,7 +194,7 @@ export function renderGridItem(file: FileState, opts: RowTemplateOptions = {}): 
         ? ''
         : isImage && useThumbnail && file.previewUrl
             ? `<img src="${file.previewUrl}" alt="${escapeHtml(file.name)}" class="dz__preview-item__image">`
-            : `<div class="dz__preview-item__placeholder">${getFileIcon(file.file, opts.iconOverrides)}</div>`;
+            : `<div class="dz__preview-item__placeholder">${getFileIcon(file.file, opts.iconOverrides, opts.iconContext)}</div>`;
     const showName = showPart(p, 'name');
     const showAction = showPart(p, 'action');
     const showRemove = showPart(p, 'remove');
@@ -215,7 +220,7 @@ export function renderGridItem(file: FileState, opts: RowTemplateOptions = {}): 
 export function renderBadgeItem(file: FileState, opts: RowTemplateOptions = {}): string {
     const statusClass = file.status !== 'pending' ? `dz__badge--${file.status}` : '';
     const useThumbnail = opts.useThumbnail ?? false;
-    const inner = renderPlaceholderInner(file, useThumbnail, opts.iconOverrides);
+    const inner = renderPlaceholderInner(file, useThumbnail, opts.iconOverrides, opts.iconContext);
     const reorderAttr = opts.reorderEligible ? ' data-reorder-bucket="complete"' : '';
     const removable = opts.removable !== false;
     const p = opts.parts;

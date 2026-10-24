@@ -29,7 +29,6 @@ import {
     createMicrotaskScheduler
 } from './satellite-base';
 import { escapeHtml, formatFileSize } from '@keenmate/web-dropzone-core';
-import type { DropzoneStoreAPI } from '@keenmate/web-dropzone-core';
 import type { DropzoneElement } from './web-component';
 import type { OverallProgress } from '@keenmate/web-dropzone-core';
 
@@ -72,12 +71,12 @@ export class DropzoneProgressElement extends SatelliteElement {
         // Every event that can move the aggregate triggers a refresh.
         // The microtask coalescer below drops bursts to one refresh.
         return subscribeStoreEvents(storeEl, {
-            'file-added':          () => this.scheduleRefresh(),
-            'file-removed':        () => this.scheduleRefresh(),
+            'file-add':          () => this.scheduleRefresh(),
+            'file-remove':        () => this.scheduleRefresh(),
             'change':              () => this.scheduleRefresh(),
             'dz-config-changed':   () => this.scheduleRefresh(),
             'file-progress':       () => this.scheduleRefresh(),
-            'file-status-changed': () => this.scheduleRefresh()
+            'file-status-change': () => this.scheduleRefresh()
         });
     }
 
@@ -183,13 +182,13 @@ export class DropzoneProgressElement extends SatelliteElement {
     private renderActions(o: OverallProgress, pipelineActive: boolean): string {
         const out: string[] = [];
         if (pipelineActive && o.uploadingCount > 0) {
-            out.push(`<button type="button" class="dz__overall-progress__action" data-action="pause-all">Pause all</button>`);
+            out.push(`<button type="button" class="dz__overall-progress__action" data-dz-action="pause-all">Pause all</button>`);
         }
         if (pipelineActive && o.pausedCount > 0) {
-            out.push(`<button type="button" class="dz__overall-progress__action" data-action="resume-all">Resume all</button>`);
+            out.push(`<button type="button" class="dz__overall-progress__action" data-dz-action="resume-all">Resume all</button>`);
         }
         if (o.failedCount > 0) {
-            out.push(`<button type="button" class="dz__overall-progress__action" data-action="retry-all">Retry all</button>`);
+            out.push(`<button type="button" class="dz__overall-progress__action" data-dz-action="retry-all">Retry all</button>`);
         }
         return out.join('');
     }
@@ -204,19 +203,19 @@ export class DropzoneProgressElement extends SatelliteElement {
     private bindActionHandlers(root: ParentNode): void {
         if (!this.store) return;
         const store = this.store;
-        root.querySelectorAll('[data-action="retry-all"]').forEach(btn => {
+        root.querySelectorAll('[data-dz-action="retry-all"]').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 store.retryAll();
             });
         });
-        root.querySelectorAll('[data-action="pause-all"]').forEach(btn => {
+        root.querySelectorAll('[data-dz-action="pause-all"]').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 store.pauseAll();
             });
         });
-        root.querySelectorAll('[data-action="resume-all"]').forEach(btn => {
+        root.querySelectorAll('[data-dz-action="resume-all"]').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 void store.resumeAll();

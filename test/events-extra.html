@@ -9,11 +9,11 @@
     </style>
 </head>
 <body>
-    <h1>file-updated · file-row-update · renderSummaryCallback</h1>
+    <h1>file-update · file-row-update · renderSummaryCallback</h1>
     <p>Targeted by <code>e2e/events-extra.spec.ts</code>.</p>
 
     <div class="fixture">
-        <div class="fixture-label">file-updated — fires from generatePreview + handler post-merge</div>
+        <div class="fixture-label">file-update — fires from generatePreview + handler post-merge</div>
         <web-dropzone id="updated" accept="*/*" max-file-count="10" display-mode="detailed"></web-dropzone>
         <div class="event-log" id="updated-log"></div>
     </div>
@@ -31,9 +31,9 @@
     <script type="module">
         import '/src/index.ts';
 
-        // Synthetic upload pump for the file-updated fixture so we can drive
+        // Synthetic upload pump for the file-update fixture so we can drive
         // a post-success merge (handler returns { metadata: {...} } which the
-        // store stamps onto the FileState and fires file-updated).
+        // store stamps onto the FileState and fires file-update).
         const pending = new Map();
         window.__pending = pending;
         window.__pendingNames = () => Array.from(pending.keys());
@@ -44,7 +44,7 @@
         };
         window.__progress = (name, pct) => pending.get(name)?.onProgress(pct);
 
-        function handler(file, onProgress, signal) {
+        function handler({ file, setProgress: onProgress, signal }) {
             return new Promise((resolve, reject) => {
                 pending.set(file.name, { resolve, reject, onProgress, signal });
                 signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')));
@@ -52,11 +52,11 @@
         }
 
         customElements.whenDefined('web-dropzone').then(() => {
-            // ===== file-updated fixture =====
+            // ===== file-update fixture =====
             const u = document.getElementById('updated');
             const ulog = document.getElementById('updated-log');
             u.uploadFileCallback = handler;
-            u.addEventListener('file-updated', (e) => {
+            u.addEventListener('file-update', (e) => {
                 const f = e.detail.file;
                 ulog.textContent += `updated ${f.name}\n`;
             });
@@ -65,7 +65,7 @@
             window.__rowUpdateLog = [];
             const r = document.getElementById('row-update');
             r.uploadFileCallback = handler;
-            r.renderFileItemCallback = (file) => {
+            r.renderFileItemCallback = ({ file }) => {
                 const div = document.createElement('div');
                 div.className = 'row-el';
                 div.dataset.fileId = file.id;
@@ -78,7 +78,7 @@
 
             // ===== summary callback fixture =====
             const s = document.getElementById('summary-cb');
-            s.renderSummaryCallback = (files) => {
+            s.renderSummaryCallback = ({ files }) => {
                 const span = document.createElement('span');
                 span.className = 'dz__summary__line custom-summary';
                 span.tabIndex = 0;

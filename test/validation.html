@@ -45,7 +45,7 @@
         const wire = (id, logId) => {
             const dz = document.getElementById(id);
             const log = document.getElementById(logId);
-            dz.addEventListener('files-rejected', (e) => {
+            dz.addEventListener('files-reject', (e) => {
                 for (const r of e.detail.rejectedFiles) {
                     log.textContent += `${r.validation.code} ${r.file.name}\n`;
                 }
@@ -57,7 +57,7 @@
         wire('custom', 'custom-log');
 
         customElements.whenDefined('web-dropzone').then(() => {
-            document.getElementById('custom').validateCallback = (file) => {
+            document.getElementById('custom').validateCallback = ({ file }) => {
                 if (file.name.includes('bad')) {
                     return { valid: false, error: 'Filename contains "bad"', code: 'custom' };
                 }

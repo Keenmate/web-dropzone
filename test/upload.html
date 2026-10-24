@@ -57,7 +57,7 @@
             e.onProgress(pct);
         };
 
-        function handler(file, onProgress, signal) {
+        function handler({ file, setProgress: onProgress, signal }) {
             return new Promise((resolve, reject) => {
                 pending.set(file.name, { resolve, reject, onProgress, signal });
                 signal?.addEventListener('abort', () => {
@@ -79,7 +79,7 @@
             dz.addEventListener('file-progress', (e) => {
                 log.textContent += `progress ${e.detail.file.name}=${Math.round(e.detail.file.progress)}\n`;
             });
-            dz.addEventListener('file-status-changed', (e) => {
+            dz.addEventListener('file-status-change', (e) => {
                 log.textContent += `status ${e.detail.file.name}=${e.detail.file.status}\n`;
             });
         });

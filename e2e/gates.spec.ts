@@ -6,14 +6,15 @@ import { test, expect, Page, Locator } from '@playwright/test';
  * Fixture: test/gates.html. Covers the two gates added in the prior
  * release:
  *
- *   - `beforeFilesAddedCallback(files, existingFiles) → boolean`
+ *   - `beforeFilesAddCallback({ files, existingFiles })` → false | File[] | void
  *     Runs once per add batch AFTER sync validation. Resolving false
- *     fires `files-rejected` with `code: 'cancelled'`.
+ *     fires `files-reject` with `code: 'cancelled'`; a File[] replaces
+ *     the batch (see interaction-model.spec.ts).
  *
- *   - `beforeFilesRemovedCallback(files, allFiles) → boolean`
+ *   - `beforeFilesRemoveCallback({ files, allFiles })` → false | void
  *     Runs on user-initiated removes (or programmatic removeFile
  *     with `{ confirm: true }`). Resolving false aborts — no
- *     `file-removed` event, no state change.
+ *     `file-remove` event, no state change.
  */
 
 const PAGE = '/test/gates.html';
@@ -31,14 +32,14 @@ test.beforeEach(async ({ page }) => {
     await page.waitForFunction(() => typeof (window as any).__addNamed === 'function');
 });
 
-test.describe('beforeFilesAddedCallback', () => {
+test.describe('beforeFilesAddCallback', () => {
     test('resolve(true) — files enter the store normally', async ({ page }) => {
         await addNamed(page, 'add-accept', ['ok.txt']);
         const count = await dz(page, 'add-accept').evaluate((el: any) => el.files.length);
         expect(count).toBe(1);
     });
 
-    test('resolve(false) — files-rejected with code="cancelled"; store stays empty', async ({ page }) => {
+    test('resolve(false) — files-reject with code="cancelled"; store stays empty', async ({ page }) => {
         await addNamed(page, 'add-reject', ['nope.txt']);
         const count = await dz(page, 'add-reject').evaluate((el: any) => el.files.length);
         expect(count).toBe(0);
@@ -57,7 +58,7 @@ test.describe('beforeFilesAddedCallback', () => {
     });
 });
 
-test.describe('beforeFilesRemovedCallback', () => {
+test.describe('beforeFilesRemoveCallback', () => {
     test('resolve(true) — file leaves the store via removeFile({ confirm: true })', async ({ page }) => {
         await addNamed(page, 'rm-accept', ['gone.txt']);
         await dz(page, 'rm-accept').evaluate((el: any) => {
@@ -83,7 +84,7 @@ test.describe('beforeFilesRemovedCallback', () => {
         await dz(page, 'rm-reject').evaluate((el: any) => {
             const id = el.files[0].id;
             // No { confirm: true } — gate is skipped, removal proceeds even though
-            // beforeFilesRemovedCallback returns false.
+            // beforeFilesRemoveCallback returns false.
             return el.removeFile(id);
         });
         const count = await dz(page, 'rm-reject').evaluate((el: any) => el.files.length);

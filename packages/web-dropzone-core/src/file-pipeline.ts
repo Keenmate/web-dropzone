@@ -20,6 +20,7 @@ import type {
     FileState,
     ValidationResult
 } from './types';
+import type { ValidateContext } from './interaction';
 
 /**
  * Subset of `DropzoneConfig` that the per-file validator actually reads.
@@ -30,7 +31,7 @@ export interface ValidationConfig {
     maxFileSize?: number;
     minFileSize?: number;
     accept?: string;
-    validateCallback?: (file: File, existing: FileState[]) => ValidationResult;
+    validateCallback?: ((ctx: ValidateContext) => ValidationResult) | null;
 }
 
 /**
@@ -85,11 +86,14 @@ export function isFileTypeAccepted(file: File, accept: string): boolean {
  * Returns `{ valid: true }` on accept, `{ valid: false, error, code }` on
  * reject. A custom `validateCallback` runs last and can override accept
  * but can't override reject (the standard checks short-circuit first).
+ * `contextBase` (the engine's context prototype) supplies the ctx's
+ * inherited `controller` / `element`.
  */
 export function validateFile(
     file: File,
     config: ValidationConfig,
-    existingFiles: FileState[]
+    existingFiles: FileState[],
+    contextBase?: object
 ): ValidationResult {
     if (config.maxFileSize && config.maxFileSize > 0 && file.size > config.maxFileSize) {
         return {
@@ -116,7 +120,10 @@ export function validateFile(
     }
 
     if (config.validateCallback) {
-        const customResult = config.validateCallback(file, existingFiles);
+        // One ctx; `controller` / `element` are inherited from `contextBase`
+        // (the engine's context prototype) so they stay non-enumerable.
+        const ctx = Object.assign(Object.create(contextBase ?? Object.prototype) as object, { file, existingFiles }) as ValidateContext;
+        const customResult = config.validateCallback(ctx);
         if (!customResult.valid) {
             return { ...customResult, code: customResult.code || 'custom' };
         }
@@ -129,7 +136,7 @@ export function validateFile(
  * Build a fresh `FileState` for an accepted file. `id` is injected so
  * callers can plug in any generator (the store uses a Date.now-seeded
  * one; tests can pass a deterministic value). Mode-B routing fields
- * (`uploadCallback`, `uploadMetadata`) come from `opts` and survive
+ * (`uploadFileCallback`, `uploadMetadata`) come from `opts` and survive
  * through pause / resume / retry — see ARCHITECTURE.md.
  */
 export function createFileState(
@@ -146,7 +153,7 @@ export function createFileState(
         status: 'pending',
         progress: 0
     };
-    if (opts?.uploadCallback) state.uploadCallback = opts.uploadCallback;
+    if (opts?.uploadFileCallback) state.uploadFileCallback = opts.uploadFileCallback;
     if (opts?.uploadMetadata) state.uploadMetadata = opts.uploadMetadata;
     return state;
 }
