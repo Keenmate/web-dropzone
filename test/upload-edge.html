@@ -43,6 +43,21 @@
         <web-dropzone id="bulk" accept="*/*" max-file-count="10" display-mode="detailed" concurrency="3"></web-dropzone>
     </div>
 
+    <div class="fixture">
+        <div class="fixture-label">retryPolicy { attempts: 3, delayMs: 50, backoff: 2 } (assigned by script)</div>
+        <web-dropzone id="policy" accept="*/*" max-file-count="10" display-mode="detailed"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">uploaded-deletable="false" — completed rows lose their remove button</div>
+        <web-dropzone id="nodelete" accept="*/*" max-file-count="10" display-mode="detailed" uploaded-deletable="false"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">reorder-completed + reorder-completed-delay="600" — DOM order changes only after the delay</div>
+        <web-dropzone id="reorder-delay" accept="*/*" max-file-count="10" display-mode="detailed" reorder-completed reorder-completed-delay="600" concurrency="3"></web-dropzone>
+    </div>
+
     <script type="module">
         import '/src/index.ts';
 
@@ -70,7 +85,9 @@
             return e ? { startBytes: e.startBytes, startPercent: e.startPercent } : null;
         };
 
+        window.__calls = [];
         function handler({ file, setProgress: onProgress, signal, startBytes, startPercent }) {
+            window.__calls.push({ name: file.name, at: performance.now() });
             return new Promise((resolve, reject) => {
                 pending.set(file.name, {
                     resolve, reject, onProgress, signal,
@@ -85,9 +102,10 @@
         }
 
         customElements.whenDefined('web-dropzone').then(() => {
-            for (const id of ['throttle', 'pessimistic', 'resume', 'retry', 'reorder', 'bulk']) {
+            for (const id of ['throttle', 'pessimistic', 'resume', 'retry', 'reorder', 'bulk', 'policy', 'nodelete', 'reorder-delay']) {
                 document.getElementById(id).uploadFileCallback = handler;
             }
+            document.getElementById('policy').retryPolicy = { attempts: 3, delayMs: 50, backoff: 2 };
 
             // Record file-progress count for the throttled fixture so we can
             // verify how many events landed in a window.

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — bulk toolbar actions</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>web-dropzone { display: block; max-width: 420px; }</style>
+</head>
+<body>
+    <h1>bulk actions: Pause all / Resume all / Retry all · popover Add more / Clear all</h1>
+    <p>Targeted by <code>e2e/toolbar.spec.ts</code>.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">overall-progress strip with bulk actions (concurrency 3)</div>
+        <web-dropzone id="tb" accept="*/*" display-mode="detailed" concurrency="3"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">no uploadFileCallback — pause/resume never offered</div>
+        <web-dropzone id="no-pipe" accept="*/*" display-mode="detailed"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">button selector + popover list (auto-upload="false")</div>
+        <web-dropzone id="pop" accept="*/*" selector-appearance="button" list-appearance="popover" auto-upload="false"></web-dropzone>
+        <pre class="event-log" data-testid="pop-log"></pre>
+    </div>
+
+    <script type="module">
+        import '/src/index.ts';
+        import { installAddNamed, installPump, logEvents } from './fixture-kit.js';
+        installAddNamed();
+        const handler = installPump();
+
+        customElements.whenDefined('web-dropzone').then(() => {
+            for (const id of ['tb', 'pop']) document.getElementById(id).uploadFileCallback = handler;
+            logEvents(document.getElementById('pop'), ['file-remove', 'change'],
+                document.querySelector('[data-testid="pop-log"]'));
+            window.__ready = true;
+        });
+    </script>
+</body>
+</html>

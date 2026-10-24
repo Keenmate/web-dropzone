@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — drop onto the dropzone</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>web-dropzone { display: block; max-width: 420px; }</style>
+</head>
+<body>
+    <h1>drop onto the dropzone</h1>
+    <p>Targeted by <code>e2e/drop.spec.ts</code>.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">card — accept=".txt", max-file-count="3", drag-active-text</div>
+        <web-dropzone id="drop" accept=".txt" max-file-count="3" display-mode="list"
+            prompt-text="Drop here" drag-active-text="Release to add"></web-dropzone>
+        <pre class="event-log" data-testid="drop-log"></pre>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">selector-appearance="button" — the button area is a drop target too</div>
+        <web-dropzone id="drop-btn" accept="*/*" selector-appearance="button" list-appearance="list"></web-dropzone>
+    </div>
+
+    <script type="module">
+        import '/src/index.ts';
+        import { logEvents } from './fixture-kit.js';
+
+        customElements.whenDefined('web-dropzone').then(() => {
+            logEvents(document.getElementById('drop'), ['file-add', 'files-reject', 'change'],
+                document.querySelector('[data-testid="drop-log"]'));
+            window.__ready = true;
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — per-row actions</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>web-dropzone { display: block; max-width: 420px; }</style>
+</head>
+<body>
+    <h1>per-row pause / resume / retry / cancel / remove</h1>
+    <p>Targeted by <code>e2e/row-actions.spec.ts</code>.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">detailed rows, auto-upload, concurrency 3</div>
+        <web-dropzone id="rows" accept="*/*" display-mode="detailed" concurrency="3"></web-dropzone>
+        <pre class="event-log" data-testid="rows-log"></pre>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">list rows, auto-upload="false" (pending rows)</div>
+        <web-dropzone id="manual" accept="*/*" display-mode="list" auto-upload="false"></web-dropzone>
+    </div>
+
+    <script type="module">
+        import '/src/index.ts';
+        import { installAddNamed, installPump, logEvents } from './fixture-kit.js';
+        installAddNamed();
+        const handler = installPump();
+
+        customElements.whenDefined('web-dropzone').then(() => {
+            for (const id of ['rows', 'manual']) document.getElementById(id).uploadFileCallback = handler;
+            logEvents(document.getElementById('rows'), ['file-remove', 'file-retry'],
+                document.querySelector('[data-testid="rows-log"]'));
+            window.__ready = true;
+        });
+    </script>
+</body>
+</html>

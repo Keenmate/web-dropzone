@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — lifecycle (DOM move)</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-dropzone { display: block; max-width: 420px; }
+        .slot { min-height: 40px; border: 1px dashed #cbd5e0; padding: 8px; margin-bottom: 8px; }
+    </style>
+</head>
+<body>
+    <h1>lifecycle — DOM move (re-parent) keeps state (decision D1)</h1>
+    <p>Targeted by <code>e2e/lifecycle.spec.ts</code>.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">slot A (initial parent)</div>
+        <div id="slot-a" class="slot">
+            <web-dropzone id="lc" accept="*/*" display-mode="detailed" auto-upload="false"></web-dropzone>
+        </div>
+        <div class="fixture-label">slot B (move target)</div>
+        <div id="slot-b" class="slot"></div>
+        <pre class="event-log" data-testid="lc-log"></pre>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">overlay-target dropzone (moved by the spec)</div>
+        <div id="ov-target" class="slot">overlay target</div>
+        <div id="ov-home"><web-dropzone id="lc-ov" overlay-target="ov-target" accept="*/*" style="display:none"></web-dropzone></div>
+        <div id="ov-away"></div>
+    </div>
+
+    <script type="module">
+        // Wire `ready` before the element upgrades so the first build is counted.
+        import { installAddNamed, installPump } from './fixture-kit.js';
+        installAddNamed();
+        const handler = installPump();
+        const log = document.querySelector('[data-testid="lc-log"]');
+        document.getElementById('lc').addEventListener('ready', () => { log.textContent += 'ready:\n'; });
+
+        // Move helper: append to the other slot in ONE operation (a DOM move =
+        // disconnectedCallback → connectedCallback, same task).
+        window.__move = (id, to) => document.getElementById(to).append(document.getElementById(id));
+
+        await import('/src/index.ts');
+        await customElements.whenDefined('web-dropzone');
+        document.getElementById('lc').uploadFileCallback = handler;
+        window.__ready = true;
+    </script>
+</body>
+</html>

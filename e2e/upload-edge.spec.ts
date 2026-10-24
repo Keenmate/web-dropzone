@@ -168,3 +168,114 @@ test.describe('bulk methods', () => {
         await expect.poll(() => pendingNames(page).then(n => n.length)).toBeGreaterThanOrEqual(1);
     });
 });
+
+test.describe('retryPolicy (auto-retry on handler rejection)', () => {
+    const calls = (page: import('@playwright/test').Page, name: string) =>
+        page.evaluate((n) => (window as any).__calls.filter((c: any) => c.name === n).map((c: any) => c.at), name);
+    const status = (page: import('@playwright/test').Page, name: string) =>
+        dz(page, 'policy').evaluate((el: any, n) => el.files.find((f: any) => f.name === n)?.status, name);
+
+    test('a rejected attempt is retried with exponential backoff, then completes', async ({ page }) => {
+        await addNamed(page, 'policy', ['rp.txt']);
+        await expect.poll(() => pendingNames(page)).toContain('rp.txt');
+        await resolveUpload(page, 'rp.txt', 'fail');
+        await expect.poll(() => calls(page, 'rp.txt').then((c) => c.length)).toBe(2);
+        await resolveUpload(page, 'rp.txt', 'fail');
+        await expect.poll(() => calls(page, 'rp.txt').then((c) => c.length)).toBe(3);
+        // Between attempts the file is not flagged as failed.
+        expect(await status(page, 'rp.txt')).toBe('uploading');
+        await resolveUpload(page, 'rp.txt', 'ok');
+        await expect.poll(() => status(page, 'rp.txt')).toBe('complete');
+
+        // delayMs 50, backoff 2 → the second gap is ~2× the first (≥ 100 ms).
+        const at = await calls(page, 'rp.txt');
+        expect(at[2] - at[1]).toBeGreaterThanOrEqual(95);
+    });
+
+    test('after `attempts` rejections the file ends in error (handler called exactly N times)', async ({ page }) => {
+        await addNamed(page, 'policy', ['ex.txt']);
+        for (let i = 1; i <= 3; i++) {
+            await expect.poll(() => pendingNames(page)).toContain('ex.txt');
+            await resolveUpload(page, 'ex.txt', 'fail');
+        }
+        await expect.poll(() => status(page, 'ex.txt')).toBe('error');
+        await page.waitForTimeout(300);
+        expect((await calls(page, 'ex.txt')).length).toBe(3);
+    });
+
+    test('pausing during the backoff window aborts the pending retry', async ({ page }) => {
+        await dz(page, 'policy').evaluate(async (el: any) => {
+            el.retryPolicy = { attempts: 3, delayMs: 400, backoff: 1 };
+            await el.whenSettled();
+        });
+        await addNamed(page, 'policy', ['pz.txt']);
+        await expect.poll(() => pendingNames(page)).toContain('pz.txt');
+        await resolveUpload(page, 'pz.txt', 'fail');
+        await dz(page, 'policy').evaluate((el: any) => el.pauseFile(el.files[0].id));
+        await page.waitForTimeout(700);
+        expect((await calls(page, 'pz.txt')).length).toBe(1);
+        expect(await pendingNames(page)).not.toContain('pz.txt');
+    });
+
+    test('auto-retry does not write to the console outside /logging', async ({ page }) => {
+        test.fail(true, 'NOTES.md #2');
+        const logs: string[] = [];
+        page.on('console', (m) => { if (m.type() === 'log') logs.push(m.text()); });
+        await addNamed(page, 'policy', ['cl.txt']);
+        await expect.poll(() => pendingNames(page)).toContain('cl.txt');
+        await resolveUpload(page, 'cl.txt', 'fail');
+        await expect.poll(() => calls(page, 'cl.txt').then((c) => c.length)).toBe(2);
+        expect(logs.filter((l) => l.includes('auto-retry'))).toEqual([]);
+    });
+});
+
+test.describe('uploaded-deletable="false"', () => {
+    const removeBtn = (page: import('@playwright/test').Page, name: string) =>
+        dz(page, 'nodelete').locator(`.dz__file-item:has-text("${name}") [data-dz-action="remove"]`);
+
+    test('the remove button stays usable while uploading', async ({ page }) => {
+        await addNamed(page, 'nodelete', ['nd.txt']);
+        await expect.poll(() => pendingNames(page)).toContain('nd.txt');
+        await expect(removeBtn(page, 'nd.txt')).not.toHaveClass(/--hidden/);
+    });
+
+    test('a completed row hides its remove button (layout kept, inert)', async ({ page }) => {
+        test.fail(true, 'NOTES.md #6');
+        await addNamed(page, 'nodelete', ['nd.txt']);
+        await expect.poll(() => pendingNames(page)).toContain('nd.txt');
+        await resolveUpload(page, 'nd.txt', 'ok');
+        await expect.poll(() => dz(page, 'nodelete').evaluate((el: any) => el.files[0].status)).toBe('complete');
+        await expect(removeBtn(page, 'nd.txt')).toHaveClass(/dz__file-item__remove--hidden/, { timeout: 1000 });
+        await expect(removeBtn(page, 'nd.txt')).toHaveAttribute('aria-hidden', 'true');
+    });
+
+    test('programmatic removeFile still removes a completed file', async ({ page }) => {
+        await addNamed(page, 'nodelete', ['nd.txt']);
+        await expect.poll(() => pendingNames(page)).toContain('nd.txt');
+        await resolveUpload(page, 'nd.txt', 'ok');
+        await expect.poll(() => dz(page, 'nodelete').evaluate((el: any) => el.files[0].status)).toBe('complete');
+        await dz(page, 'nodelete').evaluate((el: any) => el.removeFile(el.files[0].id));
+        expect(await dz(page, 'nodelete').evaluate((el: any) => el.files.length)).toBe(0);
+    });
+});
+
+test.describe('reorder-completed-delay', () => {
+    /** Row names top-to-bottom by on-screen position (CSS `order` aware). */
+    const visualOrder = (page: import('@playwright/test').Page) =>
+        dz(page, 'reorder-delay').locator('.dz__file-item').evaluateAll((rows) =>
+            rows
+                .map((r) => ({ y: r.getBoundingClientRect().top, name: r.querySelector('.dz__file-item__name')?.textContent?.trim() }))
+                .sort((a, b) => a.y - b.y)
+                .map((r) => r.name));
+
+    test('a completed row moves to the bottom only after the delay', async ({ page }) => {
+        test.fail(true, 'NOTES.md #7');
+        await addNamed(page, 'reorder-delay', ['r1.txt', 'r2.txt', 'r3.txt']);
+        await expect.poll(() => pendingNames(page).then((n) => n.length)).toBe(3);
+        await expect.poll(() => visualOrder(page)).toEqual(['r1.txt', 'r2.txt', 'r3.txt']);
+        await resolveUpload(page, 'r1.txt', 'ok');
+        await page.waitForTimeout(250);
+        expect(await visualOrder(page)).toEqual(['r1.txt', 'r2.txt', 'r3.txt']);
+        await expect.poll(() => visualOrder(page), { timeout: 2000 }).toEqual(['r2.txt', 'r3.txt', 'r1.txt']);
+    });
+});

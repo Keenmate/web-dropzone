@@ -80,6 +80,9 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `files-reject` carries grouped rejections                   | △      | `validation.spec.ts` | `validation.html` |
 | `file-progress` / `file-status-change` during upload         | ✓      | `upload.spec.ts` | `upload.html`  |
 | `file-update` after handler post-merges metadata             | ✓      | `events-extra.spec.ts` | `events-extra.html` |
+| `file-delete` only for files with server state (with `file-remove`; `clear()` too) | ✓ | `events-extra.spec.ts` | `events-extra.html` |
+| `setMetadata` → server state + `ctx.metadata` on resume        | ✓      | `events-extra.spec.ts` | `events-extra.html` |
+| `controller.addFiles(files, { uploadMetadata })` → `ctx.uploadMetadata` | ✓ | `events-extra.spec.ts` | `events-extra.html` |
 | `file-row-update` on element-returning row callbacks (initial) | ✓     | `structural.spec.ts` | `structural.html` |
 | `file-row-update` on progress ticks (listener survival)       | ✓      | `events-extra.spec.ts` | `events-extra.html` |
 | `overlay-enter` / `overlay-leave` during drag (Playwright limit) | △    | `drag-overlay.spec.ts` | `drag-overlay.html` |
@@ -111,9 +114,16 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `file-status-change` event fires per status transition       | ✓      | `upload.spec.ts` | `upload.html` |
 | Resume from `context.startBytes` / `startPercent` after pause | ✓      | `upload-edge.spec.ts` | `upload-edge.html` |
 | Retry from error re-invokes the handler                       | ✓      | `upload-edge.spec.ts` | `upload-edge.html` |
-| Per-file pause / resume / cancel via X button (UI path)       | ✗      |                  |                |
+| Per-row Pause / Resume / Retry buttons cycle status (UI path) | ✓      | `row-actions.spec.ts` | `row-actions.html` |
+| ✕ while uploading cancels (row stays); second ✕ removes        | ✓      | `row-actions.spec.ts` | `row-actions.html` |
+| Cancelled row offers Retry                                    | ✗      | `row-actions.spec.ts` (test.fail NOTES #8) | `row-actions.html` |
+| `retryPolicy` attempts / delayMs / backoff → complete or error | ✓     | `upload-edge.spec.ts` | `upload-edge.html` |
+| `retryPolicy` retry aborted when paused during the backoff     | ✓     | `upload-edge.spec.ts` | `upload-edge.html` |
+| Auto-retry silent outside `/logging`                          | ✗      | `upload-edge.spec.ts` (test.fail NOTES #2) | `upload-edge.html` |
+| `uploaded-deletable="false"` hides ✕ on completed rows        | ✗      | `upload-edge.spec.ts` (test.fail NOTES #6) | `upload-edge.html` |
+| `reorder-completed-delay` — row moves only after the delay    | ✗      | `upload-edge.spec.ts` (test.fail NOTES #7) | `upload-edge.html` |
 | `progress-throttle` caps emission rate                        | ✓      | `upload-edge.spec.ts` | `upload-edge.html` |
-| `reorder-completed` reflows completed files                   | ✓      | `upload-edge.spec.ts` | `upload-edge.html` |
+| `reorder-completed` reflows completed files                   | △      | `upload-edge.spec.ts` (status only — DOM order is NOTES #7) | `upload-edge.html` |
 | `progress-mode="pessimistic"` preserves progress on failure   | ✓      | `upload-edge.spec.ts` | `upload-edge.html` |
 | Resume-aware progress on `file-progress`                      | △      | `upload-edge.spec.ts` | `upload-edge.html` |
 
@@ -147,10 +157,14 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Feature                                                       | Status | Spec                  | Fixture            |
 | ------------------------------------------------------------- | :----: | --------------------- | ------------------ |
 | Overlay NOT mounted at rest                                   | ✓      | `drag-overlay.spec.ts` | `drag-overlay.html` |
-| `overlay-target` activates whole-area overlay                 | △      | `drag-overlay.spec.ts` | `drag-overlay.html` |
-| Two overlays don't steal each other's drags                   | ✗      |                       |                    |
-| Overlay enter / leave events                                  | △      | `drag-overlay.spec.ts` | `drag-overlay.html` |
-| `overlay-target="#id"` (documented selector form)             | ✗      | — NOTES.md #1          |                    |
+| `overlay-target` (id) mounts the overlay over the target on a file dragenter | ✓ | `drag-overlay.spec.ts` | `drag-overlay.html` |
+| Non-file drag does not mount the overlay                      | ✓      | `drag-overlay.spec.ts` | `drag-overlay.html` |
+| `overlay-enter` / `overlay-leave` + hover class               | ✓      | `drag-overlay.spec.ts` | `drag-overlay.html` |
+| Drop on the overlay adds the files, overlay removed           | ✓      | `drag-overlay.spec.ts` | `drag-overlay.html` |
+| Escape / dragover-heartbeat timeout close the overlay         | ✓      | `drag-overlay.spec.ts` | `drag-overlay.html` |
+| Two overlays don't steal each other's drags (both close on drop) | ✓   | `drag-overlay.spec.ts` | `drag-overlay.html` |
+| `overlayTarget` property as an HTMLElement                    | ✓      | `drag-overlay.spec.ts` | `drag-overlay.html` |
+| `overlay-target="#id"` (documented selector form)             | ✗      | `drag-overlay.spec.ts` (test.fail NOTES #1) | `drag-overlay.html` |
 
 > Drags are synthetic: a constructed `DataTransfer` carrying real `File`
 > objects reports `types` including `"Files"` in Chromium, so
@@ -217,3 +231,57 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `renderSummaryCallback` + `loadStateCallback` ctx             | ✓      | `interaction-model.spec.ts`   | `interaction-model.html`  |
 | Picker `uploadFileCallback`; list `summary-activate` / `queue-open` carry store context | ✓ | `interaction-model.spec.ts` | `interaction-model.html` |
 | Element unit: controller defaults, `ready` twin, add / change twins | ✓  | `packages/web-dropzone/test/unit/interaction.test.ts` | — |
+
+## 13. Drop onto the dropzone
+
+| Feature                                                       | Status | Spec          | Fixture     |
+| ------------------------------------------------------------- | :----: | ------------- | ----------- |
+| dragenter → `dz__dropzone--active`; dragover accepted; dragleave clears | ✓ | `drop.spec.ts` | `drop.html` |
+| `drag-active-text` replaces the prompt during a drag          | ✓      | `drop.spec.ts` | `drop.html` |
+| Drop adds files (`file-add` per file, one `change`)           | ✓      | `drop.spec.ts` | `drop.html` |
+| Dropped files run validation (type + count rejects)           | ✓      | `drop.spec.ts` | `drop.html` |
+| Button appearance is a drop target                            | ✓      | `drop.spec.ts` | `drop.html` |
+
+## 14. Disabled
+
+| Feature                                                       | Status | Spec              | Fixture         |
+| ------------------------------------------------------------- | :----: | ----------------- | --------------- |
+| `disabled`: modifier class, native input + button disabled    | ✓      | `disabled.spec.ts` | `disabled.html` |
+| Disabled: click opens no dialog; drop adds nothing; no overlay | ✓     | `disabled.spec.ts` | `disabled.html` |
+| `el.disabled` / attribute toggle is reactive (both directions) | ✓     | `disabled.spec.ts` | `disabled.html` |
+| `<fieldset disabled>` disables the dropzone                   | ✗      | `disabled.spec.ts` (test.fail NOTES #5) | `disabled.html` |
+
+## 15. Reactivity after build
+
+| Feature                                                       | Status | Spec                | Fixture           |
+| ------------------------------------------------------------- | :----: | ------------------- | ----------------- |
+| `max-file-count` set after build applies; removal → unlimited | ✓      | `reactivity.spec.ts` | `reactivity.html` |
+| `maxFileCount` property reactive + reflects                   | ✓      | `reactivity.spec.ts` | `reactivity.html` |
+| `accept` changed after build (validation + native input)      | ✓      | `reactivity.spec.ts` | `reactivity.html` |
+| `list-appearance` change re-renders, keeps files              | ✓      | `reactivity.spec.ts` | `reactivity.html` |
+| Mode flip (headless → bulk) rebuilds, `ready` again; `mode="headless"` drops the UI | ✓ | `reactivity.spec.ts` | `reactivity.html` |
+| `overlay-target` set after build                              | ✓      | `reactivity.spec.ts` | `reactivity.html` |
+
+## 16. Bulk actions (overall-progress strip + popover header)
+
+| Feature                                                       | Status | Spec             | Fixture        |
+| ------------------------------------------------------------- | :----: | ---------------- | -------------- |
+| Pause all / Resume all / Retry all visibility follows state   | ✓      | `toolbar.spec.ts` | `toolbar.html` |
+| Pause all → all paused; Resume all → handler re-invoked       | ✓      | `toolbar.spec.ts` | `toolbar.html` |
+| Retry all (failed + cancelled) re-runs to completion          | ✓      | `toolbar.spec.ts` | `toolbar.html` |
+| Retry all runs in parallel up to `concurrency`                | ✗      | `toolbar.spec.ts` (test.fail NOTES #9) | `toolbar.html` |
+| No pipeline → no Pause / Resume all                           | ✓      | `toolbar.spec.ts` | `toolbar.html` |
+| Popover Clear all (gate honoured, popover closes)             | ✓      | `toolbar.spec.ts` | `toolbar.html` |
+| Popover Add more opens the file dialog                        | ✗      | `toolbar.spec.ts` (test.fail NOTES #10) | `toolbar.html` |
+| Disabled: Add more hidden, Clear all kept                     | ✓      | `toolbar.spec.ts` | `toolbar.html` |
+| Button/minimal + popover: click toggles the popover           | ✗      | `toolbar.spec.ts` (test.fail NOTES #11) | `toolbar.html` |
+
+## 17. Lifecycle (DOM move — decision D1: keep state)
+
+| Feature                                                       | Status | Spec               | Fixture          |
+| ------------------------------------------------------------- | :----: | ------------------ | ---------------- |
+| Re-parent keeps queued files                                  | ✗      | `lifecycle.spec.ts` (test.fail NOTES #4) | `lifecycle.html` |
+| Re-parent keeps an in-flight upload (completes after the move) | ✗     | `lifecycle.spec.ts` (test.fail NOTES #4) | `lifecycle.html` |
+| A move doesn't rebuild (`ready` once)                         | ✗      | `lifecycle.spec.ts` (test.fail NOTES #4) | `lifecycle.html` |
+| After a move: drops work, controller live                     | ✓      | `lifecycle.spec.ts` | `lifecycle.html` |
+| Moved overlay dropzone: one overlay; removed one: none        | ✓      | `lifecycle.spec.ts` | `lifecycle.html` |

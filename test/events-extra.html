@@ -28,6 +28,12 @@
         <web-dropzone id="summary-cb" mode="structural" accept="*/*" max-file-count="10" display-mode="compact"></web-dropzone>
     </div>
 
+    <div class="fixture">
+        <div class="fixture-label">file-delete + setMetadata / uploadMetadata (auto-upload="false", spec drives uploadAll)</div>
+        <web-dropzone id="del" accept="*/*" max-file-count="10" display-mode="detailed" auto-upload="false"></web-dropzone>
+        <pre class="event-log" data-testid="del-log"></pre>
+    </div>
+
     <script type="module">
         import '/src/index.ts';
 
@@ -44,9 +50,14 @@
         };
         window.__progress = (name, pct) => pending.get(name)?.onProgress(pct);
 
-        function handler({ file, setProgress: onProgress, signal }) {
+        // __calls: one entry per handler invocation (metadata seen by the
+        // handler); __setMeta: ctx.setMetadata for a parked upload.
+        window.__calls = [];
+        window.__setMeta = (name, patch) => pending.get(name).setMetadata(patch);
+        function handler({ file, setProgress: onProgress, signal, setMetadata, metadata, uploadMetadata }) {
+            window.__calls.push({ name: file.name, metadata: metadata ?? null, uploadMetadata: uploadMetadata ?? null });
             return new Promise((resolve, reject) => {
-                pending.set(file.name, { resolve, reject, onProgress, signal });
+                pending.set(file.name, { resolve, reject, onProgress, signal, setMetadata });
                 signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')));
             });
         }
@@ -60,6 +71,14 @@
                 const f = e.detail.file;
                 ulog.textContent += `updated ${f.name}\n`;
             });
+
+            // ===== file-delete / metadata fixture =====
+            const d = document.getElementById('del');
+            d.uploadFileCallback = handler;
+            const dlog = document.querySelector('[data-testid="del-log"]');
+            for (const type of ['file-remove', 'file-delete']) {
+                d.addEventListener(type, (e) => { dlog.textContent += `${type}:${e.detail.file.name}\n`; });
+            }
 
             // ===== row-update fixture (structural) =====
             window.__rowUpdateLog = [];
@@ -88,10 +107,10 @@
             };
         });
 
-        window.__addNamed = (id, names) => {
+        window.__addNamed = (id, names, opts) => {
             const dz = document.getElementById(id);
             const files = names.map(n => new File([new Uint8Array(64)], n, { type: 'text/plain' }));
-            return dz.addFiles(files);
+            return dz.addFiles(files, opts);
         };
     </script>
 </body>

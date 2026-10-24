@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — disabled</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-dropzone { display: block; max-width: 420px; }
+        .target { min-height: 80px; border: 1px dashed #cbd5e0; padding: 12px; }
+    </style>
+</head>
+<body>
+    <h1>disabled</h1>
+    <p>Targeted by <code>e2e/disabled.spec.ts</code>.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">disabled card</div>
+        <web-dropzone id="dis" disabled accept="*/*" display-mode="list"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">disabled button appearance</div>
+        <web-dropzone id="dis-btn" disabled accept="*/*" selector-appearance="button" list-appearance="list"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">disabled + overlay-target</div>
+        <div id="ov-target" class="target">overlay target</div>
+        <web-dropzone id="dis-ov" disabled overlay-target="ov-target" accept="*/*" style="display:none"></web-dropzone>
+    </div>
+
+    <form id="form">
+        <fieldset id="fs">
+            <div class="fixture-label">inside a &lt;fieldset&gt; (toggled disabled by the spec)</div>
+            <web-dropzone id="in-fs" name="files" accept="*/*" display-mode="list"></web-dropzone>
+        </fieldset>
+    </form>
+
+    <script type="module">
+        import '/src/index.ts';
+        customElements.whenDefined('web-dropzone').then(() => { window.__ready = true; });
+    </script>
+</body>
+</html>

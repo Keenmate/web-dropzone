@@ -35,3 +35,31 @@ export async function resolveUpload(page: Page, name: string, outcome?: unknown)
 export async function pumpProgress(page: Page, name: string, pct: number): Promise<void> {
     await page.evaluate(({ name, pct }) => (window as any).__progress(name, pct), { name, pct });
 }
+
+/**
+ * Dispatch a synthetic file DragEvent (`dragenter` / `dragover` / `dragleave` /
+ * `drop`) on `target`. Chromium lets a constructed DataTransfer carry real
+ * File objects, so `dataTransfer.types` includes "Files" exactly like an OS
+ * drag. Locators pierce shadow roots, so `target` can be an internal part.
+ * Resolves to whether the event was cancelled (accepted as a drop target).
+ */
+export async function dragFiles(
+    target: Locator,
+    type: 'dragenter' | 'dragover' | 'dragleave' | 'drop',
+    names: string[] = ['a.txt'],
+): Promise<boolean> {
+    return target.evaluate((el, { type, names }) => {
+        const dt = new DataTransfer();
+        for (const n of names) {
+            dt.items.add(new File([new Uint8Array(64)], n, { type: n.endsWith('.png') ? 'image/png' : 'text/plain' }));
+        }
+        const ev = new DragEvent(type, { bubbles: true, cancelable: true, composed: true, dataTransfer: dt });
+        return !el.dispatchEvent(ev);
+    }, { type, names });
+}
+
+/** Lines of a `<pre data-testid="<area>-log">` event log. */
+export async function logLines(page: Page, area: string): Promise<string[]> {
+    const text = await page.getByTestId(`${area}-log`).textContent();
+    return (text ?? '').split('\n').filter(Boolean);
+}
