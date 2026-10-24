@@ -629,7 +629,7 @@ startBtn.addEventListener('click', () =&gt; dz.uploadAll())
 
             <div class="note">
                 <div class="note-title">Tip</div>
-                <p>Files that don't match <code>accept</code> are rejected at validation time and surface via the <code>files-rejected</code> event — see <a href="examples-validation.html">Validation</a>.</p>
+                <p>Files that don't match <code>accept</code> are rejected at validation time and surface via the <code>files-reject</code> event — see <a href="examples-validation.html">Validation</a>.</p>
             </div>
         </div>
 
@@ -677,9 +677,9 @@ startBtn.addEventListener('click', () =&gt; dz.uploadAll())
             <div class="code-block">
                 <pre><code>const el = document.getElementById('api-demo')
 
-el.addEventListener('file-added',     e => console.log('added',    e.detail))
-el.addEventListener('file-removed',   e => console.log('removed',  e.detail))
-el.addEventListener('files-rejected', e => console.log('rejected', e.detail))
+el.addEventListener('file-add',     e => console.log('added',    e.detail))
+el.addEventListener('file-remove',   e => console.log('removed',  e.detail))
+el.addEventListener('files-reject', e => console.log('rejected', e.detail))
 el.addEventListener('change',         e => console.log('change',   e.detail))
 
 el.addFiles(fileList)        // programmatic add (FileList or File[])
@@ -691,8 +691,8 @@ const files = el.files       // current FileState[]</code></pre>
 
         <!-- CUSTOM FILE-TYPE ICONS -->
         <div class="card">
-            <h2>DC17 · Custom file-type icons (<code>fileIcons</code> + <code>fileIconCallback</code>)</h2>
-            <p>Each row's icon resolves from the file's <strong>category</strong> by default (Lucide glyphs). Override per <strong>extension</strong> or per <strong>category</strong> with the <code>fileIcons</code> map, or take full control with <code>fileIconCallback</code>. Values are <strong>any HTML string</strong> — this demo mixes an inline <strong>SVG</strong> (<code>.psd</code>), an <strong><code>&lt;img&gt;</code></strong> (<code>.fig</code>), and <strong>emoji</strong> (<code>.sketch</code>, the <code>archive</code> category, and the callback).</p>
+            <h2>DC17 · Custom file-type icons (<code>fileIcons</code> + <code>getFileIconCallback</code>)</h2>
+            <p>Each row's icon resolves from the file's <strong>category</strong> by default (Lucide glyphs). Override per <strong>extension</strong> or per <strong>category</strong> with the <code>fileIcons</code> map, or take full control with <code>getFileIconCallback</code>. Values are <strong>any HTML string</strong> — this demo mixes an inline <strong>SVG</strong> (<code>.psd</code>), an <strong><code>&lt;img&gt;</code></strong> (<code>.fig</code>), and <strong>emoji</strong> (<code>.sketch</code>, the <code>archive</code> category, and the callback).</p>
 
             <div class="form-group">
                 <label>Detailed list — overrides already applied</label>
@@ -723,7 +723,7 @@ el.fileIcons = {
 }
 
 // Consulted BEFORE the map. Return HTML to use it, or null to fall through.
-el.fileIconCallback = (file) =&gt;
+el.getFileIconCallback = ({ file }) =&gt;
   /^invoice/i.test(file.name) ? '🧾' : null</code></pre>
             </div>
         </div>
@@ -747,7 +747,7 @@ el.fileIconCallback = (file) =&gt;
         };
         for (const dz of document.querySelectorAll('web-dropzone')) {
             dz.uploadFileCallback = simulateUpload({ bucket: 'display', durationMs: 3000, failRate: 0.2 });
-            dz.addEventListener('files-rejected', (e) => {
+            dz.addEventListener('files-reject', (e) => {
                 const groups = new Map();
                 for (const r of e.detail.rejectedFiles) {
                     const code = r.validation.code || 'custom';
@@ -781,9 +781,9 @@ el.fileIconCallback = (file) =&gt;
             if (logLines.length > 10) logLines.shift()
             apiLog.textContent = logLines.join('\n')
         }
-        apiEl.addEventListener('file-added',     e => append(`+ added    ${e.detail.file.name}`))
-        apiEl.addEventListener('file-removed',   e => append(`- removed  ${e.detail.file.name}`))
-        apiEl.addEventListener('files-rejected', e => append(`! rejected ${e.detail.rejectedFiles.length} file(s)`))
+        apiEl.addEventListener('file-add',     e => append(`+ added    ${e.detail.file.name}`))
+        apiEl.addEventListener('file-remove',   e => append(`- removed  ${e.detail.file.name}`))
+        apiEl.addEventListener('files-reject', e => append(`! rejected ${e.detail.rejectedFiles.length} file(s)`))
         apiEl.addEventListener('change',         e => append(`~ change   now ${e.target.files.length} file(s)`))
 
         window.logFiles = () => {
@@ -945,7 +945,7 @@ el.fileIconCallback = (file) =&gt;
         gtSyncModeRows()
         gtApply()
 
-        // ── Custom file-type icons (fileIcons + fileIconCallback) ─────────
+        // ── Custom file-type icons (fileIcons + getFileIconCallback) ─────────
         // Overrides accept ANY HTML string. This demo deliberately mixes an
         // inline Lucide SVG, a full-colour <img> (self-contained data-URI so it
         // works offline), and emoji — keyed by extension and by category. The
@@ -964,7 +964,7 @@ el.fileIconCallback = (file) =&gt;
             sketch: '💎',     // by extension → emoji
             archive: '📦',    // whole category → emoji
         }
-        iconDemo.fileIconCallback = (file) => /^invoice/i.test(file.name) ? '🧾' : null
+        iconDemo.getFileIconCallback = ({ file }) => /^invoice/i.test(file.name) ? '🧾' : null
 
         window.seedIconDemo = () => {
             const mk = (name, type = '') => new File([new Uint8Array(64)], name, { type })

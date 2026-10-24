@@ -147,27 +147,27 @@
         <!-- INTRO -->
         <div class="card">
             <h2>UP01 · How this page works</h2>
-            <p>web-dropzone's built-in upload pipeline takes a single async handler. The component runs files through a worker pool of size <code>concurrency</code>, awaits each handler Promise, drives <code>file.status</code> from the outcome, and exposes Pause / Resume / Cancel / Retry. The handler signature includes a <code>context</code> arg carrying <strong>resume offset</strong> and <strong>persistent metadata</strong> — so handlers backed by Content-Range / tus.io / S3 multipart can pick up where a paused upload left off:</p>
-            <pre class="code-block"><code>dropzone.uploadFileCallback = async (file, onProgress, signal, context) => {
-    // file       — the native File blob
-    // onProgress — call with 0..100 to tick the progress bar
-    // signal     — AbortSignal fires on pause / cancel / remove
-    // context    — { startBytes, startPercent, metadata, setMetadata(patch) }
-    //              startBytes > 0 means "resume from here"
-    //              context.metadata carries state stashed in prior attempts
-    //              setMetadata(patch) saves state for the NEXT attempt
+            <p>web-dropzone's built-in upload pipeline takes a single async handler. The component runs files through a worker pool of size <code>concurrency</code>, awaits each handler Promise, drives <code>file.status</code> from the outcome, and exposes Pause / Resume / Cancel / Retry. The handler gets one <code>ctx</code> carrying the file, the abort signal, <code>setProgress</code>, the <strong>resume offset</strong> and <strong>persistent metadata</strong> — so handlers backed by Content-Range / tus.io / S3 multipart can pick up where a paused upload left off:</p>
+            <pre class="code-block"><code>dropzone.uploadFileCallback = async (ctx) => {
+    // ctx.file          — the native File blob
+    // ctx.setProgress   — call with 0..100 to tick the progress bar
+    // ctx.signal        — AbortSignal fires on pause / cancel / remove
+    // ctx.startBytes    — > 0 means "resume from here" (+ ctx.startPercent)
+    // ctx.metadata      — state stashed in prior attempts
+    // ctx.setMetadata   — setMetadata(patch) saves state for the NEXT attempt
+    // ctx.uploadMetadata, ctx.controller, ctx.element — routing + context
 }
 dropzone.concurrency = 3        // max 3 in flight (default 1)
 dropzone.autoUpload   = true    // start uploads on add (default)</code></pre>
             <p>Status badges, the per-file progress column inside the <strong>popover</strong>, and the overall progress strip (with Pause all / Resume all / Retry all buttons) all wire themselves up automatically. The plain <code>list</code> / <code>detailed</code> appearances don't show per-file progress — use one of the rich appearances for upload UI.</p>
-            <p>For apps with a bespoke upload manager, the older fire-and-forget escape hatch (<code>file-added</code> event + <code>updateFileProgress</code> / <code>setFileStatus</code>) still works — just leave <code>uploadFileCallback</code> unset.</p>
+            <p>For apps with a bespoke upload manager, the older fire-and-forget escape hatch (<code>file-add</code> event + <code>updateFileProgress</code> / <code>setFileStatus</code>) still works — just leave <code>uploadFileCallback</code> unset.</p>
         </div>
 
         <!-- PLAYGROUND -->
         <div class="card">
             <h2>UP02 · Playground</h2>
             <p>One dropzone, all the knobs — selector + list appearance, success rate, concurrency, per-file duration, auto vs. manual upload. Every control persists to <code>localStorage</code> under the <code>dz-upload-</code> prefix so your last setup survives a reload. Manual mode lets you stage files and click <strong>Start uploads</strong> when ready — useful for "stage everything, submit on form submit" patterns.</p>
-            <p>The handler is <strong>resume-aware</strong> — it honors <code>context.startBytes</code> and stashes an attempt counter in <code>file.metadata</code> via <code>context.setMetadata</code>. Pause + Resume continues from where the bar stopped; per-row Retry (or "Retry all") restarts a failed upload from <code>0</code>. The log panel below distinguishes <strong>fresh starts</strong>, <strong>resumes</strong> (mid-stream after pause), and <strong>retries</strong> (fresh start after a failure) so you can verify the metadata flows correctly across each transition. Drop the success rate to ~30% and you'll see the failure → retry loop in action.</p>
+            <p>The handler is <strong>resume-aware</strong> — it honors <code>ctx.startBytes</code> and stashes an attempt counter in <code>file.metadata</code> via <code>ctx.setMetadata</code>. Pause + Resume continues from where the bar stopped; per-row Retry (or "Retry all") restarts a failed upload from <code>0</code>. The log panel below distinguishes <strong>fresh starts</strong>, <strong>resumes</strong> (mid-stream after pause), and <strong>retries</strong> (fresh start after a failure) so you can verify the metadata flows correctly across each transition. Drop the success rate to ~30% and you'll see the failure → retry loop in action.</p>
 
             <div class="playground-controls">
                 <div class="control">
@@ -291,10 +291,10 @@ dropzone.autoUpload   = true    // start uploads on add (default)</code></pre>
             <h2>UP03 · How to wire a real upload</h2>
             <p>Set <code>uploadFileCallback</code> to a function that does the actual <code>fetch()</code> against your endpoint. The component handles the rest — queue, concurrency, status transitions, abort signal for pause/cancel/remove.</p>
             <p><strong>Single-shot upload</strong> (server-side state not resumable):</p>
-            <pre class="code-block"><code>dropzone.uploadFileCallback = (file, onProgress, signal, ctx) => new Promise((resolve, reject) => {
+            <pre class="code-block"><code>dropzone.uploadFileCallback = ({ file, setProgress, signal }) => new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest()
     xhr.upload.addEventListener('progress', (ev) => {
-        if (ev.lengthComputable) onProgress((ev.loaded / ev.total) * 100)
+        if (ev.lengthComputable) setProgress((ev.loaded / ev.total) * 100)
     })
     xhr.onload  = () => xhr.status &lt; 400 ? resolve() : reject(new Error(xhr.statusText))
     xhr.onerror = () => reject(new Error('Network error'))
@@ -313,7 +313,8 @@ dropzone.autoUpload   = true    // start uploads on add (default)</code></pre>
 })</code></pre>
 
             <p><strong>Resume-aware upload (tus.io / HTTP Content-Range pattern)</strong>:</p>
-            <pre class="code-block"><code>dropzone.uploadFileCallback = async (file, onProgress, signal, ctx) => {
+            <pre class="code-block"><code>dropzone.uploadFileCallback = async (ctx) => {
+    const { file, signal } = ctx
     // 1. Get / create the server-side session URL. On resume, ctx.metadata
     //    carries the URL we stashed during the first attempt.
     let uploadUrl = ctx.metadata?.uploadUrl
@@ -344,7 +345,7 @@ dropzone.autoUpload   = true    // start uploads on add (default)</code></pre>
     })
     if (!res.ok) throw new Error(`Upload failed: ${res.statusText}`)
 
-    // 4. Optional — return server-assigned id / download URL for file-deleted.
+    // 4. Optional — return server-assigned id / download URL for file-delete.
     return {
         metadata: { ...ctx.metadata, serverGuid: res.headers.get('X-File-Id') },
         downloadUrl: res.headers.get('X-Download-Url')
@@ -373,7 +374,7 @@ dropzone.retryPolicy = { attempts: 3, delayMs: 1000, backoff: 2 }</code></pre>
             custom:    'Rejected'
         }
         function wireRejections(dz) {
-            dz.addEventListener('files-rejected', (e) => {
+            dz.addEventListener('files-reject', (e) => {
                 const groups = new Map()
                 for (const r of e.detail.rejectedFiles) {
                     const code = r.validation.code || 'custom'
@@ -475,17 +476,18 @@ dropzone.retryPolicy = { attempts: 3, delayMs: 1000, backoff: 2 }</code></pre>
             //   - Pause/Resume → `[Resume]` with startBytes > 0 (mid-stream)
             //   - Retry        → `[Retry]`  with startBytes = 0, attempts > 1
             //   - First start  → `[Start]`  with startBytes = 0, attempts = 1
-            // The attempt counter is persisted via context.setMetadata so it
+            // The attempt counter is persisted via ctx.setMetadata so it
             // survives across pause AND across the cancellation that a retry
             // wraps. Reads the success-rate / duration / resume controls at
             // call time so live edits land on the next file the worker pool
             // picks up.
             //
-            // When "Resume support" is OFF the handler ignores context.startBytes
+            // When "Resume support" is OFF the handler ignores ctx.startBytes
             // and starts from 0 — simulating a single-shot endpoint without
             // Content-Range / tus.io support. The bar visibly snaps back to 0
             // on resume, which is the point of the demo.
-            dz.uploadFileCallback = (file, onProgress, signal, context) => new Promise((resolve, reject) => {
+            dz.uploadFileCallback = (ctx) => new Promise((resolve, reject) => {
+                const { file, setProgress, signal } = ctx
                 const successRate = parseInt(rateInput.value, 10) / 100
                 const duration    = parseInt(durSelect.value,  10)
                 const resumeOn    = document.querySelector('input[name="playground-resume"]:checked').value === 'on'
@@ -493,21 +495,21 @@ dropzone.retryPolicy = { attempts: 3, delayMs: 1000, backoff: 2 }</code></pre>
                 const ticks       = 20
                 const tickMs      = duration / ticks
 
-                const attempts = (context.metadata?.attempts ?? 0) + 1
-                context.setMetadata({ attempts })
+                const attempts = (ctx.metadata?.attempts ?? 0) + 1
+                ctx.setMetadata({ attempts })
 
-                const isResume = resumeOn && context.startBytes > 0
-                const handlerStartPercent = isResume ? (context.startPercent ?? 0) : 0
+                const isResume = resumeOn && ctx.startBytes > 0
+                const handlerStartPercent = isResume ? ctx.startPercent : 0
 
                 if (isResume) {
                     appendLog('Resume', file,
-                        `attempt #${attempts} · startBytes=${context.startBytes.toLocaleString()} (${Math.round(context.startPercent)}%) · metadata.attempts=${attempts}`)
-                } else if (context.startBytes > 0) {
+                        `attempt #${attempts} · startBytes=${ctx.startBytes.toLocaleString()} (${Math.round(ctx.startPercent)}%) · metadata.attempts=${attempts}`)
+                } else if (ctx.startBytes > 0) {
                     // Resume disabled but the component preserved the offset
                     // — handler is explicitly discarding it. Surface that so
                     // the log makes the cause of the snap-back obvious.
                     appendLog('Retry', file,
-                        `attempt #${attempts} · resume disabled · ignoring startBytes=${context.startBytes.toLocaleString()} · metadata.attempts=${attempts}`)
+                        `attempt #${attempts} · resume disabled · ignoring startBytes=${ctx.startBytes.toLocaleString()} · metadata.attempts=${attempts}`)
                 } else if (attempts > 1) {
                     appendLog('Retry', file,
                         `attempt #${attempts} · fresh start after failure · metadata.attempts=${attempts}`)
@@ -519,7 +521,7 @@ dropzone.retryPolicy = { attempts: 3, delayMs: 1000, backoff: 2 }</code></pre>
                 let percent = handlerStartPercent
                 // First tick on resume — report the resume point so the bar
                 // doesn't briefly snap back to 0 before climbing.
-                if (percent > 0) onProgress(percent)
+                if (percent > 0) setProgress(percent)
 
                 // Decide the OUTCOME for this attempt up front, and if
                 // failing, pick a random failure point so failures land
@@ -541,28 +543,28 @@ dropzone.retryPolicy = { attempts: 3, delayMs: 1000, backoff: 2 }</code></pre>
                     percent += 100 / ticks
                     if (percent >= failAt) {
                         clearInterval(interval)
-                        // Pessimistic contract: only emit onProgress AFTER a
+                        // Pessimistic contract: only call setProgress AFTER a
                         // chunk is acknowledged. The failing tick isn't, so
                         // we just reject. The bar stays at the previous
                         // successful tick's value — forward-only.
-                        // Optimistic contract: emit onProgress for the
+                        // Optimistic contract: call setProgress for the
                         // attempted-but-failed offset so the bar visibly
                         // peaks at the failure point before snapping back
                         // to baseline (the snap-back is done by the
                         // component).
-                        if (!isPessimistic) onProgress(failAt)
+                        if (!isPessimistic) setProgress(failAt)
                         reject(new Error(`Upload failed (HTTP 500) at ${Math.round(failAt)}%`))
                         return
                     }
                     if (percent < 100) {
-                        onProgress(percent)
+                        setProgress(percent)
                         return
                     }
                     clearInterval(interval)
-                    onProgress(100)
+                    setProgress(100)
                     const serverGuid = `srv-${Math.random().toString(36).slice(2, 10)}`
                     resolve({
-                        metadata: { ...context.metadata, serverGuid, attempts },
+                        metadata: { ...ctx.metadata, serverGuid, attempts },
                         downloadUrl: `/api/files/${serverGuid}`
                     })
                 }, tickMs)
@@ -574,13 +576,13 @@ dropzone.retryPolicy = { attempts: 3, delayMs: 1000, backoff: 2 }</code></pre>
             })
 
             // Toast outcomes + log success / failure.
-            dz.addEventListener('file-uploaded', (e) => {
+            dz.addEventListener('file-upload-complete', (e) => {
                 const attempts = e.detail.file.metadata?.attempts ?? '?'
                 appendLog('Done', e.detail.file,
                     `total attempts=${attempts} · serverGuid=${e.detail.file.metadata?.serverGuid ?? '?'}`)
                 toast.success(e.detail.file.name, { title: 'Upload complete' })
             })
-            dz.addEventListener('file-deleted', (e) => {
+            dz.addEventListener('file-delete', (e) => {
                 const guid = e.detail.file.metadata?.serverGuid ?? '(no guid)'
                 toast.info(`${e.detail.file.name} · ${guid}`, { title: 'Would DELETE on server' })
             })

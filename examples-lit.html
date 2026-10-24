@@ -83,12 +83,12 @@
         <header>
             <a href="index.html" class="back-link">← Back to examples</a>
             <h1>Lit integration</h1>
-            <p class="subtitle">A <code>LitElement</code> wraps a headless <code>&lt;web-dropzone&gt;</code> store, listens for <code>files-changed</code>, and renders its own reactive file list with <code>lit-html</code> templates.</p>
+            <p class="subtitle">A <code>LitElement</code> wraps a headless <code>&lt;web-dropzone&gt;</code> store, listens for <code>files-change</code>, and renders its own reactive file list with <code>lit-html</code> templates.</p>
         </header>
 
         <section class="example-section">
             <h2>LT01 · Why Lit + headless mode is a natural fit</h2>
-            <p>Web-dropzone is already a custom element, so it composes inside a Lit component the same way any other element does. With <code>mode="headless"</code> the store stops rendering its own list — your Lit element subscribes to the <code>files-changed</code> event and reactivity does the rest. The native <code>&lt;web-dropzone-picker&gt;</code> satellite still handles drag/drop so you keep the polished picker UI for free.</p>
+            <p>Web-dropzone is already a custom element, so it composes inside a Lit component the same way any other element does. With <code>mode="headless"</code> the store stops rendering its own list — your Lit element subscribes to the <code>files-change</code> event and reactivity does the rest. The native <code>&lt;web-dropzone-picker&gt;</code> satellite still handles drag/drop so you keep the polished picker UI for free.</p>
             <div class="note">
                 <div class="note-title">Pattern</div>
                 <ul>
@@ -125,7 +125,7 @@ class LitUploader extends LitElement {
     firstUpdated() {
         const store = this.querySelector('#lit-store')
         store.uploadFileCallback = simulateUpload({ durationMs: 4000 })
-        store.addEventListener('files-changed', (e) =&gt; {
+        store.addEventListener('files-change', (e) =&gt; {
             this.files = e.detail.files
         })
     }
@@ -187,12 +187,12 @@ customElements.define('lit-uploader', LitUploader)</pre>
     <script type="module">
         import { LitElement, html } from 'https://esm.sh/lit@3'
 
-        // Shared simulated upload — supports resume via context.startPercent
+        // Shared simulated upload — supports resume via ctx.startPercent
         // so pause/resume picks up from where the bytes stopped instead of
         // restarting at 0. Same shape as examples-architecture.html.
         function simulateUpload({ durationMs = 4000, failureRate = 0 } = {}) {
-            return (file, onProgress, signal, context) => new Promise((resolve, reject) => {
-                const startPct = context?.startPercent ?? 0
+            return ({ file, setProgress, signal, startPercent }) => new Promise((resolve, reject) => {
+                const startPct = startPercent
                 if (startPct >= 100) {
                     resolve({ metadata: { uploadedAt: new Date().toISOString() } })
                     return
@@ -209,7 +209,7 @@ customElements.define('lit-uploader', LitUploader)</pre>
                     if (aborted) return
                     const elapsed = performance.now() - start
                     const pct = Math.min(100, startPct + remainingPct * (elapsed / remainingMs))
-                    onProgress(pct)
+                    setProgress(pct)
                     if (pct >= 100) {
                         if (Math.random() < failureRate) {
                             reject(new Error('Simulated upload failure'))
@@ -248,7 +248,7 @@ customElements.define('lit-uploader', LitUploader)</pre>
             firstUpdated() {
                 const store = this.querySelector('#lit-store')
                 store.uploadFileCallback = simulateUpload({ durationMs: 4000 })
-                store.addEventListener('files-changed', (e) => {
+                store.addEventListener('files-change', (e) => {
                     this.files = e.detail.files
                 })
             }

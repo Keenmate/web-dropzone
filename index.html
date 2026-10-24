@@ -176,7 +176,7 @@
             <ul style="margin:0.5rem 0 0;line-height:1.7">
                 <li><strong><code>mode="bulk"</code></strong> (default) — framework owns the UI; you style via CSS variables. See <a href="examples-display.html">Display &amp; Composition</a> / <a href="examples-validation.html">Validation</a>.</li>
                 <li><strong><code>mode="structural"</code></strong> — framework owns the lifecycle; you provide HTML structure via render callbacks (including <code>renderListWrapperCallback</code> for tables and element-returning rows with <code>file-row-update</code> events). See <a href="examples-structural.html">Structural Rendering</a>.</li>
-                <li><strong><code>mode="headless"</code></strong> — framework just fires events (<code>files-changed</code> on rAF + granular ones); bring your own renderer or pair with satellites. See <a href="examples-architecture.html">Architecture</a>.</li>
+                <li><strong><code>mode="headless"</code></strong> — framework just fires events (<code>files-change</code> on rAF + granular ones); bring your own renderer or pair with satellites. See <a href="examples-architecture.html">Architecture</a>.</li>
             </ul>
         </div>
 
@@ -201,7 +201,7 @@
                         href: 'examples-architecture.html',
                         icon: '🛰️',
                         title: 'Architecture: store + satellites',
-                        description: 'Headless <web-dropzone> store with <web-dropzone-picker>, <web-dropzone-list>, and <web-dropzone-indicator> satellites — plus a BYO-renderer example using files-changed.'
+                        description: 'Headless <web-dropzone> store with <web-dropzone-picker>, <web-dropzone-list>, and <web-dropzone-indicator> satellites — plus a BYO-renderer example using files-change.'
                     },
                     {
                         href: 'examples-display.html',
@@ -213,13 +213,13 @@
                         href: 'examples-validation.html',
                         icon: '✅',
                         title: 'Validation & Rejection',
-                        description: 'maxSize, maxFiles, MIME/extension filters, custom validators, async confirmation gates, and files-rejected handling.'
+                        description: 'maxSize, maxFiles, MIME/extension filters, custom validators, async confirmation gates, and files-reject handling.'
                     },
                     {
                         href: 'examples-upload.html',
                         icon: '📤',
                         title: 'Upload Pipeline',
-                        description: 'uploadFileCallback with pause / resume / retry, concurrency, manual mode, and resume-aware progress via context.startBytes.'
+                        description: 'uploadFileCallback with pause / resume / retry, concurrency, manual mode, and resume-aware progress via ctx.startBytes.'
                     },
                     {
                         href: 'examples-structural.html',
@@ -285,7 +285,7 @@
                         href: 'examples-react.html',
                         icon: '⚛️',
                         title: 'React integration',
-                        description: 'React component using <code>useRef</code> + <code>useEffect</code> + <code>files-changed</code>. JSX via htm so it runs build-free in the browser.'
+                        description: 'React component using <code>useRef</code> + <code>useEffect</code> + <code>files-change</code>. JSX via htm so it runs build-free in the browser.'
                     },
                     {
                         href: 'examples-vue.html',

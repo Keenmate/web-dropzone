@@ -247,12 +247,12 @@ el.overlayTarget = document.body
         })
         applyActiveDemo(document.querySelector('input[name="active-demo"]:checked')?.value ?? 'form')
 
-        // files-rejected demo on the card target — show a small toast inside
+        // files-reject demo on the card target — show a small toast inside
         // the card whenever the dropzone refuses a file. Auto-clears after 4s.
         const card = document.getElementById('overlay-card')
         const rejectToast = document.getElementById('overlay-card-reject')
         let rejectClearTimer = null
-        card.addEventListener('files-rejected', (e) => {
+        card.addEventListener('files-reject', (e) => {
             const { rejectedFiles } = e.detail
             if (!rejectedFiles || rejectedFiles.length === 0) return
             const lines = rejectedFiles.map(({ file, validation }) =>

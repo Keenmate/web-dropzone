@@ -367,9 +367,9 @@
 
             <pre class="code-block"><code>const decisions = new Map() // fileId -> { action: 'pending'|'overwrite'|'rename', renameTo? }</code></pre>
 
-            <p><strong>2. <code>files-changed</code> drives the collision check.</strong> Every time a file is added we ask the server, then either seed the decisions map with <code>'pending'</code> (collision) or leave the file untracked (new — will upload as-is).</p>
+            <p><strong>2. <code>files-change</code> drives the collision check.</strong> Every time a file is added we ask the server, then either seed the decisions map with <code>'pending'</code> (collision) or leave the file untracked (new — will upload as-is).</p>
 
-            <pre class="code-block"><code>dz.addEventListener('files-changed', async (e) => {
+            <pre class="code-block"><code>dz.addEventListener('files-change', async (e) => {
     const newFiles = e.detail.files.filter(f =&gt; !seenIds.has(f.id))
     if (!newFiles.length) return
     const report = await checkNames(newFiles.map(f =&gt; f.name))
@@ -383,7 +383,7 @@
 
             <p><strong>3. The row renderer reads the decisions map and re-renders <em>itself</em> when the user clicks.</strong> Element-returning <code>renderFileItemCallback</code> means each row owns its own DOM and event listeners; no need to bother the framework when local state changes.</p>
 
-            <pre class="code-block"><code>dz.renderFileItemCallback = (file) =&gt; {
+            <pre class="code-block"><code>dz.renderFileItemCallback = ({ file }) =&gt; {
     const row = document.createElement('div')
     const repaint = () =&gt; {
         const d = decisions.get(file.id)
@@ -397,9 +397,9 @@
     return row
 }</code></pre>
 
-            <p><strong>4. The upload callback closes over the decisions map.</strong> The first arg is the native <code>File</code>; we find the matching <code>FileState</code> to pull its <code>id</code>, then send the right thing. Returning <code>{ name }</code> renames the file in the UI on success.</p>
+            <p><strong>4. The upload callback closes over the decisions map.</strong> <code>ctx.file</code> is the native <code>File</code>; we find the matching <code>FileState</code> to pull its <code>id</code>, then send the right thing. Returning <code>{ name }</code> renames the file in the UI on success.</p>
 
-            <pre class="code-block"><code>dz.uploadFileCallback = async (rawFile, onProgress, signal, ctx) =&gt; {
+            <pre class="code-block"><code>dz.uploadFileCallback = async ({ file: rawFile, setProgress, signal }) =&gt; {
     const fileState = dz.files.find(f =&gt; f.file === rawFile)
     const decision  = decisions.get(fileState.id)
     const finalName = decision?.action === 'rename' ? decision.renameTo : rawFile.name
@@ -543,7 +543,7 @@
             // Per-row rendering — element-returning callback so each
             // row owns its DOM + listeners across decision changes.
             // -------------------------------------------------------
-            dz.renderFileItemCallback = (file) => {
+            dz.renderFileItemCallback = ({ file }) => {
                 const row = document.createElement('div')
                 row.className = 'sp-row'
                 row.dataset.fileId = file.id
@@ -713,13 +713,13 @@
             // Custom wrapper — just a flex column. Without this the
             // framework would inject its default <div class="dz__file-list">.
             // -------------------------------------------------------
-            dz.renderListWrapperCallback = (rowsHtml) => `<div class="sp-list">${rowsHtml}</div>`
+            dz.renderListWrapperCallback = ({ rowsHtml }) => `<div class="sp-list">${rowsHtml}</div>`
 
             // -------------------------------------------------------
-            // Collision check on add. files-changed fires per batch, so
+            // Collision check on add. files-change fires per batch, so
             // a single drop of N files = one server call.
             // -------------------------------------------------------
-            dz.addEventListener('files-changed', async (e) => {
+            dz.addEventListener('files-change', async (e) => {
                 const newFiles = e.detail.files.filter(f => !seenIds.has(f.id))
                 if (!newFiles.length) return
                 // Mark seen BEFORE the await — otherwise a second drop while
@@ -754,7 +754,7 @@
             // Upload callback — closes over decisions + SERVER_INVENTORY.
             // Simulates 1.5 s of progress, then mutates the inventory.
             // -------------------------------------------------------
-            dz.uploadFileCallback = (rawFile, onProgress, signal) => new Promise((resolve, reject) => {
+            dz.uploadFileCallback = ({ file: rawFile, setProgress, signal }) => new Promise((resolve, reject) => {
                 const fileState = dz.files.find(f => f.file === rawFile)
                 if (!fileState) return reject(new Error('FileState not found'))
                 const decision  = decisions.get(fileState.id)
@@ -774,7 +774,7 @@
                     pct += 100 / ticks
                     if (pct >= 100) {
                         clearInterval(interval)
-                        onProgress(100)
+                        setProgress(100)
                         // Mutate the server's inventory + repaint the pill panel.
                         SERVER_INVENTORY.add(finalName)
                         refreshInventoryUI()
@@ -784,7 +784,7 @@
                         resolve(decision?.action === 'rename' ? { name: finalName } : undefined)
                         return
                     }
-                    onProgress(pct)
+                    setProgress(pct)
                 }, 100)
 
                 signal.addEventListener('abort', () => {
@@ -816,9 +816,9 @@
                 }
             }
 
-            // file-removed fires after the skip flow; clean up decisions
+            // file-remove fires after the skip flow; clean up decisions
             // so the map doesn't leak across the demo's lifetime.
-            dz.addEventListener('file-removed', (e) => {
+            dz.addEventListener('file-remove', (e) => {
                 decisions.delete(e.detail.file.id)
                 seenIds.delete(e.detail.file.id)
                 refreshToolbar()

@@ -45,7 +45,7 @@
             overflow: hidden;
         }
         /* No CSS transition — Vue updates `:style="{ width }"` on every
-           `files-changed` (≈ 60 Hz during an upload). A 180 ms transition
+           `files-change` (≈ 60 Hz during an upload). A 180 ms transition
            would mean the bar visibly trails the rest of the row by ~11 frames. */
         .vu-row__bar-fill {
             position: absolute;
@@ -105,7 +105,7 @@
         <header>
             <a href="index.html" class="back-link">← Back to examples</a>
             <h1>Vue 3 integration</h1>
-            <p class="subtitle">A Vue 3 component listens to a headless <code>&lt;web-dropzone&gt;</code> store via <code>onMounted</code> + <code>files-changed</code>, then renders its own template-driven list with reactive computed stats.</p>
+            <p class="subtitle">A Vue 3 component listens to a headless <code>&lt;web-dropzone&gt;</code> store via <code>onMounted</code> + <code>files-change</code>, then renders its own template-driven list with reactive computed stats.</p>
         </header>
 
         <section class="example-section">
@@ -115,7 +115,7 @@
                 <div class="note-title">Pattern</div>
                 <ul>
                     <li><code>isCustomElement: (tag) =&gt; tag.startsWith('web-dropzone')</code> on the app config silences false-positive warnings.</li>
-                    <li><code>ref&lt;HTMLElement&gt;</code> + <code>onMounted</code> wires the listener — Vue's <code>v-on</code> shortcut doesn't bind to <code>files-changed</code> on a child component because it isn't part of Vue's emit graph.</li>
+                    <li><code>ref&lt;HTMLElement&gt;</code> + <code>onMounted</code> wires the listener — Vue's <code>v-on</code> shortcut doesn't bind to <code>files-change</code> on a child component because it isn't part of Vue's emit graph.</li>
                     <li><code>computed</code> drives the stats grid; <code>v-for</code> with a <code>:key</code> keyed by <code>file.id</code> avoids row churn.</li>
                 </ul>
             </div>
@@ -148,11 +148,11 @@ const App = {
         onMounted(() =&gt; {
             const s = storeRef.value
             s.uploadFileCallback = simulateUpload({ durationMs: 4000 })
-            s.addEventListener('files-changed', onChange)
+            s.addEventListener('files-change', onChange)
         })
 
         onBeforeUnmount(() =&gt; {
-            storeRef.value?.removeEventListener('files-changed', onChange)
+            storeRef.value?.removeEventListener('files-change', onChange)
         })
 
         const rowAction = (f) =&gt; {
@@ -195,8 +195,8 @@ app.mount('#vue-root')</pre>
         import { createApp, ref, computed, onMounted, onBeforeUnmount } from 'https://esm.sh/vue@3/dist/vue.esm-browser.js'
 
         function simulateUpload({ durationMs = 4000, failureRate = 0 } = {}) {
-            return (file, onProgress, signal, context) => new Promise((resolve, reject) => {
-                const startPct = context?.startPercent ?? 0
+            return ({ file, setProgress, signal, startPercent }) => new Promise((resolve, reject) => {
+                const startPct = startPercent
                 if (startPct >= 100) {
                     resolve({ metadata: { uploadedAt: new Date().toISOString() } })
                     return
@@ -213,7 +213,7 @@ app.mount('#vue-root')</pre>
                     if (aborted) return
                     const elapsed = performance.now() - start
                     const pct = Math.min(100, startPct + remainingPct * (elapsed / remainingMs))
-                    onProgress(pct)
+                    setProgress(pct)
                     if (pct >= 100) {
                         if (Math.random() < failureRate) {
                             reject(new Error('Simulated upload failure'))
@@ -253,11 +253,11 @@ app.mount('#vue-root')</pre>
                 onMounted(() => {
                     const s = storeRef.value
                     s.uploadFileCallback = simulateUpload({ durationMs: 4000 })
-                    s.addEventListener('files-changed', onChange)
+                    s.addEventListener('files-change', onChange)
                 })
 
                 onBeforeUnmount(() => {
-                    storeRef.value?.removeEventListener('files-changed', onChange)
+                    storeRef.value?.removeEventListener('files-change', onChange)
                 })
 
                 const rowAction = (f) => {

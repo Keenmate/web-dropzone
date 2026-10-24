@@ -23,10 +23,11 @@
                 <pre><code>&lt;web-dropzone mode="structural" display-mode="detailed" id="x"&gt;&lt;/web-dropzone&gt;
 &lt;script&gt;
   const el = document.getElementById('x')
-  el.renderPromptCallback      = ()           =&gt; '...'  // dropzone prompt
-  el.renderFileItemCallback    = (file, ctx)  =&gt; '...'  // one file row
-  el.renderListWrapperCallback = (rows)       =&gt; '...'  // wraps the rows
-  el.renderSummaryCallback     = (files)      =&gt; '...'  // compact-mode summary
+  // Every callback takes ONE ctx (+ ctx.controller / ctx.element)
+  el.renderPromptCallback      = (ctx)                                       =&gt; '...'  // dropzone prompt
+  el.renderFileItemCallback    = ({ file, index, displayMode, isInPopover }) =&gt; '...'  // one file row
+  el.renderListWrapperCallback = ({ rowsHtml, files })                       =&gt; '...'  // wraps the rows
+  el.renderSummaryCallback     = ({ files })                                 =&gt; '...'  // compact-mode summary
 &lt;/script&gt;</code></pre>
             </div>
             <div class="note">
@@ -75,7 +76,7 @@
         <!-- FILE ITEM -->
         <div class="card">
             <h2>SR03 · Custom File Item (<code>renderFileItemCallback</code>)</h2>
-            <p>Each call receives the <code>FileState</code> and a context object describing the render position. Return a string or an <code>HTMLElement</code>.</p>
+            <p>Each call receives one <code>ctx</code>: the <code>file</code> (<code>FileState</code>), its render position (<code>index</code>, <code>displayMode</code>, <code>isInPopover</code>) and <code>controller</code> / <code>element</code>. Return a string or an <code>HTMLElement</code>.</p>
 
             <div class="form-group">
                 <label>Receipts list with date + currency formatting</label>
@@ -89,13 +90,13 @@
             </div>
 
             <div class="code-block">
-                <pre><code>el.renderFileItemCallback = (file, ctx) =&gt; `
+                <pre><code>el.renderFileItemCallback = ({ file }) =&gt; `
     &lt;div class="receipt-row" data-file-id="${file.id}"&gt;
         &lt;span class="receipt-icon"&gt;🧾&lt;/span&gt;
         &lt;span class="receipt-name"&gt;${file.name}&lt;/span&gt;
         &lt;span class="receipt-date"&gt;${new Date(file.file.lastModified).toLocaleDateString()}&lt;/span&gt;
         &lt;span class="receipt-size"&gt;${(file.size/1024).toFixed(1)} KB&lt;/span&gt;
-        &lt;button data-action="remove" data-file-id="${file.id}"&gt;×&lt;/button&gt;
+        &lt;button data-dz-action="remove" data-file-id="${file.id}"&gt;×&lt;/button&gt;
     &lt;/div&gt;
 `</code></pre>
             </div>
@@ -104,7 +105,7 @@
                 <div class="note-title">Required hooks</div>
                 <ul>
                     <li>Keep <code>data-file-id="${file.id}"</code> on the root element so internal patching can target the row.</li>
-                    <li>For remove buttons, set <code>data-action="remove"</code> and <code>data-file-id="${file.id}"</code> — click handlers are auto-attached.</li>
+                    <li>For remove buttons, set <code>data-dz-action="remove"</code> and <code>data-file-id="${file.id}"</code> — click handlers are auto-attached.</li>
                 </ul>
             </div>
         </div>
@@ -126,7 +127,7 @@
             </div>
 
             <div class="code-block">
-                <pre><code>el.renderFileItemCallback = (file) =&gt; {
+                <pre><code>el.renderFileItemCallback = ({ file }) =&gt; {
     const row = document.createElement('div')
     row.className = 'dz__file-item dz__file-item--list'
     row.dataset.fileId = file.id
@@ -142,7 +143,7 @@
 
     const btn = document.createElement('button')
     btn.textContent = '×'
-    btn.dataset.action = 'remove'
+    btn.dataset.dzAction = 'remove'
     btn.dataset.fileId = file.id
     btn.className = 'dz__file-item__remove'
     row.appendChild(btn)
@@ -170,7 +171,7 @@
             </div>
 
             <div class="code-block">
-                <pre><code>el.renderSummaryCallback = (files) =&gt; {
+                <pre><code>el.renderSummaryCallback = ({ files }) =&gt; {
     const total = files.reduce((s, f) =&gt; s + f.size, 0)
     return `
         &lt;div class="dz__summary__line" tabindex="0" role="button"&gt;
@@ -180,7 +181,7 @@
     `
 }
 
-el.customStylesCallback = () =&gt; `
+el.getCustomStylesCallback = () =&gt; `
     .pill {
         display: inline-block;
         background: #667eea; color: white;
@@ -214,7 +215,7 @@ el.customStylesCallback = () =&gt; `
             </div>
 
             <div class="code-block">
-                <pre><code>el.renderListWrapperCallback = (rowsHtml) =&gt; `
+                <pre><code>el.renderListWrapperCallback = ({ rowsHtml }) =&gt; `
     &lt;table class="receipt-table"&gt;
         &lt;thead&gt;&lt;tr&gt;
             &lt;th&gt;Name&lt;/th&gt;&lt;th&gt;Type&lt;/th&gt;&lt;th&gt;Size&lt;/th&gt;&lt;th&gt;&lt;/th&gt;
@@ -222,12 +223,12 @@ el.customStylesCallback = () =&gt; `
         &lt;tbody&gt;${rowsHtml}&lt;/tbody&gt;
     &lt;/table&gt;
 `
-el.renderFileItemCallback = (file) =&gt; `
+el.renderFileItemCallback = ({ file }) =&gt; `
     &lt;tr data-file-id="${file.id}"&gt;
         &lt;td&gt;${file.name}&lt;/td&gt;
         &lt;td&gt;${file.type || '—'}&lt;/td&gt;
         &lt;td&gt;${(file.size/1024).toFixed(1)} KB&lt;/td&gt;
-        &lt;td&gt;&lt;button data-action="remove" data-file-id="${file.id}"&gt;×&lt;/button&gt;&lt;/td&gt;
+        &lt;td&gt;&lt;button data-dz-action="remove" data-file-id="${file.id}"&gt;×&lt;/button&gt;&lt;/td&gt;
     &lt;/tr&gt;
 `</code></pre>
             </div>
@@ -260,11 +261,11 @@ el.renderFileItemCallback = (file) =&gt; `
                     progress-throttle="120"
                     prompt-text="Drop files (click a row to toggle ⭐)">
                 </web-dropzone>
-                <small class="form-text">Simulated upload runs on selection. ⏸ pause / ▶ resume / 🔄 retry buttons appear based on each file's status; the framework's <code>data-action="row-action"</code> convention auto-wires them.</small>
+                <small class="form-text">Simulated upload runs on selection. ⏸ pause / ▶ resume / 🔄 retry buttons appear based on each file's status; the framework's <code>data-dz-action="row-action"</code> convention auto-wires them.</small>
             </div>
 
             <div class="code-block">
-                <pre><code>el.renderFileItemCallback = (file) =&gt; {
+                <pre><code>el.renderFileItemCallback = ({ file }) =&gt; {
     const row = document.createElement('div')
     row.dataset.fileId = file.id
     row.innerHTML = `
@@ -324,7 +325,7 @@ el.renderFileItemCallback = (file) =&gt; `
         // ---------------------------------------------------------------- receipt rows
 
         const receipts = document.getElementById('item-receipts')
-        receipts.customStylesCallback = () => `
+        receipts.getCustomStylesCallback = () => `
             .receipt-row {
                 display: grid;
                 grid-template-columns: auto 1fr auto auto auto;
@@ -346,20 +347,20 @@ el.renderFileItemCallback = (file) =&gt; `
             }
             .receipt-row button:hover { color: #dc2626; }
         `
-        receipts.renderFileItemCallback = (file) => `
+        receipts.renderFileItemCallback = ({ file }) => `
             <div class="receipt-row" data-file-id="${file.id}">
                 <span class="receipt-icon">🧾</span>
                 <span class="receipt-name">${escapeHtml(file.name)}</span>
                 <span class="receipt-date">${new Date(file.file.lastModified).toLocaleDateString()}</span>
                 <span class="receipt-size">${(file.size/1024).toFixed(1)} KB</span>
-                <button data-action="remove" data-file-id="${file.id}" title="Remove">×</button>
+                <button data-dz-action="remove" data-file-id="${file.id}" title="Remove">×</button>
             </div>
         `
 
         // ---------------------------------------------------------------- DOM-element returns
 
         const itemDom = document.getElementById('item-dom')
-        itemDom.renderFileItemCallback = (file) => {
+        itemDom.renderFileItemCallback = ({ file }) => {
             const row = document.createElement('div')
             row.className = 'dz__file-item dz__file-item--list'
             row.dataset.fileId = file.id
@@ -382,7 +383,7 @@ el.renderFileItemCallback = (file) =&gt; `
 
             const btn = document.createElement('button')
             btn.textContent = '×'
-            btn.dataset.action = 'remove'
+            btn.dataset.dzAction = 'remove'
             btn.dataset.fileId = file.id
             btn.style.background = 'transparent'
             btn.style.border = 'none'
@@ -397,7 +398,7 @@ el.renderFileItemCallback = (file) =&gt; `
         // ---------------------------------------------------------------- compact summary
 
         const summary = document.getElementById('summary-custom')
-        summary.customStylesCallback = () => `
+        summary.getCustomStylesCallback = () => `
             .pill {
                 display: inline-block;
                 background: #667eea; color: white;
@@ -407,7 +408,7 @@ el.renderFileItemCallback = (file) =&gt; `
                 margin-right: 0.3rem;
             }
         `
-        summary.renderSummaryCallback = (files) => {
+        summary.renderSummaryCallback = ({ files }) => {
             const total = files.reduce((s, f) => s + f.size, 0)
             return `
                 <div class="dz__summary__line" tabindex="0" role="button" aria-label="View files">
@@ -419,7 +420,7 @@ el.renderFileItemCallback = (file) =&gt; `
 
         // ---------------------------------------------------------------- shared upload simulator
 
-        // Resume-aware fake upload. `context.startPercent` is the file's
+        // Resume-aware fake upload. `ctx.startPercent` is the file's
         // current progress at the moment uploadFileCallback is (re)invoked
         // — non-zero after pause/resume or retry from error, so the bar
         // continues from where it left off instead of restarting at 0.
@@ -428,8 +429,8 @@ el.renderFileItemCallback = (file) =&gt; `
         // random failures.
         function simulateUpload({ durationMs = 4500, failRate = 0.2 } = {}) {
             const seenAttempts = new WeakMap()
-            return (file, onProgress, signal, context) => new Promise((resolve, reject) => {
-                const startPct = context?.startPercent ?? 0
+            return ({ file, setProgress, signal, startPercent }) => new Promise((resolve, reject) => {
+                const startPct = startPercent
                 if (startPct >= 100) { resolve(); return }
                 const attempt = (seenAttempts.get(file) ?? 0) + 1
                 seenAttempts.set(file, attempt)
@@ -452,7 +453,7 @@ el.renderFileItemCallback = (file) =&gt; `
                     const elapsed = performance.now() - start
                     const pctOfRemaining = Math.min(1, elapsed / remainingMs)
                     const pct = Math.min(100, startPct + remainingPct * pctOfRemaining)
-                    onProgress(pct)
+                    setProgress(pct)
                     if (failAt !== null && pct >= failAt) {
                         reject(new Error('Simulated network failure'))
                         return
@@ -467,7 +468,7 @@ el.renderFileItemCallback = (file) =&gt; `
             })
         }
 
-        // Map file.status → the data-action="row-action" button's icon
+        // Map file.status → the data-dz-action="row-action" button's icon
         // + tooltip. The framework dispatches the appropriate store call
         // (pauseFile / resumeFile / retryFile) based on the same mapping.
         function actionIconFor(status) {
@@ -480,7 +481,7 @@ el.renderFileItemCallback = (file) =&gt; `
         // ---------------------------------------------------------------- list wrapper (table)
 
         const wrapperTable = document.getElementById('wrapper-table')
-        wrapperTable.customStylesCallback = () => `
+        wrapperTable.getCustomStylesCallback = () => `
             .receipt-table { width: 100%; border-collapse: collapse; }
             .receipt-table th,
             .receipt-table td {
@@ -526,7 +527,7 @@ el.renderFileItemCallback = (file) =&gt; `
             .receipt-table .actions button:hover { color: #111827; }
             .receipt-table .actions .rm:hover    { color: #dc2626; }
         `
-        wrapperTable.renderListWrapperCallback = (rowsHtml) => `
+        wrapperTable.renderListWrapperCallback = ({ rowsHtml }) => `
             <table class="receipt-table">
                 <thead><tr>
                     <th>Name</th><th>Type</th><th>Size</th><th>Progress</th><th></th>
@@ -534,10 +535,10 @@ el.renderFileItemCallback = (file) =&gt; `
                 <tbody>${rowsHtml}</tbody>
             </table>
         `
-        wrapperTable.renderFileItemCallback = (file) => {
+        wrapperTable.renderFileItemCallback = ({ file }) => {
             const a = actionIconFor(file.status)
             const actionBtn = a
-                ? `<button data-action="row-action" data-file-id="${file.id}" title="${a.title}">${a.icon}</button>`
+                ? `<button data-dz-action="row-action" data-file-id="${file.id}" title="${a.title}">${a.icon}</button>`
                 : ''
             return `
                 <tr data-file-id="${file.id}" data-status="${file.status}">
@@ -550,7 +551,7 @@ el.renderFileItemCallback = (file) =&gt; `
                     </td>
                     <td class="actions">
                         ${actionBtn}
-                        <button class="rm" data-action="remove" data-file-id="${file.id}" title="Remove">×</button>
+                        <button class="rm" data-dz-action="remove" data-file-id="${file.id}" title="Remove">×</button>
                     </td>
                 </tr>
             `
@@ -560,7 +561,7 @@ el.renderFileItemCallback = (file) =&gt; `
         // ---------------------------------------------------------------- event-driven rows
 
         const eventRows = document.getElementById('event-rows')
-        eventRows.customStylesCallback = () => `
+        eventRows.getCustomStylesCallback = () => `
             .event-row {
                 display: flex;
                 align-items: center;
@@ -607,7 +608,7 @@ el.renderFileItemCallback = (file) =&gt; `
             .event-row .rm:hover     { color: #dc2626; }
             .event-row .action[hidden] { display: none; }
         `
-        eventRows.renderFileItemCallback = (file) => {
+        eventRows.renderFileItemCallback = ({ file }) => {
             const row = document.createElement('div')
             row.className = 'event-row'
             row.dataset.fileId = file.id
@@ -617,8 +618,8 @@ el.renderFileItemCallback = (file) =&gt; `
                 <span class="name">${escapeHtml(file.name)}</span>
                 <progress class="bar" max="100" value="${file.progress}"></progress>
                 <span class="pct">${Math.round(file.progress)}%</span>
-                <button class="action" data-action="row-action" data-file-id="${file.id}" hidden></button>
-                <button class="rm" data-action="remove" data-file-id="${file.id}" title="Remove">×</button>
+                <button class="action" data-dz-action="row-action" data-file-id="${file.id}" hidden></button>
+                <button class="rm" data-dz-action="remove" data-file-id="${file.id}" title="Remove">×</button>
             `
             const starBtn = row.querySelector('.star')
             const barEl   = row.querySelector('.bar')

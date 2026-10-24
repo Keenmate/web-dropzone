@@ -22,26 +22,37 @@ The renderer package already depends on this one — installing both is unnecess
 
 ## What's exported
 
-- **`DropzoneCore`** — the store class. Holds `FileState[]`, runs validation, drives the upload worker pool, fires events.
-- **`DropzoneStoreAPI`** — TypeScript interface describing the store's public read/mutate surface. Satellites and BYO renderers should depend on this, not the concrete class.
-- **Domain types** — `DropzoneConfig`, `FileState`, `FileStatus`, `FileUploadHandler`, `FileUploadContext`, `FileUploadResult`, `OverallProgress`, `ValidationResult`, `RejectedFile`, plus event detail types (`FileAddedEventDetail`, `FileProgressEventDetail`, `FileUpdatedEventDetail`, …).
+- **`DropzoneEngine`** — the store class. Holds `FileState[]`, runs validation, drives the upload worker pool, reports events. Standalone, `engine.controller` is its public facade.
+- **`DropzoneController`** + **`createDropzoneController(getTarget)`** — the public facade (`<web-dropzone>`'s `el.controller`, and the `controller` on every callback ctx / event detail). Satellites and BYO renderers should depend on this, not the concrete class.
+- **Interaction-model types** — `DropzoneContext` and every callback ctx (`ValidateContext`, `BeforeFilesAddContext`, `BeforeFilesRemoveContext`, `FileIconContext`, `FileUploadContext`, `FileItemRenderContext`, …), every event detail (`FileAddEventDetail`, `FileProgressEventDetail`, `FileStatusChangeEventDetail`, …) and `DropzoneEventMap`.
+- **Domain types** — `DropzoneConfig`, `FileState`, `FileStatus`, `FileUploadHandler`, `FileUploadResult`, `OverallProgress`, `ValidationResult`, `RejectedFile`, …
 - **Pure helpers** — `formatFileSize`, `getFileTypeCategory`, `getFileIcon`, `isImageFile`, `createImagePreview`, `validateFile`, `dedupeKeyFor`, `createFileState`.
 - **Status-surface contract** — `StatusSurfaceArgs`, `StatusSurfaceCallback`, `StatusAggregate` for indicator-style UIs.
 - **Icons** — `STATUS_ICONS`, `ACTION_ICONS`, `createDropzoneSpinner()`, `actionForStatus()`.
 
-## Event contract
+## Interaction model
 
-`DropzoneCore` dispatches `CustomEvent`s with `bubbles: true, composed: true` so they cross shadow boundaries. The events form the substrate that the renderer package (and any BYO renderer) hooks into:
+Every callback takes **one** `ctx`; every ctx and event detail carries `controller` and `element` (non-enumerable — `JSON.stringify` sees only the data). `before*Callback`s may be async; `false` cancels.
 
-- `file-added` `{ file }`
-- `file-removed` `{ file }`
-- `files-rejected` `{ rejectedFiles }`
+```ts
+const engine = new DropzoneEngine(host, {
+  beforeFilesAddCallback: async ({ files }) => (files.length > 5 ? false : undefined),
+  uploadFileCallback: async ({ file, signal, setProgress, startBytes, setMetadata }) => { /* … */ },
+});
+host.addEventListener('file-add', (e) => console.log(e.detail.file, e.detail.controller.getFiles().length));
+```
+
+Hosted by `<web-dropzone>`, the engine *notifies* and the element *emits* (with the camelCase `on*` twins). Standalone, the engine dispatches the same events on its `element` — bubbling, **not composed**:
+
+- `file-add` `{ file }`, `file-remove` `{ file }`
+- `change` `{ files }`, `files-change` `{ changedIds, files }` (rAF-coalesced)
+- `files-reject` `{ rejectedFiles }`
 - `file-progress` `{ id, progress, status, file }`
-- `file-status-changed` `{ id, prevStatus, nextStatus, file }`
-- `file-updated` `{ id, file, patch }` — fires when an upload handler returns `{ previewUrl, metadata, downloadUrl, name }` (or `setMetadata()` is called)
-- `file-retry`, `file-uploaded`, `file-deleted`, `change`, `files-changed`, `overlay-enter`, `overlay-leave`
+- `file-status-change` `{ id, prevStatus, nextStatus, file }`
+- `file-update` `{ file }` — a field other than progress / status changed (`previewUrl` generated, upload result merged)
+- `file-retry` `{ file }`, `file-upload-complete` `{ file }`, `file-delete` `{ file }`
 
-See [`ARCHITECTURE.md`](https://github.com/keenmate/web-dropzone/blob/main/ARCHITECTURE.md) for the full event contract and the topology this package fits into.
+`<web-dropzone>` adds `overlay-enter` / `overlay-leave` `{ overlayElement }` and `ready`. See [`ARCHITECTURE.md`](https://github.com/keenmate/web-dropzone/blob/main/ARCHITECTURE.md) for the topology this package fits into.
 
 ## Versioning
 

@@ -5,7 +5,7 @@
  * `uploadFileCallback` you can assign to a <web-dropzone> (or a
  * <web-dropzone-picker> for Mode B). It animates progress via rAF over
  * `durationMs`, honours pause/cancel through `signal`, resumes from
- * `context.startPercent` after a retry, and randomly fails with the
+ * `ctx.startPercent` after a retry, and randomly fails with the
  * configured `failRate` to exercise the error path.
  *
  * Failures throw with a realistic-looking message AFTER reaching a random
@@ -30,11 +30,11 @@ export function simulateUpload({
     durationMs = 3500,
     failRate = 0,
 } = {}) {
-    return (file, onProgress, signal, context) => new Promise((resolve, reject) => {
-        // The store hands us `context.startPercent` on every (re)entry — non-zero
+    return ({ file, setProgress, signal, startPercent }) => new Promise((resolve, reject) => {
+        // The store hands us `ctx.startPercent` on every (re)entry — non-zero
         // whenever we're resuming after pause/retry. Scale the remaining duration
         // proportionally so resume-from-50% finishes in ~half the original time.
-        const startPct = context?.startPercent ?? 0;
+        const startPct = startPercent;
         if (startPct >= 100) {
             resolve({ metadata: { bucket, uploadedAt: new Date().toISOString() } });
             return;
@@ -61,7 +61,7 @@ export function simulateUpload({
             const elapsed = performance.now() - start;
             const pctOfRemaining = Math.min(1, elapsed / remainingMs);
             const pct = Math.min(100, startPct + remainingPct * pctOfRemaining);
-            onProgress(pct);
+            setProgress(pct);
             if (willFail && pct >= failAtPct) {
                 const msg = FAILURE_MESSAGES[Math.floor(Math.random() * FAILURE_MESSAGES.length)];
                 reject(new Error(msg));
@@ -104,7 +104,7 @@ export function wireQueueControlButton(storeEl, buttonEl, labels = {}) {
     let action = null;
     buttonEl.addEventListener('click', () => {
         // Snapshot before invoking — the action call dispatches
-        // file-status-changed events synchronously, which re-run sync() and
+        // file-status-change events synchronously, which re-run sync() and
         // mutate `action` mid-handler. Without the snapshot, a click on
         // "Pause all" would (1) call pauseAll, (2) sync flips action to
         // 'resume', (3) the next `if` matched 'resume' and immediately
@@ -130,7 +130,7 @@ export function wireQueueControlButton(storeEl, buttonEl, labels = {}) {
         else if (pending) { action = 'upload'; buttonEl.textContent = L.upload; buttonEl.disabled = false; }
         else              { action = null;     buttonEl.textContent = L.upload; buttonEl.disabled = true;  }
     };
-    storeEl.addEventListener('files-changed', sync);
-    storeEl.addEventListener('file-status-changed', sync);
+    storeEl.addEventListener('files-change', sync);
+    storeEl.addEventListener('file-status-change', sync);
     sync();
 }

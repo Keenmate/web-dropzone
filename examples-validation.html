@@ -121,7 +121,7 @@
         <!-- CUSTOM VALIDATE CALLBACK -->
         <div class="card">
             <h2>VA04 · Custom Validator</h2>
-            <p>Set <code>validateCallback</code> on the element to add custom validation. Return <code>{ valid: false, error: '...' }</code> to reject; the failure surfaces alongside built-in validation errors via the <code>files-rejected</code> event.</p>
+            <p>Set <code>validateCallback</code> on the element to add custom validation. Return <code>{ valid: false, error: '...' }</code> to reject; the failure surfaces alongside built-in validation errors via the <code>files-reject</code> event.</p>
 
             <div class="form-group">
                 <label>Reject filenames containing spaces</label>
@@ -136,7 +136,7 @@
             <div class="code-block">
                 <pre><code>const el = document.getElementById('custom-validate')
 
-el.validateCallback = (file, existingFiles) => {
+el.validateCallback = ({ file, existingFiles }) => {
     if (file.name.includes(' ')) {
         return { valid: false, error: 'Filename must not contain spaces' }
     }
@@ -148,7 +148,7 @@ el.validateCallback = (file, existingFiles) => {
         <!-- ASYNC CONFIRMATION GATES -->
         <div class="card">
             <h2>VA05 · Async Confirmation Gates</h2>
-            <p><code>beforeFilesAddedCallback</code> and <code>beforeFilesRemovedCallback</code> let you pop a dialog before files actually enter or leave the dropzone. They run AFTER the sync validators pass (size, type, count, <code>validateCallback</code>) and are skipped for programmatic <code>removeFile(id)</code> / <code>clear()</code> calls unless you pass <code>{ confirm: true }</code>. Resolving <code>false</code> on the add gate emits <code>files-rejected</code> with <code>code: 'cancelled'</code>.</p>
+            <p><code>beforeFilesAddCallback</code> and <code>beforeFilesRemoveCallback</code> let you pop a dialog before files actually enter or leave the dropzone. They run AFTER the sync validators pass (size, type, count, <code>validateCallback</code>) and are skipped for programmatic <code>removeFile(id)</code> / <code>clear()</code> calls unless you pass <code>{ confirm: true }</code>. Each gate takes one <code>ctx</code> (<code>{ files, existingFiles }</code> / <code>{ files, allFiles }</code>, plus <code>controller</code> / <code>element</code>). Returning <code>false</code> cancels — on the add gate the files land in <code>files-reject</code> with <code>code: 'cancelled'</code>; returning a <code>File[]</code> from the add gate adds those files instead.</p>
 
             <div class="form-group">
                 <label>Confirm-on-add + confirm-on-remove</label>
@@ -165,16 +165,17 @@ el.validateCallback = (file, existingFiles) => {
             <div class="code-block">
                 <pre><code>const el = document.getElementById('confirm-gate')
 
-el.beforeFilesAddedCallback = async (files, existingFiles) =&gt; {
+// One ctx; return false to cancel, a File[] to add those instead, nothing to continue.
+el.beforeFilesAddCallback = async ({ files, existingFiles }) =&gt; {
     const names = files.map(f =&gt; f.name).join(', ')
-    return confirm(`Add ${files.length} file(s)?\n\n${names}`)
+    if (!confirm(`Add ${files.length} file(s)?\n\n${names}`)) return false
 }
 
-el.beforeFilesRemovedCallback = async (files, allFiles) =&gt; {
-    if (files.length === 1) {
-        return confirm(`Remove "${files[0].name}"?`)
-    }
-    return confirm(`Remove all ${files.length} files?`)
+el.beforeFilesRemoveCallback = async ({ files, allFiles }) =&gt; {
+    const question = files.length === 1
+        ? `Remove "${files[0].name}"?`
+        : `Remove all ${files.length} files?`
+    if (!confirm(question)) return false
 }</code></pre>
             </div>
         </div>
@@ -205,7 +206,7 @@ el.beforeFilesRemovedCallback = async (files, allFiles) =&gt; {
             <p>Each rejection includes a <code>code</code> so you can branch on it programmatically.</p>
 
             <div class="code-block">
-                <pre><code>el.addEventListener('files-rejected', (e) => {
+                <pre><code>el.addEventListener('files-reject', (e) => {
     for (const { file, validation } of e.detail.rejectedFiles) {
         switch (validation.code) {
             case 'size':   showError(`${file.name} is too large`);  break
@@ -238,7 +239,7 @@ el.beforeFilesRemovedCallback = async (files, allFiles) =&gt; {
             const id = log.dataset.logFor
             const dz = document.getElementById(id)
             if (!dz) return
-            dz.addEventListener('files-rejected', (e) => {
+            dz.addEventListener('files-reject', (e) => {
                 log.innerHTML = e.detail.rejectedFiles.map(r => `
                     <div class="row">
                         <span class="name">${escapeHtml(r.file.name)}</span>
@@ -251,7 +252,7 @@ el.beforeFilesRemovedCallback = async (files, allFiles) =&gt; {
 
         // Custom validator on the no-spaces example.
         const customEl = document.getElementById('custom-validate')
-        customEl.validateCallback = (file) => {
+        customEl.validateCallback = ({ file }) => {
             if (file.name.includes(' ')) {
                 return { valid: false, error: 'Filename must not contain spaces', code: 'custom' }
             }
@@ -260,7 +261,7 @@ el.beforeFilesRemovedCallback = async (files, allFiles) =&gt; {
 
         // Combined rules — add a custom rule on top of the declarative ones.
         const combinedEl = document.getElementById('combined')
-        combinedEl.validateCallback = (file) => {
+        combinedEl.validateCallback = ({ file }) => {
             if (/logo/i.test(file.name)) {
                 return { valid: false, error: 'Filenames containing "logo" are not allowed', code: 'custom' }
             }
@@ -268,18 +269,18 @@ el.beforeFilesRemovedCallback = async (files, allFiles) =&gt; {
         }
 
         // Async confirmation gates — confirm() blocks the await, simulating an
-        // app-rendered modal. Cancel on add lands the file in files-rejected
+        // app-rendered modal. Cancel on add lands the file in files-reject
         // with code='cancelled' (logged alongside other rejections above).
         // The console.log lines let you verify in DevTools that the gate fires
         // (and with what files) — useful when debugging consumer wiring.
         const gateEl = document.getElementById('confirm-gate')
-        gateEl.beforeFilesAddedCallback = async (files) => {
+        gateEl.beforeFilesAddCallback = async ({ files }) => {
             const names = files.map(f => f.name).join(', ')
-            return confirm(`Add ${files.length} file(s)?\n\n${names}`)
+            if (!confirm(`Add ${files.length} file(s)?\n\n${names}`)) return false
         }
-        gateEl.beforeFilesRemovedCallback = async (files) => {
-            if (files.length === 1) return confirm(`Remove "${files[0].name}"?`)
-            return confirm(`Remove all ${files.length} files?`)
+        gateEl.beforeFilesRemoveCallback = async ({ files }) => {
+            const question = files.length === 1 ? `Remove "${files[0].name}"?` : `Remove all ${files.length} files?`
+            if (!confirm(question)) return false
         }
 
         function escapeHtml(s) {

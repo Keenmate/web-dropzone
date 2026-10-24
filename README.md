@@ -11,7 +11,7 @@ A lightweight, accessible file upload web component with drag-drop support, file
 - **Grid — natural (justified) gallery layout** — A new `grid-layout` attribute on `list-appearance="grid"`. `uniform` (default) is the responsive equal-size tile grid; `natural` renders a justified gallery where every row shares one height (`--dz-preview-row-height`) and each tile keeps its own image's aspect ratio, so mixed portrait/landscape photos sit together with nothing cropped or stretched. It switches the container from CSS grid to flex-wrap and derives each tile's width from the image; the companion `--dz-preview-item-object-fit` token lets the uniform layout choose crop (`cover`) vs fit (`contain`).
 - **Grid — big status overlay on finished tiles** — The tiny corner check/error glyph is easy to miss on a thumbnail. New `grid-status="overlay"` washes a completed tile with a light veil (`--dz-preview-status-overlay-bg`) and floats a big centred glyph (`--dz-preview-status-overlay-icon-size`) — green check on success, red on error — like a photo-upload confirmation. Only terminal states trigger it; uploading keeps its corner spinner, and the veil is click-through so hover controls still work.
 - **Composition — Plyr-style `controls` / `item-controls` allowlists** — Two comma-separated attributes that pick which surfaces and row parts render. `controls` chooses top-level surfaces (picker, list, overall-progress); `item-controls` chooses per-row parts (icon, name, size, type, progress, status, action, remove). Absent means render everything. This replaces a set of narrower single-purpose flags with a composable primitive — count- or state-based progress rules become external recipes over these tokens plus the `change` event, rather than dedicated attributes.
-- **Badges & detailed — image thumbnails via `show-thumbnails`** — `show-thumbnails` now works for the badges and detailed list appearances, not just grid: the icon slot shows the real image preview instead of a file-type glyph. The preview URL arrives asynchronously (FileReader → data URL), so the row repaints on a `file-updated` store event once the thumbnail is ready.
+- **Badges & detailed — image thumbnails via `show-thumbnails`** — `show-thumbnails` now works for the badges and detailed list appearances, not just grid: the icon slot shows the real image preview instead of a file-type glyph. The preview URL arrives asynchronously (FileReader → data URL), so the row repaints on a `file-update` store event once the thumbnail is ready.
 - **Internals — vendored logger, no more `loglevel`** — `@keenmate/web-components-core` bumped to `^1.0.0-rc04`, which vendors its logging engine. This drops the transitive `loglevel` dependency and the CJS/ESM interop crash it caused under Node's native ESM loader, which had been breaking the unit-test run.
 
 ## What's New in v1.0.0-rc01
@@ -23,7 +23,7 @@ First public release candidate. `<web-dropzone>` ships as **two packages** from 
 - **Upload pipeline** — set `uploadFileCallback` and files run through a concurrency-capped worker pool with progress, pause / resume / cancel / retry, and optimistic or pessimistic progress reporting.
 - **Validation** — per-file and aggregate size caps, file-count bounds, type filtering, dedupe modes, and a custom `validateCallback`.
 - **Form-associated** — participates in `<form>` (submits real `FormData` file blobs), exposes `el.form` / `event.target.form`, and reflects `min-file-count` into native form validity.
-- **Themeable** — `--dz-*` variables, dark mode, `--base-*` Theme Designer integration, RTL, and a `customStylesCallback`.
+- **Themeable** — `--dz-*` variables, dark mode, `--base-*` Theme Designer integration, RTL, and a `getCustomStylesCallback`.
 - **Satellite renderers** — `<web-dropzone-picker>` / `<web-dropzone-list>` / `<web-dropzone-indicator>` / `<web-dropzone-progress>` bind to a store via `for="<id>"` for decoupled layouts.
 
 See [CHANGELOG.md](CHANGELOG.md) for the full list.
@@ -75,26 +75,26 @@ import '@keenmate/web-dropzone/style.css';
 
 const dropzone = document.querySelector('web-dropzone');
 
-// Listen for events
-dropzone.addEventListener('file-added', (e) => {
+// Listen for events (or assign the camelCase twin: dropzone.onFileAdd = (detail) => …)
+dropzone.addEventListener('file-add', (e) => {
   console.log('File added:', e.detail.file);
-  console.log('All files:', e.detail.files);
 });
 
-dropzone.addEventListener('files-rejected', (e) => {
-  console.log('Rejected files:', e.detail.files);
-  console.log('Errors:', e.detail.errors);
+dropzone.addEventListener('files-reject', (e) => {
+  for (const { file, validation } of e.detail.rejectedFiles) {
+    console.log(`Rejected ${file.name}: ${validation.error} (${validation.code})`);
+  }
 });
 
 dropzone.addEventListener('change', (e) => {
-  console.log('Files changed:', e.detail.files);
+  console.log('Files now:', e.detail.files);
 });
 
 // Get current files
 const files = dropzone.files;
 
-// Clear all files
-dropzone.clear();
+// The public facade — the same object every event detail / callback ctx carries
+dropzone.controller.clear();
 ```
 
 ## Attributes
@@ -180,12 +180,25 @@ Display selected files inside the dropzone area instead of a separate list below
 
 ## Events
 
-| Event | Detail | Description |
-|-------|--------|-------------|
-| `file-added` | `{ file, files }` | Fired when a file is added |
-| `file-removed` | `{ file, files }` | Fired when a file is removed |
-| `files-rejected` | `{ files, errors }` | Fired when files fail validation |
-| `change` | `{ files }` | Fired when the file list changes |
+Every event bubbles and is **not composed**, fires on `<web-dropzone>`, and has a camelCase `on*` twin property that receives the **same detail** first (`dropzone.onFileAdd = ({ file }) => …`). Every detail also carries `controller` (= `dropzone.controller`) and `element` (the host) — non-enumerable, so `JSON.stringify(e.detail)` / `Object.keys` see only the data.
+
+| Event | Twin | Detail | Description |
+|-------|------|--------|-------------|
+| `file-add` | `onFileAdd` | `{ file }` | A file entered the dropzone (one event per file) |
+| `file-remove` | `onFileRemove` | `{ file }` | A file left the dropzone (one per file; also on clear) |
+| `change` | `onChange` | `{ files }` | The selection changed (add / remove / clear) |
+| `files-change` | `onFilesChange` | `{ changedIds, files }` | Coalesced queue tick, at most once per animation frame |
+| `files-reject` | `onFilesReject` | `{ rejectedFiles: [{ file, validation: { valid, error, code } }] }` | Files failed validation, or `beforeFilesAddCallback` cancelled (`code: 'cancelled'`) |
+| `file-progress` | `onFileProgress` | `{ id, progress, status, file }` | A file's progress changed |
+| `file-status-change` | `onFileStatusChange` | `{ id, prevStatus, nextStatus, file }` | A file's status transitioned |
+| `file-update` | `onFileUpdate` | `{ file }` | Another field changed (preview generated, upload result merged) |
+| `file-retry` | `onFileRetry` | `{ file }` | A failed / cancelled file was re-queued |
+| `file-upload-complete` | `onFileUploadComplete` | `{ file }` | `uploadFileCallback` resolved for a file |
+| `file-delete` | `onFileDelete` | `{ file }` | A removed file had server-side state — wire your server DELETE here |
+| `overlay-enter` / `overlay-leave` | `onOverlayEnter` / `onOverlayLeave` | `{ overlayElement }` | A drag entered / left the drag overlay |
+| `ready` | `onReady` | — (context only) | The store was built (again after a rebuild); `data-ready` follows on the next frame |
+
+`<web-dropzone-list>` fires `summary-activate` (popover appearance — the summary line was activated) and `queue-open` (rolling appearance — the queue badge was clicked) on itself, with the bound store's `controller` / `element` on the detail. `file-row-update` (`{ file }`) is dispatched on the element a `renderFileItemCallback` returned (structural mode) — listen on that row.
 
 ### Event Examples
 
@@ -193,25 +206,54 @@ Display selected files inside the dropzone area instead of a separate list below
 const dropzone = document.querySelector('web-dropzone');
 
 // Single file added
-dropzone.addEventListener('file-added', (e) => {
-  const { file, files } = e.detail;
+dropzone.addEventListener('file-add', (e) => {
+  const { file, controller } = e.detail;
   console.log(`Added: ${file.name}`);
-  console.log(`Total files: ${files.length}`);
+  console.log(`Total files: ${controller.getFiles().length}`);
 });
 
-// Files rejected (validation failed)
-dropzone.addEventListener('files-rejected', (e) => {
-  const { files, errors } = e.detail;
-  files.forEach((file, index) => {
-    console.log(`${file.name}: ${errors[index]}`);
-  });
+// Files rejected (validation failed or the add was cancelled)
+dropzone.addEventListener('files-reject', (e) => {
+  for (const { file, validation } of e.detail.rejectedFiles) {
+    console.log(`${file.name}: ${validation.error} (${validation.code})`);
+  }
 });
 
-// Any change to file list
-dropzone.addEventListener('change', (e) => {
-  const { files } = e.detail;
-  updateUI(files);
-});
+// Any change to the selection — the twin gets the same detail
+dropzone.onChange = ({ files }) => updateUI(files);
+```
+
+## Callbacks
+
+Every callback takes **one** `ctx` object that also carries `controller` / `element`. `before*Callback`s may be async; returning `false` cancels.
+
+| Callback | `ctx` | Returns |
+|----------|-------|---------|
+| `validateCallback` | `{ file, existingFiles }` | `ValidationResult` (sync) |
+| `beforeFilesAddCallback` | `{ files, existingFiles }` | `false` cancels (→ `files-reject`, code `cancelled`); a `File[]` replaces the batch (validated again) |
+| `beforeFilesRemoveCallback` | `{ files, allFiles }` | `false` cancels |
+| `uploadFileCallback` | `{ file, signal, setProgress, startBytes, startPercent, metadata, setMetadata, uploadMetadata }` | `Promise<void \| { metadata, downloadUrl, previewUrl, name }>` |
+| `getFileIconCallback` | `{ file }` | icon HTML, or `null` to fall through |
+| `renderFileItemCallback` | `{ file, index, displayMode, isInPopover }` | `string \| HTMLElement` (structural mode) |
+| `renderListWrapperCallback` | `{ rowsHtml, files }` | `string \| HTMLElement` (structural mode) |
+| `renderPromptCallback` | context only | `string \| HTMLElement` (structural mode) |
+| `renderSummaryCallback` | `{ files }` | `string \| HTMLElement` (structural mode) |
+| `renderRolling{Body,FileInfo,Progress}Callback` | `StatusSurfaceArgs` (`currentFile`, `aggregate`, `overallPercent`, …) | `string \| HTMLElement \| false \| null` (structural mode, rolling list) |
+| `getCustomStylesCallback` | context only | CSS string injected into the shadow root |
+| `persistStateCallback` / `loadStateCallback` | `{ key, state }` / `{ key }` | — / `DropzoneState \| null` (may be async) |
+
+```javascript
+dropzone.beforeFilesAddCallback = async ({ files }) => {
+  if (!(await myConfirm(`Add ${files.length} file(s)?`))) return false;
+};
+
+dropzone.uploadFileCallback = async ({ file, signal, setProgress }) => {
+  const body = new FormData();
+  body.append('file', file);
+  const res = await fetch('/api/upload', { method: 'POST', body, signal });
+  setProgress(100);
+  return { metadata: { serverId: await res.text() } };
+};
 ```
 
 ## Properties
@@ -241,7 +283,7 @@ const isDisabled = dropzone.disabled;
 
 ## File-type icons
 
-Each file row shows an icon resolved from the file's **category** (`image`, `video`, `audio`, `pdf`, `doc`, `spreadsheet`, `archive`, `code`, `text`, `default`) — Lucide glyphs out of the box. Override them per **extension** or per **category** with the `fileIcons` map, or take full control with the `fileIconCallback`. Both are JS-only properties (no HTML attribute).
+Each file row shows an icon resolved from the file's **category** (`image`, `video`, `audio`, `pdf`, `doc`, `spreadsheet`, `archive`, `code`, `text`, `default`) — Lucide glyphs out of the box. Override them per **extension** or per **category** with the `fileIcons` map, or take full control with the `getFileIconCallback`. Both are JS-only properties (no HTML attribute).
 
 ```javascript
 const dropzone = document.querySelector('web-dropzone');
@@ -256,11 +298,11 @@ dropzone.fileIcons = {
 
 // Full-control resolver — consulted BEFORE the map. Return HTML to use it,
 // or null/undefined to fall through to fileIcons → category → default.
-dropzone.fileIconCallback = (file) =>
+dropzone.getFileIconCallback = ({ file }) =>
   file.name.endsWith('.sketch') ? '<svg>…</svg>' : null;
 ```
 
-**Resolution order** (first hit wins): `fileIconCallback` → `fileIcons[extension]` → `fileIcons[category]` → built-in category icon.
+**Resolution order** (first hit wins): `getFileIconCallback` → `fileIcons[extension]` → `fileIcons[category]` → built-in category icon.
 
 > ⚠️ Icon values are **raw HTML** inserted via `innerHTML` and are **NOT sanitized**. Only pass markup you control — never untrusted / user-supplied strings. See the [HTML injection (XSS) notice](#html-injection-xss-notice).
 
@@ -271,18 +313,20 @@ The following properties / callbacks accept **raw HTML** and are intentionally *
 | Property / callback | Output used in | Risk |
 |---------------------|----------------|------|
 | `fileIcons` (map values) | File-row icon slot (innerHTML) | HTML injection |
-| `fileIconCallback` | File-row icon slot (innerHTML) | HTML injection |
+| `getFileIconCallback` | File-row icon slot (innerHTML) | HTML injection |
 | `icon` attr / property | Drop-zone + minimal prompt (innerHTML) | HTML injection |
 | `overlay-icon` attr / property | Drag overlay (innerHTML) | HTML injection |
 | `renderFileItemCallback` | File rows (innerHTML) | HTML injection |
 | `renderListWrapperCallback` | List wrapper (innerHTML) | HTML injection |
 | `renderPromptCallback` | Drop-area prompt (innerHTML) | HTML injection |
 | `renderSummaryCallback` | Compact-mode summary (innerHTML) | HTML injection |
-| `customStylesCallback` | Injected `<style>` (textContent) | CSS injection |
+| `getCustomStylesCallback` | Injected `<style>` (textContent) | CSS injection |
 
 **If any of these can contain user-generated content, sanitize it first** (e.g. DOMPurify). Built-in defaults and static markup you author are safe; the risk is only in interpolating untrusted strings.
 
 ## Methods
+
+The same methods (plus `getFiles()`, `getConfig()`, `getOverallProgress()` and `isReady`) are on `dropzone.controller` — the `DropzoneController` facade every event detail and callback ctx carries.
 
 | Method | Description |
 |--------|-------------|
