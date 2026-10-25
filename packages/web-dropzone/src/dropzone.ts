@@ -556,7 +556,7 @@ export class WebDropzone extends DropzoneEngine {
                 class="dz__dropzone__input"
                 ${inputA11yAttrs}
                 ${this.config.isMultipleEnabled ? 'multiple' : ''}
-                ${this.config.accept ? `accept="${this.config.accept}"` : ''}
+                ${this.config.accept ? `accept="${escapeHtml(this.config.accept)}"` : ''}
                 ${this.config.isDisabled ? 'disabled' : ''}
             >
         `;

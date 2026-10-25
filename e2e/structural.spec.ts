@@ -89,3 +89,43 @@ test.describe('structural + badges + show-thumbnails (built-in inline template)'
         await expect(imgs.first()).toHaveAttribute('src', /^data:image\//);
     });
 });
+
+test.describe('selector markup', () => {
+    test('an `accept` value containing a quote is escaped into the file input', async ({ page }) => {
+        const accept = '.txt" data-injected="1';
+        const result = await page.evaluate(async (accept) => {
+            const el = document.createElement('web-dropzone') as any;
+            el.id = 'accept-quote';
+            el.setAttribute('mode', 'structural');
+            el.setAttribute('display-mode', 'list');
+            el.setAttribute('accept', accept);
+            document.body.append(el);
+            await el.whenSettled();
+            const input = el.shadowRoot.querySelector('input[type="file"]');
+            return { accept: input?.getAttribute('accept'), isInjected: input?.hasAttribute('data-injected') };
+        }, accept);
+        expect(result).toEqual({ accept, isInjected: false });
+    });
+
+    test('the picker satellite (bulk mode) escapes a quote in `accept` and `prompt-text` too', async ({ page }) => {
+        const value = 'x" data-injected="1';
+        const result = await page.evaluate(async (value) => {
+            const el = document.createElement('web-dropzone') as any;
+            el.id = 'accept-quote-bulk';
+            el.setAttribute('display-mode', 'list');
+            el.setAttribute('accept', value);
+            el.setAttribute('prompt-text', value);
+            document.body.append(el);
+            await el.whenSettled();
+            await new Promise((r) => requestAnimationFrame(r));
+            const picker = el.shadowRoot.querySelector('web-dropzone-picker');
+            const input = picker?.shadowRoot?.querySelector('input[type="file"]');
+            return {
+                accept: input?.getAttribute('accept'),
+                label: input?.getAttribute('aria-label'),
+                isInjected: input?.hasAttribute('data-injected')
+            };
+        }, value);
+        expect(result).toEqual({ accept: value, label: value, isInjected: false });
+    });
+});

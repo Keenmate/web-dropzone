@@ -270,6 +270,19 @@ aria-hidden="true"` (picker satellite + structural renderer).
 
 **Test status:** `a11y.spec.ts` › "the button selector is a single tab stop" — green.
 
+## 15. A `"` in an attribute value breaks out of the attribute (new) — FIXED
+
+**Where:** `packages/web-dropzone-core/src/dom-utils.ts` `escapeHtml` (textContent → innerHTML
+round-trip, which never escapes quotes) used in attribute contexts everywhere (picker `accept`,
+`aria-label`, `title`, …); `dropzone.ts` `renderSelector` didn't escape `accept` at all.
+
+**Symptom:** `accept='.txt" data-injected="1'` produced `accept=".txt"` plus an injected
+attribute on the file input.
+
+**Fixed (2026-10-25):** `escapeHtml` escapes `& < > " '`; `renderSelector` escapes `accept`.
+
+**Test status:** `structural.spec.ts` › selector markup — structural and bulk (picker) paths, green.
+
 ---
 
 ## Observations (not bugs)

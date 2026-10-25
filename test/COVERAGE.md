@@ -148,6 +148,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `renderListWrapperCallback` (table layout)                    | ✓      | `structural.spec.ts` | `structural.html` |
 | `renderSummaryCallback` (popover summary)                     | ✓      | `events-extra.spec.ts` | `events-extra.html` |
 | Callbacks ignored when `mode!="structural"` (hard switch)     | ✓      | `structural.spec.ts` | `structural.html` |
+| A `"` in `accept` / `prompt-text` is escaped (structural + picker) | ✓ | `structural.spec.ts` (NOTES #15) | dynamic |
 
 ## 7. Architecture (satellites + headless)
 

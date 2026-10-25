@@ -7,14 +7,18 @@
  */
 
 /**
- * Escape user-provided text for inclusion in an HTML template string.
+ * Escape user-provided text for inclusion in an HTML template string — both
+ * text content and quoted attribute values (`attr="${escapeHtml(v)}"`).
  *
- * Uses the browser's own HTML serializer (textContent → innerHTML round-trip)
- * rather than a hand-rolled regex so the escape rules track whatever the
- * platform does for `&`, `<`, `>`, `"`, `'`, and astral codepoints.
+ * Escapes `&`, `<`, `>`, `"` and `'`. (The previous textContent → innerHTML
+ * round-trip left quotes alone — the HTML serializer only escapes them in
+ * attribute values — so a `"` in a value broke out of an attribute.)
  */
 export function escapeHtml(text: string): string {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
 }

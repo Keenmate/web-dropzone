@@ -93,6 +93,9 @@ Types renamed with the events: `FileAddedEventDetail` → `FileAddEventDetail`, 
 
 ### Fixed
 
+- **A `"` in an attribute value broke out of the attribute** (e.g. `accept`, `prompt-text`):
+  `escapeHtml` didn't escape quotes, and the structural renderer didn't escape `accept` at all.
+  `escapeHtml` (also exported) now escapes `& < > " '`.
 - **`uploaded-deletable="false"` was ignored** — completed rows kept a working remove button.
   They now hide it (layout kept, out of the tab order).
 - **`reorder-completed` never moved completed rows** in the file list (and the popover), with or
