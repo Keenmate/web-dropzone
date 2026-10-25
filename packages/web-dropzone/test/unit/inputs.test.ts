@@ -41,7 +41,7 @@ describe('<web-dropzone> input table (BlissElement)', () => {
         el.setAttribute('display-mode', 'grid');
         expect(el.displayMode).toBe('grid');   // toEnum
         el.setAttribute('display-mode', 'bogus');
-        expect(el.displayMode).toBe('list');   // invalid enum → default
+        expect(el.displayMode).toBe('grid');   // invalid enum → warned, previous value kept (core)
     });
 
     it('maps the renamed boolean attributes to their public camelCase getters', () => {
