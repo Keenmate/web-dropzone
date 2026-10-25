@@ -153,7 +153,7 @@ the pool back up to `concurrency` and resolves with the running drain.
 **Test status:** `toolbar.spec.ts` › "Retry all re-runs failed files in parallel up to
 `concurrency`" and `upload.spec.ts` › "a file added mid-drain takes a free slot" — green.
 
-## 10. Popover "Add more" does nothing (new)
+## 10. Popover "Add more" does nothing (new) — FIXED
 
 **Where:** `packages/web-dropzone/src/dropzone.ts:1799-1806` calls `this.inputEl?.click()`;
 `inputEl` is cached from `this.element.querySelector('.dz__dropzone__input')`
@@ -165,7 +165,11 @@ satellite's shadow root → `inputEl` is `null`.
 **Suggested fix:** ask the picker to open its dialog (e.g. a `picker.open()` method /
 event) instead of reaching for a cached input.
 
-**Test status:** `toolbar.spec.ts` › "Add more opens the native file dialog" — `test.fail`.
+**Fixed (2026-10-25):** the picker satellite got `openFileDialog()`; "Add more" calls it on
+the mounted picker (falls back to `inputEl` on the in-class/structural path), and the
+outside-click handler ignores that synthetic input click so the popover stays open.
+
+**Test status:** `toolbar.spec.ts` › "Add more opens the native file dialog" — green.
 
 ## 11. Button/minimal selector + popover list: click opens the dialog, not the popover (new — confirm intent)
 

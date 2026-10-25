@@ -171,6 +171,15 @@ export class WebDropzone extends DropzoneEngine {
      */
     private satelliteListEl: HTMLElement | null = null;
     /**
+     * The `<web-dropzone-picker>` satellite mounted by `mountSatellites()`.
+     * Owns the hidden file input on the satellite path (so `inputEl` is null
+     * there) — the popover's "Add more" asks it to open the dialog.
+     */
+    private satellitePickerEl: (HTMLElement & { openFileDialog?: () => void }) | null = null;
+    /** True while "Add more" synchronously dispatches the file input's click,
+     *  so the document-level outside-click handler keeps the popover open. */
+    private isAddMoreClickInFlight = false;
+    /**
      * Cache of element-returning `renderFileItemCallback` outputs, keyed by
      * file id. When present for a file, `patchFileRow` skips the re-render
      * path and dispatches a `file-row-update` event on the cached element
@@ -271,6 +280,7 @@ export class WebDropzone extends DropzoneEngine {
             return;
         }
         this.element.innerHTML = this.renderComponent();
+        this.satellitePickerEl = null;
         if (this.shouldUseSatelliteRendering()) {
             this.mountSatellites();
         }
@@ -364,6 +374,7 @@ export class WebDropzone extends DropzoneEngine {
             picker.bindToStore?.(host);
             container.appendChild(picker);
         }
+        this.satellitePickerEl = picker;
 
         if (showList) {
             const list = document.createElement('web-dropzone-list') as BindableSatellite;
@@ -1798,11 +1809,21 @@ export class WebDropzone extends DropzoneEngine {
 
         this.popover.querySelector('[data-dz-action="add-more"]')?.addEventListener('click', () => {
             // Open the native file picker without dismissing the popover. The
-            // input lives inside the dropzone (not the popover), so the
-            // synthesised click from inputEl.click() would otherwise be picked
-            // up as an "outside" click — handleDocumentClick filters this out
-            // by also excluding the input element.
-            this.inputEl?.click();
+            // input lives in the picker satellite (satellite path) or inside
+            // the dropzone (in-class path) — not the popover — so the
+            // synthesised input click would otherwise be picked up as an
+            // "outside" click; handleDocumentClick skips it while the flag is
+            // set (the click dispatches synchronously).
+            this.isAddMoreClickInFlight = true;
+            try {
+                if (this.satellitePickerEl?.openFileDialog) {
+                    this.satellitePickerEl.openFileDialog();
+                } else {
+                    this.inputEl?.click();
+                }
+            } finally {
+                this.isAddMoreClickInFlight = false;
+            }
         });
 
         // Fill the (empty) overall-progress container inside the footer.
@@ -2494,6 +2515,7 @@ export class WebDropzone extends DropzoneEngine {
         // this guard the popover would dismiss itself the moment the user
         // tries to add more files.
         if (this.inputEl && path.includes(this.inputEl)) return;
+        if (this.isAddMoreClickInFlight) return;
 
         // Clicks on the trigger (summary line for card+popover, button/minimal
         // selector for the other families) are handled by the trigger's own

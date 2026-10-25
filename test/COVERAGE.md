@@ -288,7 +288,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Retry all runs in parallel up to `concurrency`                | ✓      | `toolbar.spec.ts` (NOTES #9 fixed) | `toolbar.html` |
 | No pipeline → no Pause / Resume all                           | ✓      | `toolbar.spec.ts` | `toolbar.html` |
 | Popover Clear all (gate honoured, popover closes)             | ✓      | `toolbar.spec.ts` | `toolbar.html` |
-| Popover Add more opens the file dialog                        | ✗      | `toolbar.spec.ts` (test.fail NOTES #10) | `toolbar.html` |
+| Popover Add more opens the file dialog                        | ✓      | `toolbar.spec.ts` (NOTES #10 fixed) | `toolbar.html` |
 | Disabled: Add more hidden, Clear all kept                     | ✓      | `toolbar.spec.ts` | `toolbar.html` |
 | Button/minimal + popover: click toggles the popover           | ✗      | `toolbar.spec.ts` (test.fail NOTES #11) | `toolbar.html` |
 

@@ -107,7 +107,6 @@ test.describe('popover header actions', () => {
     }
 
     test('Add more opens the native file dialog and keeps the popover open', async ({ page }) => {
-        test.fail(true, 'NOTES.md #10');
         await openPopover(page);
         const chooser = page.waitForEvent('filechooser', { timeout: 2000 });
         await btn(page, 'pop', 'add-more').click();

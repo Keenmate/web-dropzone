@@ -265,6 +265,15 @@ export class DropzonePickerElement extends SatelliteElement {
         this.attachInteractionHandlers();
     }
 
+    /**
+     * Open the native file dialog, as a click on the picker would. No-op while
+     * disabled or before the picker has rendered (not bound to a store yet).
+     */
+    openFileDialog(): void {
+        if (this.isDisabled()) return;
+        this.inputEl?.click();
+    }
+
     // ========================================================================
     // ATTRIBUTE RESOLUTION
     // ========================================================================

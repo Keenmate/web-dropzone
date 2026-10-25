@@ -93,6 +93,9 @@ Types renamed with the events: `FileAddedEventDetail` → `FileAddEventDetail`, 
 
 ### Fixed
 
+- **Popover "Add more" did nothing.** It clicked a file input that no longer exists since the
+  selector moved into the `<web-dropzone-picker>` satellite. It now opens the picker's file
+  dialog and the popover stays open. New `openFileDialog()` method on `<web-dropzone-picker>`.
 - **"Retry all" ignored `concurrency` — failed files re-ran one by one.** The upload worker pool
   never refilled: workers that found nothing to do exited, and a later `uploadAll()` during a
   running drain returned early. A call made mid-drain now tops the pool back up to `concurrency`,
