@@ -325,6 +325,10 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
     #dropzone?: WebDropzone;
     #container: HTMLElement;
     #customStyleSheet?: HTMLStyleElement;
+    /** Disabled by an ancestor `<fieldset disabled>` (`formDisabledCallback`).
+     *  Kept apart from the `disabled` input so the author's value survives
+     *  the fieldset being re-enabled; the store sees the OR of both. */
+    #isFormDisabled = false;
 
     /**
      * What the engine reports to — built once, so every engine (each rebuild)
@@ -381,6 +385,24 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
         this.#dropzone?.clear();
     }
 
+    /**
+     * Called by the browser when an ancestor `<fieldset>` is disabled /
+     * re-enabled. The store is disabled while either the fieldset or the
+     * `disabled` input says so; `el.disabled` keeps reporting the author's
+     * value (like a native input's `disabled` property).
+     */
+    formDisabledCallback(isDisabled: boolean): void {
+        if (this.#isFormDisabled === isDisabled) return;
+        this.#isFormDisabled = isDisabled;
+        this.flush();
+        this.#dropzone?.updateConfig({ isDisabled: this.#effectiveDisabled() });
+    }
+
+    /** The store's `isDisabled`: the `disabled` input OR a disabled fieldset. */
+    #effectiveDisabled(): boolean {
+        return !!this.config.isDisabled || this.#isFormDisabled;
+    }
+
     // ── core lifecycle hooks ──────────────────────────────────────────────────
 
     /** Structural change (or first connect): rebuild the store from scratch. */
@@ -416,6 +438,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
             if (key === 'getCustomStylesCallback') continue; // handled above
             storePartial[key] = value === null ? undefined : value;
         }
+        if ('isDisabled' in storePartial) storePartial.isDisabled = this.#effectiveDisabled();
         if (this.#dropzone && Object.keys(storePartial).length > 0) {
             this.#dropzone.updateConfig(storePartial as Partial<DropzoneConfig>);
         }
@@ -510,6 +533,8 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
         for (const key of Object.keys(cfg)) {
             if (cfg[key] === null) delete cfg[key];
         }
+
+        cfg.isDisabled = this.#effectiveDisabled();
 
         const mode = this.#resolveMode();
         cfg.mode = mode;

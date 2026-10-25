@@ -93,6 +93,9 @@ Types renamed with the events: `FileAddedEventDetail` → `FileAddEventDetail`, 
 
 ### Fixed
 
+- **A disabled `<fieldset>` did not disable the dropzone** (it matched `:disabled` but still
+  accepted drops and clicks). It now does, and re-enables with the fieldset; `el.disabled` keeps
+  reporting the element's own `disabled` value, like a native input.
 - **Auto-retry printed every attempt to the console** (`[dz auto-retry] …` via `console.log`),
   regardless of the logging level. Those messages are now `DROPZONE:FILE` debug logs — silent
   unless logging is enabled.

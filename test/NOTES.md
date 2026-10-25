@@ -89,7 +89,7 @@ at disconnect time). See the report question.
 **Test status:** `lifecycle.spec.ts` — keep-state tests green, plus popover-across-a-move and
 detached-listeners tests.
 
-## 5. Disabled `<fieldset>` does not disable the dropzone (DZ-5)
+## 5. Disabled `<fieldset>` does not disable the dropzone (DZ-5) — FIXED
 
 **Where:** `packages/web-dropzone/src/web-component.ts` — `static formAssociated = true`
 but no `formDisabledCallback(disabled)`.
@@ -97,7 +97,13 @@ but no `formDisabledCallback(disabled)`.
 **Symptom (verified):** with `<fieldset disabled>` around it, a drop on the card
 still adds the file; nothing reacts to the fieldset state.
 
-**Test status:** `disabled.spec.ts` › "a disabled fieldset disables the dropzone" — `test.fail`.
+**Fixed (2026-10-25):** `formDisabledCallback` keeps a private form-disabled flag; the store
+gets `isDisabled = disabled input || fieldset`. `el.disabled` / the attribute keep the author's
+value. (Core candidate: other form-associated components likely have the same gap — a generic
+"form-disabled merged into an input" hook in `BlissElement` would cover them.)
+
+**Test status:** `disabled.spec.ts` › `<fieldset disabled>` — green, plus re-enable and
+author-value tests.
 
 **Suggested fix:** implement `formDisabledCallback(d)` to set an internal
 "form-disabled" flag merged with `isDisabled` (don't reflect into the `disabled`

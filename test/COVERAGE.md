@@ -265,7 +265,8 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `disabled`: modifier class, native input + button disabled    | ✓      | `disabled.spec.ts` | `disabled.html` |
 | Disabled: click opens no dialog; drop adds nothing; no overlay | ✓     | `disabled.spec.ts` | `disabled.html` |
 | `el.disabled` / attribute toggle is reactive (both directions) | ✓     | `disabled.spec.ts` | `disabled.html` |
-| `<fieldset disabled>` disables the dropzone                   | ✗      | `disabled.spec.ts` (test.fail NOTES #5) | `disabled.html` |
+| `<fieldset disabled>` disables the dropzone                   | ✓      | `disabled.spec.ts` (NOTES #5 fixed) | `disabled.html` |
+| Fieldset re-enabled → usable; author `disabled` survives it   | ✓      | `disabled.spec.ts` | `disabled.html` |
 
 ## 15. Reactivity after build
 

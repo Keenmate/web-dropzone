@@ -91,10 +91,35 @@ test.describe('<fieldset disabled>', () => {
     });
 
     test('a disabled fieldset disables the dropzone (drop adds nothing, :disabled matches)', async ({ page }) => {
-        test.fail(true, 'NOTES.md #5');
         await page.locator('#fs').evaluate((fs: HTMLFieldSetElement) => { fs.disabled = true; });
         // Form-associated custom elements match :disabled via the fieldset natively.
         expect(await dz(page, 'in-fs').evaluate((el) => el.matches(':disabled'))).toBe(true);
+        await dragFiles(card(page, 'in-fs'), 'drop', ['a.txt']);
+        await page.waitForTimeout(150);
+        expect(await count(page, 'in-fs')).toBe(0);
+    });
+
+    test('re-enabling the fieldset re-enables the dropzone; el.disabled reports the author value', async ({ page }) => {
+        await page.locator('#fs').evaluate((fs: HTMLFieldSetElement) => { fs.disabled = true; });
+        expect(await dz(page, 'in-fs').evaluate((el: any) => el.disabled)).toBe(false);
+        await page.locator('#fs').evaluate((fs: HTMLFieldSetElement) => { fs.disabled = false; });
+        await dragFiles(card(page, 'in-fs'), 'drop', ['a.txt']);
+        await expect.poll(() => count(page, 'in-fs')).toBe(1);
+    });
+
+    test('an author-disabled dropzone stays disabled after the fieldset is re-enabled', async ({ page }) => {
+        await dz(page, 'in-fs').evaluate(async (el: any) => { el.disabled = true; await el.whenSettled(); });
+        await page.locator('#fs').evaluate((fs: HTMLFieldSetElement) => { fs.disabled = true; });
+        await page.locator('#fs').evaluate((fs: HTMLFieldSetElement) => { fs.disabled = false; });
+        await dragFiles(card(page, 'in-fs'), 'drop', ['a.txt']);
+        await page.waitForTimeout(150);
+        expect(await count(page, 'in-fs')).toBe(0);
+        expect(await dz(page, 'in-fs').evaluate((el: any) => el.disabled)).toBe(true);
+    });
+
+    test('removing the author disabled while the fieldset is disabled keeps it disabled', async ({ page }) => {
+        await page.locator('#fs').evaluate((fs: HTMLFieldSetElement) => { fs.disabled = true; });
+        await dz(page, 'in-fs').evaluate(async (el: any) => { el.disabled = true; await el.whenSettled(); el.disabled = false; await el.whenSettled(); });
         await dragFiles(card(page, 'in-fs'), 'drop', ['a.txt']);
         await page.waitForTimeout(150);
         expect(await count(page, 'in-fs')).toBe(0);
