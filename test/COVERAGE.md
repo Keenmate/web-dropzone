@@ -296,9 +296,11 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 
 | Feature                                                       | Status | Spec               | Fixture          |
 | ------------------------------------------------------------- | :----: | ------------------ | ---------------- |
-| Re-parent keeps queued files                                  | ✗      | `lifecycle.spec.ts` (test.fail NOTES #4) | `lifecycle.html` |
-| Re-parent keeps an in-flight upload (completes after the move) | ✗     | `lifecycle.spec.ts` (test.fail NOTES #4) | `lifecycle.html` |
-| A move doesn't rebuild (`ready` once)                         | ✗      | `lifecycle.spec.ts` (test.fail NOTES #4) | `lifecycle.html` |
+| Re-parent keeps queued files                                  | ✓      | `lifecycle.spec.ts` (NOTES #4 fixed) | `lifecycle.html` |
+| Re-parent keeps an in-flight upload (completes after the move) | ✓     | `lifecycle.spec.ts` (NOTES #4 fixed) | `lifecycle.html` |
+| A move doesn't rebuild (`ready` once)                         | ✓      | `lifecycle.spec.ts` (NOTES #4 fixed) | `lifecycle.html` |
+| Re-parent keeps an open popover; Escape / outside click still close it | ✓ | `lifecycle.spec.ts` | `lifecycle.html` |
+| Detached: popover's document listeners are off                | ✓      | `lifecycle.spec.ts` | `lifecycle.html` |
 | After a move: drops work, controller live                     | ✓      | `lifecycle.spec.ts` | `lifecycle.html` |
 | Moved overlay dropzone: one overlay; removed one: none        | ✓      | `lifecycle.spec.ts` | `lifecycle.html` |
 

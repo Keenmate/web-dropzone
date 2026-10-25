@@ -93,6 +93,12 @@ Types renamed with the events: `FileAddedEventDetail` → `FileAddEventDetail`, 
 
 ### Fixed
 
+- **Moving `<web-dropzone>` in the DOM lost every file and aborted uploads.** Re-parenting or
+  reordering the element destroyed and rebuilt the store (and fired `ready` again). The store is
+  now built once; a move only stops and restarts the page-level wiring (drag-overlay listeners,
+  popover positioning and outside-click / Escape handling). Files, in-flight uploads and an open
+  popover survive, and `ready` fires once. Removing the element no longer aborts uploads on its
+  own — call `el.destroy()` to tear the store down.
 - **Popover "Add more" did nothing.** It clicked a file input that no longer exists since the
   selector moved into the `<web-dropzone-picker>` satellite. It now opens the picker's file
   dialog and the popover stays open. New `openFileDialog()` method on `<web-dropzone-picker>`.

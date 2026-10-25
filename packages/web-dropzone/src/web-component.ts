@@ -429,10 +429,16 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
         }
     }
 
-    /** Activate: ensure the store exists (a DOM move destroyed it), start listeners. */
+    /**
+     * Activate: (re)start the store's page-level wiring. The store itself is
+     * built once by `reinit()` and survives a DOM move — files, in-flight
+     * uploads and popover state are kept (decision D1). Only a store torn down
+     * by `destroy()` is rebuilt here.
+     */
     protected override connect(): void {
         instances.add(this);
-        if (!this.#dropzone) this.#buildStore();
+        if (this.#dropzone) this.#dropzone.activate();
+        else this.#buildStore();
 
         // FOUC prevention — expose [data-ready] once initialized.
         if (typeof requestAnimationFrame === 'function') {
@@ -444,11 +450,14 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
         initLogger.debug('DropzoneElement connected');
     }
 
-    /** Deactivate: stop listeners and tear the store down (rebuilt on next connect). */
+    /**
+     * Deactivate: stop the store's document / window listeners and popover
+     * positioning. The store, its files and uploads are kept — a DOM move
+     * reconnects without a rebuild; call `destroy()` to tear it down.
+     */
     protected override disconnect(): void {
         instances.delete(this);
-        this.#dropzone?.destroy();
-        this.#dropzone = undefined;
+        this.#dropzone?.deactivate();
         initLogger.debug('DropzoneElement disconnected');
     }
 

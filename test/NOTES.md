@@ -57,7 +57,7 @@ remove the attribute.
 **Test status:** not pinned yet (needs the intended output shape decided — open
 question).
 
-## 4. DOM move destroys the store — files lost, uploads aborted (DZ-4, D1)
+## 4. DOM move destroys the store — files lost, uploads aborted (DZ-4, D1) — FIXED
 
 **Where:** `packages/web-dropzone/src/web-component.ts:446-451` — `disconnect()`
 calls `this.#dropzone?.destroy()`; the next `connect()` rebuilds an empty store.
@@ -70,7 +70,18 @@ fires again.
 Fix = move the store to core's build-once + activate/deactivate model (build in
 `reinit()`, start/stop listeners in `connect()`/`disconnect()`), separate WP.
 
-**Test status:** `lifecycle.spec.ts` — the keep-state tests are `test.fail`.
+**Fixed (2026-10-25):** the store is built once (`reinit()`); `disconnect()` calls
+`WebDropzone.deactivate()` (overlay document/window listeners, popover `autoUpdate` +
+outside-click / Escape listeners off) and `connect()` calls `activate()` (re-wires them,
+re-anchors an open popover). Files, uploads and the open popover survive. Only `el.destroy()`
+tears the store down (the next connect rebuilds it).
+
+**Open (product):** a *permanent* removal now behaves like a move — in-flight uploads keep
+running until they finish or `el.destroy()` is called (core can't tell a move from a removal
+at disconnect time). See the report question.
+
+**Test status:** `lifecycle.spec.ts` — keep-state tests green, plus popover-across-a-move and
+detached-listeners tests.
 
 ## 5. Disabled `<fieldset>` does not disable the dropzone (DZ-5)
 

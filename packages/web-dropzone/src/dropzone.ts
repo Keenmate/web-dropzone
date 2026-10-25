@@ -261,6 +261,41 @@ export class WebDropzone extends DropzoneEngine {
      *  so when the container is set externally the popover would leak
      *  past an `innerHTML = ''` wipe; closePopover handles the explicit
      *  removal. */
+    /**
+     * Whether the page-level wiring is live — the overlay's document / window
+     * listeners and an open popover's positioning + outside-click / Escape
+     * listeners. Built active; the element turns it off while detached
+     * (`deactivate()` on disconnect, `activate()` on reconnect) so a DOM move
+     * keeps the files, uploads and popover without leaking listeners.
+     */
+    private isActive = true;
+
+    /** Reconnect: restore the page-level wiring `deactivate()` stopped. */
+    activate(): void {
+        if (this.isActive) return;
+        this.isActive = true;
+        this.setupOverlayTarget();
+        if (this.isPopoverOpen && this.popover) {
+            this.positionPopover();
+            document.addEventListener('click', this.boundHandleDocumentClick);
+            document.addEventListener('keydown', this.boundHandleKeyDown);
+        }
+        uiLogger.debug('Activated');
+    }
+
+    /** Disconnect: stop the page-level wiring; files, uploads and the popover
+     *  (open state + DOM) are kept for `activate()`. */
+    deactivate(): void {
+        if (!this.isActive) return;
+        this.isActive = false;
+        this.cleanupOverlay();
+        this.popoverPositionCleanup?.();
+        this.popoverPositionCleanup = null;
+        document.removeEventListener('click', this.boundHandleDocumentClick);
+        document.removeEventListener('keydown', this.boundHandleKeyDown);
+        uiLogger.debug('Deactivated');
+    }
+
     protected override onDestroy(): void {
         this.closePopover();
         this.element.innerHTML = '';
@@ -2537,6 +2572,8 @@ export class WebDropzone extends DropzoneEngine {
     // ========================================================================
 
     protected override setupOverlayTarget(): void {
+        // Detached: `activate()` sets the target up on reconnect.
+        if (!this.isActive) return;
         if (!this.config.overlayTarget) return;
 
         // Get target element
