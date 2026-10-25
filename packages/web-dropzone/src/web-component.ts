@@ -44,7 +44,7 @@ import {
     type EventDef,
 } from '@keenmate/web-components-core';
 import { WebDropzone } from './dropzone';
-import { linkStoreController } from './store-link';
+import { linkStoreController, linkStoreReorder } from './store-link';
 import { initLogger, createDropzoneController } from '@keenmate/web-dropzone-core';
 import type {
     DropzoneController,
@@ -363,6 +363,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
         // Satellites bind through a NON-flushing twin of `el.controller`
         // (see store-link.ts): they read the store while it is emitting.
         linkStoreController(this, createDropzoneController(() => this.#dropzone));
+        linkStoreReorder(this, (file) => this.#dropzone?.isReorderEligible(file) ?? false);
     }
 
     /**

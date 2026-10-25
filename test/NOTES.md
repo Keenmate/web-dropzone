@@ -109,7 +109,7 @@ author-value tests.
 "form-disabled" flag merged with `isDisabled` (don't reflect into the `disabled`
 attribute — the author's value must survive the fieldset being re-enabled).
 
-## 6. `uploaded-deletable="false"` is ignored by the rendered list (new)
+## 6. `uploaded-deletable="false"` is ignored by the rendered list (new) — FIXED
 
 **Where:** `packages/web-dropzone/src/web-component-list.ts:332-350` (`renderRow`) —
 builds `RowTemplateOptions` with `parts / useThumbnail / iconOverrides / iconContext`
@@ -123,10 +123,13 @@ without `--hidden`), so the user can delete an uploaded file.
 **Suggested fix:** pass `removable: !(file.status === 'complete' && cfg.isUploadedFileDeletable === false)`
 from the satellite (and patch it on the status-change row patch).
 
-**Test status:** `upload-edge.spec.ts` › uploaded-deletable="false" › "a completed row
-hides its remove button" — `test.fail`.
+**Fixed (2026-10-25):** the list satellite passes `removable` to the row templates and
+patches the remove button on every status change (`patchRemoveButton` in `row-patching.ts`).
 
-## 7. `reorder-completed` never reorders the rendered rows (new)
+**Test status:** `upload-edge.spec.ts` › uploaded-deletable="false" › "a completed row
+hides its remove button" — green.
+
+## 7. `reorder-completed` never reorders the rendered rows (new) — FIXED
 
 **Where:** same as #6 — the satellite never stamps `data-reorder-bucket="complete"`
 (`reorderEligible`), and the delayed reorder (`scheduleReorder`) lives in the
@@ -136,7 +139,15 @@ legacy in-class renderer.
 first row stays first indefinitely. (The old `upload-edge.spec.ts` reorder test only
 checked `status === 'complete'`, so it stayed green.)
 
-**Test status:** `upload-edge.spec.ts` › reorder-completed-delay — `test.fail`.
+**Fixed (2026-10-25):** the engine schedules the delayed reorder itself (`mutateFileState`, on
+the complete-boundary crossing — it used to be scheduled only by the in-class renderer's row
+patch, which never runs on the satellite path) and, when the delay elapses, dispatches an
+internal non-bubbling `dz-reorder` signal. The list satellite stamps
+`data-reorder-bucket="complete"` (render: via an internal `store-link` reorder lookup; live: on
+`dz-reorder`), adds the `--reorder-completed` container class, and windows a
+`max-visible-files` cap over the reordered list. The convenience-form popover now reorders too.
+
+**Test status:** `upload-edge.spec.ts` › reorder-completed-delay — green.
 
 ## 8. A cancelled row offers no Retry (new) — FIXED
 

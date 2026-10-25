@@ -41,8 +41,10 @@ import {
     patchProgressFill,
     patchProgressText,
     patchStatusIcon,
-    patchActionButton
+    patchActionButton,
+    patchRemoveButton
 } from './row-patching';
+import { isStoreFileReorderEligible } from './store-link';
 import {
     renderListItem,
     renderDetailedItem,
@@ -137,6 +139,12 @@ export class DropzoneListElement extends SatelliteElement {
             'change':       () => this.scheduleRenderAll(),
             // Config re-render (e.g. `item-controls` changed) → re-render rows.
             'dz-config-changed': () => this.scheduleRenderAll(),
+            // `reorder-completed`: a completed row's delay elapsed (or a
+            // retried row left the bucket) — internal store signal.
+            'dz-reorder': (e) => {
+                const { id, isComplete } = (e as CustomEvent<{ id: string; isComplete: boolean }>).detail;
+                this.applyReorder(id, isComplete);
+            },
             // progress / status changes → patch the affected row in place
             // (rendering at 50ms ticks across 20 files would burn DOM otherwise).
             'file-progress': (e) => this.patchRow((e as CustomEvent).detail.id),
@@ -217,14 +225,17 @@ export class DropzoneListElement extends SatelliteElement {
         // so the rules apply unchanged.
         const isNested = this.getAttribute('nested') === 'true';
         const base = isNested ? 'dz__files-inside' : 'dz__file-list';
-        const containerClass = `${base} ${base}--${appearance}`;
+        const reorderClass = this.store.getConfig().isReorderCompletedEnabled ? ` ${base}--reorder-completed` : '';
+        const containerClass = `${base} ${base}--${appearance}${reorderClass}`;
 
         // Apply the max-visible-files cap. Mirrors the in-class renderer:
         // appearances with their own dedicated layout (rolling, popover)
         // are excluded above — we only reach here for list/detailed/grid/
         // badges. When the queue is empty we already returned.
+        // With `reorder-completed`, the cap windows the reordered list (rows
+        // in the "complete" bucket last), as the in-class renderer does.
         const cap = this.store.getConfig().maxVisibleFiles ?? 0;
-        const visible = cap > 0 && !this.showAll ? files.slice(0, cap) : files;
+        const visible = cap > 0 && !this.showAll ? this.orderForReorder(files).slice(0, cap) : files;
         const toggle = this.renderShowMoreToggle(files.length, cap, appearance);
 
         // Grid tile layout (uniform | natural) + finished-file flag
@@ -342,12 +353,56 @@ export class DropzoneListElement extends SatelliteElement {
         // the satellite honours the same fileIcons / getFileIconCallback
         // overrides; the context base gives each per-row ctx the store's
         // controller / element.
-        const opts: RowTemplateOptions = { parts, useThumbnail, iconOverrides: cfg, iconContext: this.iconContext() };
+        const opts: RowTemplateOptions = {
+            parts,
+            useThumbnail,
+            iconOverrides: cfg,
+            iconContext: this.iconContext(),
+            removable: this.isFileUserRemovable(file),
+            reorderEligible: this.isReorderEligible(file)
+        };
         if (appearance === 'badges')   return renderBadgeItem(file, opts);
         if (appearance === 'grid')     return renderGridItem(file, opts);
         if (appearance === 'detailed') return renderDetailedItem(file, opts);
         // 'rolling' uses the list-item template for the front-file row.
         return renderListItem(file, opts);
+    }
+
+    /** `uploaded-deletable="false"` hides the remove button on completed rows (layout kept). */
+    private isFileUserRemovable(file: FileState): boolean {
+        if (file.status !== 'complete') return true;
+        return this.store?.getConfig().isUploadedFileDeletable !== false;
+    }
+
+    /** Row belongs in the "complete" reorder bucket (`reorder-completed`, delay elapsed). */
+    private isReorderEligible(file: FileState): boolean {
+        return !!this.storeEl && isStoreFileReorderEligible(this.storeEl, file);
+    }
+
+    /** Stable sort: rows in the "complete" reorder bucket last. */
+    private orderForReorder(files: FileState[]): FileState[] {
+        if (!this.store?.getConfig().isReorderCompletedEnabled) return files;
+        return files
+            .map((f, i) => ({ f, i, complete: this.isReorderEligible(f) ? 1 : 0 }))
+            .sort((a, b) => a.complete - b.complete || a.i - b.i)
+            .map(x => x.f);
+    }
+
+    /**
+     * A `reorder-completed` delay elapsed (or a retried row left the bucket):
+     * flip the row's bucket so the CSS `order` moves it. With a
+     * `max-visible-files` cap the visible window changes too, so re-render.
+     */
+    private applyReorder(id: string, isComplete: boolean): void {
+        const cap = this.store?.getConfig().maxVisibleFiles ?? 0;
+        if (cap > 0 && !this.showAll) {
+            this.scheduleRenderAll();
+            return;
+        }
+        const row = this.container.querySelector<HTMLElement>(`[data-file-id="${id}"]`);
+        if (!row) return;
+        if (isComplete) row.dataset.reorderBucket = 'complete';
+        else delete row.dataset.reorderBucket;
     }
 
     /**
@@ -671,6 +726,11 @@ export class DropzoneListElement extends SatelliteElement {
                 file,
                 'dz__badge-action'
             );
+            patchRemoveButton(
+                row.querySelector<HTMLElement>('[data-dz-action="remove"]'),
+                this.isFileUserRemovable(file),
+                'dz__badge-remove'
+            );
             return;
         }
 
@@ -689,6 +749,11 @@ export class DropzoneListElement extends SatelliteElement {
             row.querySelector<HTMLElement>('[data-dz-action="row-action"]'),
             file,
             `${prefix}__action`
+        );
+        patchRemoveButton(
+            row.querySelector<HTMLElement>('[data-dz-action="remove"]'),
+            this.isFileUserRemovable(file),
+            `${prefix}__remove`
         );
     }
 

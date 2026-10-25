@@ -131,10 +131,10 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `retryPolicy` attempts / delayMs / backoff → complete or error | ✓     | `upload-edge.spec.ts` | `upload-edge.html` |
 | `retryPolicy` retry aborted when paused during the backoff     | ✓     | `upload-edge.spec.ts` | `upload-edge.html` |
 | Auto-retry silent outside `/logging`                          | ✓      | `upload-edge.spec.ts` (NOTES #2 fixed) | `upload-edge.html` |
-| `uploaded-deletable="false"` hides ✕ on completed rows        | ✗      | `upload-edge.spec.ts` (test.fail NOTES #6) | `upload-edge.html` |
-| `reorder-completed-delay` — row moves only after the delay    | ✗      | `upload-edge.spec.ts` (test.fail NOTES #7) | `upload-edge.html` |
+| `uploaded-deletable="false"` hides ✕ on completed rows        | ✓      | `upload-edge.spec.ts` (NOTES #6 fixed) | `upload-edge.html` |
+| `reorder-completed-delay` — row moves only after the delay    | ✓      | `upload-edge.spec.ts` (NOTES #7 fixed) | `upload-edge.html` |
 | `progress-throttle` caps emission rate                        | ✓      | `upload-edge.spec.ts` | `upload-edge.html` |
-| `reorder-completed` reflows completed files                   | △      | `upload-edge.spec.ts` (status only — DOM order is NOTES #7) | `upload-edge.html` |
+| `reorder-completed` reflows completed files                   | ✓      | `upload-edge.spec.ts` (DOM order: the reorder-completed-delay test) | `upload-edge.html` |
 | `progress-mode="pessimistic"` preserves progress on failure   | ✓      | `upload-edge.spec.ts` | `upload-edge.html` |
 | Resume-aware progress on `file-progress`                      | △      | `upload-edge.spec.ts` | `upload-edge.html` |
 

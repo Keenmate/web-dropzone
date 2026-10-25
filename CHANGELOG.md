@@ -93,6 +93,11 @@ Types renamed with the events: `FileAddedEventDetail` → `FileAddEventDetail`, 
 
 ### Fixed
 
+- **`uploaded-deletable="false"` was ignored** — completed rows kept a working remove button.
+  They now hide it (layout kept, out of the tab order).
+- **`reorder-completed` never moved completed rows** in the file list (and the popover), with or
+  without `reorder-completed-delay`. Completed rows now slide to the bottom once the delay
+  elapses; a `max-visible-files` cap windows the reordered list.
 - **Accessibility: the card announced as "Choose File"** — its keyboard control (the hidden file
   input) had no name. It is now named after the prompt text.
 - **Accessibility: button / minimal / native selectors had two tab stops** — an invisible file

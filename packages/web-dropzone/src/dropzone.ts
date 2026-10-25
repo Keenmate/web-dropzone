@@ -864,10 +864,6 @@ export class WebDropzone extends DropzoneEngine {
         if (targetEl) {
             const existing = targetEl.querySelector(`[data-file-id="${file.id}"]`) as HTMLElement | null;
             if (existing) {
-                // Capture status BEFORE the patch so we can detect a
-                // complete-boundary crossing for the (delayed) reorder.
-                const prevStatus = existing.dataset.status;
-
                 if (cachedRowEl && existing === cachedRowEl) {
                     // Event-driven update: hand control to the consumer
                     // via a CustomEvent on the row itself. Bubbles, not
@@ -884,19 +880,10 @@ export class WebDropzone extends DropzoneEngine {
                     this.patchInlineRowInPlace(existing, file, listAppearance);
                 }
 
-                // Schedule the visual reorder on a delay (config:
-                // reorderCompletedDelay, default 1500ms). The delay
-                // helps the user track WHICH file just succeeded —
-                // without it, a row sliding away immediately makes the
-                // file underneath (with a different upload %) look like
-                // it regressed. The popover sort and the cap re-render
-                // are both deferred from inside scheduleReorder, so all
-                // three surfaces stay synchronised.
-                if (this.config.isReorderCompletedEnabled &&
-                    prevStatus !== file.status &&
-                    (prevStatus === 'complete' || file.status === 'complete')) {
-                    this.scheduleReorder(file.id, file.status === 'complete');
-                }
+                // The delayed visual reorder (reorderCompletedDelay) is
+                // scheduled by the engine's mutateFileState on the
+                // complete-boundary crossing; applyReorderToRenderer flips
+                // the row bucket when it fires.
             }
 
             // Rolling appearance: the row in the DOM is the "front" file.

@@ -610,6 +610,13 @@ export class DropzoneEngine {
         }
 
         if (file.status !== prevStatus) {
+            // Crossing the `complete` boundary (re)starts the delayed visual
+            // reorder — here, not in a renderer, so every surface (in-class
+            // list, popover, `<web-dropzone-list>` satellite) gets it.
+            if (this.config.isReorderCompletedEnabled &&
+                (prevStatus === 'complete' || file.status === 'complete')) {
+                this.scheduleReorder(file.id, file.status === 'complete');
+            }
             this.emitFileStatusChanged(file, prevStatus, file.status);
         }
         if (file.progress !== prevProgress) {
@@ -1286,9 +1293,11 @@ export class DropzoneEngine {
             if (!stillExists) return;
 
             // Renderer hook does the DOM-side bucket flip, popover
-            // re-sort, and capped-list re-render. Phase A · Step 2 will
-            // turn this into an event the renderer subscribes to.
+            // re-sort, and capped-list re-render; satellites (the
+            // `<web-dropzone-list>`) hear the internal `dz-reorder` signal
+            // (non-bubbling, not public API — like `dz-config-changed`).
             this.applyReorderToRenderer(id, becomingComplete);
+            dispatch(this.contextElement, 'dz-reorder', { id, isComplete: becomingComplete }, { bubbles: false });
         };
 
         const delay = Math.max(0, this.config.reorderCompletedDelay ?? 1500);

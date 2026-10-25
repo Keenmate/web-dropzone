@@ -239,7 +239,6 @@ test.describe('uploaded-deletable="false"', () => {
     });
 
     test('a completed row hides its remove button (layout kept, inert)', async ({ page }) => {
-        test.fail(true, 'NOTES.md #6');
         await addNamed(page, 'nodelete', ['nd.txt']);
         await expect.poll(() => pendingNames(page)).toContain('nd.txt');
         await resolveUpload(page, 'nd.txt', 'ok');
@@ -268,7 +267,6 @@ test.describe('reorder-completed-delay', () => {
                 .map((r) => r.name));
 
     test('a completed row moves to the bottom only after the delay', async ({ page }) => {
-        test.fail(true, 'NOTES.md #7');
         await addNamed(page, 'reorder-delay', ['r1.txt', 'r2.txt', 'r3.txt']);
         await expect.poll(() => pendingNames(page).then((n) => n.length)).toBe(3);
         await expect.poll(() => visualOrder(page)).toEqual(['r1.txt', 'r2.txt', 'r3.txt']);

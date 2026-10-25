@@ -76,6 +76,27 @@ export function patchStatusIcon(
 }
 
 /**
+ * Show / hide a row's remove button (`removable` false: the `--hidden`
+ * modifier, out of the tab order, hidden from AT). The button stays in the
+ * DOM so the row's layout doesn't shift.
+ */
+export function patchRemoveButton(
+    btn: HTMLElement | null,
+    removable: boolean,
+    baseClass: string
+): void {
+    if (!btn) return;
+    btn.classList.toggle(`${baseClass}--hidden`, !removable);
+    if (removable) {
+        btn.removeAttribute('tabindex');
+        btn.removeAttribute('aria-hidden');
+    } else {
+        btn.setAttribute('tabindex', '-1');
+        btn.setAttribute('aria-hidden', 'true');
+    }
+}
+
+/**
  * In-place patch the per-row action button (pause / resume / retry) as the
  * file's status transitions. Slot stays in the DOM at all times so column
  * widths don't shift across status changes; this function toggles the
