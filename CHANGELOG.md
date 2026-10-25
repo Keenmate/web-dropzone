@@ -93,6 +93,9 @@ Types renamed with the events: `FileAddedEventDetail` → `FileAddEventDetail`, 
 
 ### Fixed
 
+- **Auto-retry printed every attempt to the console** (`[dz auto-retry] …` via `console.log`),
+  regardless of the logging level. Those messages are now `DROPZONE:FILE` debug logs — silent
+  unless logging is enabled.
 - **`overlay-target="#id"` silently did nothing.** The attribute is documented as a selector,
   but only a bare element id resolved. Both now work — an id first, then a CSS selector.
 - **Moving `<web-dropzone>` in the DOM lost every file and aborted uploads.** Re-parenting or

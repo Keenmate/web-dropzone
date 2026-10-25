@@ -130,7 +130,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Cancelled row offers Retry                                    | ✗      | `row-actions.spec.ts` (test.fail NOTES #8) | `row-actions.html` |
 | `retryPolicy` attempts / delayMs / backoff → complete or error | ✓     | `upload-edge.spec.ts` | `upload-edge.html` |
 | `retryPolicy` retry aborted when paused during the backoff     | ✓     | `upload-edge.spec.ts` | `upload-edge.html` |
-| Auto-retry silent outside `/logging`                          | ✗      | `upload-edge.spec.ts` (test.fail NOTES #2) | `upload-edge.html` |
+| Auto-retry silent outside `/logging`                          | ✓      | `upload-edge.spec.ts` (NOTES #2 fixed) | `upload-edge.html` |
 | `uploaded-deletable="false"` hides ✕ on completed rows        | ✗      | `upload-edge.spec.ts` (test.fail NOTES #6) | `upload-edge.html` |
 | `reorder-completed-delay` — row moves only after the delay    | ✗      | `upload-edge.spec.ts` (test.fail NOTES #7) | `upload-edge.html` |
 | `progress-throttle` caps emission rate                        | ✓      | `upload-edge.spec.ts` | `upload-edge.html` |

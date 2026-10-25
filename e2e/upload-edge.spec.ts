@@ -218,7 +218,6 @@ test.describe('retryPolicy (auto-retry on handler rejection)', () => {
     });
 
     test('auto-retry does not write to the console outside /logging', async ({ page }) => {
-        test.fail(true, 'NOTES.md #2');
         const logs: string[] = [];
         page.on('console', (m) => { if (m.type() === 'log') logs.push(m.text()); });
         await addNamed(page, 'policy', ['cl.txt']);

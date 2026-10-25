@@ -964,11 +964,9 @@ export class DropzoneEngine {
             const msg = err instanceof Error ? err.message : 'Upload failed';
             const policy = this.config.retryPolicy ?? {};
             const maxAttempts = Math.max(1, policy.attempts ?? 1);
-            // eslint-disable-next-line no-console
-            console.log(
-                `[dz auto-retry] handler rejected for "${file.name}" (id=${id}) ` +
-                `at progress=${file.progress.toFixed(1)}% on attempt ${attempt + 1}/${maxAttempts}: ${msg}`
-            );
+            fileLogger.debug('Auto-retry: handler rejected', {
+                id, name: file.name, progress: file.progress, attempt: attempt + 1, maxAttempts, error: msg
+            });
             // Snap-back behaviour is the contract of `progressMode`:
             //   - optimistic: the handler may report ctx.setProgress before the
             //     bytes are acknowledged; on failure those bytes never
@@ -978,30 +976,24 @@ export class DropzoneEngine {
             //     state and must not go backwards (forward-only or stop).
             const isOptimistic = (this.config.progressMode ?? 'optimistic') === 'optimistic';
             if (isOptimistic && file.progress !== baselineProgress) {
-                // eslint-disable-next-line no-console
-                console.log(
-                    `[dz auto-retry] snapping "${file.name}" back from ${file.progress.toFixed(1)}% ` +
-                    `to baseline ${baselineProgress.toFixed(1)}% (optimistic mode — unacknowledged bytes)`
-                );
+                fileLogger.debug('Auto-retry: snapping progress back to the baseline (optimistic mode)', {
+                    id, name: file.name, from: file.progress, to: baselineProgress
+                });
                 this.mutateFileState(file, { progress: baselineProgress });
             }
             if (attempt + 1 < maxAttempts) {
                 const delay = (policy.delayMs ?? 1000) * Math.pow(policy.backoff ?? 2, attempt);
-                // eslint-disable-next-line no-console
-                console.log(
-                    `[dz auto-retry] scheduling next attempt for "${file.name}" in ${delay}ms ` +
-                    `(progress=${file.progress.toFixed(1)}% preserved → handler will see startBytes=` +
-                    `${Math.floor(file.size * (file.progress / 100))})`
-                );
+                fileLogger.debug('Auto-retry: scheduling the next attempt', {
+                    id, name: file.name, delayMs: delay, progress: file.progress,
+                    startBytes: Math.floor(file.size * (file.progress / 100))
+                });
                 await new Promise(r => setTimeout(r, delay));
                 // Bail out cleanly if the file was paused / removed during the
                 // backoff window.
                 if (this.pausedIds.has(id) || !this.files.find(f => f.id === id)) {
-                    // eslint-disable-next-line no-console
-                    console.log(
-                        `[dz auto-retry] aborting retry for "${file.name}" — ` +
-                        `${this.pausedIds.has(id) ? 'paused' : 'removed'} during delay`
-                    );
+                    fileLogger.debug('Auto-retry: aborted during the delay', {
+                        id, name: file.name, reason: this.pausedIds.has(id) ? 'paused' : 'removed'
+                    });
                     return;
                 }
                 // Auto-retry preserves `file.progress` to match the manual
@@ -1013,18 +1005,14 @@ export class DropzoneEngine {
                 // resume contract as Pause → Resume and per-row Retry, so a
                 // resume-aware handler gets consistent behaviour across all
                 // three recovery flows.
-                // eslint-disable-next-line no-console
-                console.log(
-                    `[dz auto-retry] starting attempt ${attempt + 2}/${maxAttempts} for "${file.name}" ` +
-                    `with progress=${file.progress.toFixed(1)}%`
-                );
+                fileLogger.debug('Auto-retry: starting attempt', {
+                    id, name: file.name, attempt: attempt + 2, maxAttempts, progress: file.progress
+                });
                 return this.runUpload(id, attempt + 1);
             }
-            // eslint-disable-next-line no-console
-            console.log(
-                `[dz auto-retry] giving up on "${file.name}" — exhausted ${maxAttempts} attempts ` +
-                `at progress=${file.progress.toFixed(1)}%`
-            );
+            fileLogger.debug('Auto-retry: giving up — attempts exhausted', {
+                id, name: file.name, maxAttempts, progress: file.progress
+            });
             file.error = msg;
             // Status flip to 'error' fires `file-status-change`; the
             // renderer's listener patches the row. The `file.error` write

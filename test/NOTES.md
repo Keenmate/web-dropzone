@@ -32,7 +32,7 @@ drags" explanation was wrong — a constructed `DataTransfer` with a `File` work
 **Test status:** `drag-overlay.html` uses `overlay-target="target"`; the `"#target"` form in
 `drag-overlay.spec.ts` is green.
 
-## 2. Unconditional `console.log` in auto-retry (DZ-2)
+## 2. Unconditional `console.log` in auto-retry (DZ-2) — FIXED
 
 **Where:** `packages/web-dropzone-core/src/dropzone-engine.ts:932,946,955,965,981,988`.
 
@@ -42,8 +42,11 @@ drags" explanation was wrong — a constructed `DataTransfer` with a `File` work
 **Suggested fix:** route through the core `/logging` category logger like the rest
 of the engine.
 
+**Fixed (2026-10-25):** the six messages are `fileLogger.debug` (category `DROPZONE:FILE`)
+with structured data.
+
 **Test status:** `upload-edge.spec.ts` › retryPolicy › "auto-retry does not write to
-the console outside /logging" — `test.fail`.
+the console outside /logging" — green.
 
 ## 3. `value-format` is a no-op (DZ-3)
 
