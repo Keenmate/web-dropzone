@@ -545,9 +545,16 @@ export class WebDropzone extends DropzoneEngine {
         const hasFiles = this.files.length > 0 ? 'dz__dropzone--has-files' : '';
         const filesInside = this.config.isFilesInsideEnabled ? 'dz__dropzone--files-inside' : '';
 
+        // Card: the hidden input is the keyboard control, named after the
+        // prompt. Button / minimal / native have their own <button>, so the
+        // input leaves the tab order (one tab stop per selector).
+        const inputA11yAttrs = appearance === 'card'
+            ? `aria-label="${escapeHtml(this.config.promptText || DEFAULT_CONFIG.promptText)}"`
+            : 'tabindex="-1" aria-hidden="true"';
         const input = `
             <input type="file"
                 class="dz__dropzone__input"
+                ${inputA11yAttrs}
                 ${this.config.isMultipleEnabled ? 'multiple' : ''}
                 ${this.config.accept ? `accept="${this.config.accept}"` : ''}
                 ${this.config.isDisabled ? 'disabled' : ''}

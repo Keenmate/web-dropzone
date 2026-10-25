@@ -344,8 +344,8 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Feature                                                       | Status | Spec          | Fixture     |
 | ------------------------------------------------------------- | :----: | ------------- | ----------- |
 | Card: one tab stop, `:focus-within` ring, Enter / Space open the dialog | ✓ | `a11y.spec.ts` | `a11y.html` |
-| Card control named after the prompt                           | ✗      | `a11y.spec.ts` (test.fail NOTES #13) | `a11y.html` |
+| Card control named after the prompt                           | ✓      | `a11y.spec.ts` (NOTES #13 fixed) | `a11y.html` |
 | Button: Enter opens the dialog; button / minimal accessible names | ✓  | `a11y.spec.ts` | `a11y.html` |
-| Button / minimal: single tab stop                             | ✗      | `a11y.spec.ts` (test.fail NOTES #14) | `a11y.html` |
+| Button / minimal: single tab stop                             | ✓      | `a11y.spec.ts` (NOTES #14 fixed) | `a11y.html` |
 | Disabled dropzone skipped by Tab                              | ✓      | `a11y.spec.ts` | `a11y.html` |
 | Row ✕ named "Remove <file>"; Enter removes; status pill labelled | ✓   | `a11y.spec.ts` | `a11y.html` |

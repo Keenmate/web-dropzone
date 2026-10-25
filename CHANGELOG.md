@@ -93,6 +93,10 @@ Types renamed with the events: `FileAddedEventDetail` → `FileAddEventDetail`, 
 
 ### Fixed
 
+- **Accessibility: the card announced as "Choose File"** — its keyboard control (the hidden file
+  input) had no name. It is now named after the prompt text.
+- **Accessibility: button / minimal / native selectors had two tab stops** — an invisible file
+  input before the visible button. The input is now out of the tab order.
 - **A cancelled row offered no Retry.** ✕ on an uploading row cancels it and keeps the row "for
   the user to recover", but the row's action slot stayed empty — only the strip's "Retry all"
   could restart it. Cancelled rows now show the Retry action (`actionForStatus('cancelled')` →

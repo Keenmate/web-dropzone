@@ -160,9 +160,19 @@ export class DropzonePickerElement extends SatelliteElement {
         const icon = this.getAttribute('icon') ?? storeCfg.icon ?? DEFAULT_ICON;
         const hint = this.getAttribute('hint') ?? storeCfg.hintText ?? '';
 
+        // Card: the hidden input IS the keyboard control — name it after the
+        // prompt (not the transient drag text). Button / minimal / native
+        // render their own <button>, so the input leaves the tab order (one
+        // tab stop per selector).
+        const promptText = this.getAttribute('label') ?? storeCfg.promptText ?? DEFAULT_PROMPT;
+        const inputA11yAttrs = appearance === 'card'
+            ? `aria-label="${escapeHtml(promptText)}"`
+            : 'tabindex="-1" aria-hidden="true"';
+
         const inputHtml = `
             <input type="file"
                 class="dz__dropzone__input"
+                ${inputA11yAttrs}
                 ${multipleAttr ? 'multiple' : ''}
                 ${acceptAttr ? `accept="${escapeHtml(acceptAttr)}"` : ''}
                 ${disabled ? 'disabled' : ''}
@@ -192,7 +202,7 @@ export class DropzonePickerElement extends SatelliteElement {
                 </div>
             `;
         } else if (appearance === 'minimal') {
-            const ariaLabel = this.getAttribute('label') ?? storeCfg.promptText ?? DEFAULT_PROMPT;
+            const ariaLabel = promptText;
             inner = `
                 <div class="dz__dropzone dz__dropzone--minimal ${disabled ? 'dz__dropzone--disabled' : ''}">
                     ${inputHtml}
@@ -223,7 +233,7 @@ export class DropzonePickerElement extends SatelliteElement {
             // card
             const text = this.dragActive
                 ? (storeCfg.dragActiveText ?? DEFAULT_DRAG_ACTIVE)
-                : (this.getAttribute('label') ?? storeCfg.promptText ?? DEFAULT_PROMPT);
+                : promptText;
             const hintHtml = hint
                 ? `<div class="dz__dropzone__hint">${escapeHtml(hint)}</div>`
                 : '';

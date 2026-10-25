@@ -47,7 +47,6 @@ test.describe('card', () => {
     });
 
     test('the card control is named after the prompt', async ({ page }) => {
-        test.fail(true, 'NOTES.md #13');
         await expect(dz(page, 'card').locator('input[type="file"]')).toHaveAccessibleName(/Drop reports/);
     });
 });
@@ -60,7 +59,6 @@ test.describe('button / minimal selectors', () => {
     });
 
     test('the button selector is a single tab stop (the hidden input is not focusable)', async ({ page }) => {
-        test.fail(true, 'NOTES.md #14');
         await page.locator('#after-card').focus();
         await page.keyboard.press('Tab');
         expect(await focused(page)).toContain('dz__button');
