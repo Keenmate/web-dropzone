@@ -96,6 +96,13 @@ test.describe('concurrency cap', () => {
             return names.length === 2 && !names.includes(first);
         }).toBe(true);
     });
+
+    test('a file added mid-drain takes a free slot instead of waiting (NOTES.md #9)', async ({ page }) => {
+        await addNamed(page, 'conc', ['c1']);
+        await expect.poll(() => pendingNames(page)).toEqual(['c1']);
+        await addNamed(page, 'conc', ['c2']);
+        await expect.poll(() => pendingNames(page), { timeout: 1500 }).toEqual(['c1', 'c2']);
+    });
 });
 
 test.describe('file-progress events', () => {

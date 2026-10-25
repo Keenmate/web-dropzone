@@ -130,7 +130,7 @@ only recovery is the strip's "Retry all" (the engine counts cancelled as failed 
 
 **Test status:** `row-actions.spec.ts` › "a cancelled row offers Retry" — `test.fail`.
 
-## 9. Worker pool doesn't refill idle workers — Retry all runs serially (new)
+## 9. Worker pool doesn't refill idle workers — Retry all runs serially (new) — FIXED
 
 **Where:** `packages/web-dropzone-core/src/dropzone-engine.ts:679-714` (`uploadAll`).
 Workers exit as soon as they find no pending file; a later `uploadAll()` call returns
@@ -147,8 +147,11 @@ slot.
 `concurrency - activeWorkers` instead of returning; or have `retryAll` flip all
 statuses first and call `uploadAll()` once.
 
+**Fixed (2026-10-25):** `uploadAll()` keeps a live-worker count; a call made mid-drain tops
+the pool back up to `concurrency` and resolves with the running drain.
+
 **Test status:** `toolbar.spec.ts` › "Retry all re-runs failed files in parallel up to
-`concurrency`" — `test.fail`.
+`concurrency`" and `upload.spec.ts` › "a file added mid-drain takes a free slot" — green.
 
 ## 10. Popover "Add more" does nothing (new)
 

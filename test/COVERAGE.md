@@ -120,6 +120,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Handler rejects → status flips to `error`                     | ✓      | `upload.spec.ts` | `upload.html` |
 | `concurrency` cap holds N workers active                      | ✓      | `upload.spec.ts` | `upload.html` |
 | Worker slot rotates on completion                             | ✓      | `upload.spec.ts` | `upload.html` |
+| A file added mid-drain takes a free slot                      | ✓      | `upload.spec.ts` | `upload.html` |
 | `file-progress` event fires per onProgress() pump             | ✓      | `upload.spec.ts` | `upload.html` |
 | `file-status-change` event fires per status transition       | ✓      | `upload.spec.ts` | `upload.html` |
 | Resume from `context.startBytes` / `startPercent` after pause | ✓      | `upload-edge.spec.ts` | `upload-edge.html` |
@@ -284,7 +285,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Pause all / Resume all / Retry all visibility follows state   | ✓      | `toolbar.spec.ts` | `toolbar.html` |
 | Pause all → all paused; Resume all → handler re-invoked       | ✓      | `toolbar.spec.ts` | `toolbar.html` |
 | Retry all (failed + cancelled) re-runs to completion          | ✓      | `toolbar.spec.ts` | `toolbar.html` |
-| Retry all runs in parallel up to `concurrency`                | ✗      | `toolbar.spec.ts` (test.fail NOTES #9) | `toolbar.html` |
+| Retry all runs in parallel up to `concurrency`                | ✓      | `toolbar.spec.ts` (NOTES #9 fixed) | `toolbar.html` |
 | No pipeline → no Pause / Resume all                           | ✓      | `toolbar.spec.ts` | `toolbar.html` |
 | Popover Clear all (gate honoured, popover closes)             | ✓      | `toolbar.spec.ts` | `toolbar.html` |
 | Popover Add more opens the file dialog                        | ✗      | `toolbar.spec.ts` (test.fail NOTES #10) | `toolbar.html` |

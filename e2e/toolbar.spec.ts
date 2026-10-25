@@ -62,7 +62,6 @@ test.describe('overall-progress bulk actions', () => {
         await expect(btn(page, 'tb', 'retry-all')).toBeVisible();
 
         await btn(page, 'tb', 'retry-all').click();
-        // Serial re-run (see the concurrency test below for NOTES.md #9).
         for (const n of ['e1.txt', 'e2.txt']) {
             await expect.poll(() => pendingNames(page)).toContain(n);
             await resolveUpload(page, n, 'ok');
@@ -72,7 +71,6 @@ test.describe('overall-progress bulk actions', () => {
     });
 
     test('Retry all re-runs failed files in parallel up to `concurrency`', async ({ page }) => {
-        test.fail(true, 'NOTES.md #9');
         await addNamed(page, 'tb', ['e1.txt', 'e2.txt', 'ok.txt']);
         await expect.poll(() => pendingNames(page).then((n) => n.length)).toBe(3);
         await resolveUpload(page, 'ok.txt', 'ok');

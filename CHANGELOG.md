@@ -93,6 +93,10 @@ Types renamed with the events: `FileAddedEventDetail` → `FileAddEventDetail`, 
 
 ### Fixed
 
+- **"Retry all" ignored `concurrency` — failed files re-ran one by one.** The upload worker pool
+  never refilled: workers that found nothing to do exited, and a later `uploadAll()` during a
+  running drain returned early. A call made mid-drain now tops the pool back up to `concurrency`,
+  so bulk retries and files added while uploads run use every free slot.
 - **Satellites bound with `for=` kept a dead store after the store rebuilt** (a mode flip, or
   a DOM move of `<web-dropzone>`) — they held the old engine instance. They now hold the
   store's controller, which always reaches the live store.

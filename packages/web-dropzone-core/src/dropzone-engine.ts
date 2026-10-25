@@ -94,8 +94,17 @@ export class DropzoneEngine {
     /** Set of file IDs currently claimed by a worker. Prevents two workers
      *  from racing onto the same file when the queue is mid-drain. */
     protected activeIds = new Set<string>();
-    /** Re-entrancy guard so simultaneous uploadAll() calls collapse into one. */
+    /** True while the worker pool is draining (at least one worker alive). */
     protected isDrainingQueue = false;
+    /** Number of live upload workers. uploadAll() tops this up to
+     *  `config.concurrency` so a re-entrant call (retryAll's loop, files added
+     *  mid-drain) refills idle slots instead of waiting for a busy worker. */
+    protected activeWorkerCount = 0;
+    /** Settles when the current drain's last worker exits — what every
+     *  uploadAll() call made during that drain resolves with. */
+    private drainPromise: Promise<void> | null = null;
+    private settleDrain: ((error?: unknown) => void) | null = null;
+    private drainError: unknown = undefined;
     /** Pending reorder timers per file id, used to delay the visual move of
      *  a row from the "unresolved" bucket to the "complete" bucket (see
      *  `reorderCompletedDelay`). A file with a pending timer is NOT yet
@@ -641,9 +650,10 @@ export class DropzoneEngine {
         this.mutateFileState(file, { status: 'pending' });
         fileLogger.debug('File retry requested', { id, name: file.name, startPercent: file.progress });
         this.emitRetryEvent(file);
-        // Component-driven mode: re-queue via the worker pool. The pool's
-        // re-entrancy guard collapses simultaneous calls — retryAll calling
-        // retryFile in a loop still triggers one drain pass. Mode B: a
+        // Component-driven mode: re-queue via the worker pool. A call made
+        // mid-drain joins it and refills idle workers up to `concurrency`, so
+        // retryAll calling retryFile in a loop runs the retries in parallel.
+        // Mode B: a
         // per-file handler also qualifies; uploadAll's per-worker filter
         // skips files with neither.
         if (file.uploadFileCallback || this.config.uploadFileCallback) {
@@ -672,15 +682,22 @@ export class DropzoneEngine {
 
     /**
      * Drain the queue of pending files through a worker pool of size
-     * `config.concurrency`. Re-entrant calls collapse into the in-flight run —
-     * the worker pool naturally picks up any files added mid-drain because
-     * each worker re-queries `this.files` on every iteration.
+     * `config.concurrency`. A call made while a drain is running tops the pool
+     * back up to `concurrency` (workers that found nothing to do have already
+     * exited) and resolves with that same drain — so `retryAll()` retrying N
+     * files in a loop, or files added mid-drain, use every free slot.
      */
-    async uploadAll(): Promise<void> {
-        if (this.isDrainingQueue) return;
-
-        this.isDrainingQueue = true;
+    uploadAll(): Promise<void> {
         const concurrency = Math.max(1, this.config.concurrency ?? 1);
+
+        if (!this.drainPromise) {
+            this.isDrainingQueue = true;
+            this.drainError = undefined;
+            this.drainPromise = new Promise<void>((resolve, reject) => {
+                this.settleDrain = (error?: unknown) => (error === undefined ? resolve() : reject(error));
+            });
+        }
+        const drain = this.drainPromise;
 
         // Mode B: skip files that have neither a per-file handler nor a
         // store-level handler. Otherwise the worker spins picking up files
@@ -689,28 +706,47 @@ export class DropzoneEngine {
             !!(f.uploadFileCallback || this.config.uploadFileCallback);
 
         const worker = async (): Promise<void> => {
-            while (true) {
-                const next = this.files.find(f =>
-                    f.status === 'pending' &&
-                    !this.pausedIds.has(f.id) &&
-                    !this.activeIds.has(f.id) &&
-                    hasHandler(f)
-                );
-                if (!next) return;
-                this.activeIds.add(next.id);
-                try {
-                    await this.runUpload(next.id);
-                } finally {
-                    this.activeIds.delete(next.id);
+            try {
+                while (true) {
+                    const next = this.files.find(f =>
+                        f.status === 'pending' &&
+                        !this.pausedIds.has(f.id) &&
+                        !this.activeIds.has(f.id) &&
+                        hasHandler(f)
+                    );
+                    if (!next) return;
+                    this.activeIds.add(next.id);
+                    try {
+                        await this.runUpload(next.id);
+                    } finally {
+                        this.activeIds.delete(next.id);
+                    }
+                }
+            } catch (error) {
+                if (this.drainError === undefined) this.drainError = error;
+            } finally {
+                this.activeWorkerCount--;
+                if (this.activeWorkerCount === 0) {
+                    const settle = this.settleDrain;
+                    const error = this.drainError;
+                    this.isDrainingQueue = false;
+                    this.drainPromise = null;
+                    this.settleDrain = null;
+                    this.drainError = undefined;
+                    settle?.(error);
                 }
             }
         };
 
-        try {
-            await Promise.all(Array.from({ length: concurrency }, () => worker()));
-        } finally {
-            this.isDrainingQueue = false;
+        // Count every new worker before starting any: a worker that finds
+        // nothing exits synchronously, and must not see the count hit 0 (and
+        // settle the drain) while its siblings are still being spawned.
+        const missing = concurrency - this.activeWorkerCount;
+        if (missing > 0) {
+            this.activeWorkerCount += missing;
+            for (let i = 0; i < missing; i++) void worker();
         }
+        return drain;
     }
 
     /**
