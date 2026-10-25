@@ -146,7 +146,6 @@ test.describe('two overlays on one page', () => {
 
 test.describe('overlay-target forms', () => {
     test('the documented selector form overlay-target="#target" also works', async ({ page }) => {
-        test.fail(true, 'NOTES.md #1');
         // Fresh element so the selector is read at first build (no update path involved).
         await page.evaluate(async () => {
             document.getElementById('overlay-dz')!.remove();

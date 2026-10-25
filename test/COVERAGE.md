@@ -180,7 +180,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Escape / dragover-heartbeat timeout close the overlay         | ✓      | `drag-overlay.spec.ts` | `drag-overlay.html` |
 | Two overlays don't steal each other's drags (both close on drop) | ✓   | `drag-overlay.spec.ts` | `drag-overlay.html` |
 | `overlayTarget` property as an HTMLElement                    | ✓      | `drag-overlay.spec.ts` | `drag-overlay.html` |
-| `overlay-target="#id"` (documented selector form)             | ✗      | `drag-overlay.spec.ts` (test.fail NOTES #1) | `drag-overlay.html` |
+| `overlay-target="#id"` (documented selector form)             | ✓      | `drag-overlay.spec.ts` (NOTES #1 fixed) | `drag-overlay.html` |
 
 > Drags are synthetic: a constructed `DataTransfer` carrying real `File`
 > objects reports `types` including `"Files"` in Chromium, so

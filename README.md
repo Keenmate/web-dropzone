@@ -112,7 +112,7 @@ dropzone.controller.clear();
 | `value-format` | `'json' \| 'csv' \| 'array'` | `'json'` | Format for form value serialization |
 | `drop-text` | `string` | `'Drop files here'` | Text shown in drop zone |
 | `drop-hint` | `string` | `'or click to browse'` | Hint text below drop text |
-| `overlay-target` | `string` | - | Element ID for drag overlay (ultra-compact mode) |
+| `overlay-target` | `string` | - | Element ID (or CSS selector, e.g. `#my-form`) for drag overlay (ultra-compact mode) |
 | `overlay-text` | `string` | `'Drop files here'` | Text shown in drag overlay |
 | `overlay-icon` | `string` (raw HTML) | Lucide `upload` | Icon shown in drag overlay. Accepts any HTML (SVG / `<img>` / emoji) — see the [XSS notice](#html-injection-xss-notice) |
 

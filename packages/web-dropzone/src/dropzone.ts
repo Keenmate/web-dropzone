@@ -2578,7 +2578,18 @@ export class WebDropzone extends DropzoneEngine {
 
         // Get target element
         if (typeof this.config.overlayTarget === 'string') {
-            this.overlayTarget = document.getElementById(this.config.overlayTarget);
+            // An element id (README) or a CSS selector (`"#id"`, input-table
+            // docs) — the id wins, so a bare id never goes through selector
+            // parsing (ids like "1x" aren't valid selectors).
+            const target = this.config.overlayTarget;
+            this.overlayTarget = document.getElementById(target);
+            if (!this.overlayTarget) {
+                try {
+                    this.overlayTarget = document.querySelector<HTMLElement>(target);
+                } catch {
+                    this.overlayTarget = null; // not a valid selector — reported below
+                }
+            }
         } else {
             this.overlayTarget = this.config.overlayTarget;
         }

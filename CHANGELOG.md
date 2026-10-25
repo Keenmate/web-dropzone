@@ -93,6 +93,8 @@ Types renamed with the events: `FileAddedEventDetail` → `FileAddEventDetail`, 
 
 ### Fixed
 
+- **`overlay-target="#id"` silently did nothing.** The attribute is documented as a selector,
+  but only a bare element id resolved. Both now work — an id first, then a CSS selector.
 - **Moving `<web-dropzone>` in the DOM lost every file and aborted uploads.** Re-parenting or
   reordering the element destroyed and rebuilt the store (and fired `ready` again). The store is
   now built once; a move only stops and restarts the page-level wiring (drag-overlay listeners,

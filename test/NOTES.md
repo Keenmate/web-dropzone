@@ -10,7 +10,7 @@ Entries #1–#5 are the audit's known bugs DZ-1..DZ-5
 
 ---
 
-## 1. `overlay-target="#id"` silently fails (DZ-1)
+## 1. `overlay-target="#id"` silently fails (DZ-1) — FIXED
 
 **Where:** `packages/web-dropzone/src/web-component.ts:218-227` documents the
 attribute as "Element (or selector string)"; `packages/web-dropzone/src/dropzone.ts:2521-2522`
@@ -26,8 +26,11 @@ drags" explanation was wrong — a constructed `DataTransfer` with a `File` work
 (guard the `querySelector` against an invalid selector), or correct the docs to say
 "element id".
 
-**Test status:** `drag-overlay.html` now uses `overlay-target="target"`; the
-`"#target"` form is pinned as `test.fail` in `drag-overlay.spec.ts`.
+**Fixed (2026-10-25):** a string resolves as an id first, then as a selector
+(`querySelector`, invalid selectors guarded); README documents both forms.
+
+**Test status:** `drag-overlay.html` uses `overlay-target="target"`; the `"#target"` form in
+`drag-overlay.spec.ts` is green.
 
 ## 2. Unconditional `console.log` in auto-retry (DZ-2)
 
