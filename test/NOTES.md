@@ -138,7 +138,7 @@ checked `status === 'complete'`, so it stayed green.)
 
 **Test status:** `upload-edge.spec.ts` › reorder-completed-delay — `test.fail`.
 
-## 8. A cancelled row offers no Retry (new)
+## 8. A cancelled row offers no Retry (new) — FIXED
 
 **Where:** `packages/web-dropzone-core/src/icons.ts:101` `actionForStatus` returns
 `null` for `cancelled`.
@@ -151,7 +151,10 @@ only recovery is the strip's "Retry all" (the engine counts cancelled as failed 
 
 **Suggested fix:** `if (status === 'error' || status === 'cancelled') return 'retry';`
 
-**Test status:** `row-actions.spec.ts` › "a cancelled row offers Retry" — `test.fail`.
+**Fixed (2026-10-25):** `actionForStatus('cancelled')` → `'retry'`.
+
+**Test status:** `row-actions.spec.ts` › "a cancelled row offers Retry" — green (also clicks it
+and sees the upload restart).
 
 ## 9. Worker pool doesn't refill idle workers — Retry all runs serially (new) — FIXED
 

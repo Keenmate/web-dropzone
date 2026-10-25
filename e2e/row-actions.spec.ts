@@ -102,12 +102,13 @@ test.describe('remove ✕', () => {
     });
 
     test('a cancelled row offers Retry (cancelled counts as failed, needs user intervention)', async ({ page }) => {
-        test.fail(true, 'NOTES.md #8');
         await addNamed(page, 'rows', ['c.txt']);
         await expect.poll(() => status(page, 'rows', 'c.txt')).toBe('uploading');
         await removeBtn(page, 'rows', 'c.txt').click();
         await expect.poll(() => status(page, 'rows', 'c.txt')).toBe('cancelled');
         await expect(action(page, 'rows', 'c.txt')).toHaveAttribute('data-row-action', 'retry', { timeout: 1000 });
+        await action(page, 'rows', 'c.txt').click();
+        await expect.poll(() => status(page, 'rows', 'c.txt')).toBe('uploading');
     });
 
     test('✕ on a pending row removes it immediately', async ({ page }) => {

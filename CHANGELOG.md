@@ -93,6 +93,10 @@ Types renamed with the events: `FileAddedEventDetail` → `FileAddEventDetail`, 
 
 ### Fixed
 
+- **A cancelled row offered no Retry.** ✕ on an uploading row cancels it and keeps the row "for
+  the user to recover", but the row's action slot stayed empty — only the strip's "Retry all"
+  could restart it. Cancelled rows now show the Retry action (`actionForStatus('cancelled')` →
+  `'retry'`).
 - **A disabled `<fieldset>` did not disable the dropzone** (it matched `:disabled` but still
   accepted drops and clicks). It now does, and re-enables with the fieldset; `el.disabled` keeps
   reporting the element's own `disabled` value, like a native input.

@@ -101,7 +101,9 @@ export const ACTION_LABELS: Record<RowAction, string> = {
 export function actionForStatus(status: FileStatus): RowAction | null {
     if (status === 'uploading') return 'pause';
     if (status === 'paused')    return 'resume';
-    if (status === 'error')     return 'retry';
+    // Cancelled counts as failed (retryFile / retryAll accept it): the ✕ on
+    // an uploading row cancels and leaves the row for the user to retry.
+    if (status === 'error' || status === 'cancelled') return 'retry';
     return null;
 }
 
