@@ -65,10 +65,12 @@ const EMPTY_PROGRESS: OverallProgress = Object.freeze({
     failedCount: 0,
     uploadingCount: 0,
     pausedCount: 0,
+    pendingCount: 0,
+    cancellingCount: 0,
     percent: 0,
     hasActivity: false,
     aggregateStatus: 'complete'
-}) as OverallProgress;
+}) satisfies OverallProgress;
 
 /** Methods forwarded verbatim; the value is the result when there is no engine yet. */
 const METHODS = {
