@@ -172,7 +172,7 @@
 
         <div class="card" style="background:white;border-radius:12px;padding:1.5rem 2rem;margin-bottom:2rem;box-shadow:0 2px 8px rgba(0,0,0,0.08)">
             <h2 style="margin-top:0">Three modes, one component</h2>
-            <p style="margin-bottom:0.5rem">Pick a mode up-front via the <code>mode</code> attribute — it's a hard switch that decides who renders what.</p>
+            <p style="margin-bottom:0.5rem">Pick a render mode up-front via the <code>render-mode</code> attribute — it's a hard switch that decides who renders what.</p>
             <ul style="margin:0.5rem 0 0;line-height:1.7">
                 <li><strong><code>render-mode="bulk"</code></strong> (default) — framework owns the UI; you style via CSS variables. See <a href="examples-display.html">Display &amp; Composition</a> / <a href="examples-validation.html">Validation</a>.</li>
                 <li><strong><code>render-mode="structural"</code></strong> — framework owns the lifecycle; you provide HTML structure via render callbacks (including <code>renderListWrapperCallback</code> for tables and element-returning rows with <code>file-row-update</code> events). See <a href="examples-structural.html">Structural Rendering</a>.</li>

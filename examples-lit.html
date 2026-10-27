@@ -145,7 +145,7 @@ class LitUploader extends LitElement {
 
         return html`
             &lt;web-dropzone id="lit-store" render-mode="headless" multiple max-file-count="6"&gt;&lt;/web-dropzone&gt;
-            &lt;web-dropzone-picker for="lit-store" selector-appearance="card" label="Drop files for Lit"&gt;&lt;/web-dropzone-picker&gt;
+            &lt;web-dropzone-picker for="lit-store" selector-appearance="card" labels='{"prompt": "Drop files for Lit"}'&gt;&lt;/web-dropzone-picker&gt;
 
             ${this.files.length === 0
                 ? html`&lt;div class="lit-empty"&gt;No files yet — drop something above.&lt;/div&gt;`

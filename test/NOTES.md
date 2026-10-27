@@ -98,7 +98,7 @@ but no `formDisabledCallback(disabled)`.
 still adds the file; nothing reacts to the fieldset state.
 
 **Fixed (2026-10-25):** `formDisabledCallback` keeps a private form-disabled flag; the store
-gets `isDisabled = disabled input || fieldset`. `el.disabled` / the attribute keep the author's
+gets `isDisabled = disabled input || fieldset`. `el.isDisabled` / the attribute keep the author's
 value. (Core candidate: other form-associated components likely have the same gap — a generic
 "form-disabled merged into an input" hook in `BlissElement` would cover them.)
 
@@ -306,6 +306,20 @@ attribute on the file input.
   file + `change` (files can't move to the new store: in-flight handlers are bound to the old one).
 
 **Test status:** `cancel.spec.ts` › "lifecycle bug fixes" — green.
+
+---
+
+## 17. `multiple="false"`: a new file replaced the current one silently — FIXED
+
+Found during the cancel work (2026-10-27), fixed in the naming pass. `commitFiles` did
+`this.files = [acceptedFiles[0]]`: the replaced file's upload kept running (no signal), no
+`file-remove` / `file-delete` fired, and every accepted file of the batch got a `file-add`
+although only the first was kept. Now the replaced file goes through `removeFiles` (cancel rule
+for a running upload — signal + `cancel-timeout`, `file-cancel` — then `file-remove`
+(+ `file-delete`) and `change`; an idle one leaves synchronously before the new `file-add`), and
+the extras of a single-mode batch are rejected with code `count`.
+
+**Test status:** `cancel.spec.ts` › `multiple="false": a new file replaces the current one` — green.
 
 ---
 

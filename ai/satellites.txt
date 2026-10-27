@@ -15,7 +15,7 @@ each other; the topology is a star around the store.
 
 BASIC DECOUPLED LAYOUT
 ----------------------
-<!-- store only: no display attributes -> mode inferred "headless" -->
+<!-- store only: no display attributes -> render mode inferred "headless" -->
 <web-dropzone id="uploads" name="files" max-file-count="20"></web-dropzone>
 
 <form>  ... <web-dropzone-picker for="uploads" selector-appearance="button"></web-dropzone-picker> </form>
@@ -53,12 +53,13 @@ Attributes:
   accept               file-dialog filter (default: store's accept). The store
                        still validates everything.
   multiple             "false" = single-file dialog (default: store's setting)
-  label                card prompt / button text (default labels.prompt /
-                       labels.selectFiles of the store)
-  hint                 card hint (default labels.hint)
+  labels               the picker's own UI strings (JSON / property), merged per
+                       key over the store's labels: prompt (card / minimal),
+                       selectFiles (button / native / big card), hint,
+                       noFileChosen, filesChosen, dragActive
   icon                 raw HTML icon (default: store's icon)
-  no-file-chosen-text  native selector empty text (default labels.noFileChosen)
-  disabled             disables the picker (otherwise follows the store)
+  disabled             disables the picker (otherwise follows the store; a
+                       readonly store blocks adding too)
   inside="true"        files-inside layout: renders a <slot> inside the card;
                        put a <web-dropzone-list nested="true"> as its child
 
@@ -79,7 +80,7 @@ Attributes:
   list-appearance  list (default) | detailed | grid | badges | rolling | popover
   grid-layout      uniform | natural
   grid-status      badge | overlay
-  empty-message    overrides the store's empty-message
+  labels           own UI strings over the store's (e.g. {"empty":"Nothing yet"})
   nested="true"    files-inside class family (child of a picker with inside="true")
 
 Reads from the store config: item-controls, max-visible-file-count,
@@ -122,10 +123,13 @@ Attributes:
   drawer    auto (default): the chip is a <button> that toggles a slide-out
             drawer (role="dialog") embedding a <web-dropzone-list>
             off: the chip is a non-interactive <div role="status">, no drawer
-  label     drawer title (default "Uploads") and idle chip text (default "No uploads")
+  labels    own UI strings over the store's: indicatorTitle (drawer title,
+            "Uploads"), indicatorIdle (idle chip, "No uploads"), indicatorStatus /
+            indicatorQueue (aria), close, indicatorFailed / ...Uploading /
+            ...Paused / ...Queued / ...Done ("{count} failed", ...)
 
 Default chip: spinner / status glyph + label ("N failed" > "N uploading" >
-"N paused" > "N queued" > "N done") + overall percent.
+"N paused" > "N queued" > "N done", from labels) + overall percent.
 Host attributes: data-position, data-drawer, data-drawer-open.
 Shadow parts: ::part(chip), ::part(drawer).
 The chip hides while a non-inline drawer is open.
@@ -180,8 +184,8 @@ Mode A - independent contexts: N stores, each with its own satellites.
 Mode B - one shared queue / list / progress, per-picker upload semantics:
 
 <web-dropzone id="cloud"></web-dropzone>
-<web-dropzone-picker id="pub"  for="cloud" selector-appearance="button" label="Add public files"></web-dropzone-picker>
-<web-dropzone-picker id="priv" for="cloud" selector-appearance="button" label="Add private files"></web-dropzone-picker>
+<web-dropzone-picker id="pub"  for="cloud" selector-appearance="button" labels='{"selectFiles":"Add public files"}'></web-dropzone-picker>
+<web-dropzone-picker id="priv" for="cloud" selector-appearance="button" labels='{"selectFiles":"Add private files"}'></web-dropzone-picker>
 <web-dropzone-list      for="cloud" list-appearance="rolling"></web-dropzone-list>
 <web-dropzone-indicator for="cloud" position="right"></web-dropzone-indicator>
 

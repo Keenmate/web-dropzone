@@ -460,8 +460,8 @@
             <div class="code-block">
 <pre>&lt;web-dropzone id="uploads"&gt;&lt;/web-dropzone&gt;
 
-&lt;web-dropzone-picker id="picker-public"  for="uploads" label="Public"&gt;&lt;/web-dropzone-picker&gt;
-&lt;web-dropzone-picker id="picker-private" for="uploads" label="Private"&gt;&lt;/web-dropzone-picker&gt;
+&lt;web-dropzone-picker id="picker-public"  for="uploads" labels='{"prompt": "Public"}'&gt;&lt;/web-dropzone-picker&gt;
+&lt;web-dropzone-picker id="picker-private" for="uploads" labels='{"prompt": "Private"}'&gt;&lt;/web-dropzone-picker&gt;
 
 &lt;web-dropzone-list for="uploads"&gt;&lt;/web-dropzone-list&gt;
 
@@ -505,7 +505,6 @@
             <web-dropzone-indicator
                 for="dz-indicator"
                 position="right"
-                label="Uploads"
             ></web-dropzone-indicator>
         </section>
 
@@ -1287,7 +1286,7 @@ store.addEventListener('files-change', (e) =&gt; {
             });
         }
 
-        // --- Use case F: BYO renderer (mode=headless + files-change) ---
+        // --- Use case F: BYO renderer (render-mode=headless + files-change) ---
         // The dropzone is a pure store; the <ul> below is owned by this
         // script. One listener, one diff per rAF. No satellites involved.
         const dzByo = document.getElementById('dz-byo');

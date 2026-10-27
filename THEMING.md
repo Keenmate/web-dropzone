@@ -1,477 +1,455 @@
-# Theming Reference
+# Theming Reference — `@keenmate/web-dropzone`
 
-Complete reference for all component states and their CSS variables for theming the `@keenmate/web-multiselect` component.
+Every visual of `<web-dropzone>` and its satellites (`<web-dropzone-picker>`, `-list`, `-indicator`, `-progress`) is a CSS custom property. Set them on `<web-dropzone>`, on any ancestor, or on `:root`; they inherit into the satellites the element mounts internally (bulk render mode).
 
----
+This file is generated from [`packages/web-dropzone/component-variables.manifest.json`](packages/web-dropzone/component-variables.manifest.json) (also exported as `@keenmate/web-dropzone/manifest`). Usage-oriented guidance — quick themes, `--dz-rem` sizing, dark mode, the `@layer` cascade, RTL — lives in [`ai/styling-theming.txt`](ai/styling-theming.txt) and the README's *Styling* section.
 
-## Table of Contents
-
-- [Options](#options)
-- [Checkbox](#checkbox)
-- [Input](#input)
-- [Toggle Icon](#toggle-icon)
-- [Counter Badge (in Input)](#counter-badge-in-input)
-- [Dropdown](#dropdown)
-- [Action Buttons](#action-buttons)
-- [Badges](#badges)
-- [Badge Counter Variant](#badge-counter-variant)
-- [Count Display Mode](#count-display-mode)
-- [Tooltip](#tooltip)
-- [Selected Popover](#selected-popover)
-- [Scrollbar](#scrollbar)
-- [Global](#global)
-
----
-
-## Options
-
-Individual dropdown option items.
-
-| State | CSS Class | CSS Variables |
-|-------|-----------|---------------|
-| **Default** | `.ms__option` | `--ms-option-background`, `--ms-option-text-color` |
-| **Hover** | `:hover` | `--ms-option-background-hover`, `--ms-option-color-hover` |
-| **Focused** | `--focused` | `--ms-option-background-focused`, `--ms-option-color-focused`, `--ms-option-outline-focused`, `--ms-option-focus-outline-offset` |
-| **Matched** | `--matched` | `--ms-option-background-matched`, `--ms-option-color-matched`, `--ms-option-border-matched` |
-| **Selected** | `--selected` | `--ms-option-background-selected`, `--ms-option-color-selected` |
-| **Disabled** | `--disabled` | `--ms-disabled-opacity` |
-| **Focused + Hover** | `--focused:hover` | `--ms-option-bg-focused-hover`, `--ms-option-color-focused-hover` |
-| **Matched + Hover** | `--matched:hover` | `--ms-option-bg-matched-hover`, `--ms-option-color-matched-hover` |
-| **Selected + Hover** | `--selected:hover` | `--ms-option-bg-selected-hover`, `--ms-option-color-selected-hover` |
-| **Selected + Focused** | `--selected--focused` | `--ms-option-bg-selected-focused`, `--ms-option-color-selected-focused` |
-| **Selected + Matched** | `--selected--matched` | `--ms-option-bg-selected-matched`, `--ms-option-color-selected-matched` |
-| **Disabled + Selected** | `--disabled--selected` | `--ms-option-bg-disabled-selected`, `--ms-option-color-disabled-selected` |
-| **Disabled + Focused** | `--disabled--focused` | *(outline removed)* |
-| **Disabled + Hover** | `--disabled:hover` | *(resets to default background)* |
-
-### Option Content
-
-| Element | CSS Variables |
-|---------|---------------|
-| **Title** | `--ms-option-title-font-size`, `--ms-option-title-color` |
-| **Subtitle** | `--ms-option-subtitle-font-size`, `--ms-option-subtitle-color`, `--ms-option-subtitle-margin-top`, `--ms-option-subtitle-line-height` |
-| **Subtitle (hover)** | `--ms-option-subtitle-color-hover` |
-| **Subtitle (selected)** | `--ms-option-subtitle-color-selected` |
-| **Subtitle (selected+hover)** | `--ms-option-subtitle-color-selected-hover` |
-| **Icon** | `--ms-option-icon-size`, `--ms-option-icon-font-size` |
-| **Mark (highlight)** | `--ms-option-mark-background`, `--ms-option-mark-color`, `--ms-option-mark-font-weight` |
-
----
-
-## Checkbox
-
-Custom-styled checkbox within options.
-
-| State | Selector | CSS Variables |
-|-------|----------|---------------|
-| **Default** | `.ms__checkbox` | `--ms-checkbox-bg`, `--ms-checkbox-border`, `--ms-checkbox-border-radius`, `--ms-checkbox-size`, `--ms-checkbox-scale` |
-| **Hover** | `:hover:not(:disabled)` | `--ms-checkbox-hover-border-color` |
-| **Checked** | `:checked` | `--ms-checkbox-checked-bg`, `--ms-checkbox-checked-border`, `--ms-checkbox-checkmark-color` |
-| **Checked + Hover** | `:checked:hover:not(:disabled)` | `--ms-checkbox-checked-bg-hover`, `--ms-checkbox-checked-border-color-hover` |
-| **Focus** | `:focus-visible` | *(uses `--ms-checkbox-checked-bg` for outline)* |
-| **Disabled** | `:disabled` | `--ms-checkbox-disabled-bg`, `--ms-checkbox-disabled-border` |
-| **Checked + Disabled** | `:checked:disabled` | *(uses disabled background)* |
-
-### Checkbox Positioning
-
-| Property | CSS Variable |
-|----------|--------------|
-| **Alignment** | `--ms-checkbox-align` (`flex-start`, `center`, `flex-end`) |
-| **Margins** | `--ms-checkbox-margin-top`, `--ms-checkbox-margin-right`, `--ms-checkbox-margin-bottom`, `--ms-checkbox-margin-left` |
-
----
-
-## Input
-
-The search/selection input field.
-
-| State | Selector | CSS Variables |
-|-------|----------|---------------|
-| **Default** | `.ms__input` | `--ms-input-background`, `--ms-input-color`, `--ms-input-border-style`, `--ms-input-border-radius`, `--ms-input-font-size`, `--ms-input-padding`, `--ms-input-padding-right` |
-| **Hover** | `:hover:not(:focus):not(:disabled)` | `--ms-input-border-color-hover` |
-| **Focus** | `:focus` | `--ms-input-border-color-focus` |
-| **Placeholder** | `::placeholder` | `--ms-input-placeholder-color`, `--ms-placeholder-opacity` |
-| **Disabled** | `.ms--disabled .ms__input` | `--ms-input-background-disabled`, `--ms-disabled-input-opacity` |
-
-### Input Sizing
-
-The component uses `--ms-rem` for proportional scaling. Default is `10px`.
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `--ms-rem` | `10px` | Base unit for all sizing calculations |
-| `--ms-input-height` | `calc(3.5 * var(--ms-rem))` | Input field height (35px) |
-| `--ms-input-padding` | `calc(0.8 * var(--ms-rem)) calc(1.2 * var(--ms-rem))` | Input padding |
-| `--ms-input-font-size` | `calc(1.4 * var(--ms-rem))` | Input font size (14px) |
-
-**Scale Examples:**
-- `--ms-rem: 8px` → 80% size (compact)
-- `--ms-rem: 10px` → 100% size (default)
-- `--ms-rem: 12px` → 120% size (large)
-- `--ms-rem: 1rem` → Pure Admin integration (inherits from `html { font-size: 10px }`)
-
----
-
-## Toggle Icon
-
-The dropdown arrow/chevron icon.
-
-| State | Selector | CSS Variables |
-|-------|----------|---------------|
-| **Default** | `.ms__toggle` | `--ms-toggle-icon-color`, `--ms-toggle-right` |
-| **Open** | `.ms--open .ms__toggle` | `--ms-toggle-icon-color-open`, `--ms-transform-rotate-180` |
-| **Disabled** | `.ms--disabled .ms__toggle` | `--ms-disabled-input-opacity` |
-
----
-
-## Counter Badge (in Input)
-
-Small badge showing selection count inside the input.
-
-| State | Selector | CSS Variables |
-|-------|----------|---------------|
-| **Default** | `.ms__counter` | `--ms-counter-badge-background`, `--ms-counter-badge-color`, `--ms-counter-font-size`, `--ms-counter-font-weight`, `--ms-counter-border-radius`, `--ms-counter-padding`, `--ms-counter-offset` |
-| **Hover** | `:hover` | `--ms-counter-badge-background-hover`, `--ms-transform-scale-hover` |
-
----
-
-## Dropdown
-
-The floating options container.
-
-| State | Selector | CSS Variables |
-|-------|----------|---------------|
-| **Default** | `.ms__dropdown` | `--ms-dropdown-background`, `--ms-dropdown-text-color`, `--ms-dropdown-border`, `--ms-dropdown-border-radius`, `--ms-dropdown-box-shadow`, `--ms-options-max-height`, `--ms-z-index-dropdown` |
-| **Visible** | `--visible` | *(display: block)* |
-
-### Floating Hint
-
-| State | CSS Variables |
-|-------|---------------|
-| **Default** | `--ms-hint-background`, `--ms-hint-color`, `--ms-hint-border`, `--ms-hint-border-radius`, `--ms-hint-box-shadow`, `--ms-hint-font-size`, `--ms-hint-padding` |
-
-### Groups
-
-| Element | CSS Variables |
-|---------|---------------|
-| **Group separator** | `--ms-group-border-top`, `--ms-group-margin-top`, `--ms-group-padding-top` |
-| **Group label** | `--ms-group-label-color`, `--ms-group-label-font-size`, `--ms-group-label-font-weight`, `--ms-group-label-padding`, `--ms-group-label-transform`, `--ms-group-label-letter-spacing` |
-
-### Empty & Loading States
-
-| State | CSS Variables |
-|-------|---------------|
-| **Empty** | `--ms-empty-color`, `--ms-empty-font-size`, `--ms-empty-padding` |
-| **Loading** | `--ms-loading-color`, `--ms-loading-text-font-size`, `--ms-loader-padding`, `--ms-loader-gap` |
-
----
-
-## Action Buttons
-
-Select All / Clear All buttons in dropdown.
-
-| State | Selector | CSS Variables |
-|-------|----------|---------------|
-| **Container** | `.ms__actions` | `--ms-actions-background`, `--ms-actions-border-bottom`, `--ms-actions-padding`, `--ms-actions-gap` |
-| **Default** | `.ms__action-btn` | `--ms-action-button-background`, `--ms-action-button-color`, `--ms-action-btn-border`, `--ms-action-btn-border-radius`, `--ms-action-btn-font-size`, `--ms-action-btn-padding` |
-| **Hover** | `:hover` | `--ms-action-button-background-hover`, `--ms-action-button-border-color-hover` |
-| **Active** | `:active` | `--ms-transform-scale-active` |
-| **Disabled** | `:disabled` | `--ms-disabled-opacity` |
-
----
-
-## Badges
-
-Selected item badges displayed outside the dropdown.
-
-| State | Selector | CSS Variables |
-|-------|----------|---------------|
-| **Container** | `.ms__badges` | `--ms-badges-gap`, `--ms-badges-margin-top`, `--ms-badges-margin-bottom`, `--ms-badges-margin-left`, `--ms-badges-margin-right` |
-| **Badge** | `.ms__badge` | `--ms-badge-height`, `--ms-badge-font-size`, `--ms-badge-font-weight`, `--ms-badge-border-radius` |
-| **Badge Text** | `.ms__badge-text` | `--ms-badge-text-background`, `--ms-badge-text-color`, `--ms-badge-text-padding`, `--ms-badge-text-border` |
-| **Badge Hover** | `.ms__badge:hover .ms__badge-text` | `--ms-badge-text-background-hover`, `--ms-badge-text-color-hover` |
-| **Remove Button** | `.ms__badge-remove` | `--ms-badge-remove-background`, `--ms-badge-remove-color`, `--ms-badge-remove-border`, `--ms-badge-remove-width`, `--ms-badge-remove-font-size` |
-| **Remove Hover** | `.ms__badge-remove:hover` | `--ms-badge-remove-background-hover` |
-| **Remove Focus** | `.ms__badge-remove:focus` | `--ms-badge-remove-box-shadow-focus` |
-
-### Badge Border Styling
-
-Badges have **separate borders** for the text part and remove button, allowing different colors:
+## Quick theme
 
 ```css
-web-multiselect {
-  /* Text part - light pink border */
-  --ms-badge-text-background: #f8d7da;
-  --ms-badge-text-border: 1px solid #f8d7da;
-
-  /* Button part - dark red border matching background */
-  --ms-badge-remove-background: #bb0a30;
-  --ms-badge-remove-border: 1px solid #bb0a30;
+web-dropzone {
+  --dz-accent-color: #10b981;
+  --dz-dropzone-border-radius: 1rem;
+  --dz-rem: 12px; /* scale the whole instance (default 10px) */
 }
 ```
 
----
+## Host state hooks
 
-## Badge Counter Variant
+| Hook | When |
+|---|---|
+| `[ready]` / `:state(ready)` | After the first build (core) — FOUC guard: `web-dropzone:not([ready]) { visibility: hidden }` |
+| `[disabled]` / `:disabled` | Disabled (also via an ancestor `<fieldset disabled>`) |
+| `[readonly]` | Read-only (surface modifier `.dz__dropzone--readonly`) |
+| `[data-context-theme]` | Page theme mirrored by web-components-core (dark / light) |
 
-Gray/neutral badges for "+X more", count indicators, compact mode.
+## Shared theme layer (`--base-*`)
 
-| State | Selector | CSS Variables |
-|-------|----------|---------------|
-| **Container** | `.ms__badge--counter` | `--ms-badge-counter-border` |
-| **Text** | `.ms__badge--counter .ms__badge-text` | `--ms-badge-counter-text-background`, `--ms-badge-counter-text-color` |
-| **Remove** | `.ms__badge--counter .ms__badge-remove` | `--ms-badge-counter-remove-background`, `--ms-badge-counter-remove-color` |
-| **Remove Hover** | `.ms__badge--counter .ms__badge-remove:hover` | `--ms-badge-counter-remove-background-hover` |
+The `--dz-*` tokens fall back to the KeenMate theme taxonomy, so a page theme (Theme Designer / pure-admin) themes the dropzone without any `--dz-*` override.
 
-### "+X More" Badge
+| Variable | Usage |
+|---|---|
+| `--base-primary-color` | Primary brand / focus color. Card border on drag-over, focus outline, progress fill. |
+| `--base-primary-color-hover` | Hover state for accent surfaces. |
+| `--base-primary-color-active` | Pressed state for accent surfaces. |
+| `--base-primary-bg-subtle` | Light tint of accent — selected-row backgrounds, range highlights. |
+| `--base-text-color-1` | Primary body text — file names, dropzone prompt. |
+| `--base-text-color-2` | Secondary text — file metadata, summary line. |
+| `--base-shadow-color` | Shadow colour for the popover, drag indicator and overlay hover (one tone with pure-admin) |
+| `--base-text-color-3` | Muted text — hints, empty state, file-size labels. |
+| `--base-on-primary-text-color` | Text laid over accent surfaces — progress fill labels. |
+| `--base-main-bg` | Primary surface — dropzone card, popover body, file-item background. |
+| `--base-elevated-bg` | Elevated surface — popover header/footer, secondary buttons. |
+| `--base-hover-bg` | Adaptive hover background (chains through color-mix of text into main-bg at 8%). |
+| `--base-border-color` | Default border / separator color — dropzone dashed border, item separator. |
+| `--base-danger-color` | Validation errors, error-state borders, remove-button hover. |
+| `--base-success-color` | Completed-upload borders + status icon. Component-local extension to the canonical taxonomy. |
+| `--base-warning-color` | Warning-state borders + status icon. Component-local extension to the canonical taxonomy. |
+| `--base-font-family` | Font family for all component text. |
+| `--base-font-size-xs` | Smallest text — hints, badge font, popover limits. |
+| `--base-font-size-sm` | Standard text — prompts, item names, buttons. |
+| `--base-font-size-base` | Body text size. |
+| `--base-font-weight-normal` | Normal text weight. |
+| `--base-font-weight-semibold` | Header / emphasis weight — popover header, item name. |
+| `--base-line-height-normal` | Default line-height multiplier. |
+| `--base-border-radius-sm` | Tight corners — buttons, summary line, file items. |
+| `--base-border-radius-md` | Standard corners — preview tiles. |
+| `--base-border-radius-lg` | Large corners — dropzone card, popover. |
 
-| State | CSS Variables |
-|-------|---------------|
-| **Default** | `--ms-more-badge-bg` |
-| **Hover** | `--ms-more-badge-hover-bg` |
-| **Active** | `--ms-more-badge-active-bg` |
+## Component variables (`--dz-*`)
 
----
+- [accent](#accent)
+- [surface](#surface)
+- [badges](#badges)
+- [radius](#radius)
+- [selector](#selector)
+- [state](#state)
+- [dropzone](#dropzone)
+- [dropzone-card](#dropzone-card)
+- [motion](#motion)
+- [empty-state](#empty-state)
+- [semantic](#semantic)
+- [file-list](#file-list)
+- [typography](#typography)
+- [icons](#icons)
+- [file-item](#file-item)
+- [progress](#progress)
+- [overlay](#overlay)
+- [popover](#popover)
+- [preview-grid](#preview-grid)
+- [rolling](#rolling)
+- [show-more](#show-more)
+- [summary](#summary)
+- [text](#text)
 
-## Count Display Mode
+### accent
 
-Alternative to badges - shows "X selected" with clear button.
+| Variable | Usage |
+|---|---|
+| `--dz-accent-bg` | accent bg |
+| `--dz-accent-color` | accent color |
+| `--dz-accent-color-active` | accent color active |
+| `--dz-accent-color-hover` | accent color hover |
+| `--dz-accent-color-light` | accent color light |
+| `--dz-accent-color-light-hover` | accent color light hover |
 
-| State | Selector | CSS Variables |
-|-------|----------|---------------|
-| **Container** | `.ms__count-display` | `--ms-count-display-margin-top`, `--ms-count-display-margin-bottom`, `--ms-count-display-margin-left`, `--ms-count-display-margin-right` |
-| **Wrapper** | `.ms__counter-wrapper` | `--ms-counter-wrapper-background`, `--ms-counter-wrapper-border`, `--ms-counter-wrapper-border-radius`, `--ms-counter-wrapper-padding`, `--ms-counter-wrapper-gap` |
-| **Wrapper Hover** | `.ms__counter-wrapper:hover` | `--ms-counter-wrapper-background-hover`, `--ms-counter-wrapper-border-color-hover` |
-| **Text** | `.ms__count-text` | `--ms-count-text-color`, `--ms-count-text-font-size`, `--ms-count-text-bg`, `--ms-count-text-border` |
-| **Clear Button** | `.ms__count-clear` | `--ms-count-clear-background`, `--ms-count-clear-color`, `--ms-count-clear-size`, `--ms-count-clear-font-size`, `--ms-count-clear-border-radius` |
-| **Clear Hover** | `.ms__count-clear:hover` | `--ms-count-clear-background-hover`, `--ms-count-clear-color-hover` |
+### surface
 
----
+| Variable | Usage |
+|---|---|
+| `--dz-background` | background |
+| `--dz-border-color` | border color |
+| `--dz-hover-bg` | hover bg |
+| `--dz-primary-bg` | primary bg |
+| `--dz-primary-bg-hover` | primary bg hover |
+| `--dz-surface-color` | surface color |
 
-## Tooltip
+### badges
 
-Badge tooltips showing full text on hover.
+| Variable | Usage |
+|---|---|
+| `--dz-badge-action-size` | badge action size |
+| `--dz-badge-border-radius` | badge border radius |
+| `--dz-badge-font-size` | badge font size |
+| `--dz-badge-font-weight` | badge font weight |
+| `--dz-badge-height` | badge height |
+| `--dz-badge-icon-bg` | badge icon bg |
+| `--dz-badge-icon-border-radius` | badge icon border radius |
+| `--dz-badge-icon-font-size` | badge icon font size |
+| `--dz-badge-icon-size` | badge icon size |
+| `--dz-badge-max-width` | badge max width |
+| `--dz-badge-more-bg` | badge more bg |
+| `--dz-badge-more-bg-hover` | badge more bg hover |
+| `--dz-badge-more-color` | badge more color |
+| `--dz-badge-remove-bg` | badge remove bg |
+| `--dz-badge-remove-bg-hover` | badge remove bg hover |
+| `--dz-badge-remove-border` | badge remove border |
+| `--dz-badge-remove-box-shadow-focus` | badge remove box shadow focus |
+| `--dz-badge-remove-color` | badge remove color |
+| `--dz-badge-remove-color-hover` | badge remove color hover |
+| `--dz-badge-remove-icon-size` | badge remove icon size |
+| `--dz-badge-remove-width` | badge remove width |
+| `--dz-badge-status-icon-size` | badge status icon size |
+| `--dz-badge-text-bg` | badge text bg |
+| `--dz-badge-text-bg-hover` | badge text bg hover |
+| `--dz-badge-text-border` | badge text border |
+| `--dz-badge-text-color` | badge text color |
+| `--dz-badge-text-color-hover` | badge text color hover |
+| `--dz-badge-text-padding` | badge text padding |
+| `--dz-badges-gap` | badges gap |
 
-| State | Selector | CSS Variables |
-|-------|----------|---------------|
-| **Default** | `.ms__badge-tooltip` | `--ms-tooltip-background`, `--ms-tooltip-text-color`, `--ms-tooltip-padding`, `--ms-tooltip-border-radius`, `--ms-tooltip-font-size`, `--ms-tooltip-max-width`, `--ms-tooltip-shadow`, `--ms-tooltip-z-index` |
-| **Visible** | `--visible` | *(opacity: 1, visibility: visible)* |
+### radius
 
----
+| Variable | Usage |
+|---|---|
+| `--dz-border-radius-lg` | border radius lg |
+| `--dz-border-radius-md` | border radius md |
+| `--dz-border-radius-sm` | border radius sm |
 
-## Selected Popover
+### selector
 
-Popover showing all selected items (for count display mode).
+| Variable | Usage |
+|---|---|
+| `--dz-button-badge-border-radius` | button badge border radius |
+| `--dz-button-font-size` | button font size |
+| `--dz-button-padding` | button padding |
+| `--dz-minimal-icon-size` | minimal icon size |
+| `--dz-minimal-size` | minimal size |
 
-| State | Selector | CSS Variables |
-|-------|----------|---------------|
-| **Container** | `.ms__selected-popover` | `--ms-selected-popover-background`, `--ms-selected-popover-border`, `--ms-selected-popover-border-radius`, `--ms-selected-popover-box-shadow`, `--ms-selected-popover-width`, `--ms-selected-popover-max-height`, `--ms-z-index-popover` |
-| **Header** | `.ms__selected-popover-header` | `--ms-selected-popover-header-background`, `--ms-selected-popover-header-color`, `--ms-selected-popover-header-border-bottom`, `--ms-selected-popover-header-font-size`, `--ms-selected-popover-header-font-weight`, `--ms-selected-popover-header-padding` |
-| **Close Button** | `.ms__selected-popover-close` | `--ms-selected-popover-close-background`, `--ms-selected-popover-close-color`, `--ms-selected-popover-close-font-size`, `--ms-selected-popover-close-border-radius`, `--ms-popover-close-size` |
-| **Close Hover** | `.ms__selected-popover-close:hover` | `--ms-selected-popover-close-background-hover`, `--ms-selected-popover-close-color-hover` |
-| **Body** | `.ms__selected-popover-body` | `--ms-selected-popover-body-padding`, `--ms-selected-popover-body-gap`, `--ms-selected-popover-body-max-height` |
+### state
 
----
+| Variable | Usage |
+|---|---|
+| `--dz-disabled-opacity` | disabled opacity |
 
-## Scrollbar
+### dropzone
 
-Custom scrollbar styling for dropdown and popover.
+| Variable | Usage |
+|---|---|
+| `--dz-dropzone-bg` | dropzone bg |
+| `--dz-dropzone-bg-active` | dropzone bg active |
+| `--dz-dropzone-bg-hover` | dropzone bg hover |
+| `--dz-dropzone-border` | dropzone border |
+| `--dz-dropzone-border-active` | dropzone border active |
+| `--dz-dropzone-border-radius` | dropzone border radius |
+| `--dz-dropzone-hint-color` | dropzone hint color |
+| `--dz-dropzone-hint-font-size` | dropzone hint font size |
+| `--dz-dropzone-icon-color` | dropzone icon color |
+| `--dz-dropzone-icon-size` | dropzone icon size |
+| `--dz-dropzone-min-height` | dropzone min height |
+| `--dz-dropzone-padding` | dropzone padding |
+| `--dz-dropzone-text-color` | dropzone text color |
+| `--dz-dropzone-text-font-size` | dropzone text font size |
 
-| Element | CSS Variables |
-|---------|---------------|
-| **Width** | `--ms-scrollbar-width` |
-| **Track** | `--ms-scrollbar-track-bg` |
-| **Thumb** | `--ms-scrollbar-thumb-bg`, `--ms-scrollbar-thumb-border-radius` |
-| **Thumb Hover** | `--ms-scrollbar-thumb-bg-hover` |
+### dropzone-card
 
----
+| Variable | Usage |
+|---|---|
+| `--dz-dropzone-card-big-icon-size` | dropzone card big icon size |
+| `--dz-dropzone-card-big-min-height` | dropzone card big min height |
+| `--dz-dropzone-card-big-padding` | dropzone card big padding |
+| `--dz-dropzone-card-big-text-font-size` | dropzone card big text font size |
+| `--dz-dropzone-card-minimal-icon-size` | dropzone card minimal icon size |
+| `--dz-dropzone-card-minimal-min-height` | dropzone card minimal min height |
+| `--dz-dropzone-card-minimal-padding` | dropzone card minimal padding |
+| `--dz-dropzone-card-minimal-text-font-size` | dropzone card minimal text font size |
 
-## Global
+### motion
 
-### Colors
+| Variable | Usage |
+|---|---|
+| `--dz-easing-snappy` | easing snappy |
+| `--dz-transition-fast` | transition fast |
+| `--dz-transition-normal` | transition normal |
 
-| Variable | Description |
-|----------|-------------|
-| `--ms-accent-color` | Primary accent color |
-| `--ms-accent-color-hover` | Accent color on hover |
-| `--ms-accent-color-active` | Accent color when active |
-| `--ms-text-primary` | Primary text color |
-| `--ms-text-secondary` | Secondary/muted text color |
-| `--ms-text-on-accent` | Text color on accent backgrounds (for contrast) |
-| `--ms-primary-bg` | Primary background color |
-| `--ms-primary-bg-hover` | Background on hover |
-| `--ms-border-color` | Default border color |
+### empty-state
 
-### Typography
+| Variable | Usage |
+|---|---|
+| `--dz-empty-color` | empty color |
+| `--dz-empty-font-size` | empty font size |
+| `--dz-empty-padding` | empty padding |
 
-| Variable | Description | Theme Designer Integration |
-|----------|-------------|---------------------------|
-| `--ms-font-family` | Font family | Falls back to `--base-font-family` |
-| `--ms-font-size-2xs` | 10px | Falls back to `--base-font-size-2xs` |
-| `--ms-font-size-xs` | 12px | Falls back to `--base-font-size-xs` |
-| `--ms-font-size-sm` | 14px | Falls back to `--base-font-size-sm` |
-| `--ms-font-size-base` | 16px | Falls back to `--base-font-size-base` |
-| `--ms-font-size-lg` | 18px | Falls back to `--base-font-size-lg` |
-| `--ms-font-weight-normal` | 400 | Falls back to `--base-font-weight-normal` |
-| `--ms-font-weight-medium` | 500 | Falls back to `--base-font-weight-medium` |
-| `--ms-font-weight-semibold` | 600 | Falls back to `--base-font-weight-semibold` |
-| `--ms-line-height-none` | 1 | *(no base equivalent)* |
-| `--ms-line-height-tight` | 1.25 | Falls back to `--base-line-height-tight` |
-| `--ms-line-height-normal` | 1.5 | Falls back to `--base-line-height-normal` |
-| `--ms-line-height-relaxed` | 1.75 | Falls back to `--base-line-height-relaxed` |
+### semantic
 
-#### Theme Designer Integration
+| Variable | Usage |
+|---|---|
+| `--dz-error-bg` | error bg |
+| `--dz-error-color` | error color |
+| `--dz-success-bg` | success bg |
+| `--dz-success-color` | success color |
+| `--dz-warning-bg` | warning bg |
+| `--dz-warning-color` | warning color |
 
-When using the `@keenmate/theme-designer`, set the `--base-*` CSS variables and they will automatically be applied to the component:
+### file-list
 
-```css
-/* Set by theme-designer (or manually) */
-:root {
-  --base-font-family: "Inter", system-ui, sans-serif;
-  --base-font-size-sm: 1.4rem;
-  --base-font-weight-semibold: 600;
-  --base-line-height-normal: 1.5;
-}
+| Variable | Usage |
+|---|---|
+| `--dz-file-list-gap` | file list gap |
+| `--dz-file-list-margin-top` | file list margin top |
 
-/* The component picks these up automatically */
-web-multiselect {
-  /* --ms-font-family resolves to var(--base-font-family, inherit) */
-  /* --ms-font-size-sm resolves to var(--base-font-size-sm, ...) */
-}
-```
+### typography
 
-### Spacing
+| Variable | Usage |
+|---|---|
+| `--dz-font-size-base` | font size base |
+| `--dz-font-size-lg` | font size lg |
+| `--dz-font-size-sm` | font size sm |
+| `--dz-font-size-xs` | font size xs |
+| `--dz-font-weight-medium` | font weight medium |
+| `--dz-font-weight-normal` | font weight normal |
+| `--dz-font-weight-semibold` | font weight semibold |
+| `--dz-line-height-normal` | line height normal |
+| `--dz-line-height-tight` | line height tight |
 
-| Variable | Description |
-|----------|-------------|
-| `--ms-spacing-xs` | 4px |
-| `--ms-spacing-sm` | 8px |
-| `--ms-spacing-md` | 12px |
-| `--ms-spacing-lg` | 16px |
+### icons
 
-### Transitions
+| Variable | Usage |
+|---|---|
+| `--dz-icon-remove` | icon remove |
+| `--dz-status-icon-size` | status icon size |
+| `--dz-status-spin-duration` | status spin duration |
 
-| Variable | Description |
-|----------|-------------|
-| `--ms-transition-fast` | 150ms |
-| `--ms-transition-normal` | 200ms |
-| `--ms-easing-snappy` | cubic-bezier(0.4, 0, 0.2, 1) |
+### file-item
 
-### Base Unit
+| Variable | Usage |
+|---|---|
+| `--dz-item-action-bg` | item action bg |
+| `--dz-item-action-bg-hover` | item action bg hover |
+| `--dz-item-action-color` | item action color |
+| `--dz-item-action-color-hover` | item action color hover |
+| `--dz-item-action-icon-size` | item action icon size |
+| `--dz-item-action-size` | item action size |
+| `--dz-item-bg` | item bg |
+| `--dz-item-bg-hover` | item bg hover |
+| `--dz-item-border` | item border |
+| `--dz-item-border-radius` | item border radius |
+| `--dz-item-icon-bg` | item icon bg |
+| `--dz-item-icon-color` | item icon color |
+| `--dz-item-icon-font-size` | item icon font size |
+| `--dz-item-icon-size` | item icon size |
+| `--dz-item-meta-color` | item meta color |
+| `--dz-item-meta-font-size` | item meta font size |
+| `--dz-item-name-color` | item name color |
+| `--dz-item-name-font-size` | item name font size |
+| `--dz-item-name-font-weight` | item name font weight |
+| `--dz-item-padding` | item padding |
+| `--dz-item-progress-text-width` | item progress text width |
+| `--dz-item-progress-width` | item progress width |
+| `--dz-item-remove-bg` | item remove bg |
+| `--dz-item-remove-bg-hover` | item remove bg hover |
+| `--dz-item-remove-color` | item remove color |
+| `--dz-item-remove-color-hover` | item remove color hover |
+| `--dz-item-remove-icon-size` | item remove icon size |
+| `--dz-item-remove-size` | item remove size |
+| `--dz-item-status-width` | item status width |
 
-| Variable | Description |
-|----------|-------------|
-| `--ms-rem` | Base sizing unit (default: 10px). Set to `1rem` for Pure Admin integration. |
+### progress
 
----
+| Variable | Usage |
+|---|---|
+| `--dz-overall-progress-action-bg-hover` | overall progress action bg hover |
+| `--dz-overall-progress-action-border-radius` | overall progress action border radius |
+| `--dz-overall-progress-action-color` | overall progress action color |
+| `--dz-overall-progress-action-font-size` | overall progress action font size |
+| `--dz-overall-progress-action-font-weight` | overall progress action font weight |
+| `--dz-overall-progress-action-padding` | overall progress action padding |
+| `--dz-overall-progress-bar-height` | overall progress bar height |
+| `--dz-overall-progress-gap` | overall progress gap |
+| `--dz-overall-progress-padding` | overall progress padding |
+| `--dz-overall-progress-percent-color` | overall progress percent color |
+| `--dz-overall-progress-percent-font-weight` | overall progress percent font weight |
+| `--dz-overall-progress-percent-min-width` | overall progress percent min width |
+| `--dz-overall-progress-stats-color` | overall progress stats color |
+| `--dz-overall-progress-stats-font-size` | overall progress stats font size |
+| `--dz-progress-bg` | progress bg |
+| `--dz-progress-border-radius` | progress border radius |
+| `--dz-progress-fill-bg` | progress fill bg |
+| `--dz-progress-height` | progress height |
+| `--dz-progress-transition` | progress transition |
 
-## Important: Text Color Contrast
+### overlay
 
-When using solid/strong background colors for selected or hover states, **you must also set the corresponding text color** for proper contrast.
+| Variable | Usage |
+|---|---|
+| `--dz-overlay-bg` | overlay bg |
+| `--dz-overlay-border` | overlay border |
+| `--dz-overlay-border-radius` | overlay border radius |
+| `--dz-overlay-color` | overlay color |
+| `--dz-overlay-gap` | overlay gap |
+| `--dz-overlay-icon-size` | overlay icon size |
+| `--dz-overlay-text-font-size` | overlay text font size |
+| `--dz-overlay-text-font-weight` | overlay text font weight |
+| `--dz-overlay-z-index` | overlay z index |
 
-### Automatic Fallback Behavior
+### popover
 
-State-specific color variables use a smart fallback chain. If you don't set them, they automatically fall back to parent state colors:
+| Variable | Usage |
+|---|---|
+| `--dz-popover-action-bg-hover` | popover action bg hover |
+| `--dz-popover-action-border-radius` | popover action border radius |
+| `--dz-popover-action-color` | popover action color |
+| `--dz-popover-action-font-size` | popover action font size |
+| `--dz-popover-action-font-weight` | popover action font weight |
+| `--dz-popover-action-padding` | popover action padding |
+| `--dz-popover-actions-gap` | popover actions gap |
+| `--dz-popover-bg` | popover bg |
+| `--dz-popover-body-padding` | popover body padding |
+| `--dz-popover-border` | popover border |
+| `--dz-popover-border-radius` | popover border radius |
+| `--dz-popover-box-shadow` | popover box shadow |
+| `--dz-popover-cell-padding` | popover cell padding |
+| `--dz-popover-footer-bg` | popover footer bg |
+| `--dz-popover-footer-border-top` | popover footer border top |
+| `--dz-popover-footer-color` | popover footer color |
+| `--dz-popover-footer-font-size` | popover footer font size |
+| `--dz-popover-footer-padding` | popover footer padding |
+| `--dz-popover-header-bg` | popover header bg |
+| `--dz-popover-header-border-bottom` | popover header border bottom |
+| `--dz-popover-header-color` | popover header color |
+| `--dz-popover-header-font-size` | popover header font size |
+| `--dz-popover-header-font-weight` | popover header font weight |
+| `--dz-popover-header-gap` | popover header gap |
+| `--dz-popover-header-padding` | popover header padding |
+| `--dz-popover-icon-bg` | popover icon bg |
+| `--dz-popover-icon-border-radius` | popover icon border radius |
+| `--dz-popover-icon-font-size` | popover icon font size |
+| `--dz-popover-icon-size` | popover icon size |
+| `--dz-popover-limits-color` | popover limits color |
+| `--dz-popover-limits-font-size` | popover limits font size |
+| `--dz-popover-limits-line-height` | popover limits line height |
+| `--dz-popover-limits-padding` | popover limits padding |
+| `--dz-popover-max-height` | popover max height |
+| `--dz-popover-max-width` | popover max width |
+| `--dz-popover-min-height` | popover min height |
+| `--dz-popover-min-width` | popover min width |
+| `--dz-popover-remove-bg` | popover remove bg |
+| `--dz-popover-remove-bg-hover` | popover remove bg hover |
+| `--dz-popover-remove-color` | popover remove color |
+| `--dz-popover-remove-color-hover` | popover remove color hover |
+| `--dz-popover-remove-icon-size` | popover remove icon size |
+| `--dz-popover-remove-size` | popover remove size |
+| `--dz-popover-resize` | popover resize |
+| `--dz-popover-row-hover-bg` | popover row hover bg |
+| `--dz-popover-table-font-size` | popover table font size |
+| `--dz-popover-width` | popover width |
+| `--dz-popover-z-index` | popover z index |
 
-- `--ms-option-color-selected-hover` → falls back to `--ms-option-color-selected` → falls back to `--ms-option-text-color`
-- `--ms-option-subtitle-color-selected` → falls back to `--ms-option-subtitle-color`
+### preview-grid
 
-This means you only need to set the base color once, and all derived states will inherit it.
+| Variable | Usage |
+|---|---|
+| `--dz-preview-action-bg-hover` | preview action bg hover |
+| `--dz-preview-action-button-border-radius` | preview action button border radius |
+| `--dz-preview-action-button-size` | preview action button size |
+| `--dz-preview-action-gap` | preview action gap |
+| `--dz-preview-action-icon-size` | preview action icon size |
+| `--dz-preview-grid-columns` | preview grid columns |
+| `--dz-preview-grid-gap` | preview grid gap |
+| `--dz-preview-item-aspect-ratio` | preview item aspect ratio |
+| `--dz-preview-item-bg` | preview item bg |
+| `--dz-preview-item-border` | preview item border |
+| `--dz-preview-item-border-radius` | preview item border radius |
+| `--dz-preview-overlay-bg` | preview overlay bg |
+| `--dz-preview-overlay-color` | preview overlay color |
+| `--dz-preview-overlay-font-size` | preview overlay font size |
+| `--dz-preview-overlay-padding` | preview overlay padding |
+| `--dz-preview-remove-bg` | preview remove bg |
+| `--dz-preview-remove-bg-hover` | preview remove bg hover |
+| `--dz-preview-remove-color` | preview remove color |
+| `--dz-preview-remove-icon-size` | preview remove icon size |
+| `--dz-preview-remove-offset` | preview remove offset |
+| `--dz-preview-remove-size` | preview remove size |
+| `--dz-preview-scrim-bg` | preview scrim bg |
 
-### Example: Strong Accent Background Problem
+### rolling
 
-```css
-/* ❌ WRONG - Text will be hard to read */
-web-multiselect {
-  --ms-option-background-selected: #bb0a30;  /* Strong red */
-  /* Text stays gray/dark = poor contrast! */
-}
+| Variable | Usage |
+|---|---|
+| `--dz-rolling-animation-duration` | rolling animation duration |
+| `--dz-rolling-queue-bg` | rolling queue bg |
+| `--dz-rolling-queue-bg-hover` | rolling queue bg hover |
+| `--dz-rolling-queue-border` | rolling queue border |
+| `--dz-rolling-queue-border-radius` | rolling queue border radius |
+| `--dz-rolling-queue-color` | rolling queue color |
+| `--dz-rolling-queue-color-hover` | rolling queue color hover |
+| `--dz-rolling-queue-count-bg` | rolling queue count bg |
+| `--dz-rolling-queue-count-color` | rolling queue count color |
+| `--dz-rolling-queue-font-size` | rolling queue font size |
+| `--dz-rolling-queue-offset` | rolling queue offset |
+| `--dz-rolling-queue-padding` | rolling queue padding |
 
-/* ✅ CORRECT - Set text color for contrast */
-web-multiselect {
-  --ms-option-background-selected: #bb0a30;  /* Strong red */
-  --ms-option-color-selected: #ffffff;       /* White text */
-  --ms-option-color-selected-hover: #ffffff; /* White on hover too */
-}
-```
+### show-more
 
-### Variables That Should Be Set Together
+| Variable | Usage |
+|---|---|
+| `--dz-show-more-bg` | show more bg |
+| `--dz-show-more-bg-hover` | show more bg hover |
+| `--dz-show-more-border` | show more border |
+| `--dz-show-more-border-radius` | show more border radius |
+| `--dz-show-more-color` | show more color |
+| `--dz-show-more-font-size` | show more font size |
+| `--dz-show-more-font-weight` | show more font weight |
+| `--dz-show-more-margin-top` | show more margin top |
+| `--dz-show-more-padding` | show more padding |
 
-When using solid accent backgrounds, set both background AND text color:
+### summary
 
-| Background Variable | Title Color Variable | Subtitle Color Variable |
-|---------------------|---------------------|-------------------------|
-| `--ms-option-background-hover` | `--ms-option-color-hover` | `--ms-option-subtitle-color-hover` |
-| `--ms-option-background-selected` | `--ms-option-color-selected` | `--ms-option-subtitle-color-selected` |
-| `--ms-option-bg-selected-hover` | `--ms-option-color-selected-hover` | `--ms-option-subtitle-color-selected-hover` |
-| `--ms-option-background-focused` | `--ms-option-color-focused` | *(use hover)* |
-| `--ms-option-background-matched` | `--ms-option-color-matched` | *(use default)* |
-| `--ms-option-bg-selected-focused` | `--ms-option-color-selected-focused` | *(use selected)* |
-| `--ms-option-bg-selected-matched` | `--ms-option-color-selected-matched` | *(use selected)* |
+| Variable | Usage |
+|---|---|
+| `--dz-summary-bg` | summary bg |
+| `--dz-summary-bg-hover` | summary bg hover |
+| `--dz-summary-border-radius` | summary border radius |
+| `--dz-summary-color` | summary color |
+| `--dz-summary-font-size` | summary font size |
+| `--dz-summary-padding` | summary padding |
 
----
+### text
 
-## Example: Corporate Red Theme (Solid Backgrounds)
-
-```css
-web-multiselect {
-  /* Base colors */
-  --ms-accent-color: #bb0a30;
-  --ms-accent-color-hover: #8b0720;
-  --ms-text-primary: #333333;
-  --ms-text-secondary: #858585;
-
-  /* Options - IMPORTANT: Set text colors for solid backgrounds */
-  --ms-option-background-selected: #bb0a30;
-  --ms-option-color-selected: #ffffff;                /* White title on red */
-  --ms-option-subtitle-color-selected: #dbdbdb;       /* Light gray subtitle on red */
-  --ms-option-bg-selected-hover: #8b0720;
-  --ms-option-color-selected-hover: #ffffff;          /* White title on darker red */
-  --ms-option-subtitle-color-selected-hover: #dbdbdb; /* Light gray subtitle */
-
-  /* Checkbox on selected */
-  --ms-checkbox-checked-bg: #ffffff;             /* White checkbox on red bg */
-  --ms-checkbox-checkmark-color: #bb0a30;        /* Red checkmark */
-}
-```
-
----
-
-## Example: Dark Theme
-
-```css
-web-multiselect {
-  /* Base colors */
-  --ms-accent-color: #60a5fa;
-  --ms-accent-color-hover: #3b82f6;
-  --ms-text-primary: #f3f4f6;
-  --ms-text-secondary: #9ca3af;
-  --ms-border-color: #374151;
-  --ms-primary-bg: #1f2937;
-  --ms-primary-bg-hover: #374151;
-
-  /* Input */
-  --ms-input-background: #111827;
-  --ms-input-color: #f3f4f6;
-  --ms-input-border-color: #374151;
-  --ms-input-placeholder-color: #6b7280;
-
-  /* Dropdown */
-  --ms-dropdown-background: #1f2937;
-  --ms-dropdown-border-color: #374151;
-
-  /* Options */
-  --ms-option-background: transparent;
-  --ms-option-background-hover: #374151;
-  --ms-option-background-selected: rgba(96, 165, 250, 0.15);
-
-  /* Badges */
-  --ms-badge-text-background: #1e3a5f;
-  --ms-badge-text-color: #60a5fa;
-  --ms-badge-remove-background: #3b82f6;
-
-  /* Tooltip */
-  --ms-tooltip-background: #111827;
-  --ms-tooltip-text-color: #f3f4f6;
-}
-```
+| Variable | Usage |
+|---|---|
+| `--dz-text-color-1` | text color 1 |
+| `--dz-text-color-2` | text color 2 |
+| `--dz-text-color-3` | text color 3 |
+| `--dz-text-color-4` | text color 4 |
+| `--dz-text-on-accent` | text on accent |

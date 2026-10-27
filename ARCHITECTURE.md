@@ -65,7 +65,7 @@ The renderer talks to the core through exactly two surfaces — nothing else.
 2. **DOM CustomEvents** dispatched on the store element — bubbling, **not composed** (web-components-core SPEC §12.5); each has a camelCase `on*` twin receiving the same detail, and every detail carries `controller` / `element` (non-enumerable):
    - **Per-file:** `file-add`, `file-remove`, `file-progress`, `file-status-change`, `file-update`, `file-retry`, `file-upload`, `file-delete`.
    - **Batch / aggregate:** `change` (`{ files }`), `files-change`, `file-reject`.
-   - **Lifecycle:** `ready` (fires after every store build; satellites use it — with `controller.isReady` — to resolve their `for=` reference race-free).
+   - **Lifecycle:** `ready` (core `BlissElement`: fires ONCE, after the first build; + `ready` attribute, `:state(ready)`, `whenReady()`). Satellites resolve their `for=` reference race-free on an internal, non-bubbling `dz-store-build` signal fired after EVERY store build (first build, mode-flip rebuild, re-add after a removal) — with `controller.isReady`.
    - **Drag:** `overlay-enter`, `overlay-leave`.
 
    Satellites listen on the store element itself, so non-composed events reach them from any shadow root. The engine never dispatches public events itself when hosted: it calls `notify(name, detail)`, the renderer's `onEngineEvent` hook patches the DOM first, then `<web-dropzone>` `emit()`s. (`dz-config-changed` is an internal, non-bubbling re-render signal for satellites — not public API.)
@@ -142,7 +142,7 @@ Renderers are **satellite elements**, each with its own shadow root, each bindin
 
 **Back-compat shortcut:** if renderer attributes (`selector-appearance`, `list-appearance`, …) are set directly on `<web-dropzone>`, it also mounts its own internal picker / list. This keeps the one-element convenience form working unchanged.
 
-**Change propagation:** the store dispatches bubbling, non-composed `CustomEvent`s on its own element. Satellites resolve their `for=` on `connectedCallback`, bind to `storeEl.controller` once the store is `ready`, `addEventListener` on the store element for diffs, and unsubscribe on `disconnectedCallback`. The store does not push to renderers — it emits, renderers consume.
+**Change propagation:** the store dispatches bubbling, non-composed `CustomEvent`s on its own element. Satellites resolve their `for=` on `connectedCallback`, bind to `storeEl.controller` once the store is built (`dz-store-build`), `addEventListener` on the store element for diffs, and unsubscribe on `disconnectedCallback`. The store does not push to renderers — it emits, renderers consume.
 
 ## Status surfaces — shared three-callback contract
 

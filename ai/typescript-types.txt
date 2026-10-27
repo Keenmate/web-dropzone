@@ -43,8 +43,9 @@ class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneController>
   resumeFile(id: string): Promise<void>; resumeAll(): Promise<void>
   cancelFile(id: string): Promise<void>; cancelAll(): Promise<void>
   retryFile(id: string): void; retryAll(): void
-  destroy(): void
-  // BlissElement: whenSettled(): Promise<void>; flush(): void;
+  // BlissElement (core): destroy(): void (final; isDestroyed); release(): void;
+  //   whenReady(): Promise<void>; isReady; shouldDefer (attr defer);
+  //   whenSettled(): Promise<void>; flush(): void;
   //   setAttributes(values: Record<string, unknown>): void; batch(fn): void
 
 Note: element addFiles has no opts; Mode B opts go through
@@ -228,15 +229,15 @@ DropzoneConfig
 The camelCase config object (DropzoneEngine constructor / getConfig()).
 Keys = the element's input configKeys: isMultiple, accept, maxFileSize,
 minFileSize, maxTotalSize, maxFileCount, minFileCount, maxVisibleFileCount,
-dedupeMode, isDisabled, mode, progressThrottle, displayMode,
+dedupeMode, isDisabled, isReadonly, renderMode, progressThrottle, displayMode,
 selectorAppearance, listAppearance, gridLayout, gridStatus, controls,
 itemControls, rollingRotation, cardSize, isThumbnailsShown,
-isFilesInside, icon, labels, emptyMessage, summaryTemplate,
+isFilesInside, icon, labels,
 popoverPlacement, overlayTarget, overlayIcon, name, valueFormat, every
 *Callback, fileIcons, concurrency, shouldAutoUpload, progressMode,
 retryPolicy, cancelTimeout, cancelTimeoutBehavior, cancelIcon, removeIcon,
 isUploadedFileRemovalAllowed, shouldSinkCompleted, sinkCompletedDelay,
-storageKey. Internal: isHeadless (derived from mode), container, hostElement.
+storageKey. Internal: isHeadless (derived from renderMode), container, hostElement.
 (shouldKeepAliveWhenRemoved is an element-only input.)
 
 TYPING A FRAMEWORK REF

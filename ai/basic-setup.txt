@@ -33,7 +33,7 @@ Styles are injected into each shadow root automatically.
 FIRST DROPZONE
 --------------
 IMPORTANT: a bare <web-dropzone></web-dropzone> renders NOTHING. With no
-`mode` attribute the mode is inferred:
+`render-mode` attribute the render mode is inferred:
   - any of display-mode / selector-appearance / list-appearance present -> "bulk"
     (the element renders its own UI)
   - none present -> "headless" (store only; satellites render)
@@ -132,7 +132,8 @@ pauseFile(id) / pauseAll()         void
 resumeFile(id) / resumeAll()       Promise<void>
 cancelFile(id) / cancelAll()       Promise<void>
 retryFile(id) / retryAll()         void
-destroy()                          tear the store down
+destroy()                          final teardown (core): aborts uploads, element inert
+release() / whenReady()            core: build a `defer`-held element / await 1st build
 
 el.controller (DropzoneController) has the same methods plus getFiles(),
 getConfig(), getOverallProgress(), and isReady. See typescript-types.txt.
@@ -141,14 +142,19 @@ PROPERTIES
 ----------
 Every input has a property named after its config key (camelCase), e.g.
 dz.accept, dz.maxFileSize, dz.maxFileCount, dz.labels, dz.cancelTimeout,
-dz.uploadFileCallback. Back-compat boolean aliases:
+dz.uploadFileCallback. Boolean attributes are short, their properties carry
+the prefixed config key (no aliases):
 
-dz.multiple          <-> multiple            (isMultiple)
-dz.disabled          <-> disabled            (isDisabled)
-dz.isFilesInside       <-> files-inside        (isFilesInside)
-dz.isThumbnailsShown    <-> show-thumbnails     (tri-state: undefined = auto)
-dz.shouldAutoUpload        <-> auto-upload         (shouldAutoUpload)
-dz.isUploadedFileRemovalAllowed <-> allow-uploaded-file-removal  (isUploadedFileRemovalAllowed)
+dz.isMultiple                    <-> multiple
+dz.isDisabled                    <-> disabled   (reflected; fieldset disabled too)
+dz.isReadonly                    <-> readonly   (reflected; selection locked, still submitted)
+dz.isFilesInside                 <-> files-inside
+dz.isThumbnailsShown             <-> show-thumbnails   (tri-state: null = auto)
+dz.shouldAutoUpload              <-> auto-upload
+dz.isUploadedFileRemovalAllowed  <-> allow-uploaded-file-removal
+dz.shouldSinkCompleted           <-> sink-completed
+dz.shouldKeepAliveWhenRemoved    <-> keep-alive-when-removed
+dz.renderMode                    <-> render-mode   (bulk | structural | headless)
 
 PROPERTY WRITES ARE COALESCED
 -----------------------------
@@ -165,9 +171,12 @@ dz.batch(() => { dz.accept = '.pdf'; dz.maxFileSize = 1048576; });
 
 READY
 -----
-The store is built on first connect. `ready` fires then (and again after a
-rebuild caused by a mode flip); `data-ready` is set on the next frame
-(useful for FOUC-hiding CSS: web-dropzone:not([data-ready]) { visibility: hidden }).
+The store is built on first connect. Core fires `ready` ONCE, after that first
+build (a mode-flip rebuild or a DOM move never re-fires it); the host gets the
+`ready` attribute and :state(ready) (FOUC guard:
+web-dropzone:not([ready]) { visibility: hidden }). `await dz.whenReady()` is
+the promise form. Hold the first build with the `defer` attribute and call
+`dz.release()` when the config is in place.
 
 dz.addEventListener('ready', ({ detail }) => detail.controller.getFiles());
 dz.controller.isReady   // true once built

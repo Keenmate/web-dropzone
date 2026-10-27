@@ -80,7 +80,8 @@ D
 -
 dark mode / data-theme / data-context-theme -> styling-theming.txt
 data-dz-action -> custom-rendering.txt
-data-ready -> basic-setup.txt, styling-theming.txt
+ready attribute / :state(ready) / defer / release() -> basic-setup.txt, styling-theming.txt
+readonly -> form-integration.txt
 dedupe-mode -> validation.txt
 DEFAULT_LABELS -> labels-i18n.txt
 destroy() -> upload-pipeline.txt, advanced-patterns.txt
@@ -90,7 +91,7 @@ drag overlay / overlay-target -> display-modes.txt, advanced-patterns.txt
 
 E
 -
-empty-message -> display-modes.txt, labels-i18n.txt
+labels.empty (was empty-message) -> display-modes.txt, labels-i18n.txt
 events (table) -> events-callbacks.txt
 
 F
@@ -173,7 +174,7 @@ sink-completed / sink-completed-delay -> display-modes.txt
 show-thumbnails -> display-modes.txt
 StatusSurfaceArgs -> satellites.txt, typescript-types.txt
 structural mode -> custom-rendering.txt
-summary-template -> display-modes.txt
+labels.summary (was summary-template) -> display-modes.txt
 
 T
 -

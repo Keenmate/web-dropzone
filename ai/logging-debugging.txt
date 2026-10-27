@@ -93,7 +93,7 @@ non-enumerable; access them directly.)
 TROUBLESHOOTING
 ---------------
 Nothing renders
-  -> no display attribute and no mode: inferred headless. Add
+  -> no display attribute and no render-mode: inferred headless. Add
      display-mode="list" (or render-mode="bulk").
 
 Render callbacks ignored
@@ -126,7 +126,7 @@ Uploads stopped after removing the element
 All files vanished after changing display attributes
   -> the change flipped the resolved mode (e.g. headless -> bulk); a mode flip
      rebuilds the store and removes files (reported via file-remove / change).
-     Set mode explicitly to avoid accidental flips.
+     Set render-mode explicitly to avoid accidental flips.
 
 --dz-* set on <web-dropzone> not reaching a standalone satellite
   -> standalone satellites carry their own defaults; set the variables on the

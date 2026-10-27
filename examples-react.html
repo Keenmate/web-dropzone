@@ -166,7 +166,7 @@ function Uploader() {
 
     return html`
         &lt;web-dropzone ref=${storeRef} id="rx-store" render-mode="headless" multiple max-file-count="6"&gt;&lt;/web-dropzone&gt;
-        &lt;web-dropzone-picker for="rx-store" selector-appearance="card" label="Drop files for React"&gt;&lt;/web-dropzone-picker&gt;
+        &lt;web-dropzone-picker for="rx-store" selector-appearance="card" labels='{"prompt": "Drop files for React"}'&gt;&lt;/web-dropzone-picker&gt;
         ${files.length === 0
             ? html`&lt;div className="rx-empty"&gt;No files yet&lt;/div&gt;`
             : html`&lt;div className="rx-list"&gt;

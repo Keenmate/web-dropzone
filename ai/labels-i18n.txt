@@ -1,8 +1,8 @@
 LABELS & I18N
 =============
 
-All UI strings the dropzone itself renders for prompts, statuses and row /
-bulk buttons come from ONE input: `labels`. It is a PARTIAL object merged per
+EVERY UI string the dropzone and its satellites render by themselves comes
+from ONE input: `labels`. It is a PARTIAL object merged per
 key over the built-in English DEFAULT_LABELS. Placeholders in {braces} are
 filled at render time.
 
@@ -62,12 +62,64 @@ Bulk actions (overall-progress strip / <web-dropzone-progress>):
   retryAll     'Retry all'
   cancelAll    'Cancel all'
 
+List / popover:
+  empty          'No files selected'          empty file list
+  summary        '{count} file(s), {size}'    compact summary line
+  viewFiles      'Click to view files'        summary line aria-label
+  filesChosen    '{count} files chosen'       native selector, 2+ files
+  fileCount      '{count} files'              popover header / footer
+  fileCountOne   '1 file'
+  addMore        'Add more'                   popover header
+  clearAll       'Clear all'                  popover header
+  showMore       'Show {count} more'          max-visible-file-count toggle
+  showLess       'Show less'
+  showQueue      'Show all {count} files'     rolling queue button (aria + title)
+  unknownType    'Unknown'                    type column without a MIME type
+
+Popover limits line (used when hint is empty; joined with " · "):
+  limitMaxFileSize       'max {size} each'
+  limitMinFileSize       'min {size} each'
+  limitMaxTotalSize      'up to {size} total'
+  limitMaxTotalSizeLeft  'up to {size} total · {left} left'
+  limitMaxFileCount      'up to {count} files'
+  limitMaxFileCountLeft  'up to {count} files · {left} left'
+  limitMinFileCount      'at least {count} files'
+
+Progress strip (overall progress / <web-dropzone-progress>):
+  progressCounts  '{completed} of {total} · {uploadedSize} / {totalSize}'
+  progressPaused  '{count} paused'
+  progressFailed  '{count} failed'
+
+Indicator (<web-dropzone-indicator>):
+  indicatorTitle 'Uploads'        drawer title
+  indicatorIdle  'No uploads'     chip text with nothing queued
+  indicatorStatus 'Upload status' chip aria-label
+  indicatorQueue 'Upload queue'   drawer aria-label
+  close          'Close'          drawer close button
+  indicatorFailed / indicatorUploading / indicatorPaused / indicatorQueued /
+  indicatorDone  '{count} failed' / '{count} uploading' / ... / '{count} done'
+
+Validation (file-reject validation.error, form validity):
+  errorMaxFileSize      'File is too large. Maximum size is {size}'
+  errorMinFileSize      'File is too small. Minimum size is {size}'
+  errorFileType         'File type not accepted'
+  errorRejected         'File rejected'            (beforeFilesAddCallback said false)
+  errorMaxFileCount     'Maximum {count} files allowed'
+  errorMaxFileCountOne  'Maximum 1 file allowed'
+  errorDuplicate        'Duplicate file: {name}'
+  errorMaxTotalSize     'Total size would exceed {size}'
+  errorUpload           'Upload failed'            (handler threw a non-Error)
+  errorMinFileCount     'At least {count} files required'   (min-file-count validity)
+  errorMinFileCountOne  'At least 1 file required'
+`...One` keys are used when the count is exactly 1 (countLabel(label, key, n)).
+
 PLACEHOLDERS
 ------------
-{name}    file name (row buttons)
+{name}    file name (row buttons, errorDuplicate)
 {status}  a status name (statusAria)
-{count}   documented as a supported placeholder, but no current key is
-          rendered with a count - it stays literal if you use it today
+{count}   a number (summary, fileCount, showMore, limits, indicator, errors)
+{size}    a formatted size ('5.0 MB') (summary, limits, size errors)
+{left} / {completed} / {total} / {uploadedSize} / {totalSize}  see the keys above
 Unknown placeholders are left as written. Only the keys above are looked up.
 
 COMPLETE CZECH EXAMPLE
@@ -95,9 +147,10 @@ Every lookup goes through one function:
 
 import { resolveLabel, DEFAULT_LABELS, createLabelFn } from '@keenmate/web-dropzone';
 
-resolveLabel(overrides, key, vars?)
-  overrides[key] (the element's labels) -> DEFAULT_LABELS[key],
-  then {placeholders} filled from vars.
+resolveLabel(sources, key, vars?)
+  sources = one labels object or an array (most specific first: a satellite's
+  own labels, then its store's); the first that has key wins ->
+  DEFAULT_LABELS[key], then {placeholders} filled from vars.
 
 resolveLabel({ cancelFile: 'Stop {name}' }, 'cancelFile', { name: 'a.pdf' })  // 'Stop a.pdf'
 resolveLabel(null, 'statusAria', { status: 'Paused' })                          // 'Status: Paused'
@@ -117,29 +170,13 @@ LabelFn, LabelVars.
 
 SATELLITES
 ----------
-Satellites read the BOUND STORE's labels. The picker's own attributes win
-over them:
-  <web-dropzone-picker label="...">               overrides prompt (card) / selectFiles (button)
-  <web-dropzone-picker hint="...">                overrides hint
-  <web-dropzone-picker no-file-chosen-text="..."> overrides noFileChosen
-<web-dropzone-indicator label="..."> is the drawer title (default 'Uploads') and
-the idle chip text (default 'No uploads').
-
-STRINGS NOT COVERED BY labels
------------------------------
-These are separate inputs:
-  empty-message      'No files selected'          (list empty state)
-  summary-template   '{count} file(s), {size}'    (compact summary line)
-
-These are currently hard-coded English (not overridable through labels):
-  native selector "N files chosen"; "Show N more" / "Show less" / "Show fewer";
-  popover "Add more", "Clear all", limits line ("max 5.0 MB each", "N left"...);
-  summary aria-label "Click to view files"; rolling "Show full queue (N files)";
-  progress strip counts ("3 of 5 · ... · 1 paused · 2 failed");
-  indicator chip ("N failed / uploading / paused / queued / done",
-  aria-label "Upload status", drawer "Upload queue", "Close");
-  validation error messages (map file-reject `validation.code` instead).
-For full control of those, use structural / headless rendering.
+Satellites read the BOUND STORE's labels. Every satellite also takes its OWN
+`labels` (property or JSON attribute), merged per key ON TOP of the store's:
+  <web-dropzone-picker for="dz" labels='{"prompt":"Drop invoices","hint":"PDF only"}'>
+  <web-dropzone-picker for="dz" selector-appearance="button" labels='{"selectFiles":"Browse"}'>
+  <web-dropzone-list for="dz" labels='{"empty":"Nothing yet"}'>
+  <web-dropzone-indicator for="dz" labels='{"indicatorTitle":"Queue"}'>
+  picker.labels = { noFileChosen: 'Nic' };   // live
 
 REMOVED IN 1.0.0-rc03
 ---------------------
@@ -149,7 +186,11 @@ REMOVED IN 1.0.0-rc03
 | hint-text / hintText                     | labels.hint                      |
 | drag-active-text / dragActiveText        | labels.dragActive                |
 | no-file-chosen-text / noFileChosenText   | labels.noFileChosen              |
-|   (on <web-dropzone>; the picker keeps its own attribute)                   |
+| empty-message / emptyMessage             | labels.empty                     |
+| summary-template / summaryTemplate       | labels.summary                   |
+| picker label / hint / no-file-chosen-text| picker labels (prompt / selectFiles, hint, noFileChosen) |
+| list empty-message                       | list labels.empty                |
+| indicator label                          | indicator labels.indicatorTitle / indicatorIdle |
 | overlay-text / overlayText               | labels.overlay                   |
 | select-files-text / selectFilesText      | labels.selectFiles               |
 | STATUS_LABELS export                     | labels.status* (+ statusCancelling, statusAria) |

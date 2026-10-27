@@ -64,13 +64,18 @@ file-update         a field other than progress/status changed: previewUrl
 file-retry          a failed / cancelled file was re-queued (status already 'pending').
 file-upload  uploadFileCallback resolved.
 file-cancel         a cancel FINISHED (see below).
+file-remove vs file-delete: file-remove = the file left the LIST (local:
+                    row X, removeFile(s), Clear all, single-file replace, mode
+                    flip). file-delete = SERVER state, see next line.
 file-delete         fires together with file-remove when the removed file has
                     server-side state: status 'complete', OR non-empty metadata
                     (e.g. stashed via ctx.setMetadata during a partial upload).
                     Wire your server DELETE here.
 overlay-enter/leave a drag entered / left the overlay-target overlay.
-ready               the store was built (first connect; again after a mode-flip
-                    rebuild). dz.controller is live. data-ready follows next frame.
+ready               core: fired ONCE, after the first build (dz.controller is
+                    live). Host gets the `ready` attribute + :state(ready);
+                    dz.whenReady() is the promise form. A mode-flip rebuild or a
+                    DOM move never re-fires it.
 
 FILE-CANCEL
 -----------

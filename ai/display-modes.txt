@@ -94,12 +94,12 @@ otherwise it falls back to the normal stacked layout.
 COMPACT / POPOVER
 -----------------
 <web-dropzone display-mode="compact"
-              summary-template="{count} file(s), {size}"
+              labels='{"summary":"{count} file(s), {size}"}'
               popover-placement="bottom-start"></web-dropzone>
 
 - Card + popover: a summary line ("{count} file(s), {size}" by default) is the
   trigger. With button / minimal selectors the selector itself is the trigger.
-- summary-template placeholders: {count}, {size} (each replaced once).
+- labels.summary placeholders: {count}, {size}.
 - popover-placement: top|bottom|left|right with optional -start/-end
   (floating-ui placement; default bottom-start). Positioned via core
   /positioning (flip + shift + viewport caps, autoUpdate).
@@ -175,11 +175,12 @@ out of the tab order). removeFile(id) still works programmatically.
 
 OTHER LIST KNOBS
 ----------------
-max-visible-file-count="7"      rows shown before a "Show N more" / "Show less"
+max-visible-file-count="7" rows shown before a "Show N more" / "Show less"
                            toggle (badges: "+N" pill). 0 = show all. Default 7.
-empty-message="..."        text when the list is empty (default "No files selected")
-sink-completed      completed files move to the end of the rendered list
-sink-completed-delay    ms a completed row stays put first (default 1500)
+labels.empty               text when the list is empty (default "No files selected")
+labels.summary             compact summary line (default "{count} file(s), {size}")
+sink-completed             completed files move to the end of the rendered list
+sink-completed-delay       ms a completed row stays put first (default 1500)
                            (visual only; dz.files order and events unchanged)
 icon="..."                 prompt icon for card / minimal (raw HTML; default Lucide cloud-upload)
 
@@ -217,7 +218,9 @@ internal class names, not a versioned API)
 DISABLED
 --------
 <web-dropzone disabled ...>  or an ancestor <fieldset disabled>.
-Disabled blocks clicks and drops; dz.disabled reports the element's own value.
+Disabled blocks clicks and drops; dz.isDisabled reports the element's own value.
+<web-dropzone readonly ...>: no user add / Remove / Clear all, files still shown
+and submitted (dz.isReadonly).
 
 SEE ALSO
 --------

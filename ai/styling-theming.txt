@@ -154,10 +154,10 @@ SHADOW PARTS & HOST ATTRIBUTES
                           [data-position], [data-drawer], [data-drawer-open]
 <web-dropzone-progress>   ::part(root); [data-status="uploading|paused|error|complete"],
                           [data-empty="true"] when idle
-<web-dropzone>            [data-ready] once initialized (FOUC guard)
+<web-dropzone>            [ready] + :state(ready) after the first build (FOUC guard)
 
 web-dropzone-indicator::part(chip) { border: 0; background: none; padding: 0; }
-web-dropzone:not([data-ready]) { visibility: hidden; }
+web-dropzone:not([ready]) { visibility: hidden; }
 
 CASCADE LAYERS
 --------------

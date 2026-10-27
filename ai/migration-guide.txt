@@ -56,7 +56,7 @@ must move onto the element.
 | file-status-changed         | file-status-change / onFileStatusChange | { id, oldStatus, newStatus, file } |
 | file-updated                | file-update / onFileUpdate           | { file }                       |
 | overlay-enter / -leave      | same + onOverlayEnter / onOverlayLeave | { overlayElement }           |
-| store-ready                 | ready / onReady (data-ready stays)   | context only                   |
+| store-ready                 | ready / onReady (core, ONCE)         | context only                   |
 | list dz-summary-click       | summary-activate                     | store context                  |
 | list dz-queue-open          | queue-open                           | store context                  |
 | file-row-update (composed)  | file-row-update on the row, not composed | { file } + context         |
@@ -136,8 +136,11 @@ STEP 7: LABELS REPLACE TEXT ATTRIBUTES
 <!-- after -->
 <web-dropzone labels='{"prompt":"Drop invoices","hint":"PDF only"}' display-mode="list"></web-dropzone>
 
-Unchanged: empty-message, summary-template, and the picker satellite's own
-label / hint / no-file-chosen-text attributes.
+Also moved into labels: empty-message -> labels.empty, summary-template ->
+labels.summary; the satellites' label / hint / no-file-chosen-text / list
+empty-message / indicator label attributes -> each satellite's own `labels`
+(merged over the store's). Popover, limits line, progress strip, indicator
+and validation texts are labels keys too (see labels-i18n.txt).
 
 STEP 8: LIFECYCLE
 -----------------
@@ -146,12 +149,38 @@ STEP 8: LIFECYCLE
 - Removing the element from the page now cancels its uploads and destroys the
   store (one frame after disconnect). Opt out: keep-alive-when-removed.
 - Mode-flip rebuild now reports dropped files (file-remove + change).
+- `ready` is core's: fired ONCE after the first build (not after a mode-flip
+  rebuild / re-add); data-ready -> `ready` attribute + :state(ready);
+  whenReady(); `defer` + release() hold the first build.
+- el.destroy() is core's and FINAL: aborts uploads, clears the form value, the
+  element stays inert (re-inserting it builds nothing - create a new one).
+
+STEP 8b: V2 NAMING (suite-wide unification)
+-------------------------------------------
+| Old                                         | New                                     |
+|---------------------------------------------|-----------------------------------------|
+| el.multiple / el.disabled                   | el.isMultiple / el.isDisabled           |
+| el.showThumbnails / el.filesInside          | el.isThumbnailsShown / el.isFilesInside |
+| el.autoUpload                               | el.shouldAutoUpload (attr auto-upload)  |
+| uploaded-deletable / el.uploadedDeletable   | allow-uploaded-file-removal / el.isUploadedFileRemovalAllowed |
+| should-sink-completed                       | sink-completed                          |
+| reorder-completed-delay                     | sink-completed-delay                    |
+| should-keep-alive-when-removed              | keep-alive-when-removed                 |
+| max-visible-files / maxVisibleFiles         | max-visible-file-count / maxVisibleFileCount |
+| mode / el.mode / DropzoneMode               | render-mode / el.renderMode / DropzoneRenderMode |
+| file-upload-complete / onFileUploadComplete | file-upload / onFileUpload              |
+| files-reject / onFilesReject                | file-reject / onFileReject              |
+| file-status-change prevStatus / nextStatus  | oldStatus / newStatus                   |
+| renderFileItemCallback ctx index            | fileIndex                               |
+| beforeFileCancelCallback                    | beforeFilesCancelCallback               |
+| disabled="false" (meant enabled)            | omit the attribute (plain boolean)      |
+New: readonly / el.isReadonly.
 
 STEP 9: NEW API
 ---------------
 removeFiles(ids, { confirm? }), cancelAll(), el.controller, beforeFilesCancelCallback,
 file-cancel, labels, cancel-timeout, cancel-timeout-behavior, cancel-icon,
-remove-icon, keep-alive-when-removed, fileIcons + getFileIconCallback,
+remove-icon, keep-alive-when-removed, readonly, fileIcons + getFileIconCallback,
 FILE_TYPE_ICONS / UI_ICONS, <web-dropzone-picker>.openFileDialog().
 
 STEP 10: THEMING
@@ -222,7 +251,8 @@ pre-rc builds -> 1.0.0-rc01
 - Hidden filename inputs removed: forms submit real File blobs via
   ElementInternals; value-format kept but inert.
 - Config keys: multiple -> isMultiple, disabled -> isDisabled,
-  filesInside -> isFilesInside (attributes / el.multiple etc. unchanged).
+  filesInside -> isFilesInside (attributes unchanged; the el.multiple-style
+  aliases were removed in rc03 - see STEP 8b).
 - Removed notification callbacks addCallback, removeCallback, changeCallback,
   rejectCallback, retryCallback, uploadedCallback, deleteCallback - use events.
 - removeFile / clear / addFiles return Promises.

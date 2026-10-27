@@ -11,10 +11,12 @@ Breaking — see [CHANGELOG.md](CHANGELOG.md) for the migration tables.
 
 - **One cancel rule** — `cancelFile(id)` now returns a promise and gives a running upload handler its `AbortSignal` plus up to `cancel-timeout` ms (default 2000) to settle; the row shows "Cancelling…". Settles in time → `cancelled`; otherwise `cancel-timeout-behavior` (`error`, retryable — or `remove`). Late results are ignored and the concurrency slot is freed either way. `beforeFilesCancelCallback` can veto, `file-cancel` reports how it ended (`{ file, result, uploadedBytes, metadata }`), and `cancelAll()` + a **Cancel all** button cover the whole queue.
 - **Row buttons split** — **⊘ Cancel** stops the upload and keeps the row (Retry available); **✕ Remove** always removes (a running upload is cancelled first). Both glyphs are configurable (`cancel-icon` / `remove-icon`).
-- **`labels`** — every UI string in one input (property or JSON attribute, merged per key over English, `{name}` placeholders, live). Replaces `prompt-text`, `hint-text`, `drag-active-text`, `no-file-chosen-text`, `overlay-text`, `select-files-text` and the `STATUS_LABELS` / `ACTION_LABELS` exports.
+- **`labels`** — every UI string in one input (property or JSON attribute, merged per key over English, `{name}` placeholders, live). Replaces `prompt-text`, `hint-text`, `drag-active-text`, `no-file-chosen-text`, `overlay-text`, `select-files-text`, `empty-message`, `summary-template` and the `STATUS_LABELS` / `ACTION_LABELS` exports.
 - **Removal vs move** — removing `<web-dropzone>` from the page cancels its uploads and destroys the store (a DOM move doesn't); opt out with `keep-alive-when-removed`.
-- **Naming** — `removeFiles(ids)`, the `rejected` add-veto code, `sink-completed` (was `reorder-completed`).
-- **Fixes** — cancel during the auto-retry backoff, `destroy()` stopping the queue, no events after teardown / removal, mode-flip rebuild reporting dropped files.
+- **Suite-wide naming (v2)** — short boolean attributes (`sink-completed`, `keep-alive-when-removed`, `allow-uploaded-file-removal`), configKey-named properties (`el.isMultiple`, `el.isDisabled`, `el.shouldAutoUpload`, …), `render-mode` (was `mode`), `max-visible-file-count`, events `file-upload` / `file-reject` (`oldStatus` / `newStatus` in `file-status-change`), `beforeFilesCancelCallback`, `removeFiles(ids)`, the `rejected` add-veto code.
+- **Core lifecycle** — `ready` fires once after the first build (+ `ready` attribute, `:state(ready)`, `whenReady()`); `defer` + `release()` hold the first build; `destroy()` is final. New `readonly` (selection locked, still submitted).
+- **Every UI string in `labels`** — empty text, summary, popover, limits line, progress strip, indicator, validation messages; satellites take their own `labels` on top of the store's.
+- **Fixes** — cancel during the auto-retry backoff, `destroy()` stopping the queue, no events after teardown / removal, mode-flip rebuild reporting dropped files, `multiple="false"` replace now cancels + reports the replaced file.
 
 ## What's New in v1.0.0-rc02
 
@@ -106,7 +108,13 @@ dropzone.controller.clear();
 | `max-file-count` | `number` | - | Maximum number of files |
 | `display-mode` | `'list' \| 'detailed' \| 'grid' \| 'compact'` | `'list'` | How to display selected files |
 | `files-inside` | `boolean` | `false` | Show files inside dropzone area |
-| `disabled` | `boolean` | `false` | Disable the dropzone |
+| `disabled` | `boolean` | `false` | Disable the dropzone (an ancestor `<fieldset disabled>` too); `el.isDisabled` |
+| `readonly` | `boolean` | `false` | Selection locked for the user (no add / Remove / Clear all); files still submitted; `el.isReadonly` |
+| `render-mode` | `'bulk' \| 'structural' \| 'headless'` | inferred | Who renders: built-in UI, your render callbacks, or nothing (satellites / your own DOM). Absent → `bulk` when a display attribute is set, else `headless` |
+| `max-visible-file-count` | `number` | `7` | Rows shown before the "Show N more" toggle |
+| `allow-uploaded-file-removal` | `boolean` | `true` | `false` hides ✕ Remove on completed rows |
+| `sink-completed-delay` | `number` (ms) | `1500` | Delay before a completed file sinks (with `sink-completed`) |
+| `defer` | `boolean` | `false` | Core: hold the first build until `release()` (or removing the attribute) |
 | `name` | `string` | - | Form field name for form integration |
 | `value-format` | `'json' \| 'csv' \| 'array'` | `'json'` | Format for form value serialization |
 | `labels` | JSON object | English | UI strings, merged per key — see [Labels (i18n)](#labels-i18n) |
@@ -189,7 +197,7 @@ Every event bubbles and is **not composed**, fires on `<web-dropzone>`, and has 
 | Event | Twin | Detail | Description |
 |-------|------|--------|-------------|
 | `file-add` | `onFileAdd` | `{ file }` | A file entered the dropzone (one event per file) |
-| `file-remove` | `onFileRemove` | `{ file }` | A file left the dropzone (one per file; also on clear) |
+| `file-remove` | `onFileRemove` | `{ file }` | A file left the list — **local** (row ✕, `removeFile(s)`, Clear all, a single-file replace, a mode flip); one per file |
 | `change` | `onChange` | `{ files }` | The selection changed (add / remove / clear) |
 | `files-change` | `onFilesChange` | `{ changedIds, files }` | Coalesced queue tick, at most once per animation frame |
 | `file-reject` | `onFileReject` | `{ rejectedFiles: [{ file, validation: { valid, error, code } }] }` | Files failed validation, or `beforeFilesAddCallback` vetoed the add (`code: 'rejected'`) |
@@ -198,10 +206,10 @@ Every event bubbles and is **not composed**, fires on `<web-dropzone>`, and has 
 | `file-update` | `onFileUpdate` | `{ file }` | Another field changed (preview generated, upload result merged) |
 | `file-retry` | `onFileRetry` | `{ file }` | A failed / cancelled file was re-queued |
 | `file-upload` | `onFileUpload` | `{ file }` | `uploadFileCallback` resolved for a file |
-| `file-delete` | `onFileDelete` | `{ file }` | A removed file had server-side state — wire your server DELETE here |
+| `file-delete` | `onFileDelete` | `{ file }` | **Server** state: a removed file had been uploaded (or stashed metadata) — fires right after its `file-remove`; wire your server DELETE here |
 | `file-cancel` | `onFileCancel` | `{ file, result, uploadedBytes, metadata }` | A cancel finished — `result`: `cancelled` \| `timeout-error` \| `timeout-remove` |
 | `overlay-enter` / `overlay-leave` | `onOverlayEnter` / `onOverlayLeave` | `{ overlayElement }` | A drag entered / left the drag overlay |
-| `ready` | `onReady` | — (context only) | The store was built (again after a rebuild); `data-ready` follows on the next frame |
+| `ready` | `onReady` | — (context only) | Core: fired once, after the first build (`el.controller` is live). The host gets the `ready` attribute + `:state(ready)`; `await el.whenReady()` is the promise form. A mode-flip rebuild or a DOM move doesn't fire it again |
 
 `<web-dropzone-list>` fires `summary-activate` (popover appearance — the summary line was activated) and `queue-open` (rolling appearance — the queue badge was clicked) on itself, with the bound store's `controller` / `element` on the detail. `file-row-update` (`{ file }`) is dispatched on the element a `renderFileItemCallback` returned (structural mode) — listen on that row.
 
@@ -280,11 +288,11 @@ dropzone.maxFileCount = 10;
 // Get/set display mode
 dropzone.displayMode = 'grid';
 
-// Check if multiple files allowed
-const isMultiple = dropzone.multiple;
-
-// Check if disabled
-const isDisabled = dropzone.disabled;
+// Boolean attributes are short (`multiple`, `disabled`, `readonly`, `auto-upload`, …);
+// their properties carry the configKey name
+const isMultiple = dropzone.isMultiple;
+const isDisabled = dropzone.isDisabled;
+dropzone.isReadonly = true; // selection locked, files still submitted
 ```
 
 ## File-type icons
@@ -344,7 +352,8 @@ The same methods (plus `getFiles()`, `getConfig()`, `getOverallProgress()` and `
 | `pauseFile(id)` / `resumeFile(id)` / `pauseAll()` / `resumeAll()` | Pause / resume (progress kept) |
 | `retryFile(id)` / `retryAll()` | Re-queue failed / cancelled files (a cancelled file restarts from 0) |
 | `uploadAll()` / `uploadFile(id)` | Drain the queue / upload one file now |
-| `destroy()` | Tear the store down |
+| `destroy()` | Final teardown (core): aborts running uploads at once, clears the form value; the element stays inert |
+| `release()` / `whenReady()` | Core: build a `defer`-held element / await the first build |
 | `getFile(id: string)` | Get a file by ID |
 | `updateFileProgress(id: string, progress: number)` | Update upload progress (0-100) |
 | `setFileStatus(id: string, status, error?)` | Set file status (pending/uploading/complete/error) |
@@ -378,7 +387,7 @@ dropzone.setFileStatus(file.id, 'error', 'Upload failed');
 ## Cancelling uploads
 
 Verbs: **cancel** stops a running upload, **remove** takes a file out of the list, **delete** is
-your server-side cleanup, **destroy** tears the element's store down.
+your server-side cleanup, **destroy** is the final teardown (`el.destroy()`).
 
 - `cancelFile(id)` (and the row **⊘**) applies to `uploading` / `pending` / `paused` files.
   Nothing running → `cancelled` at once. A running handler gets `ctx.signal` aborted, the file
@@ -420,8 +429,10 @@ dropzone.beforeFilesCancelCallback = async ({ files }) =>
 ## Labels (i18n)
 
 All UI strings come from one `labels` input — a partial object merged **per key** over the
-built-in English defaults (`DEFAULT_LABELS`). `{name}`, `{count}` and `{status}` placeholders are
-filled in. Set it as a property or a JSON attribute; changes re-render live (satellites too).
+built-in English defaults (`DEFAULT_LABELS`). `{name}`, `{count}`, `{size}`, `{status}` (…)
+placeholders are filled in. Set it as a property or a JSON attribute; changes re-render live
+(satellites too). Every satellite also takes its **own** `labels` (property or JSON attribute),
+merged per key on top of its store's.
 
 ```html
 <web-dropzone labels='{"prompt": "Přetáhněte soubory sem", "selectFiles": "Vybrat soubory"}'></web-dropzone>
@@ -441,8 +452,18 @@ Keys: `prompt`, `hint`, `dragActive`, `selectFiles`, `noFileChosen`, `overlay`;
 `statusPending` / `statusUploading` / `statusPaused` / `statusCancelling` / `statusComplete` /
 `statusError` / `statusCancelled`, `statusAria`, `cancelTimeout`, `cancelling`;
 `pauseFile` / `resumeFile` / `retryFile` / `cancelFile` / `removeFile`;
-`pauseAll` / `resumeAll` / `retryAll` / `cancelAll`. Every lookup goes through
-`resolveLabel(overrides, key, vars)` (exported) — page-wide localisation will plug in there.
+`pauseAll` / `resumeAll` / `retryAll` / `cancelAll`;
+`empty`, `summary` (`{count}`, `{size}`), `viewFiles`, `filesChosen`, `fileCount` / `fileCountOne`,
+`addMore`, `clearAll`, `showMore` / `showLess`, `showQueue`, `unknownType`;
+popover limits line `limitMaxFileSize` / `limitMinFileSize` / `limitMaxTotalSize(Left)` /
+`limitMaxFileCount(Left)` / `limitMinFileCount`; progress strip `progressCounts` / `progressPaused` /
+`progressFailed`; indicator `indicatorTitle` / `indicatorIdle` / `indicatorStatus` / `indicatorQueue` /
+`close` / `indicatorFailed` / `indicatorUploading` / `indicatorPaused` / `indicatorQueued` /
+`indicatorDone`; validation `errorMaxFileSize` / `errorMinFileSize` / `errorFileType` /
+`errorRejected` / `errorMaxFileCount(One)` / `errorDuplicate` / `errorMaxTotalSize` / `errorUpload`;
+form validity `errorMinFileCount(One)`. `…One` variants are used when the count is 1
+(`countLabel()`). Every lookup goes through `resolveLabel(sources, key, vars)` (exported) —
+page-wide localisation will plug in there.
 
 ## File State
 

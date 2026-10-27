@@ -27,9 +27,9 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `icon` attribute on minimal selector                          | ✓      | `display.spec.ts` | `display.html` |
 | Count badge on button when files exist                        | ✓      | `appearance.spec.ts` | `appearance.html` |
 | Count badge on minimal when files exist (follows remove / clear) | ✓   | `appearance.spec.ts` | `appearance.html` |
-| `labels.prompt` / `labels.hint` / `empty-message` + live update | ✓      | `display.spec.ts` | `display.html` |
+| `labels.prompt` / `labels.hint` / `labels.empty` + live update | ✓      | `display.spec.ts` | `display.html` |
 | `labels.overlay` / `overlay-icon` + live update               | ✓      | `display.spec.ts` | `display.html` |
-| `multiple` default / `multiple="false"` / `el.multiple` live on the native input + dialog | ✓ | `display.spec.ts` | `display.html` |
+| `multiple` default / `multiple="false"` / `el.isMultiple` live on the native input + dialog | ✓ | `display.spec.ts` | `display.html` |
 
 ## 2. List appearance
 
@@ -169,7 +169,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Multiple independent stores on one page                       | ✓      | `architecture.spec.ts` | `architecture.html` |
 | Picker `label` / `hint` / `selector-appearance` / `disabled` (per picker) | ✓ | `satellites-extra.spec.ts` | `satellites-extra.html` |
 | Picker `inside="true"` + nested list (files-inside layout)    | ✓      | `satellites-extra.spec.ts` | `satellites-extra.html` |
-| List `empty-message`, `list-appearance` (+ live change)       | ✓      | `satellites-extra.spec.ts` | `satellites-extra.html` |
+| List own `labels.empty`, `list-appearance` (+ live change)     | ✓      | `satellites-extra.spec.ts` | `satellites-extra.html` |
 | Indicator `position` / `drawer` (auto toggles, off = status chip) / `label` | ✓ | `satellites-extra.spec.ts` | `satellites-extra.html` |
 | Progress `data-empty` / `data-status` (uploading → paused → error → complete) | ✓ | `satellites-extra.spec.ts` | `satellites-extra.html` |
 
@@ -241,7 +241,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Events not composed, still bubble to `document`; old names never fire | ✓ | `interaction-model.spec.ts` | `interaction-model.html` |
 | Details / ctx carry `controller` + `element`, non-enumerable  | ✓      | `interaction-model.spec.ts`   | `interaction-model.html`  |
 | `change` detail `{ files }`; `file-reject` / `file-retry` / `file-status-change` context | ✓ | `interaction-model.spec.ts` | `interaction-model.html` |
-| `ready` (+ twin) on build; `data-ready`; `controller.isReady`  | ✓      | `interaction-model.spec.ts`   | `interaction-model.html`  |
+| core `ready` (+ twin) once on build; `ready` attr + `:state(ready)`; `controller.isReady` | ✓      | `interaction-model.spec.ts`   | `interaction-model.html`  |
 | `el.controller` stable across a rebuild; no `getStore` / engine | ✓     | `interaction-model.spec.ts`   | `interaction-model.html`  |
 | `beforeFilesAddCallback` — `false` cancels, `File[]` replaces, nothing continues | ✓ | `interaction-model.spec.ts` | `interaction-model.html` |
 | `beforeFilesRemoveCallback` via row ✕ (`data-dz-action="remove"`) | ✓   | `interaction-model.spec.ts`   | `interaction-model.html`  |
@@ -269,7 +269,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | ------------------------------------------------------------- | :----: | ----------------- | --------------- |
 | `disabled`: modifier class, native input + button disabled    | ✓      | `disabled.spec.ts` | `disabled.html` |
 | Disabled: click opens no dialog; drop adds nothing; no overlay | ✓     | `disabled.spec.ts` | `disabled.html` |
-| `el.disabled` / attribute toggle is reactive (both directions) | ✓     | `disabled.spec.ts` | `disabled.html` |
+| `el.isDisabled` (reflected) / attribute toggle is reactive (both directions) | ✓     | `disabled.spec.ts` | `disabled.html` |
 | `<fieldset disabled>` disables the dropzone                   | ✓      | `disabled.spec.ts` (NOTES #5 fixed) | `disabled.html` |
 | Fieldset re-enabled → usable; author `disabled` survives it   | ✓      | `disabled.spec.ts` | `disabled.html` |
 
@@ -281,7 +281,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `maxFileCount` property reactive + reflects                   | ✓      | `reactivity.spec.ts` | `reactivity.html` |
 | `accept` changed after build (validation + native input)      | ✓      | `reactivity.spec.ts` | `reactivity.html` |
 | `list-appearance` change re-renders, keeps files              | ✓      | `reactivity.spec.ts` | `reactivity.html` |
-| Mode flip (headless → bulk) rebuilds, `ready` again; `render-mode="headless"` drops the UI | ✓ | `reactivity.spec.ts` | `reactivity.html` |
+| Mode flip (headless → bulk) rebuilds, `ready` NOT re-fired; `render-mode="headless"` drops the UI | ✓ | `reactivity.spec.ts` | `reactivity.html` |
 | `overlay-target` set after build                              | ✓      | `reactivity.spec.ts` | `reactivity.html` |
 
 ## 16. Bulk actions (overall-progress strip + popover header)
@@ -333,7 +333,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | ------------------------------------------------------------- | :----: | ---------------- | -------------- |
 | Default placement bottom-start; `popover-placement="top-end"` | ✓      | `popover.spec.ts` | `popover.html` |
 | Escape / outside click close; inside click stays; summary toggles; Enter opens | ✓ | `popover.spec.ts` | `popover.html` |
-| `summary-template` `{count}` / `{size}` (+ default, live change) | ✓   | `popover.spec.ts` | `popover.html` |
+| `labels.summary` `{count}` / `{size}` (+ default, live change)   | ✓   | `popover.spec.ts` | `popover.html` |
 
 ## 21. File icons
 
@@ -390,6 +390,19 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | List + progress satellites follow the store labels (live)      | ✓      | `labels.spec.ts` | `cancel.html` |
 | Element removed → every upload cancelled (signal + `file-cancel`), queued never start, store destroyed | ✓ | `cancel.spec.ts` | `cancel.html` |
 | DOM move → uploads continue and complete (no removal teardown) | ✓     | `cancel.spec.ts` | `cancel.html` |
-| Re-adding a removed element → fresh empty store, `ready` fires | ✓     | `cancel.spec.ts` | `cancel.html` |
+| Re-adding a removed element → fresh empty store, `ready` not re-fired | ✓ | `cancel.spec.ts` | `cancel.html` |
 | `keep-alive-when-removed` keeps uploads running          | ✓     | `cancel.spec.ts` | `cancel.html` |
 | `form.reset()` during an upload → cancel, then remove           | ✓     | `cancel.spec.ts` | `cancel.html` |
+| `multiple="false"` replace: running upload cancelled (`file-cancel` → `file-remove`); idle → sync remove before add; batch keeps first | ✓ | `cancel.spec.ts` | `cancel.html` |
+| New label keys: validation messages (`errorMaxFileCountOne`, …) | ✓     | `display.spec.ts` | (inline element) |
+| Satellite own `labels` over the store's (per key, live property); malformed attribute keeps previous | ✓ | `satellites-extra.spec.ts` | `satellites-extra.html` |
+
+## 25. Core lifecycle (defer / release / destroy) + readonly
+
+| Feature                                                       | Status | Spec              | Fixture       |
+| ------------------------------------------------------------- | :----: | ----------------- | ------------- |
+| `defer` holds the first build; `release()` builds, `ready` once, `whenReady()` | ✓ | `lifecycle.spec.ts` | `lifecycle.html` |
+| `destroy()` → element inert, re-insert builds nothing           | ✓     | `lifecycle.spec.ts` | `lifecycle.html` |
+| `readonly`: no click / drop add, `--readonly` not `--disabled`  | ✓     | `disabled.spec.ts` | `disabled.html` |
+| `readonly`: programmatic files, Remove hidden, files submitted with the form | ✓ | `disabled.spec.ts` | `disabled.html` |
+| `el.isReadonly = false` unlocks; attribute reflected            | ✓     | `disabled.spec.ts` | `disabled.html` |

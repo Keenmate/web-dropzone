@@ -71,8 +71,16 @@ DISABLED FIELDSET
 <fieldset disabled> ... <web-dropzone name="f" display-mode="list"></web-dropzone> </fieldset>
 
 An ancestor disabled fieldset disables the dropzone (no clicks / drops);
-re-enabling the fieldset restores it. dz.disabled keeps reporting the element's
-own `disabled` value (like a native input).
+re-enabling the fieldset restores it. dz.isDisabled keeps reporting the element's
+own `disabled` value (like a native input). `disabled` is a reflected boolean
+attribute: dz.isDisabled = false removes it.
+
+READONLY
+--------
+<web-dropzone readonly name="docs">: the user can't change the selection (no
+add via click / drop / overlay / Add more, no row Remove, no Clear all), but the
+files stay visible and ARE submitted with the form. Uploads keep running; the
+programmatic API still works. dz.isReadonly (reflected).
 
 el.form
 -------
