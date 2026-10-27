@@ -82,8 +82,8 @@ Attributes:
   empty-message    overrides the store's empty-message
   nested="true"    files-inside class family (child of a picker with inside="true")
 
-Reads from the store config: item-controls, max-visible-files,
-should-sink-completed, show-thumbnails, uploaded-deletable, labels,
+Reads from the store config: item-controls, max-visible-file-count,
+sink-completed, show-thumbnails, allow-uploaded-file-removal, labels,
 cancel-icon / remove-icon, fileIcons / getFileIconCallback.
 
 Row buttons (Cancel / Remove / pause-resume-retry) call the store's API

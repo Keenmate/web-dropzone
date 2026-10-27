@@ -174,9 +174,9 @@
             <h2 style="margin-top:0">Three modes, one component</h2>
             <p style="margin-bottom:0.5rem">Pick a mode up-front via the <code>mode</code> attribute — it's a hard switch that decides who renders what.</p>
             <ul style="margin:0.5rem 0 0;line-height:1.7">
-                <li><strong><code>mode="bulk"</code></strong> (default) — framework owns the UI; you style via CSS variables. See <a href="examples-display.html">Display &amp; Composition</a> / <a href="examples-validation.html">Validation</a>.</li>
-                <li><strong><code>mode="structural"</code></strong> — framework owns the lifecycle; you provide HTML structure via render callbacks (including <code>renderListWrapperCallback</code> for tables and element-returning rows with <code>file-row-update</code> events). See <a href="examples-structural.html">Structural Rendering</a>.</li>
-                <li><strong><code>mode="headless"</code></strong> — framework just fires events (<code>files-change</code> on rAF + granular ones); bring your own renderer or pair with satellites. See <a href="examples-architecture.html">Architecture</a>.</li>
+                <li><strong><code>render-mode="bulk"</code></strong> (default) — framework owns the UI; you style via CSS variables. See <a href="examples-display.html">Display &amp; Composition</a> / <a href="examples-validation.html">Validation</a>.</li>
+                <li><strong><code>render-mode="structural"</code></strong> — framework owns the lifecycle; you provide HTML structure via render callbacks (including <code>renderListWrapperCallback</code> for tables and element-returning rows with <code>file-row-update</code> events). See <a href="examples-structural.html">Structural Rendering</a>.</li>
+                <li><strong><code>render-mode="headless"</code></strong> — framework just fires events (<code>files-change</code> on rAF + granular ones); bring your own renderer or pair with satellites. See <a href="examples-architecture.html">Architecture</a>.</li>
             </ul>
         </div>
 
@@ -225,7 +225,7 @@
                         href: 'examples-structural.html',
                         icon: '✨',
                         title: 'Structural Rendering',
-                        description: 'mode="structural" — override file items, prompts, summaries, AND the list wrapper (table layouts!). Element-returning rows survive state ticks via file-row-update events.'
+                        description: 'render-mode="structural" — override file items, prompts, summaries, AND the list wrapper (table layouts!). Element-returning rows survive state ticks via file-row-update events.'
                     },
                     {
                         href: 'examples-form.html',
@@ -261,7 +261,7 @@
                         href: 'examples-sharepoint-collisions.html',
                         icon: '🗂️',
                         title: 'SharePoint-style name collision check',
-                        description: 'Pre-upload server check for existing filenames, per-row Overwrite / Rename / Skip decisions via mode="structural".'
+                        description: 'Pre-upload server check for existing filenames, per-row Overwrite / Rename / Skip decisions via render-mode="structural".'
                     },
                     {
                         href: 'examples-split-overlay.html',

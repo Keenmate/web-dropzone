@@ -11,7 +11,7 @@ import-patterns.txt      - Packages, imports, headless core, styles, global API,
 display-modes.txt        - mode, selector/list appearances, display-mode shorthand,
                            grid, files-inside, compact popover, rolling, controls,
                            item-controls, Cancel vs Remove, drag overlay
-custom-rendering.txt     - mode="structural" render callbacks, file-row-update,
+custom-rendering.txt     - render-mode="structural" render callbacks, file-row-update,
                            file icons, raw-HTML inputs, getCustomStylesCallback
 upload-pipeline.txt      - uploadFileCallback ctx, concurrency, auto-upload, pause /
                            resume / retry / cancel rule, retryPolicy, progress-mode,
@@ -133,7 +133,7 @@ logging -> logging-debugging.txt
 M
 -
 max-file-count / max-file-size / max-total-size / min-* -> validation.txt
-max-visible-files -> display-modes.txt
+max-visible-file-count -> display-modes.txt
 metadata / setMetadata -> upload-pipeline.txt, events-callbacks.txt
 min-file-count (validity) -> form-integration.txt, validation.txt
 mode (bulk/structural/headless) -> display-modes.txt
@@ -158,7 +158,7 @@ R
 -
 ready event -> basic-setup.txt, events-callbacks.txt
 removeFile() / removeFiles() -> basic-setup.txt, events-callbacks.txt
-removal from page / should-keep-alive-when-removed -> upload-pipeline.txt, advanced-patterns.txt
+removal from page / keep-alive-when-removed -> upload-pipeline.txt, advanced-patterns.txt
 render*Callback -> custom-rendering.txt
 renderBody/FileInfo/ProgressCallback (indicator) -> satellites.txt
 resolveLabel -> labels-i18n.txt
@@ -169,7 +169,7 @@ RTL -> rtl-support.txt
 
 S
 -
-should-sink-completed / reorder-completed-delay -> display-modes.txt
+sink-completed / sink-completed-delay -> display-modes.txt
 show-thumbnails -> display-modes.txt
 StatusSurfaceArgs -> satellites.txt, typescript-types.txt
 structural mode -> custom-rendering.txt
@@ -182,7 +182,7 @@ Troubleshooting -> logging-debugging.txt
 
 U
 -
-uploaded-deletable -> display-modes.txt
+allow-uploaded-file-removal -> display-modes.txt
 uploadFileCallback -> upload-pipeline.txt
 uploadMetadata -> satellites.txt
 

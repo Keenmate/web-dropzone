@@ -130,7 +130,7 @@ export class DropzoneEngine {
     private drainError: unknown = undefined;
     /** Pending reorder timers per file id, used to delay the visual move of
      *  a row from the "unresolved" bucket to the "complete" bucket (see
-     *  `reorderCompletedDelay`). A file with a pending timer is NOT yet
+     *  `sinkCompletedDelay`). A file with a pending timer is NOT yet
      *  reorder-eligible — the timer firing IS the eligibility signal.
      *  Cancelled if the file un-completes (retry) or is removed before
      *  the timer fires. */
@@ -1364,7 +1364,7 @@ export class DropzoneEngine {
         // Add accepted files
         if (acceptedFiles.length > 0) {
             // In single mode, replace existing files
-            if (!this.config.isMultipleEnabled) {
+            if (!this.config.isMultiple) {
                 this.files = [acceptedFiles[0]];
             } else {
                 this.files.push(...acceptedFiles);
@@ -1408,7 +1408,7 @@ export class DropzoneEngine {
         if (
             acceptedFiles.length > 0 &&
             hasAnyHandler &&
-            this.config.isAutoUploadEnabled !== false
+            this.config.shouldAutoUpload !== false
         ) {
             void this.uploadAll();
         }
@@ -1446,7 +1446,7 @@ export class DropzoneEngine {
      * already-rendered rows.
      *
      * Eligibility (not raw `status === 'complete'`) means the popover
-     * sort respects the same `reorderCompletedDelay` window the inline
+     * sort respects the same `sinkCompletedDelay` window the inline
      * CSS rule does — files mid-delay stay in the unresolved bucket.
      */
     getOrderedFiles(): FileState[] {
@@ -1501,7 +1501,7 @@ export class DropzoneEngine {
             dispatch(this.contextElement, 'dz-reorder', { id, isComplete: becomingComplete }, { bubbles: false });
         };
 
-        const delay = Math.max(0, this.config.reorderCompletedDelay ?? 1500);
+        const delay = Math.max(0, this.config.sinkCompletedDelay ?? 1500);
         if (delay === 0) {
             // Microtask so cleanup hooks (remove / retry called in the
             // same tick) still get a chance to cancel.

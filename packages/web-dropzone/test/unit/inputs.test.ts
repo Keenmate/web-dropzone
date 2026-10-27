@@ -4,9 +4,9 @@ import '../../src/web-component'; // registers <web-dropzone>
 /**
  * Guards the `BlissElement` input-table wiring that replaced the hand-rolled
  * ATTRIBUTE_TABLE in the core migration: attribute → typed config (via the
- * converters), the historical camelCase public getters/setters (the 7
- * `is*`-renamed booleans + the tristate `showThumbnails`), property→attribute
- * reflection, and the coalesced-write settle signal.
+ * converters), the configKey-named properties behind the short boolean
+ * attributes (v2 naming), property→attribute reflection, and the
+ * coalesced-write settle signal.
  *
  * All detached (no connect) — `#stage` updates the merged config synchronously,
  * so the public getters read the new value immediately; this avoids building the
@@ -23,13 +23,13 @@ afterEach(() => {
 describe('<web-dropzone> input table (BlissElement)', () => {
     it('seeds converter defaults', () => {
         el = document.createElement('web-dropzone');
-        expect(el.maxVisibleFiles).toBe(7);   // toInt({ default: 7 })
+        expect(el.maxVisibleFileCount).toBe(7);   // toInt({ default: 7 })
         expect(el.maxFileCount).toBe(0);       // toInt({ default: 0 })
         expect(el.displayMode).toBe('list');   // toEnum default 'list'
         expect(el.valueFormat).toBe('json');   // toEnum default 'json'
-        expect(el.multiple).toBe(true);        // toBool('default-true')
-        expect(el.disabled).toBe(false);       // toBool('default-false')
-        expect(el.showThumbnails).toBeUndefined(); // toBool('tristate') → unset
+        expect(el.isMultiple).toBe(true);      // toBool('default-true')
+        expect(el.isDisabled).toBe(false);     // toBool('presence')
+        expect(el.isThumbnailsShown).toBeNull(); // toBool('tristate') → unset
     });
 
     it('parses attributes through their converters', () => {
@@ -44,16 +44,28 @@ describe('<web-dropzone> input table (BlissElement)', () => {
         expect(el.displayMode).toBe('grid');   // invalid enum → warned, previous value kept (core)
     });
 
-    it('maps the renamed boolean attributes to their public camelCase getters', () => {
+    it('maps the short boolean attributes to their prefixed configKey properties', () => {
         el = document.createElement('web-dropzone');
         el.setAttribute('multiple', 'false');
-        expect(el.multiple).toBe(false);          // isMultipleEnabled, default-true
+        expect(el.isMultiple).toBe(false);         // default-true
         el.setAttribute('disabled', '');
-        expect(el.disabled).toBe(true);           // isDisabled, default-false
+        expect(el.isDisabled).toBe(true);          // presence
         el.setAttribute('show-thumbnails', 'false');
-        expect(el.showThumbnails).toBe(false);    // isShowThumbnailsEnabled, tristate
+        expect(el.isThumbnailsShown).toBe(false);  // tristate
         el.setAttribute('show-thumbnails', '');
-        expect(el.showThumbnails).toBe(true);
+        expect(el.isThumbnailsShown).toBe(true);
+        el.setAttribute('sink-completed', '');
+        expect(el.shouldSinkCompleted).toBe(true);
+        el.setAttribute('keep-alive-when-removed', '');
+        expect(el.shouldKeepAliveWhenRemoved).toBe(true);
+        el.setAttribute('auto-upload', 'false');
+        expect(el.shouldAutoUpload).toBe(false);
+        el.setAttribute('allow-uploaded-file-removal', 'false');
+        expect(el.isUploadedFileRemovalAllowed).toBe(false);
+        el.setAttribute('files-inside', '');
+        expect(el.isFilesInside).toBe(true);
+        el.setAttribute('render-mode', 'structural');
+        expect(el.renderMode).toBe('structural');
     });
 
     it('reflects a property write back to its attribute', () => {
@@ -61,19 +73,17 @@ describe('<web-dropzone> input table (BlissElement)', () => {
         el.maxFileCount = 3;
         expect(el.getAttribute('max-file-count')).toBe('3'); // shouldReflect: true
         expect(el.maxFileCount).toBe(3);
+        el.isDisabled = true;
+        expect(el.hasAttribute('disabled')).toBe(true);      // reflected, native-like
+        el.isDisabled = false;
+        expect(el.hasAttribute('disabled')).toBe(false);
     });
 
-    it('the boolean alias setters write the attribute (and read back)', () => {
+    it('has no hand-written alias properties (v2: configKey names only)', () => {
         el = document.createElement('web-dropzone');
-        el.multiple = false;
-        expect(el.getAttribute('multiple')).toBe('false');
-        expect(el.multiple).toBe(false);
-        el.disabled = true;
-        expect(el.hasAttribute('disabled')).toBe(true);
-        expect(el.disabled).toBe(true);
-        el.showThumbnails = undefined;
-        expect(el.hasAttribute('show-thumbnails')).toBe(false); // tristate unset → removed
-        expect(el.showThumbnails).toBeUndefined();
+        for (const old of ['multiple', 'disabled', 'showThumbnails', 'filesInside', 'autoUpload', 'uploadedDeletable', 'mode', 'maxVisibleFiles']) {
+            expect(old in el, old).toBe(false);
+        }
     });
 
     it('coalesces a property write and settles (connected)', async () => {

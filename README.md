@@ -12,8 +12,8 @@ Breaking — see [CHANGELOG.md](CHANGELOG.md) for the migration tables.
 - **One cancel rule** — `cancelFile(id)` now returns a promise and gives a running upload handler its `AbortSignal` plus up to `cancel-timeout` ms (default 2000) to settle; the row shows "Cancelling…". Settles in time → `cancelled`; otherwise `cancel-timeout-behavior` (`error`, retryable — or `remove`). Late results are ignored and the concurrency slot is freed either way. `beforeFileCancelCallback` can veto, `file-cancel` reports how it ended (`{ file, result, uploadedBytes, metadata }`), and `cancelAll()` + a **Cancel all** button cover the whole queue.
 - **Row buttons split** — **⊘ Cancel** stops the upload and keeps the row (Retry available); **✕ Remove** always removes (a running upload is cancelled first). Both glyphs are configurable (`cancel-icon` / `remove-icon`).
 - **`labels`** — every UI string in one input (property or JSON attribute, merged per key over English, `{name}` placeholders, live). Replaces `prompt-text`, `hint-text`, `drag-active-text`, `no-file-chosen-text`, `overlay-text`, `select-files-text` and the `STATUS_LABELS` / `ACTION_LABELS` exports.
-- **Removal vs move** — removing `<web-dropzone>` from the page cancels its uploads and destroys the store (a DOM move doesn't); opt out with `should-keep-alive-when-removed`.
-- **Naming** — `removeFiles(ids)`, the `rejected` add-veto code, `should-sink-completed` (was `reorder-completed`).
+- **Removal vs move** — removing `<web-dropzone>` from the page cancels its uploads and destroys the store (a DOM move doesn't); opt out with `keep-alive-when-removed`.
+- **Naming** — `removeFiles(ids)`, the `rejected` add-veto code, `sink-completed` (was `reorder-completed`).
 - **Fixes** — cancel during the auto-retry backoff, `destroy()` stopping the queue, no events after teardown / removal, mode-flip rebuild reporting dropped files.
 
 ## What's New in v1.0.0-rc02
@@ -116,8 +116,8 @@ dropzone.controller.clear();
 | `cancel-timeout` | `number` (ms) | `2000` | How long a cancel waits for the aborted upload handler to settle |
 | `cancel-timeout-behavior` | `'error' \| 'remove'` | `'error'` | What a timed-out cancel does — `error` (retryable) or remove the file |
 | `cancel-icon` / `remove-icon` | `string` (raw HTML) | built-in | Row ⊘ Cancel / ✕ Remove glyphs — see the [XSS notice](#html-injection-xss-notice) |
-| `should-sink-completed` | `boolean` | `false` | Auto-move completed files to the end of the list (after `reorder-completed-delay`) |
-| `should-keep-alive-when-removed` | `boolean` | `false` | Keep the store and its uploads when the element is removed from the page |
+| `sink-completed` | `boolean` | `false` | Auto-move completed files to the end of the list (after `sink-completed-delay`) |
+| `keep-alive-when-removed` | `boolean` | `false` | Keep the store and its uploads when the element is removed from the page |
 | `overlay-icon` | `string` (raw HTML) | Lucide `upload` | Icon shown in drag overlay. Accepts any HTML (SVG / `<img>` / emoji) — see the [XSS notice](#html-injection-xss-notice) |
 
 ## Display Modes
@@ -391,7 +391,7 @@ your server-side cleanup, **destroy** tears the element's store down.
   (`beforeFileCancelCallback` is asked once with all of them).
 - The row **✕** (and `removeFile`) on a running file cancels it first, then removes it.
 - Removing `<web-dropzone>` from the page cancels everything the same way, then destroys the
-  store (a DOM move keeps it). `should-keep-alive-when-removed` opts out.
+  store (a DOM move keeps it). `keep-alive-when-removed` opts out.
 
 **Server-side cleanup is the app's job.** A cancelled upload may have left a partial file or an
 open session on the server; `file-cancel` tells you what the handler knew:

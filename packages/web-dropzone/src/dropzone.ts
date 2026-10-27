@@ -151,7 +151,7 @@ export class WebDropzone extends DropzoneEngine {
     /** Debounce handle for the resize → save flow. ResizeObserver fires on
      *  every drag tick; we only want to persist the final dimension. */
     private popoverSaveTimer: number | null = null;
-    /** When true, the maxVisibleFiles cap is ignored and all files are
+    /** When true, the maxVisibleFileCount cap is ignored and all files are
      *  rendered. Toggled by the "Show N more" / "Show less" button at the
      *  end of the list (or the "+N" badge in badges mode). Reset on clear(). */
     private showAllList = false;
@@ -334,7 +334,7 @@ export class WebDropzone extends DropzoneEngine {
      * Convenience-form rendering paths that decompose cleanly into a
      * `<web-dropzone-picker>` + `<web-dropzone-list>` pair.
      *
-     * Gated by mode (hard switch — see DropzoneMode):
+     * Gated by renderMode (hard switch — see DropzoneRenderMode):
      *   - 'bulk' (default)  → satellite path; render callbacks IGNORED.
      *   - 'structural'      → in-class render path so render callbacks
      *                         (`renderFileItemCallback`, etc.) take effect.
@@ -353,13 +353,13 @@ export class WebDropzone extends DropzoneEngine {
      */
     private shouldUseSatelliteRendering(): boolean {
         if (!this.config.hostElement) return false;
-        if (this.config.mode === 'structural') return false;
+        if (this.config.renderMode === 'structural') return false;
         return true;
     }
 
     /** True only when consumer-provided render callbacks should be honored. */
     private isStructuralMode(): boolean {
-        return this.config.mode === 'structural';
+        return this.config.renderMode === 'structural';
     }
 
     /**
@@ -376,7 +376,7 @@ export class WebDropzone extends DropzoneEngine {
         const container = this.element.querySelector('.dz__container');
         if (!container) return;
         const { selectorAppearance, listAppearance, cardSize } = resolveDisplayConfig(this.config);
-        const filesInside = !!this.config.isFilesInsideEnabled;
+        const filesInside = !!this.config.isFilesInside;
 
         // Plyr-style `controls` allowlist. Absent → mount every applicable
         // satellite (default). Present → only mount the named surfaces.
@@ -469,7 +469,7 @@ export class WebDropzone extends DropzoneEngine {
 
     private renderComponent(): string {
         const { selectorAppearance, listAppearance, cardSize } = resolveDisplayConfig(this.config);
-        const filesInside = this.config.isFilesInsideEnabled || false;
+        const filesInside = this.config.isFilesInside || false;
 
         // The summary line (`.dz__summary`) is the standalone click target for
         // listAppearance='popover'. It is only useful with a card selector —
@@ -491,7 +491,7 @@ export class WebDropzone extends DropzoneEngine {
         // all list appearances (per-row + the popover summary fallback) when
         // auto-upload is off — the icon would otherwise show the second a
         // file is added, before any actual upload activity has happened.
-        const isManualUpload = this.config.isAutoUploadEnabled === false;
+        const isManualUpload = this.config.shouldAutoUpload === false;
 
         const containerClasses = [
             'dz__container',
@@ -544,7 +544,7 @@ export class WebDropzone extends DropzoneEngine {
         const disabled = this.config.isDisabled ? 'dz__dropzone--disabled' : '';
         const active = this.dragActive ? 'dz__dropzone--active' : '';
         const hasFiles = this.files.length > 0 ? 'dz__dropzone--has-files' : '';
-        const filesInside = this.config.isFilesInsideEnabled ? 'dz__dropzone--files-inside' : '';
+        const filesInside = this.config.isFilesInside ? 'dz__dropzone--files-inside' : '';
 
         // Card: the hidden input is the keyboard control, named after the
         // prompt. Button / minimal / native have their own <button>, so the
@@ -556,7 +556,7 @@ export class WebDropzone extends DropzoneEngine {
             <input type="file"
                 class="dz__dropzone__input"
                 ${inputA11yAttrs}
-                ${this.config.isMultipleEnabled ? 'multiple' : ''}
+                ${this.config.isMultiple ? 'multiple' : ''}
                 ${this.config.accept ? `accept="${escapeHtml(this.config.accept)}"` : ''}
                 ${this.config.isDisabled ? 'disabled' : ''}
             >
@@ -610,7 +610,7 @@ export class WebDropzone extends DropzoneEngine {
 
         // Card (default)
         const content = this.renderCardContent(cardSize);
-        const filesInsideContent = this.config.isFilesInsideEnabled ? this.renderFilesInsideArea() : '';
+        const filesInsideContent = this.config.isFilesInside ? this.renderFilesInsideArea() : '';
 
         return `
             <div class="dz__dropzone dz__dropzone--card dz__dropzone--card-${cardSize} ${disabled} ${active} ${hasFiles} ${filesInside}">
@@ -685,7 +685,7 @@ export class WebDropzone extends DropzoneEngine {
         // `order: 1` rule kicks in (or releases). Doubles as the
         // visual state used by getOrderedFiles via isReorderEligible
         // (which checks timer presence, now cleared).
-        const targetEl = this.config.isFilesInsideEnabled ? this.filesInsideEl : this.fileListEl;
+        const targetEl = this.config.isFilesInside ? this.filesInsideEl : this.fileListEl;
         const row = targetEl?.querySelector(`[data-file-id="${id}"]`) as HTMLElement | null;
         if (row) {
             if (becomingComplete) row.dataset.reorderBucket = 'complete';
@@ -696,11 +696,11 @@ export class WebDropzone extends DropzoneEngine {
         // doesn't work on <tr>).
         if (this.popover) this.reorderPopoverRows();
 
-        // Inline list with max-visible-files cap: the completed row
+        // Inline list with max-visible-file-count cap: the completed row
         // needs to drop out of the visible window and the next
         // hidden file slides up. Same condition as the in-line
         // boundary-cross trigger in patchFileRow.
-        if ((this.config.maxVisibleFiles ?? 0) > 0 && !this.showAllList) {
+        if ((this.config.maxVisibleFileCount ?? 0) > 0 && !this.showAllList) {
             this.renderFileList();
         }
     }
@@ -875,7 +875,7 @@ export class WebDropzone extends DropzoneEngine {
         // engages when wrapper is NOT set.
         const cachedRowEl = this.fileRowElements.get(file.id);
 
-        const targetEl = this.config.isFilesInsideEnabled ? this.filesInsideEl : this.fileListEl;
+        const targetEl = this.config.isFilesInside ? this.filesInsideEl : this.fileListEl;
         if (targetEl) {
             const existing = targetEl.querySelector(`[data-file-id="${file.id}"]`) as HTMLElement | null;
             if (existing) {
@@ -895,7 +895,7 @@ export class WebDropzone extends DropzoneEngine {
                     this.patchInlineRowInPlace(existing, file, listAppearance);
                 }
 
-                // The delayed visual reorder (reorderCompletedDelay) is
+                // The delayed visual reorder (sinkCompletedDelay) is
                 // scheduled by the engine's mutateFileState on the
                 // complete-boundary crossing; applyReorderToRenderer flips
                 // the row bucket when it fires.
@@ -1139,12 +1139,12 @@ export class WebDropzone extends DropzoneEngine {
 
     protected override renderFileList(): void {
         // Determine target element (filesInsideEl or fileListEl)
-        const targetEl = this.config.isFilesInsideEnabled ? this.filesInsideEl : this.fileListEl;
+        const targetEl = this.config.isFilesInside ? this.filesInsideEl : this.fileListEl;
         if (!targetEl) return;
 
         if (this.files.length === 0) {
             this.fileRowElements.clear();
-            targetEl.innerHTML = this.config.isFilesInsideEnabled ? '' : `<div class="dz__empty">${escapeHtml(this.config.emptyMessage || DEFAULT_CONFIG.emptyMessage)}</div>`;
+            targetEl.innerHTML = this.config.isFilesInside ? '' : `<div class="dz__empty">${escapeHtml(this.config.emptyMessage || DEFAULT_CONFIG.emptyMessage)}</div>`;
             return;
         }
 
@@ -1226,7 +1226,7 @@ export class WebDropzone extends DropzoneEngine {
         uiLogger.debug('File list rendered', {
             count: this.files.length,
             visible: visible.length,
-            filesInside: this.config.isFilesInsideEnabled
+            filesInside: this.config.isFilesInside
         });
     }
 
@@ -1453,14 +1453,14 @@ export class WebDropzone extends DropzoneEngine {
     }
 
     /**
-     * Slice `files` to the visible window. When `maxVisibleFiles` is 0/unset,
+     * Slice `files` to the visible window. When `maxVisibleFileCount` is 0/unset,
      * or `showAllList` is true, the full selection is returned. Otherwise only
-     * the first `maxVisibleFiles` files are rendered and the rest are hidden
+     * the first `maxVisibleFileCount` files are rendered and the rest are hidden
      * behind the "Show N more" toggle.
      */
     private getVisibleFiles(): FileState[] {
         const ordered = this.getOrderedFiles();
-        const cap = this.config.maxVisibleFiles || 0;
+        const cap = this.config.maxVisibleFileCount || 0;
         if (cap <= 0 || this.showAllList) return ordered;
         return ordered.slice(0, cap);
     }
@@ -1473,7 +1473,7 @@ export class WebDropzone extends DropzoneEngine {
      * Returns "" when no toggle is needed (no cap, or selection fits).
      */
     private renderToggleButton(listAppearance: ListAppearance): string {
-        const cap = this.config.maxVisibleFiles || 0;
+        const cap = this.config.maxVisibleFileCount || 0;
         if (cap <= 0 || this.files.length <= cap) return '';
 
         const isBadges = listAppearance === 'badges';
@@ -1538,8 +1538,8 @@ export class WebDropzone extends DropzoneEngine {
      * doesn't quietly change the look of existing badge / detailed lists.
      */
     private shouldShowThumbnails(listAppearance: ListAppearance): boolean {
-        if (this.config.isShowThumbnailsEnabled !== undefined) {
-            return this.config.isShowThumbnailsEnabled;
+        if (this.config.isThumbnailsShown !== undefined) {
+            return this.config.isThumbnailsShown;
         }
         return listAppearance === 'grid';
     }
@@ -1564,7 +1564,7 @@ export class WebDropzone extends DropzoneEngine {
      */
     private isFileUserRemovable(file: FileState): boolean {
         if (file.status !== 'complete') return true;
-        return this.config.isUploadedFileDeletable !== false;
+        return this.config.isUploadedFileRemovalAllowed !== false;
     }
 
     /** Row action click (see `actionForStatus`) — uploading→pauseFile,
@@ -1632,7 +1632,7 @@ export class WebDropzone extends DropzoneEngine {
 
         // X button is ALWAYS rendered — column width stays stable as files
         // transition pending → uploading → complete and the button doesn't
-        // pop in/out. When isUploadedFileDeletable=false and the file has
+        // pop in/out. When isUploadedFileRemovalAllowed=false and the file has
         // finished uploading, removeButtonAttrs() stamps a `--hidden`
         // modifier (visibility: hidden + tabindex=-1) so the slot stays
         // reserved but the user can't click it; removeFile(id) still works
@@ -1824,7 +1824,7 @@ export class WebDropzone extends DropzoneEngine {
 
         // Create popover
         this.popover = document.createElement('div');
-        this.popover.className = this.config.isAutoUploadEnabled === false
+        this.popover.className = this.config.shouldAutoUpload === false
             ? 'dz__popover dz__popover--manual-upload'
             : 'dz__popover';
 
@@ -2293,7 +2293,7 @@ export class WebDropzone extends DropzoneEngine {
         // "current file" rectangle) rather than the queue badge inside it.
         // Container is stable across front-file swaps; the badge isn't a
         // good positioning reference because it's a small corner overlay.
-        const targetEl = this.config.isFilesInsideEnabled ? this.filesInsideEl : this.fileListEl;
+        const targetEl = this.config.isFilesInside ? this.filesInsideEl : this.fileListEl;
         if (targetEl?.classList.contains('dz__file-list--rolling') ||
             targetEl?.classList.contains('dz__files-inside--rolling')) {
             return targetEl;

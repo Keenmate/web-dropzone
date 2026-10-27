@@ -46,7 +46,7 @@ export { formatFileSize, getFileTypeCategory, getFileIcon, isImageFile, createIm
 // Export types
 export type {
     DisplayMode,
-    DropzoneMode,
+    DropzoneRenderMode,
     FileStatus,
     CancelTimeoutBehavior,
     FileCancelResult,

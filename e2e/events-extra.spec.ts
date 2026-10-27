@@ -15,7 +15,7 @@ import { test, expect, dz, addNamed, pendingNames, resolveUpload, pumpProgress, 
  *     this event on it instead of replacing the node. Listeners attached
  *     during initial render survive every tick.
  *
- *   - renderSummaryCallback (mode="structural" + list-appearance="popover")
+ *   - renderSummaryCallback (render-mode="structural" + list-appearance="popover")
  *     replaces the inline summary line that opens the popover.
  */
 

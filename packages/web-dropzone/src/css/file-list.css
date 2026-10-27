@@ -75,7 +75,7 @@
    "row physically moves" — useful when failed rows sitting next to each
    other could otherwise swap positions faster than the user can register
    which one just succeeded. dropzone.ts sets the attribute on a per-file
-   setTimeout (config: `reorderCompletedDelay`, default 1500ms when
+   setTimeout (config: `sinkCompletedDelay`, default 1500ms when
    reorder is on); a delay of 0 schedules a microtask so the move still
    happens "instantly" but cleanup hooks for retry / remove get a chance
    to cancel. The Show-more toggle and the badges "+N" counter always

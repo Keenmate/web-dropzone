@@ -16,19 +16,19 @@
 
     <div class="fixture">
         <div class="fixture-label">web-dropzone-indicator binds via for= and reads the store</div>
-        <web-dropzone id="store-ind" mode="headless" accept="*/*" max-file-count="10"></web-dropzone>
+        <web-dropzone id="store-ind" render-mode="headless" accept="*/*" max-file-count="10"></web-dropzone>
         <web-dropzone-indicator id="ind" for="store-ind"></web-dropzone-indicator>
     </div>
 
     <div class="fixture">
         <div class="fixture-label">web-dropzone-progress binds via for= and reflects getOverallProgress</div>
-        <web-dropzone id="store-prog" mode="headless" accept="*/*" max-file-count="10"></web-dropzone>
+        <web-dropzone id="store-prog" render-mode="headless" accept="*/*" max-file-count="10"></web-dropzone>
         <web-dropzone-progress id="prog" for="store-prog"></web-dropzone-progress>
     </div>
 
     <div class="fixture">
         <div class="fixture-label">one headless store (#sat) + configured satellites</div>
-        <web-dropzone id="sat" mode="headless" accept="*/*" auto-upload="false"></web-dropzone>
+        <web-dropzone id="sat" render-mode="headless" accept="*/*" auto-upload="false"></web-dropzone>
         <web-dropzone-picker id="pick-card" for="sat" label="Drop invoices" hint="PDF only"></web-dropzone-picker>
         <web-dropzone-picker id="pick-btn" for="sat" selector-appearance="button" label="Browse"></web-dropzone-picker>
         <web-dropzone-picker id="pick-dis" for="sat" selector-appearance="button" disabled></web-dropzone-picker>

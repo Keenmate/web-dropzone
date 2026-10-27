@@ -3,7 +3,7 @@ ADVANCED PATTERNS
 
 1. HEADLESS STORE + FRAMEWORK-RENDERED UI
 -----------------------------------------
-<web-dropzone id="store" mode="headless" multiple max-file-count="6"></web-dropzone>
+<web-dropzone id="store" render-mode="headless" multiple max-file-count="6"></web-dropzone>
 <web-dropzone-picker for="store"></web-dropzone-picker>     <!-- optional -->
 
 React:
@@ -18,7 +18,7 @@ function Uploads() {
     return () => dz.removeEventListener('files-change', onTick);
   }, []);
   return (<>
-    <web-dropzone ref={ref} mode="headless" />
+    <web-dropzone ref={ref} render-mode="headless" />
     {files.map(f => (
       <div key={f.id}>{f.name} {Math.round(f.progress)}% {f.status}
         <button onClick={() => ref.current.cancelFile(f.id)}>Cancel</button>
@@ -103,7 +103,7 @@ Rules to remember:
 -------------------------------------------------
 SharePoint-style name collisions (see examples-sharepoint-collisions.html):
 
-<web-dropzone id="dz" mode="structural" display-mode="list" auto-upload="false"></web-dropzone>
+<web-dropzone id="dz" render-mode="structural" display-mode="list" auto-upload="false"></web-dropzone>
 
 - auto-upload="false": files stay 'pending'.
 - files-change: batch-ask the server which names exist.
@@ -172,12 +172,12 @@ const cfg = dz.controller.getConfig();  // OK
 - Removing it (still detached one frame later): uploads cancelled by the cancel
   rule (file-cancel fires, no gate), then the store is destroyed. Re-adding
   later builds an empty store and fires `ready`.
-- should-keep-alive-when-removed: nothing is torn down while detached - e.g. a
+- keep-alive-when-removed: nothing is torn down while detached - e.g. a
   dropzone inside a tab panel that is detached when hidden. Call destroy()
   yourself when the view is really gone.
 
 SPA route change that should keep uploading in the background:
-<web-dropzone id="bg" mode="headless" should-keep-alive-when-removed></web-dropzone>
+<web-dropzone id="bg" render-mode="headless" keep-alive-when-removed></web-dropzone>
 plus a <web-dropzone-indicator for="bg"> in the app shell (keep the store in
 the shell so the indicator can resolve it).
 
@@ -201,7 +201,7 @@ customElements.define('upload-counter', UploadCounter);
 
 11. RESTRICTING ACTIONS
 -----------------------
-- Lock completed files: uploaded-deletable="false".
+- Lock completed files: allow-uploaded-file-removal="false".
 - Confirm destructive removes only for uploaded files:
   dz.beforeFilesRemoveCallback = ({ files }) =>
     files.some(f => f.status === 'complete') && !confirm('Delete uploaded files?') ? false : undefined;

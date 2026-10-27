@@ -80,7 +80,7 @@ test.describe('list-appearance="none"', () => {
     });
 });
 
-test.describe('max-visible-files cap', () => {
+test.describe('max-visible-file-count cap', () => {
     test('caps rendered rows; reveals a "Show N more" button when over the cap', async ({ page }) => {
         await stage(page, 'capped', 7);
         const p = dz(page, 'capped');

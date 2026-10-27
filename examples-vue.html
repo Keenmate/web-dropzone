@@ -165,7 +165,7 @@ const App = {
         return { storeRef, files, stats, rowAction, iconFor, actionLabel }
     },
     template: `
-        &lt;web-dropzone ref="storeRef" id="vu-store" mode="headless" multiple max-file-count="6"&gt;&lt;/web-dropzone&gt;
+        &lt;web-dropzone ref="storeRef" id="vu-store" render-mode="headless" multiple max-file-count="6"&gt;&lt;/web-dropzone&gt;
         &lt;web-dropzone-picker for="vu-store" selector-appearance="card" label="Drop files for Vue"&gt;&lt;/web-dropzone-picker&gt;
         &lt;div v-if="files.length === 0" class="vu-empty"&gt;No files yet&lt;/div&gt;
         &lt;div v-else class="vu-list"&gt;
@@ -270,7 +270,7 @@ app.mount('#vue-root')</pre>
                 return { storeRef, files, stats, rowAction, iconFor, actionLabel }
             },
             template: `
-                <web-dropzone ref="storeRef" id="vu-store" mode="headless" multiple max-file-count="6"></web-dropzone>
+                <web-dropzone ref="storeRef" id="vu-store" render-mode="headless" multiple max-file-count="6"></web-dropzone>
                 <web-dropzone-picker for="vu-store" selector-appearance="card" label="Drop files for Vue"></web-dropzone-picker>
 
                 <div v-if="files.length === 0" class="vu-empty">No files yet — drop something above.</div>

@@ -68,7 +68,7 @@ import type {
 import type {
     DropzoneConfig,
     DisplayMode,
-    DropzoneMode,
+    DropzoneRenderMode,
     SelectorAppearance,
     ListAppearance,
     GridLayout,
@@ -197,18 +197,18 @@ const ITEM_PART_TOKENS = ['icon', 'name', 'size', 'type', 'progress', 'status', 
 const INPUTS: readonly InputDef[] = [
     // ── Core ──────────────────────────────────────────────────────────────────
     { configKey: 'accept',                  attribute: 'accept',              converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'Accepted file types (MIME types / extensions), comma-separated.' },
-    { configKey: 'isMultipleEnabled',       attribute: 'multiple',            converter: toBool('default-true'),                                                       on: 'update', type: 'boolean', description: 'Allow selecting multiple files. Public property: `el.multiple`.' },
+    { configKey: 'isMultiple',       attribute: 'multiple',            converter: toBool('default-true'),                                                       on: 'update', type: 'boolean', description: 'Allow selecting multiple files.' },
     { configKey: 'maxFileSize',             attribute: 'max-file-size',       converter: bytes(0),                                                                     shouldReflect: true, on: 'update', description: 'Maximum size per file in bytes (accepts "5MB", "1.5GB", …). 0 = unlimited.' },
     { configKey: 'minFileSize',             attribute: 'min-file-size',       converter: bytes(0),                                                                     shouldReflect: true, on: 'update', description: 'Minimum size per file in bytes. 0 = no minimum.' },
     { configKey: 'maxTotalSize',            attribute: 'max-total-size',      converter: bytes(0),                                                                     shouldReflect: true, on: 'update', description: 'Maximum combined size of all files in bytes. 0 = unlimited.' },
     { configKey: 'maxFileCount',            attribute: 'max-file-count',      converter: toInt({ default: 0 }),                                                        shouldReflect: true, on: 'update', description: 'Maximum number of files. 0 = unlimited.' },
     { configKey: 'minFileCount',            attribute: 'min-file-count',      converter: toInt({ default: 0 }),                                                        shouldReflect: true, on: 'update', description: 'Minimum number of files; reflected into the form validity (valueMissing).' },
-    { configKey: 'maxVisibleFiles',         attribute: 'max-visible-files',   converter: toInt({ default: 7 }),                                                        shouldReflect: true, on: 'update', description: 'How many file rows are visible before the list scrolls.' },
+    { configKey: 'maxVisibleFileCount',         attribute: 'max-visible-file-count',   converter: toInt({ default: 7 }),                                                        shouldReflect: true, on: 'update', description: 'How many file rows are visible before the list scrolls.' },
     { configKey: 'dedupeMode',              attribute: 'dedupe-mode',         converter: toEnum(['name', 'name-size', 'none'] as const, { default: 'name' }),          shouldReflect: true, on: 'update', description: 'How duplicate files are detected: by name, name+size, or not at all.' },
-    { configKey: 'isDisabled',              attribute: 'disabled',            converter: toBool('default-false'),                                                      on: 'update', type: 'boolean', description: 'Disable the dropzone. Public property: `el.disabled`.' },
+    { configKey: 'isDisabled',              attribute: 'disabled',            converter: toBool('presence'),                                                           shouldReflect: true, on: 'update', type: 'boolean', description: 'Disable the dropzone (like a native control: no clicks / drops; boolean attribute — present = on). An ancestor `<fieldset disabled>` disables it too (core `isEffectivelyDisabled`); `el.isDisabled` keeps the authored value.' },
 
     // ── Operating mode ────────────────────────────────────────────────────────
-    { configKey: 'mode',                    attribute: 'mode',                converter: toEnum(['bulk', 'structural', 'headless'] as const),                          on: 'update', description: 'Operating mode. When absent it is inferred from the presence of renderer-trigger attributes (display-mode / selector-appearance / list-appearance → bulk; none → headless). `structural` is the only way to opt into render callbacks.' },
+    { configKey: 'renderMode',              attribute: 'render-mode',         converter: toEnum(['bulk', 'structural', 'headless'] as const),                          on: 'update', description: 'Render mode — who renders the file list. When absent it is inferred from the presence of renderer-trigger attributes (display-mode / selector-appearance / list-appearance → bulk; none → headless). `structural` is the only way to opt into render callbacks.' },
     { configKey: 'progressThrottle',        attribute: 'progress-throttle',   converter: toInt({ default: 0 }),                                                        shouldReflect: true, on: 'update', description: 'Throttle interval in ms for file-progress events. 0 = every tick.' },
 
     // ── Display ───────────────────────────────────────────────────────────────
@@ -221,8 +221,8 @@ const INPUTS: readonly InputDef[] = [
     { configKey: 'itemControls',            attribute: 'item-controls',       converter: list(ITEM_PART_TOKENS),                                                       shouldReflect: true, on: 'update', type: 'FileItemPart[]', description: 'Plyr-style allowlist of per-row parts (comma-separated): icon, name, size, type, progress, status, action, cancel, remove. Unset = render all.' },
     { configKey: 'rollingRotation',         attribute: 'rolling-rotation',    converter: toEnum(['horizontal', 'vertical', 'slide-in'] as const, { default: 'slide-in' }), shouldReflect: true, on: 'update', description: 'Rotation style for the rolling list appearance.' },
     { configKey: 'cardSize',                attribute: 'card-size',           converter: toEnum(['minimal', 'compact', 'big'] as const),                               shouldReflect: true, on: 'update', description: 'Card size for the card selector appearance.' },
-    { configKey: 'isShowThumbnailsEnabled', attribute: 'show-thumbnails',     converter: toBool('tristate'),                                                           on: 'update', type: 'boolean', description: 'Force image thumbnails on/off. Property-only tristate: unset (undefined) means auto (on for grid, icons elsewhere). Public property: `el.showThumbnails`.' },
-    { configKey: 'isFilesInsideEnabled',    attribute: 'files-inside',        converter: toBool('default-false'),                                                      on: 'update', type: 'boolean', description: 'Render the file list inside the drop area. Public property: `el.filesInside`.' },
+    { configKey: 'isThumbnailsShown', attribute: 'show-thumbnails',     converter: toBool('tristate'),                                                           on: 'update', type: 'boolean', description: 'Force image thumbnails on/off. Property-only tristate: unset (undefined) means auto (on for grid, icons elsewhere).' },
+    { configKey: 'isFilesInside',    attribute: 'files-inside',        converter: toBool('default-false'),                                                      on: 'update', type: 'boolean', description: 'Render the file list inside the drop area.' },
     { configKey: 'cancelIcon',              attribute: 'cancel-icon',         converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'HTML for the row Cancel (⊘) button glyph (raw HTML — NOT sanitized). Unset = built-in icon.' },
     { configKey: 'removeIcon',              attribute: 'remove-icon',         converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'HTML for the row Remove (✕) button glyph (raw HTML — NOT sanitized). Unset = built-in icon.' },
     { configKey: 'icon',                    attribute: 'icon',                converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'Prompt icon (emoji or markup).' },
@@ -254,14 +254,14 @@ const INPUTS: readonly InputDef[] = [
     { configKey: 'concurrency',             attribute: 'concurrency',         converter: toInt({ default: 1 }),                                                        shouldReflect: true, on: 'update', description: 'Maximum concurrent uploads through the worker pool.' },
     { configKey: 'cancelTimeout',           attribute: 'cancel-timeout',      converter: toInt({ min: 0, default: 2000 }),                                             shouldReflect: true, on: 'update', description: 'How long (ms) a cancel waits for the aborted upload handler to settle (the row shows "Cancelling…"). Settles in time → `cancelled`; otherwise `cancel-timeout-behavior` applies and later results are ignored.' },
     { configKey: 'cancelTimeoutBehavior',   attribute: 'cancel-timeout-behavior', converter: toEnum(['error', 'remove'] as const, { default: 'error' }),               shouldReflect: true, on: 'update', description: 'What a timed-out cancel does: `error` (status error, reason `cancel-timeout`, retryable) or `remove` (the file is removed from the list).' },
-    { configKey: 'isAutoUploadEnabled',     attribute: 'auto-upload',         converter: toBool('default-true'),                                                       on: 'update', type: 'boolean', description: 'Auto-upload newly added files. Public property: `el.autoUpload`.' },
-    { configKey: 'isUploadedFileDeletable',  attribute: 'uploaded-deletable',  converter: toBool('default-true'),                                                       on: 'update', type: 'boolean', description: 'Whether already-uploaded files can be removed. Public property: `el.uploadedDeletable`.' },
-    { configKey: 'shouldSinkCompleted',     attribute: 'should-sink-completed', converter: toBool('default-false'),                                                  on: 'update', type: 'boolean', description: 'Auto-move completed files to the end of the list (after `reorder-completed-delay`).' },
-    { configKey: 'reorderCompletedDelay',   attribute: 'reorder-completed-delay', converter: toInt({ default: 1500 }),                                                 shouldReflect: true, on: 'update', description: 'Delay in ms before a completed file reorders. Only meaningful when should-sink-completed is on.' },
+    { configKey: 'shouldAutoUpload',     attribute: 'auto-upload',         converter: toBool('default-true'),                                                       on: 'update', type: 'boolean', description: 'Auto-upload newly added files.' },
+    { configKey: 'isUploadedFileRemovalAllowed',  attribute: 'allow-uploaded-file-removal',  converter: toBool('default-true'),                                                       on: 'update', type: 'boolean', description: 'Whether already-uploaded files can be removed.' },
+    { configKey: 'shouldSinkCompleted',     attribute: 'sink-completed', converter: toBool('default-false'),                                                  on: 'update', type: 'boolean', description: 'Auto-move completed files to the end of the list (after `sink-completed-delay`).' },
+    { configKey: 'sinkCompletedDelay',   attribute: 'sink-completed-delay', converter: toInt({ default: 1500 }),                                                 shouldReflect: true, on: 'update', description: 'Delay in ms before a completed file reorders. Only meaningful when sink-completed is on.' },
     { configKey: 'progressMode',            attribute: 'progress-mode',       converter: toEnum(['optimistic', 'pessimistic'] as const, { default: 'optimistic' }),   shouldReflect: true, on: 'update', description: 'Progress reporting contract: optimistic (tick before ACK, snap back on failure) or pessimistic (tick only after ACK).' },
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
-    { configKey: 'shouldKeepAliveWhenRemoved', attribute: 'should-keep-alive-when-removed', converter: toBool('default-false'),                                    on: 'none', type: 'boolean', description: 'Keep the store (files, running uploads) when the element is removed from the page. Default: a removal cancels every upload (handlers get their signal + cancel-timeout) and then destroys the store. A DOM move never tears anything down.' },
+    { configKey: 'shouldKeepAliveWhenRemoved', attribute: 'keep-alive-when-removed', converter: toBool('default-false'),                                    on: 'none', type: 'boolean', description: 'Keep the store (files, running uploads) when the element is removed from the page. Default: a removal cancels every upload (handlers get their signal + cancel-timeout) and then destroys the store. A DOM move never tears anything down.' },
 
     // ── Persistence ───────────────────────────────────────────────────────────
     { configKey: 'storageKey',              attribute: 'storage-key',         converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'Opaque key scoping persisted UI state. Unset disables persistence.' },
@@ -432,13 +432,13 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
      */
     protected override update(partial: Record<string, unknown>): void {
         if (
-            'mode' in partial ||
+            'renderMode' in partial ||
             'displayMode' in partial ||
             'selectorAppearance' in partial ||
             'listAppearance' in partial
         ) {
             const next = this.#resolveMode();
-            if (this.#dropzone && this.#dropzone.getConfig().mode !== next) {
+            if (this.#dropzone && this.#dropzone.getConfig().renderMode !== next) {
                 this.#rebuildStore();
                 return;
             }
@@ -494,7 +494,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
 
     /**
      * Removed from the page (still detached one frame after `disconnect()` —
-     * a DOM move never gets here). Unless `should-keep-alive-when-removed`:
+     * a DOM move never gets here). Unless `keep-alive-when-removed`:
      * cancel every upload by the cancel rule (handlers get their signal and
      * up to `cancel-timeout`; no `beforeFileCancelCallback` — there is no UI
      * to veto from) and then destroy the store. Re-adding the element after
@@ -568,15 +568,15 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
     }
 
     /**
-     * Resolve the effective `mode` from explicit attribute + implicit detection.
-     * Explicit `mode="…"` always wins. Otherwise: presence of any
-     * renderer-trigger attribute → 'bulk'; absence → 'headless'. The implicit
-     * path never lands on 'structural' — that requires an explicit
-     * `mode="structural"`.
+     * Resolve the effective `renderMode` from the explicit input + implicit
+     * detection. An explicit `render-mode="…"` / `el.renderMode` always wins.
+     * Otherwise: presence of any renderer-trigger attribute → 'bulk'; absence
+     * → 'headless'. The implicit path never lands on 'structural' — that
+     * requires an explicit `render-mode="structural"`.
      */
-    #resolveMode(): DropzoneMode {
-        const raw = this.getAttribute('mode');
-        if (raw === 'bulk' || raw === 'structural' || raw === 'headless') return raw;
+    #resolveMode(): DropzoneRenderMode {
+        const explicit = this.config.renderMode as DropzoneRenderMode | null;
+        if (explicit) return explicit;
         const hasRendererAttr = this.hasAttribute('display-mode')
             || this.hasAttribute('selector-appearance')
             || this.hasAttribute('list-appearance');
@@ -596,9 +596,9 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
 
         cfg.isDisabled = this.isEffectivelyDisabled;
 
-        const mode = this.#resolveMode();
-        cfg.mode = mode;
-        cfg.isHeadless = mode === 'headless';
+        const renderMode = this.#resolveMode();
+        cfg.renderMode = renderMode;
+        cfg.isHeadless = renderMode === 'headless';
 
         // Shadow DOM container for popover anchoring + form-element host.
         cfg.container = this.#container;
@@ -675,65 +675,6 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
         } else {
             internals.setValidity({});
         }
-    }
-
-    // ── back-compat property aliases ──────────────────────────────────────────
-    // Core installs accessors named after each `configKey` (e.g.
-    // `el.isMultipleEnabled`). These hand-written camelCase accessors preserve
-    // the historical public property names, operating on the attribute (which
-    // core observes) so the value still flows through the reactive pipeline.
-
-    get multiple(): boolean {
-        return this.config.isMultipleEnabled as boolean;
-    }
-    set multiple(value: boolean) {
-        if (value) this.setAttribute('multiple', '');
-        else this.setAttribute('multiple', 'false');
-    }
-
-    get disabled(): boolean {
-        return this.config.isDisabled as boolean;
-    }
-    set disabled(value: boolean) {
-        if (value) this.setAttribute('disabled', '');
-        else this.removeAttribute('disabled');
-    }
-
-    /**
-     * Three-state: `undefined` (unset → auto), `true`, or `false`. Auto means
-     * thumbnails for `list-appearance="grid"`, icons everywhere else.
-     */
-    get showThumbnails(): boolean | undefined {
-        const value = this.config.isShowThumbnailsEnabled as boolean | null;
-        return value == null ? undefined : value;
-    }
-    set showThumbnails(value: boolean | undefined) {
-        if (value === undefined) this.removeAttribute('show-thumbnails');
-        else this.setAttribute('show-thumbnails', value ? '' : 'false');
-    }
-
-    get filesInside(): boolean {
-        return this.config.isFilesInsideEnabled as boolean;
-    }
-    set filesInside(value: boolean) {
-        if (value) this.setAttribute('files-inside', '');
-        else this.removeAttribute('files-inside');
-    }
-
-    get autoUpload(): boolean {
-        return this.config.isAutoUploadEnabled as boolean;
-    }
-    set autoUpload(value: boolean) {
-        if (value) this.setAttribute('auto-upload', '');
-        else this.setAttribute('auto-upload', 'false');
-    }
-
-    get uploadedDeletable(): boolean {
-        return this.config.isUploadedFileDeletable as boolean;
-    }
-    set uploadedDeletable(value: boolean) {
-        if (value) this.setAttribute('uploaded-deletable', '');
-        else this.setAttribute('uploaded-deletable', 'false');
     }
 
     // Typed views of the reflected enum inputs (core installs the accessors;

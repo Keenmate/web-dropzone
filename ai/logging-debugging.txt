@@ -94,10 +94,10 @@ TROUBLESHOOTING
 ---------------
 Nothing renders
   -> no display attribute and no mode: inferred headless. Add
-     display-mode="list" (or mode="bulk").
+     display-mode="list" (or render-mode="bulk").
 
 Render callbacks ignored
-  -> they need mode="structural" explicitly.
+  -> they need render-mode="structural" explicitly.
 
 Property set but not applied when read back
   -> writes coalesce on a microtask: await dz.whenSettled(), or use
@@ -121,7 +121,7 @@ Cancel stuck on "Cancelling..." then error 'cancel-timeout'
 
 Uploads stopped after removing the element
   -> removal cancels uploads and destroys the store by design; use
-     should-keep-alive-when-removed for detach/reattach flows.
+     keep-alive-when-removed for detach/reattach flows.
 
 All files vanished after changing display attributes
   -> the change flipped the resolved mode (e.g. headless -> bulk); a mode flip

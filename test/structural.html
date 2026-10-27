@@ -9,27 +9,27 @@
     </style>
 </head>
 <body>
-    <h1>mode="structural" render callbacks</h1>
+    <h1>render-mode="structural" render callbacks</h1>
     <p>Targeted by <code>e2e/structural.spec.ts</code>.</p>
 
     <div class="fixture">
         <div class="fixture-label">renderPromptCallback (card)</div>
-        <web-dropzone id="prompt-cb" mode="structural" display-mode="detailed"></web-dropzone>
+        <web-dropzone id="prompt-cb" render-mode="structural" display-mode="detailed"></web-dropzone>
     </div>
 
     <div class="fixture">
         <div class="fixture-label">renderFileItemCallback (string return)</div>
-        <web-dropzone id="item-str" mode="structural" display-mode="list" accept="*/*"></web-dropzone>
+        <web-dropzone id="item-str" render-mode="structural" display-mode="list" accept="*/*"></web-dropzone>
     </div>
 
     <div class="fixture">
         <div class="fixture-label">renderFileItemCallback (HTMLElement return) + file-row-update</div>
-        <web-dropzone id="item-el" mode="structural" display-mode="list" accept="*/*"></web-dropzone>
+        <web-dropzone id="item-el" render-mode="structural" display-mode="list" accept="*/*"></web-dropzone>
     </div>
 
     <div class="fixture">
         <div class="fixture-label">renderListWrapperCallback (table layout)</div>
-        <web-dropzone id="wrapper" mode="structural" display-mode="list" accept="*/*"></web-dropzone>
+        <web-dropzone id="wrapper" render-mode="structural" display-mode="list" accept="*/*"></web-dropzone>
     </div>
 
     <div class="fixture">
@@ -39,7 +39,7 @@
 
     <div class="fixture">
         <div class="fixture-label">structural + badges + show-thumbnails, NO item callback → built-in inline template</div>
-        <web-dropzone id="str-badge-thumb" mode="structural" list-appearance="badges" show-thumbnails accept="image/*"></web-dropzone>
+        <web-dropzone id="str-badge-thumb" render-mode="structural" list-appearance="badges" show-thumbnails accept="image/*"></web-dropzone>
     </div>
 
     <script type="module">

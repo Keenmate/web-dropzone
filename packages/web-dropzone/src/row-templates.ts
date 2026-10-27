@@ -72,7 +72,7 @@ export interface RowTemplateOptions {
      * remove button is still rendered (column width stays reserved) but
      * stamped with the `--hidden` modifier (visibility: hidden + inert).
      * Defaults to true — the satellite doesn't expose the
-     * `isUploadedFileDeletable` config yet, so removal is always allowed.
+     * `isUploadedFileRemovalAllowed` config yet, so removal is always allowed.
      */
     removable?: boolean;
     /**

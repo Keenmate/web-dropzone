@@ -469,7 +469,7 @@
 .dz__badge--paused    .dz__badge-text { border-color: var(--dz-warning-color); color: var(--dz-warning-color); }
 .dz__badge--cancelled .dz__badge-text { border-color: var(--dz-text-color-3); color: var(--dz-text-color-3); }
 
-/* "Hidden but space reserved" modifier — used when isUploadedFileDeletable
+/* "Hidden but space reserved" modifier — used when isUploadedFileRemovalAllowed
    is false and a file has finished uploading. visibility:hidden preserves
    the button's layout box so the row's remove slot stays aligned with the
    rest of the column, while pointer-events:none + tabindex=-1 + aria-hidden

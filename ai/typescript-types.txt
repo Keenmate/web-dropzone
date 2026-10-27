@@ -126,7 +126,7 @@ interface DropzoneState { popoverWidth?: number; popoverHeight?: number; }
 
 DISPLAY TYPES
 -------------
-type DropzoneMode = 'bulk' | 'structural' | 'headless';
+type DropzoneRenderMode = 'bulk' | 'structural' | 'headless';
 type DisplayMode = 'list' | 'detailed' | 'grid' | 'compact';
 type SelectorAppearance = 'card' | 'button' | 'minimal' | 'native';
 type ListAppearance = 'list' | 'detailed' | 'grid' | 'badges' | 'rolling' | 'popover' | 'none';
@@ -226,16 +226,16 @@ type LabelFn = (key: DropzoneLabelKey, vars?: LabelVars) => string;
 DropzoneConfig
 --------------
 The camelCase config object (DropzoneEngine constructor / getConfig()).
-Keys = the element's input configKeys: isMultipleEnabled, accept, maxFileSize,
-minFileSize, maxTotalSize, maxFileCount, minFileCount, maxVisibleFiles,
+Keys = the element's input configKeys: isMultiple, accept, maxFileSize,
+minFileSize, maxTotalSize, maxFileCount, minFileCount, maxVisibleFileCount,
 dedupeMode, isDisabled, mode, progressThrottle, displayMode,
 selectorAppearance, listAppearance, gridLayout, gridStatus, controls,
-itemControls, rollingRotation, cardSize, isShowThumbnailsEnabled,
-isFilesInsideEnabled, icon, labels, emptyMessage, summaryTemplate,
+itemControls, rollingRotation, cardSize, isThumbnailsShown,
+isFilesInside, icon, labels, emptyMessage, summaryTemplate,
 popoverPlacement, overlayTarget, overlayIcon, name, valueFormat, every
-*Callback, fileIcons, concurrency, isAutoUploadEnabled, progressMode,
+*Callback, fileIcons, concurrency, shouldAutoUpload, progressMode,
 retryPolicy, cancelTimeout, cancelTimeoutBehavior, cancelIcon, removeIcon,
-isUploadedFileDeletable, shouldSinkCompleted, reorderCompletedDelay,
+isUploadedFileRemovalAllowed, shouldSinkCompleted, sinkCompletedDelay,
 storageKey. Internal: isHeadless (derived from mode), container, hostElement.
 (shouldKeepAliveWhenRemoved is an element-only input.)
 

@@ -20,7 +20,7 @@ teardown verb.
 
 | Old                                                   | New                                   |
 |-------------------------------------------------------|---------------------------------------|
-| reorder-completed / isReorderCompletedEnabled /       | should-sink-completed /               |
+| reorder-completed / isReorderCompletedEnabled /       | sink-completed /               |
 |   el.reorderCompleted                                 |   shouldSinkCompleted                 |
 | files-reject code 'cancelled' (add gate veto)         | 'rejected'                            |
 
@@ -144,14 +144,14 @@ STEP 8: LIFECYCLE
 - A DOM move no longer rebuilds the store (files and uploads survive, `ready`
   fires once).
 - Removing the element from the page now cancels its uploads and destroys the
-  store (one frame after disconnect). Opt out: should-keep-alive-when-removed.
+  store (one frame after disconnect). Opt out: keep-alive-when-removed.
 - Mode-flip rebuild now reports dropped files (file-remove + change).
 
 STEP 9: NEW API
 ---------------
 removeFiles(ids, { confirm? }), cancelAll(), el.controller, beforeFileCancelCallback,
 file-cancel, labels, cancel-timeout, cancel-timeout-behavior, cancel-icon,
-remove-icon, should-keep-alive-when-removed, fileIcons + getFileIconCallback,
+remove-icon, keep-alive-when-removed, fileIcons + getFileIconCallback,
 FILE_TYPE_ICONS / UI_ICONS, <web-dropzone-picker>.openFileDialog().
 
 STEP 10: THEMING
@@ -193,7 +193,7 @@ QUICK SEARCH-AND-REPLACE LIST
 'store-ready'->'ready'   getStore()->controller
 beforeFilesAddedCallback->beforeFilesAddCallback
 beforeFilesRemovedCallback->beforeFilesRemoveCallback
-customStylesCallback->getCustomStylesCallback   reorder-completed->should-sink-completed
+customStylesCallback->getCustomStylesCallback   reorder-completed->sink-completed
 data-action="remove"->data-dz-action="remove"
 Then convert every callback to the single-ctx form by hand.
 
@@ -221,8 +221,8 @@ pre-rc builds -> 1.0.0-rc01
   --dz-chip-* -> --dz-badge-*, --dz-chips-gap -> --dz-badges-gap).
 - Hidden filename inputs removed: forms submit real File blobs via
   ElementInternals; value-format kept but inert.
-- Config keys: multiple -> isMultipleEnabled, disabled -> isDisabled,
-  filesInside -> isFilesInsideEnabled (attributes / el.multiple etc. unchanged).
+- Config keys: multiple -> isMultiple, disabled -> isDisabled,
+  filesInside -> isFilesInside (attributes / el.multiple etc. unchanged).
 - Removed notification callbacks addCallback, removeCallback, changeCallback,
   rejectCallback, retryCallback, uploadedCallback, deleteCallback - use events.
 - removeFile / clear / addFiles return Promises.

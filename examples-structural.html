@@ -16,11 +16,11 @@
 
         <!-- INTRO -->
         <div class="card">
-            <h2>SR01 · Structural mode (<code>mode="structural"</code>)</h2>
-            <p>This page covers <strong>mode 2 of 3</strong> — the framework owns when and what to render, you provide the HTML structure via callbacks. The hard-switch <code>mode="structural"</code> attribute is required: setting a render callback alone does nothing in the default <code>mode="bulk"</code>.</p>
+            <h2>SR01 · Structural mode (<code>render-mode="structural"</code>)</h2>
+            <p>This page covers <strong>mode 2 of 3</strong> — the framework owns when and what to render, you provide the HTML structure via callbacks. The hard-switch <code>render-mode="structural"</code> attribute is required: setting a render callback alone does nothing in the default <code>render-mode="bulk"</code>.</p>
 
             <div class="code-block">
-                <pre><code>&lt;web-dropzone mode="structural" display-mode="detailed" id="x"&gt;&lt;/web-dropzone&gt;
+                <pre><code>&lt;web-dropzone render-mode="structural" display-mode="detailed" id="x"&gt;&lt;/web-dropzone&gt;
 &lt;script&gt;
   const el = document.getElementById('x')
   // Every callback takes ONE ctx (+ ctx.controller / ctx.element)
@@ -33,9 +33,9 @@
             <div class="note">
                 <div class="note-title">When to use which mode</div>
                 <ul>
-                    <li><code>mode="bulk"</code> (default) — you want the working UI fast; style via CSS variables.</li>
-                    <li><code>mode="structural"</code> — you want custom HTML shape (this page).</li>
-                    <li><code>mode="headless"</code> — you want pure events + own renderer (see <a href="examples-architecture.html">Architecture</a>).</li>
+                    <li><code>render-mode="bulk"</code> (default) — you want the working UI fast; style via CSS variables.</li>
+                    <li><code>render-mode="structural"</code> — you want custom HTML shape (this page).</li>
+                    <li><code>render-mode="headless"</code> — you want pure events + own renderer (see <a href="examples-architecture.html">Architecture</a>).</li>
                 </ul>
             </div>
         </div>
@@ -48,12 +48,12 @@
             <div class="grid">
                 <div class="form-group">
                     <label>Cloud upload prompt</label>
-                    <web-dropzone id="prompt-cloud" mode="structural" display-mode="detailed"></web-dropzone>
+                    <web-dropzone id="prompt-cloud" render-mode="structural" display-mode="detailed"></web-dropzone>
                 </div>
 
                 <div class="form-group">
                     <label>Two-line marketing prompt</label>
-                    <web-dropzone id="prompt-marketing" mode="structural" display-mode="detailed"></web-dropzone>
+                    <web-dropzone id="prompt-marketing" render-mode="structural" display-mode="detailed"></web-dropzone>
                 </div>
             </div>
 
@@ -82,7 +82,7 @@
                 <label>Receipts list with date + currency formatting</label>
                 <web-dropzone
                     id="item-receipts"
-                    mode="structural"
+                    render-mode="structural"
                     display-mode="list"
                     accept=".pdf,image/*"
                     labels='{"prompt": "Drop receipts"}'>
@@ -119,7 +119,7 @@
                 <label>Files with click-to-preview links</label>
                 <web-dropzone
                     id="item-dom"
-                    mode="structural"
+                    render-mode="structural"
                     display-mode="list"
                     accept="*/*"
                     labels='{"prompt": "Drop files (click row to preview in new tab)"}'>
@@ -162,7 +162,7 @@
                 <label>Counter pill with total size</label>
                 <web-dropzone
                     id="summary-custom"
-                    mode="structural"
+                    render-mode="structural"
                     display-mode="compact"
                     accept="*/*"
                     labels='{"prompt": "Drop files"}'>
@@ -202,13 +202,13 @@ el.getCustomStylesCallback = () =&gt; `
                 <label>File queue as a real &lt;table&gt; — auto-upload, pause/resume/retry per row, completed rows reorder to the bottom</label>
                 <web-dropzone
                     id="wrapper-table"
-                    mode="structural"
+                    render-mode="structural"
                     display-mode="list"
                     accept="*/*"
                     multiple
                     auto-upload
-                    should-sink-completed
-                    reorder-completed-delay="1200"
+                    sink-completed
+                    sink-completed-delay="1200"
                     labels='{"prompt": "Drop files into the table"}'>
                 </web-dropzone>
                 <small class="form-text">~20% of files randomly fail mid-upload — click 🔄 to retry from where they left off, not from 0.</small>
@@ -251,13 +251,13 @@ el.renderFileItemCallback = ({ file }) =&gt; `
                 <label>Click a row to ⭐ favorite — the toggle survives every upload tick, pause, resume, retry, and reorder</label>
                 <web-dropzone
                     id="event-rows"
-                    mode="structural"
+                    render-mode="structural"
                     display-mode="list"
                     accept="*/*"
                     multiple
                     auto-upload
-                    should-sink-completed
-                    reorder-completed-delay="1200"
+                    sink-completed
+                    sink-completed-delay="1200"
                     progress-throttle="120"
                     labels='{"prompt": "Drop files (click a row to toggle ⭐)"}'>
                 </web-dropzone>

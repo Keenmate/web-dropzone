@@ -23,8 +23,8 @@ test.beforeEach(async ({ page }) => {
 });
 
 test.describe('disabled host', () => {
-    test('el.disabled reflects the attribute and the surface carries the disabled modifier', async ({ page }) => {
-        expect(await dz(page, 'dis').evaluate((el: any) => el.disabled)).toBe(true);
+    test('el.isDisabled reflects the attribute and the surface carries the disabled modifier', async ({ page }) => {
+        expect(await dz(page, 'dis').evaluate((el: any) => el.isDisabled)).toBe(true);
         await expect(card(page, 'dis')).toHaveClass(/dz__dropzone--disabled/);
         await expect(page.locator('#dis input[type="file"]')).toBeDisabled();
         await expect(page.locator('#dis-btn .dz__button')).toBeDisabled();
@@ -54,8 +54,8 @@ test.describe('disabled host', () => {
 });
 
 test.describe('reactive toggle', () => {
-    test('el.disabled = false enables click + drop; = true disables them again', async ({ page }) => {
-        await dz(page, 'dis').evaluate(async (el: any) => { el.disabled = false; await el.whenSettled(); });
+    test('el.isDisabled = false enables click + drop; = true disables them again', async ({ page }) => {
+        await dz(page, 'dis').evaluate(async (el: any) => { el.isDisabled = false; await el.whenSettled(); });
         await expect(dz(page, 'dis')).not.toHaveAttribute('disabled');
         await expect(card(page, 'dis')).not.toHaveClass(/dz__dropzone--disabled/);
         await card(page, 'dis').click();
@@ -63,7 +63,7 @@ test.describe('reactive toggle', () => {
         await dragFiles(card(page, 'dis'), 'drop', ['a.txt']);
         await expect.poll(() => count(page, 'dis')).toBe(1);
 
-        await dz(page, 'dis').evaluate(async (el: any) => { el.disabled = true; await el.whenSettled(); });
+        await dz(page, 'dis').evaluate(async (el: any) => { el.isDisabled = true; await el.whenSettled(); });
         await expect(card(page, 'dis')).toHaveClass(/dz__dropzone--disabled/);
         await dragFiles(card(page, 'dis'), 'drop', ['b.txt']);
         await page.waitForTimeout(100);
@@ -78,7 +78,7 @@ test.describe('reactive toggle', () => {
     });
 
     test('enabling an overlay dropzone lets the overlay mount', async ({ page }) => {
-        await dz(page, 'dis-ov').evaluate(async (el: any) => { el.disabled = false; await el.whenSettled(); });
+        await dz(page, 'dis-ov').evaluate(async (el: any) => { el.isDisabled = false; await el.whenSettled(); });
         await dragFiles(page.locator('body'), 'dragenter');
         await expect(page.locator('.dz__overlay')).toHaveCount(1);
     });
@@ -99,27 +99,27 @@ test.describe('<fieldset disabled>', () => {
         expect(await count(page, 'in-fs')).toBe(0);
     });
 
-    test('re-enabling the fieldset re-enables the dropzone; el.disabled reports the author value', async ({ page }) => {
+    test('re-enabling the fieldset re-enables the dropzone; el.isDisabled reports the author value', async ({ page }) => {
         await page.locator('#fs').evaluate((fs: HTMLFieldSetElement) => { fs.disabled = true; });
-        expect(await dz(page, 'in-fs').evaluate((el: any) => el.disabled)).toBe(false);
+        expect(await dz(page, 'in-fs').evaluate((el: any) => el.isDisabled)).toBe(false);
         await page.locator('#fs').evaluate((fs: HTMLFieldSetElement) => { fs.disabled = false; });
         await dragFiles(card(page, 'in-fs'), 'drop', ['a.txt']);
         await expect.poll(() => count(page, 'in-fs')).toBe(1);
     });
 
     test('an author-disabled dropzone stays disabled after the fieldset is re-enabled', async ({ page }) => {
-        await dz(page, 'in-fs').evaluate(async (el: any) => { el.disabled = true; await el.whenSettled(); });
+        await dz(page, 'in-fs').evaluate(async (el: any) => { el.isDisabled = true; await el.whenSettled(); });
         await page.locator('#fs').evaluate((fs: HTMLFieldSetElement) => { fs.disabled = true; });
         await page.locator('#fs').evaluate((fs: HTMLFieldSetElement) => { fs.disabled = false; });
         await dragFiles(card(page, 'in-fs'), 'drop', ['a.txt']);
         await page.waitForTimeout(150);
         expect(await count(page, 'in-fs')).toBe(0);
-        expect(await dz(page, 'in-fs').evaluate((el: any) => el.disabled)).toBe(true);
+        expect(await dz(page, 'in-fs').evaluate((el: any) => el.isDisabled)).toBe(true);
     });
 
     test('removing the author disabled while the fieldset is disabled keeps it disabled', async ({ page }) => {
         await page.locator('#fs').evaluate((fs: HTMLFieldSetElement) => { fs.disabled = true; });
-        await dz(page, 'in-fs').evaluate(async (el: any) => { el.disabled = true; await el.whenSettled(); el.disabled = false; await el.whenSettled(); });
+        await dz(page, 'in-fs').evaluate(async (el: any) => { el.isDisabled = true; await el.whenSettled(); el.isDisabled = false; await el.whenSettled(); });
         await dragFiles(card(page, 'in-fs'), 'drop', ['a.txt']);
         await page.waitForTimeout(150);
         expect(await count(page, 'in-fs')).toBe(0);

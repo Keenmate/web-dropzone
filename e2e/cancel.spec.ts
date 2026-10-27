@@ -79,7 +79,7 @@ test.describe('lifecycle bug fixes', () => {
     test('a mode-flip rebuild reports the dropped files (file-remove + change)', async ({ page }) => {
         await addNamed(page, 'flip', ['x.txt', 'y.txt']);
         await clearLog(page, 'flip');
-        await dz(page, 'flip').evaluate((el: any) => { el.setAttribute('mode', 'headless'); return el.whenSettled(); });
+        await dz(page, 'flip').evaluate((el: any) => { el.setAttribute('render-mode', 'headless'); return el.whenSettled(); });
         const log = await logOf(page, 'flip');
         expect(log).toContain('file-remove:x.txt');
         expect(log).toContain('file-remove:y.txt');
@@ -368,7 +368,7 @@ test.describe('element removal (removedCallback) vs DOM move', () => {
         expect(out).toEqual({ ready: 0, isReady: true, files: 0 });
     });
 
-    test('should-keep-alive-when-removed: removal keeps uploads running', async ({ page }) => {
+    test('keep-alive-when-removed: removal keeps uploads running', async ({ page }) => {
         await addNamed(page, 'keep', ['alive.txt']);
         await expect.poll(() => pendingNames(page)).toContain('alive.txt');
         await page.evaluate(() => { (window as any).__el = document.getElementById('keep'); (window as any).__el.remove(); });

@@ -321,7 +321,7 @@
                 <li>For each collision, the user picks an action per row: <strong>Overwrite</strong>, <strong>Rename</strong> (with a suggested non-conflicting name), or <strong>Skip</strong>.</li>
                 <li>Once every collision has a decision, the upload starts. Renamed files upload under the new name.</li>
             </ol>
-            <p style="margin-top:1rem;">No core API changes were needed for this — it's a straight application of <code>mode="structural"</code> (custom per-row rendering), <code>auto-upload="false"</code> (stage instead of upload-on-add), <code>removeFile(id)</code> (skip), and a closure-captured decisions map (read by both the row renderer and the <code>uploadFileCallback</code>).</p>
+            <p style="margin-top:1rem;">No core API changes were needed for this — it's a straight application of <code>render-mode="structural"</code> (custom per-row rendering), <code>auto-upload="false"</code> (stage instead of upload-on-add), <code>removeFile(id)</code> (skip), and a closure-captured decisions map (read by both the row renderer and the <code>uploadFileCallback</code>).</p>
         </div>
 
         <!-- LIVE DEMO -->
@@ -337,7 +337,7 @@
 
             <web-dropzone
                 id="sp-dz"
-                mode="structural"
+                render-mode="structural"
                 auto-upload="false"
                 multiple
                 max-file-count="20"

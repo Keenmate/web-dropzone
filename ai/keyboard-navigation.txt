@@ -35,7 +35,7 @@ One tab stop per selector:
   input has tabindex="-1" aria-hidden="true".
 Then each row's buttons in DOM order. Buttons that are not offered for the
 current state (e.g. Cancel on a completed file, Remove on a completed file with
-uploaded-deletable="false") stay in the layout but get tabindex="-1"
+allow-uploaded-file-removal="false") stay in the layout but get tabindex="-1"
 aria-hidden="true".
 
 ACCESSIBLE NAMES (from labels; see labels-i18n.txt)

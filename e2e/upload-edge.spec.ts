@@ -95,7 +95,7 @@ test.describe('retry preserves progress', () => {
     });
 });
 
-test.describe('should-sink-completed', () => {
+test.describe('sink-completed', () => {
     test('a completed file ends up at the bottom of the ordered queue', async ({ page }) => {
         await addNamed(page, 'reorder', ['x.txt', 'y.txt', 'z.txt']);
         await expect.poll(() => pendingNames(page).then(n => n.length)).toBeGreaterThanOrEqual(1);
@@ -228,7 +228,7 @@ test.describe('retryPolicy (auto-retry on handler rejection)', () => {
     });
 });
 
-test.describe('uploaded-deletable="false"', () => {
+test.describe('allow-uploaded-file-removal="false"', () => {
     const removeBtn = (page: import('@playwright/test').Page, name: string) =>
         dz(page, 'nodelete').locator(`.dz__file-item:has-text("${name}") [data-dz-action="remove"]`);
 
@@ -257,7 +257,7 @@ test.describe('uploaded-deletable="false"', () => {
     });
 });
 
-test.describe('reorder-completed-delay', () => {
+test.describe('sink-completed-delay', () => {
     /** Row names top-to-bottom by on-screen position (CSS `order` aware). */
     const visualOrder = (page: import('@playwright/test').Page) =>
         dz(page, 'reorder-delay').locator('.dz__file-item').evaluateAll((rows) =>

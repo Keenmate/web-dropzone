@@ -117,7 +117,7 @@
 
         <section class="example-section">
             <h2>RC01 · Why headless mode unlocks React patterns</h2>
-            <p>React expects to own the DOM it manages. With <code>mode="headless"</code> the dropzone steps back: it holds <code>FileState[]</code>, dispatches events, and lets your component own the rendering. The native <code>&lt;web-dropzone-picker&gt;</code> satellite is still used as the drop surface, because re-implementing drag-and-drop in React would mean re-implementing a feature web-dropzone already ships.</p>
+            <p>React expects to own the DOM it manages. With <code>render-mode="headless"</code> the dropzone steps back: it holds <code>FileState[]</code>, dispatches events, and lets your component own the rendering. The native <code>&lt;web-dropzone-picker&gt;</code> satellite is still used as the drop surface, because re-implementing drag-and-drop in React would mean re-implementing a feature web-dropzone already ships.</p>
             <div class="note">
                 <div class="note-title">Pattern</div>
                 <ul>
@@ -165,7 +165,7 @@ function Uploader() {
     }
 
     return html`
-        &lt;web-dropzone ref=${storeRef} id="rx-store" mode="headless" multiple max-file-count="6"&gt;&lt;/web-dropzone&gt;
+        &lt;web-dropzone ref=${storeRef} id="rx-store" render-mode="headless" multiple max-file-count="6"&gt;&lt;/web-dropzone&gt;
         &lt;web-dropzone-picker for="rx-store" selector-appearance="card" label="Drop files for React"&gt;&lt;/web-dropzone-picker&gt;
         ${files.length === 0
             ? html`&lt;div className="rx-empty"&gt;No files yet&lt;/div&gt;`
@@ -282,7 +282,7 @@ createRoot(document.getElementById('react-root')).render(React.createElement(Upl
             const anyError     = files.some((f) => f.status === 'error')
 
             return html`
-                <web-dropzone ref=${storeRef} id="rx-store" mode="headless" multiple max-file-count="6"></web-dropzone>
+                <web-dropzone ref=${storeRef} id="rx-store" render-mode="headless" multiple max-file-count="6"></web-dropzone>
                 <web-dropzone-picker for="rx-store" selector-appearance="card" label="Drop files for React"></web-dropzone-picker>
 
                 ${files.length === 0

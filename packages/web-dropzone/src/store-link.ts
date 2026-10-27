@@ -40,8 +40,8 @@ const reorderLinks = new WeakMap<HTMLElement, (file: FileState) => boolean>();
 
 /**
  * Called by `<web-dropzone>` once, at construction: how a satellite list asks
- * whether a file's row sits in the "complete" reorder bucket (`should-sink-completed`
- * on, status complete, `reorder-completed-delay` elapsed). Internal - the
+ * whether a file's row sits in the "complete" reorder bucket (`sink-completed`
+ * on, status complete, `sink-completed-delay` elapsed). Internal - the
  * public controller doesn't expose reorder timing.
  */
 export function linkStoreReorder(storeEl: HTMLElement, isReorderEligible: (file: FileState) => boolean): void {

@@ -44,7 +44,7 @@ So for a self-contained dropzone, always set one of the display attributes:
 
 Or explicitly:
 
-<web-dropzone mode="bulk"></web-dropzone>      <!-- display-mode defaults to "list" -->
+<web-dropzone render-mode="bulk"></web-dropzone>      <!-- display-mode defaults to "list" -->
 
 COMMON ATTRIBUTES
 -----------------
@@ -143,12 +143,12 @@ Every input has a property named after its config key (camelCase), e.g.
 dz.accept, dz.maxFileSize, dz.maxFileCount, dz.labels, dz.cancelTimeout,
 dz.uploadFileCallback. Back-compat boolean aliases:
 
-dz.multiple          <-> multiple            (isMultipleEnabled)
+dz.multiple          <-> multiple            (isMultiple)
 dz.disabled          <-> disabled            (isDisabled)
-dz.filesInside       <-> files-inside        (isFilesInsideEnabled)
-dz.showThumbnails    <-> show-thumbnails     (tri-state: undefined = auto)
-dz.autoUpload        <-> auto-upload         (isAutoUploadEnabled)
-dz.uploadedDeletable <-> uploaded-deletable  (isUploadedFileDeletable)
+dz.isFilesInside       <-> files-inside        (isFilesInside)
+dz.isThumbnailsShown    <-> show-thumbnails     (tri-state: undefined = auto)
+dz.shouldAutoUpload        <-> auto-upload         (shouldAutoUpload)
+dz.isUploadedFileRemovalAllowed <-> allow-uploaded-file-removal  (isUploadedFileRemovalAllowed)
 
 PROPERTY WRITES ARE COALESCED
 -----------------------------

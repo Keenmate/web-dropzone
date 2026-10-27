@@ -39,7 +39,7 @@
      `background` is INTENTIONALLY omitted. The dropzone host is a frame,
      not a surface — the visible chrome (`.dz__dropzone--card`,
      `.dz__file-item`, `.dz__indicator__chip`) paints its own background.
-     In `mode="headless"` and on the four satellites the host is meant to
+     In `render-mode="headless"` and on the four satellites the host is meant to
      be transparent so it can sit inline in a consumer layout. Documented
      exception to theme-container.md → "Default background". */
   display: block;

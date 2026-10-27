@@ -151,7 +151,7 @@ export class DropzonePickerElement extends SatelliteElement {
         const storeCfg = this.store.getConfig();
 
         const acceptAttr = this.getAttribute('accept') ?? storeCfg.accept ?? '';
-        const multipleAttr = this.resolveMultiple(storeCfg.isMultipleEnabled);
+        const multipleAttr = this.resolveMultiple(storeCfg.isMultiple);
         const label = this.getAttribute('label') ?? this.label('selectFiles');
         const icon = this.getAttribute('icon') ?? storeCfg.icon ?? DEFAULT_ICON;
         const hint = this.getAttribute('hint') ?? this.label('hint');

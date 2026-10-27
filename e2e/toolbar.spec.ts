@@ -139,7 +139,7 @@ test.describe('popover header actions', () => {
     });
 
     test('a disabled dropzone hides Add more but keeps Clear all', async ({ page }) => {
-        await dz(page, 'pop').evaluate(async (el: any) => { el.disabled = true; await el.whenSettled(); });
+        await dz(page, 'pop').evaluate(async (el: any) => { el.isDisabled = true; await el.whenSettled(); });
         await addNamed(page, 'pop', ['p1.txt']);
         await dz(page, 'pop').locator('.dz__summary__line').click();
         await expect(dz(page, 'pop').locator('.dz__popover')).toBeVisible();

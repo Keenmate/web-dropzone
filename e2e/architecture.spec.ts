@@ -92,7 +92,7 @@ test.describe('shared store + multiple pickers (Mode A)', () => {
     });
 });
 
-test.describe('mode="headless"', () => {
+test.describe('render-mode="headless"', () => {
     test('the headless store renders no internal UI of its own', async ({ page }) => {
         // The host element shouldn't carry the convenience-form internals
         // (.dz__dropzone--card etc.); rendering is delegated to the bound

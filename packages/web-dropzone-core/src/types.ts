@@ -39,8 +39,9 @@ import type { DropzoneLabels } from './labels';
 export type DisplayMode = 'list' | 'detailed' | 'grid' | 'compact';
 
 /**
- * Operating mode — the top-level switch that decides who renders the file
- * list and how customization is applied. Hard switch: setting `mode`
+ * Render mode (`render-mode` attribute, `renderMode` key) — the top-level
+ * switch that decides who renders the file list and how customization is
+ * applied. Hard switch: setting `renderMode`
  * authoritatively gates which other config keys apply. See
  * ARCHITECTURE.md and the "three modes" project memory.
  *
@@ -60,9 +61,9 @@ export type DisplayMode = 'list' | 'detailed' | 'grid' | 'compact';
  *   - none present → 'headless' (the satellite-store back-compat shortcut)
  *
  * The inferred mode never resolves to 'structural' — opting in to
- * callbacks always requires explicit `mode="structural"`.
+ * callbacks always requires explicit `render-mode="structural"`.
  */
-export type DropzoneMode = 'bulk' | 'structural' | 'headless';
+export type DropzoneRenderMode = 'bulk' | 'structural' | 'headless';
 
 /**
  * Selector appearance — what the user clicks/drops onto.
@@ -406,7 +407,7 @@ export interface DropzoneConfig {
     // ========================================================================
 
     /** Allow multiple file selection (HTML attr: `multiple`, default: true) */
-    isMultipleEnabled?: boolean;
+    isMultiple?: boolean;
     /** Accepted file types (MIME types or extensions, e.g., 'image/*,.pdf') */
     accept?: string;
     /** Maximum size per file in bytes. 0 = no cap. */
@@ -418,7 +419,7 @@ export interface DropzoneConfig {
      *  total is recomputed on each add, so removing files frees room. 0 = no
      *  cap. Mirrors svelte-fluentui's `InputFile.totalMaxSize`. */
     maxTotalSize?: number;
-    /** Maximum number of files (when isMultipleEnabled is true). 0 = no cap.
+    /** Maximum number of files (when isMultiple is true). 0 = no cap.
      *  When an incoming batch would exceed this, the first N files that still
      *  fit are accepted and the rest are rejected with `code: 'count'`. */
     maxFileCount?: number;
@@ -430,12 +431,12 @@ export interface DropzoneConfig {
     minFileCount?: number;
     /**
      * Visible-row cap. When set and the selection has more files than this,
-     * the list renders only the first `maxVisibleFiles` items with a
+     * the list renders only the first `maxVisibleFileCount` items with a
      * "Show N more" toggle at the end. Default 7. Set to 0 to disable the
      * cap and render every file. Mirrors svelte-fluentui's
      * `InputFile.maxVisible`.
      */
-    maxVisibleFiles?: number;
+    maxVisibleFileCount?: number;
     /**
      * Dedupe policy when adding files to an existing selection.
      * Default: `'name'` — repeated drops / "Add more" picks of the same
@@ -446,17 +447,17 @@ export interface DropzoneConfig {
     /** Whether the dropzone is disabled (HTML attr: `disabled`) */
     isDisabled?: boolean;
     /**
-     * Operating mode — bulk / structural / headless. Hard switch: gates
-     * which other config keys apply. See `DropzoneMode` for semantics.
+     * Render mode — bulk / structural / headless. Hard switch: gates
+     * which other config keys apply. See `DropzoneRenderMode` for semantics.
      * Defaults to 'bulk' when any renderer-trigger attribute is set,
      * 'headless' otherwise. The implicit default never resolves to
-     * 'structural' — that requires an explicit `mode="structural"`.
+     * 'structural' — that requires an explicit `render-mode="structural"`.
      */
-    mode?: DropzoneMode;
+    renderMode?: DropzoneRenderMode;
     /**
-     * Derived from `mode === 'headless'`. Kept as a separate flag because
+     * Derived from `renderMode === 'headless'`. Kept as a separate flag because
      * lots of internal code paths short-circuit on it; treat it as
-     * read-after-resolve, not as a knob you set directly. Set `mode`
+     * read-after-resolve, not as a knob you set directly. Set `renderMode`
      * instead.
      */
     isHeadless?: boolean;
@@ -534,9 +535,9 @@ export interface DropzoneConfig {
      * To hide the placeholder slot entirely (no icon AND no thumbnail), set the
      * relevant CSS variable to 0 — e.g. `web-dropzone { --dz-badge-icon-size: 0; }`.
      */
-    isShowThumbnailsEnabled?: boolean;
+    isThumbnailsShown?: boolean;
     /** Show files inside the dropzone area instead of a separate list below (HTML attr: `files-inside`) */
-    isFilesInsideEnabled?: boolean;
+    isFilesInside?: boolean;
     /** Icon or emoji for the dropzone prompt */
     icon?: string;
     /**
@@ -660,7 +661,7 @@ export interface DropzoneConfig {
      * calls `uploadAll()` — useful for "stage everything, submit on form
      * submit" patterns. Only relevant when `uploadFileCallback` is set.
      */
-    isAutoUploadEnabled?: boolean;
+    shouldAutoUpload?: boolean;
     /**
      * Controls whether the progress bar reflects the handler's optimistic
      * `ctx.setProgress` ticks (bytes sent) or only confirmed server-acknowledged
@@ -697,7 +698,7 @@ export interface DropzoneConfig {
      * Calling `removeFile(id)` programmatically still works regardless of
      * this flag — it only affects the rendered button visibility.
      */
-    isUploadedFileDeletable?: boolean;
+    isUploadedFileRemovalAllowed?: boolean;
     /**
      * Re-order the rendered file list so completed (`status === 'complete'`)
      * files slide to the bottom and unresolved files (pending / uploading /
@@ -726,7 +727,7 @@ export interface DropzoneConfig {
      * is removed before it fires. Default: 1500ms when reorder is on,
      * effectively 0 when it's off (the attribute has no effect).
      */
-    reorderCompletedDelay?: number;
+    sinkCompletedDelay?: number;
 
     // ========================================================================
     // CUSTOM RENDERING
@@ -779,7 +780,7 @@ export interface DropzoneConfig {
      *    initial render survive; the consumer mutates the existing DOM
      *    inside the event handler.
      *
-     * Only honored when `mode === 'structural'`. See `DropzoneMode`.
+     * Only honored when `renderMode === 'structural'`. See `DropzoneRenderMode`.
      */
     renderFileItemCallback?: ((ctx: FileItemRenderContext) => string | HTMLElement) | null;
     /**
@@ -793,7 +794,7 @@ export interface DropzoneConfig {
      *         <tbody>${rowsHtml}</tbody>
      *       </table>`;
      *
-     * Only honored when `mode === 'structural'`. Note: combining this
+     * Only honored when `renderMode === 'structural'`. Note: combining this
      * with an HTMLElement-returning `renderFileItemCallback` falls back
      * to the string path — element identity is not preserved when the
      * wrapper callback is set.

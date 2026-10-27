@@ -66,7 +66,7 @@ progress-throttle="0"           ms; per-file throttle of progress events/patches
 cancel-timeout="2000"           ms a cancel waits for the handler to settle (min 0)
 cancel-timeout-behavior="error" error | remove
 retryPolicy (property)          { attempts, delayMs, backoff }
-should-keep-alive-when-removed  keep uploads alive when the element is removed
+keep-alive-when-removed  keep uploads alive when the element is removed
 
 STATUS MACHINE
 --------------
@@ -202,7 +202,7 @@ still settling keeps the store (uploads cancelled).
 A DOM MOVE (re-parent / reorder) keeps files, in-flight uploads and an open
 popover; `ready` does not fire again.
 
-Opt out: should-keep-alive-when-removed - files and uploads survive while
+Opt out: keep-alive-when-removed - files and uploads survive while
 detached (call dz.destroy() yourself when done).
 
 destroy(): aborts all handlers (signal), stops the queue, wakes sleeping

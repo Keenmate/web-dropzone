@@ -12,10 +12,10 @@ overlay icon (overlay-icon), and getCustomStylesCallback.
 
 STRUCTURAL MODE IS REQUIRED
 ---------------------------
-Render callbacks are honored ONLY with an explicit mode="structural".
+Render callbacks are honored ONLY with an explicit render-mode="structural".
 In bulk mode they are ignored even if set; mode is never inferred as structural.
 
-<web-dropzone id="dz" mode="structural" display-mode="detailed"></web-dropzone>
+<web-dropzone id="dz" render-mode="structural" display-mode="detailed"></web-dropzone>
 
 Every callback takes ONE ctx object. ctx also carries `controller`
 (DropzoneController) and `element` (the <web-dropzone>), non-enumerable -

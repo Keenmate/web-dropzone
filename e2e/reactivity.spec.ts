@@ -78,8 +78,8 @@ test.describe('display + mode', () => {
         await expect.poll(() => names(page, 'flip')).toEqual(['x.txt']);
     });
 
-    test('explicit mode="headless" on a rendered dropzone removes the UI', async ({ page }) => {
-        await setAttr(page, 'caps', 'mode', 'headless');
+    test('explicit render-mode="headless" on a rendered dropzone removes the UI', async ({ page }) => {
+        await setAttr(page, 'caps', 'render-mode', 'headless');
         await expect(dz(page, 'caps').locator('.dz__dropzone')).toHaveCount(0);
     });
 });

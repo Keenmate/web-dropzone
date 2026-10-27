@@ -158,7 +158,7 @@
     // ctx.uploadMetadata, ctx.controller, ctx.element — routing + context
 }
 dropzone.concurrency = 3        // max 3 in flight (default 1)
-dropzone.autoUpload   = true    // start uploads on add (default)</code></pre>
+dropzone.shouldAutoUpload   = true    // start uploads on add (default)</code></pre>
             <p>Status badges, the per-file progress column inside the <strong>popover</strong>, and the overall progress strip (with Pause all / Resume all / Retry all buttons) all wire themselves up automatically. The plain <code>list</code> / <code>detailed</code> appearances don't show per-file progress — use one of the rich appearances for upload UI.</p>
             <p>For apps with a bespoke upload manager, the older fire-and-forget escape hatch (<code>file-add</code> event + <code>updateFileProgress</code> / <code>setFileStatus</code>) still works — just leave <code>uploadFileCallback</code> unset.</p>
         </div>
@@ -354,7 +354,7 @@ dropzone.autoUpload   = true    // start uploads on add (default)</code></pre>
 
 // Optional knobs
 dropzone.concurrency = 3
-dropzone.autoUpload  = true
+dropzone.shouldAutoUpload  = true
 dropzone.retryPolicy = { attempts: 3, delayMs: 1000, backoff: 2 }</code></pre>
         </div>
 
@@ -606,7 +606,7 @@ dropzone.retryPolicy = { attempts: 3, delayMs: 1000, backoff: 2 }</code></pre>
             const applyMode = () => {
                 const mode = document.querySelector('input[name="playground-mode"]:checked').value
                 const isManual = mode === 'manual'
-                dz.autoUpload = !isManual
+                dz.shouldAutoUpload = !isManual
                 goBtn.hidden = !isManual
                 refreshActions()
             }

@@ -3,17 +3,17 @@ DISPLAY MODES & APPEARANCE
 
 OPERATING MODE (mode)
 ---------------------
-mode="bulk"        component renders everything; style via CSS variables.
+render-mode="bulk"        component renders everything; style via CSS variables.
                    Render callbacks are IGNORED even if set.
-mode="structural"  component decides when/what to render; YOU supply HTML via
+render-mode="structural"  component decides when/what to render; YOU supply HTML via
                    render callbacks (custom-rendering.txt).
-mode="headless"    renders nothing; store + events only (satellites or your
+render-mode="headless"    renders nothing; store + events only (satellites or your
                    framework render).
 
 When `mode` is absent it is inferred:
   display-mode / selector-appearance / list-appearance present -> bulk
   none present                                                 -> headless
-Inference never yields "structural" - that needs an explicit mode="structural".
+Inference never yields "structural" - that needs an explicit render-mode="structural".
 
 Changing mode (or any of the three trigger attributes) so the resolved mode
 flips REBUILDS the store: every file is removed and reported (file-remove per
@@ -78,7 +78,7 @@ Tri-state:
   unset (default)        auto: thumbnails for grid, file-type icons elsewhere
   show-thumbnails        always <img> for images (list, detailed, badges too)
   show-thumbnails="false" never thumbnails
-Property: dz.showThumbnails = true | false | undefined.
+Property: dz.isThumbnailsShown = true | false | undefined.
 Previews are generated asynchronously (FileReader -> data URL); the row repaints
 on `file-update`. Hide the icon slot entirely with e.g.
 web-dropzone { --dz-badge-icon-size: 0; }.
@@ -159,7 +159,7 @@ Every row (list, detailed, grid, badges, popover, <web-dropzone-list>) has:
                          handler will run them. Asks beforeFileCancelCallback.
                          The row STAYS with status "cancelled" and a Retry action.
   Remove (x)             aria-label "Remove <name>". Always offered (except
-                         completed rows when uploaded-deletable="false"). A
+                         completed rows when allow-uploaded-file-removal="false"). A
                          running upload is cancelled first, then the file is
                          removed. Asks beforeFilesRemoveCallback.
 
@@ -170,16 +170,16 @@ buttons disabled. Glyphs are raw-HTML inputs (NOT sanitized):
   cancel-icon="<svg ...>...</svg>"
   remove-icon="&times;"></web-dropzone>
 
-uploaded-deletable="false": hides Remove on completed rows (space reserved,
+allow-uploaded-file-removal="false": hides Remove on completed rows (space reserved,
 out of the tab order). removeFile(id) still works programmatically.
 
 OTHER LIST KNOBS
 ----------------
-max-visible-files="7"      rows shown before a "Show N more" / "Show less"
+max-visible-file-count="7"      rows shown before a "Show N more" / "Show less"
                            toggle (badges: "+N" pill). 0 = show all. Default 7.
 empty-message="..."        text when the list is empty (default "No files selected")
-should-sink-completed      completed files move to the end of the rendered list
-reorder-completed-delay    ms a completed row stays put first (default 1500)
+sink-completed      completed files move to the end of the rendered list
+sink-completed-delay    ms a completed row stays put first (default 1500)
                            (visual only; dz.files order and events unchanged)
 icon="..."                 prompt icon for card / minimal (raw HTML; default Lucide cloud-upload)
 

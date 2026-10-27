@@ -24,24 +24,24 @@ import { FILE_TYPE_ICONS, UI_ICONS } from './icons';
  * is either a callback (no default) or a runtime-resolved reference
  * (`container`, `hostElement`, `overlayTarget`).
  */
-export const DEFAULT_CONFIG: Required<Omit<DropzoneConfig, 'fileIcons' | 'getFileIconCallback' | 'validateCallback' | 'beforeFilesAddCallback' | 'beforeFilesRemoveCallback' | 'beforeFileCancelCallback' | 'labels' | 'cancelIcon' | 'removeIcon' | 'uploadFileCallback' | 'renderFileItemCallback' | 'renderListWrapperCallback' | 'renderPromptCallback' | 'renderSummaryCallback' | 'getCustomStylesCallback' | 'persistStateCallback' | 'loadStateCallback' | 'storageKey' | 'container' | 'hostElement' | 'overlayTarget' | 'selectorAppearance' | 'listAppearance' | 'gridLayout' | 'gridStatus' | 'controls' | 'itemControls' | 'cardSize' | 'isShowThumbnailsEnabled' | 'retryPolicy' | 'rollingRotation' | 'isHeadless' | 'renderRollingBodyCallback' | 'renderRollingFileInfoCallback' | 'renderRollingProgressCallback'>> = {
-    isMultipleEnabled: true,
+export const DEFAULT_CONFIG: Required<Omit<DropzoneConfig, 'fileIcons' | 'getFileIconCallback' | 'validateCallback' | 'beforeFilesAddCallback' | 'beforeFilesRemoveCallback' | 'beforeFileCancelCallback' | 'labels' | 'cancelIcon' | 'removeIcon' | 'uploadFileCallback' | 'renderFileItemCallback' | 'renderListWrapperCallback' | 'renderPromptCallback' | 'renderSummaryCallback' | 'getCustomStylesCallback' | 'persistStateCallback' | 'loadStateCallback' | 'storageKey' | 'container' | 'hostElement' | 'overlayTarget' | 'selectorAppearance' | 'listAppearance' | 'gridLayout' | 'gridStatus' | 'controls' | 'itemControls' | 'cardSize' | 'isThumbnailsShown' | 'retryPolicy' | 'rollingRotation' | 'isHeadless' | 'renderRollingBodyCallback' | 'renderRollingFileInfoCallback' | 'renderRollingProgressCallback'>> = {
+    isMultiple: true,
     accept: '',
     maxFileSize: 0,
     minFileSize: 0,
     maxTotalSize: 0,
     maxFileCount: 0,
     minFileCount: 0,
-    maxVisibleFiles: 7,
+    maxVisibleFileCount: 7,
     dedupeMode: 'name',
     isDisabled: false,
     // Default for programmatic (non-web-component) usage. The web-component
     // wrapper always resolves an explicit mode in `buildConfig` before
     // construction reaches here.
-    mode: 'bulk',
+    renderMode: 'bulk',
     progressThrottle: 0,
     displayMode: 'list',
-    isFilesInsideEnabled: false,
+    isFilesInside: false,
     icon: UI_ICONS.cloudUpload,
     emptyMessage: 'No files selected',
     summaryTemplate: '{count} file(s), {size}',
@@ -52,10 +52,10 @@ export const DEFAULT_CONFIG: Required<Omit<DropzoneConfig, 'fileIcons' | 'getFil
     concurrency: 1,
     cancelTimeout: 2000,
     cancelTimeoutBehavior: 'error',
-    isAutoUploadEnabled: true,
-    isUploadedFileDeletable: true,
+    shouldAutoUpload: true,
+    isUploadedFileRemovalAllowed: true,
     shouldSinkCompleted: false,
-    reorderCompletedDelay: 1500,
+    sinkCompletedDelay: 1500,
     progressMode: 'optimistic'
 };
 

@@ -1,7 +1,7 @@
 import { test, expect, dz, addNamed } from './fixtures';
 
 /**
- * Section 9 — structural mode (mode="structural").
+ * Section 9 — structural mode (render-mode="structural").
  *
  * Fixture: test/structural.html. Five dropzones cover the four
  * render callbacks plus the hard-switch contract (callbacks are
@@ -96,7 +96,7 @@ test.describe('selector markup', () => {
         const result = await page.evaluate(async (accept) => {
             const el = document.createElement('web-dropzone') as any;
             el.id = 'accept-quote';
-            el.setAttribute('mode', 'structural');
+            el.setAttribute('render-mode', 'structural');
             el.setAttribute('display-mode', 'list');
             el.setAttribute('accept', accept);
             document.body.append(el);

@@ -126,7 +126,7 @@ test.describe('el.controller (replaces getStore)', () => {
                 'updateFileProgress', 'setFileStatus', 'uploadAll', 'uploadFile', 'pauseFile', 'resumeFile',
                 'cancelFile', 'retryFile', 'pauseAll', 'resumeAll', 'retryAll'].every(m => typeof c1[m] === 'function');
             // A mode flip rebuilds the store; the same controller reaches the new one.
-            el.setAttribute('mode', 'structural');
+            el.setAttribute('render-mode', 'structural');
             await el.whenSettled();
             await c1.addFiles([new File(['x'], 'after-rebuild.txt')]);
             return {
@@ -284,7 +284,7 @@ test.describe('satellites', () => {
     test('a for= satellite keeps working after the store rebuilds (it holds the controller, not the engine)', async ({ page }) => {
         await page.evaluate(async () => {
             const store = document.getElementById('sat-store') as any;
-            store.setAttribute('mode', 'structural');   // headless → structural: a full rebuild
+            store.setAttribute('render-mode', 'structural');   // headless → structural: a full rebuild
             await store.whenSettled();
         });
         await addNamed(page, 'sat-store', ['after-1.txt', 'after-2.txt']);

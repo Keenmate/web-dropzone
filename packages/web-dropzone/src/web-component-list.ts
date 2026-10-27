@@ -90,7 +90,7 @@ export class DropzoneListElement extends SatelliteElement {
      */
     private rollingSurface = new StatusSurface();
     /**
-     * When `max-visible-files` is in effect and the queue exceeds it, the
+     * When `max-visible-file-count` is in effect and the queue exceeds it, the
      * list collapses to the first N rows + a "Show N more" toggle. Click
      * flips this flag and re-renders; further structural events (add /
      * remove / clear) leave it sticky so the user's preference survives
@@ -142,7 +142,7 @@ export class DropzoneListElement extends SatelliteElement {
             'change':       () => this.scheduleRenderAll(),
             // Config re-render (e.g. `item-controls` changed) → re-render rows.
             'dz-config-changed': () => this.scheduleRenderAll(),
-            // `should-sink-completed`: a completed row's delay elapsed (or a
+            // `sink-completed`: a completed row's delay elapsed (or a
             // retried row left the bucket) — internal store signal.
             'dz-reorder': (e) => {
                 const { id, isComplete } = (e as CustomEvent<{ id: string; isComplete: boolean }>).detail;
@@ -231,13 +231,13 @@ export class DropzoneListElement extends SatelliteElement {
         const reorderClass = this.store.getConfig().shouldSinkCompleted ? ` ${base}--reorder-completed` : '';
         const containerClass = `${base} ${base}--${appearance}${reorderClass}`;
 
-        // Apply the max-visible-files cap. Mirrors the in-class renderer:
+        // Apply the max-visible-file-count cap. Mirrors the in-class renderer:
         // appearances with their own dedicated layout (rolling, popover)
         // are excluded above — we only reach here for list/detailed/grid/
         // badges. When the queue is empty we already returned.
-        // With `should-sink-completed`, the cap windows the reordered list (rows
+        // With `sink-completed`, the cap windows the reordered list (rows
         // in the "complete" bucket last), as the in-class renderer does.
-        const cap = this.store.getConfig().maxVisibleFiles ?? 0;
+        const cap = this.store.getConfig().maxVisibleFileCount ?? 0;
         const visible = cap > 0 && !this.showAll ? this.orderForReorder(files).slice(0, cap) : files;
         const toggle = this.renderShowMoreToggle(files.length, cap, appearance);
 
@@ -257,7 +257,7 @@ export class DropzoneListElement extends SatelliteElement {
 
     /**
      * Render the trailing "Show N more" / "Show less" toggle when the
-     * `max-visible-files` cap is in effect and the queue exceeds it.
+     * `max-visible-file-count` cap is in effect and the queue exceeds it.
      * Mirrors the in-class renderer's `renderToggleButton` — badges
      * surface uses a pill-shaped variant to fit the badge frame; the
      * other inline appearances use a full-width text button.
@@ -383,13 +383,13 @@ export class DropzoneListElement extends SatelliteElement {
         return !!(file.uploadFileCallback || this.store?.getConfig().uploadFileCallback);
     }
 
-    /** `uploaded-deletable="false"` hides the remove button on completed rows (layout kept). */
+    /** `allow-uploaded-file-removal="false"` hides the remove button on completed rows (layout kept). */
     private isFileUserRemovable(file: FileState): boolean {
         if (file.status !== 'complete') return true;
-        return this.store?.getConfig().isUploadedFileDeletable !== false;
+        return this.store?.getConfig().isUploadedFileRemovalAllowed !== false;
     }
 
-    /** Row belongs in the "complete" reorder bucket (`should-sink-completed`, delay elapsed). */
+    /** Row belongs in the "complete" reorder bucket (`sink-completed`, delay elapsed). */
     private isReorderEligible(file: FileState): boolean {
         return !!this.storeEl && isStoreFileReorderEligible(this.storeEl, file);
     }
@@ -404,12 +404,12 @@ export class DropzoneListElement extends SatelliteElement {
     }
 
     /**
-     * A `should-sink-completed` delay elapsed (or a retried row left the bucket):
+     * A `sink-completed` delay elapsed (or a retried row left the bucket):
      * flip the row's bucket so the CSS `order` moves it. With a
-     * `max-visible-files` cap the visible window changes too, so re-render.
+     * `max-visible-file-count` cap the visible window changes too, so re-render.
      */
     private applyReorder(id: string, isComplete: boolean): void {
-        const cap = this.store?.getConfig().maxVisibleFiles ?? 0;
+        const cap = this.store?.getConfig().maxVisibleFileCount ?? 0;
         if (cap > 0 && !this.showAll) {
             this.scheduleRenderAll();
             return;
@@ -423,12 +423,12 @@ export class DropzoneListElement extends SatelliteElement {
     /**
      * Resolve the thumbnail flag with the same per-appearance auto-default as
      * `WebDropzone.shouldShowThumbnails`: `show-thumbnails` (store config
-     * `isShowThumbnailsEnabled`) wins when set; otherwise only `grid` defaults
+     * `isThumbnailsShown`) wins when set; otherwise only `grid` defaults
      * to thumbnails. Kept in sync so the satellite list renders image previews
      * for `list-appearance="badges" show-thumbnails` just like the built-in form.
      */
     private shouldShowThumbnails(appearance: ListAppearance): boolean {
-        const enabled = this.store?.getConfig().isShowThumbnailsEnabled;
+        const enabled = this.store?.getConfig().isThumbnailsShown;
         if (enabled !== undefined) return enabled;
         return appearance === 'grid';
     }

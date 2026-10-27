@@ -34,8 +34,8 @@
     </div>
 
     <div class="fixture">
-        <div class="fixture-label">should-sink-completed — completed rows move to the bottom after delay</div>
-        <web-dropzone id="reorder" accept="*/*" max-file-count="10" display-mode="detailed" should-sink-completed reorder-completed-delay="50"></web-dropzone>
+        <div class="fixture-label">sink-completed — completed rows move to the bottom after delay</div>
+        <web-dropzone id="reorder" accept="*/*" max-file-count="10" display-mode="detailed" sink-completed sink-completed-delay="50"></web-dropzone>
     </div>
 
     <div class="fixture">
@@ -49,13 +49,13 @@
     </div>
 
     <div class="fixture">
-        <div class="fixture-label">uploaded-deletable="false" — completed rows lose their remove button</div>
-        <web-dropzone id="nodelete" accept="*/*" max-file-count="10" display-mode="detailed" uploaded-deletable="false"></web-dropzone>
+        <div class="fixture-label">allow-uploaded-file-removal="false" — completed rows lose their remove button</div>
+        <web-dropzone id="nodelete" accept="*/*" max-file-count="10" display-mode="detailed" allow-uploaded-file-removal="false"></web-dropzone>
     </div>
 
     <div class="fixture">
-        <div class="fixture-label">should-sink-completed + reorder-completed-delay="600" — DOM order changes only after the delay</div>
-        <web-dropzone id="reorder-delay" accept="*/*" max-file-count="10" display-mode="detailed" should-sink-completed reorder-completed-delay="600" concurrency="3"></web-dropzone>
+        <div class="fixture-label">sink-completed + sink-completed-delay="600" — DOM order changes only after the delay</div>
+        <web-dropzone id="reorder-delay" accept="*/*" max-file-count="10" display-mode="detailed" sink-completed sink-completed-delay="600" concurrency="3"></web-dropzone>
     </div>
 
     <script type="module">

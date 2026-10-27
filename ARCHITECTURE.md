@@ -93,7 +93,7 @@ const host = document.createElement('div');           // any HTMLElement works a
 document.body.appendChild(host);
 
 const engine = new DropzoneEngine(host, {
-  isMultipleEnabled: true,
+  isMultiple: true,
   maxFileCount: 10,
   uploadFileCallback: async ({ file, signal, setProgress, startBytes }) => {
     // your upload here

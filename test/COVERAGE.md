@@ -45,7 +45,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `rolling-rotation` slide-in / vertical (leaving row) / live change | ✓   | `list-extra.spec.ts` | `list-extra.html` |
 | Rolling render callbacks (body: markup / false / null; file-info + progress slots) | ✓ | `list-extra.spec.ts` | `list-extra.html` |
 | `list-appearance="none"`                                      | ✓      | `list.spec.ts` | `list.html` |
-| `max-visible-files` "Show N more" toggle (satellite renderer) | ✓      | `list.spec.ts` | `list.html` |
+| `max-visible-file-count` "Show N more" toggle (satellite renderer) | ✓      | `list.spec.ts` | `list.html` |
 | `--dz-file-list-max-height` (works through satellite)         | ✓      | `list-extra.spec.ts` | `list-extra.html` |
 | `files-inside` layout                                         | ✓      | `list.spec.ts` | `list.html` |
 | `grid-layout="natural"` (equal-height justified rows)         | ✓      | `list-extra.spec.ts` | `list-extra.html` |
@@ -135,14 +135,14 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `retryPolicy` attempts / delayMs / backoff → complete or error | ✓     | `upload-edge.spec.ts` | `upload-edge.html` |
 | `retryPolicy` retry aborted when paused during the backoff     | ✓     | `upload-edge.spec.ts` | `upload-edge.html` |
 | Auto-retry silent outside `/logging`                          | ✓      | `upload-edge.spec.ts` (NOTES #2 fixed) | `upload-edge.html` |
-| `uploaded-deletable="false"` hides ✕ on completed rows        | ✓      | `upload-edge.spec.ts` (NOTES #6 fixed) | `upload-edge.html` |
-| `reorder-completed-delay` — row moves only after the delay    | ✓      | `upload-edge.spec.ts` (NOTES #7 fixed) | `upload-edge.html` |
+| `allow-uploaded-file-removal="false"` hides ✕ on completed rows        | ✓      | `upload-edge.spec.ts` (NOTES #6 fixed) | `upload-edge.html` |
+| `sink-completed-delay` — row moves only after the delay    | ✓      | `upload-edge.spec.ts` (NOTES #7 fixed) | `upload-edge.html` |
 | `progress-throttle` caps emission rate                        | ✓      | `upload-edge.spec.ts` | `upload-edge.html` |
-| `should-sink-completed` reflows completed files               | ✓      | `upload-edge.spec.ts` (DOM order: the reorder-completed-delay test) | `upload-edge.html` |
+| `sink-completed` reflows completed files               | ✓      | `upload-edge.spec.ts` (DOM order: the sink-completed-delay test) | `upload-edge.html` |
 | `progress-mode="pessimistic"` preserves progress on failure   | ✓      | `upload-edge.spec.ts` | `upload-edge.html` |
 | Resume-aware progress on `file-progress`                      | △      | `upload-edge.spec.ts` | `upload-edge.html` |
 
-## 6. Structural mode (`mode="structural"`)
+## 6. Structural mode (`render-mode="structural"`)
 
 | Feature                                                       | Status | Spec                | Fixture           |
 | ------------------------------------------------------------- | :----: | ------------------- | ----------------- |
@@ -163,8 +163,8 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `<web-dropzone-list>` reflects programmatic adds              | ✓      | `architecture.spec.ts` | `architecture.html` |
 | `<web-dropzone-indicator for=>` binds + renders chip          | ✓      | `satellites-extra.spec.ts` | `satellites-extra.html` |
 | `<web-dropzone-progress for=>` binds + renders surface        | ✓      | `satellites-extra.spec.ts` | `satellites-extra.html` |
-| `mode="headless"` skips internal rendering                    | ✓      | `architecture.spec.ts` | `architecture.html` |
-| `mode="headless"` still fires every event                     | ✓      | `architecture.spec.ts` | `architecture.html` |
+| `render-mode="headless"` skips internal rendering                    | ✓      | `architecture.spec.ts` | `architecture.html` |
+| `render-mode="headless"` still fires every event                     | ✓      | `architecture.spec.ts` | `architecture.html` |
 | Multiple pickers contribute to one store (Mode A: shared)     | ✓      | `architecture.spec.ts` | `architecture.html` |
 | Multiple independent stores on one page                       | ✓      | `architecture.spec.ts` | `architecture.html` |
 | Picker `label` / `hint` / `selector-appearance` / `disabled` (per picker) | ✓ | `satellites-extra.spec.ts` | `satellites-extra.html` |
@@ -281,7 +281,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `maxFileCount` property reactive + reflects                   | ✓      | `reactivity.spec.ts` | `reactivity.html` |
 | `accept` changed after build (validation + native input)      | ✓      | `reactivity.spec.ts` | `reactivity.html` |
 | `list-appearance` change re-renders, keeps files              | ✓      | `reactivity.spec.ts` | `reactivity.html` |
-| Mode flip (headless → bulk) rebuilds, `ready` again; `mode="headless"` drops the UI | ✓ | `reactivity.spec.ts` | `reactivity.html` |
+| Mode flip (headless → bulk) rebuilds, `ready` again; `render-mode="headless"` drops the UI | ✓ | `reactivity.spec.ts` | `reactivity.html` |
 | `overlay-target` set after build                              | ✓      | `reactivity.spec.ts` | `reactivity.html` |
 
 ## 16. Bulk actions (overall-progress strip + popover header)
@@ -391,5 +391,5 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Element removed → every upload cancelled (signal + `file-cancel`), queued never start, store destroyed | ✓ | `cancel.spec.ts` | `cancel.html` |
 | DOM move → uploads continue and complete (no removal teardown) | ✓     | `cancel.spec.ts` | `cancel.html` |
 | Re-adding a removed element → fresh empty store, `ready` fires | ✓     | `cancel.spec.ts` | `cancel.html` |
-| `should-keep-alive-when-removed` keeps uploads running          | ✓     | `cancel.spec.ts` | `cancel.html` |
+| `keep-alive-when-removed` keeps uploads running          | ✓     | `cancel.spec.ts` | `cancel.html` |
 | `form.reset()` during an upload → cancel, then remove           | ✓     | `cancel.spec.ts` | `cancel.html` |

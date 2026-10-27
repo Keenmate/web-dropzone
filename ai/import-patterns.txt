@@ -76,7 +76,7 @@ const host = document.createElement('div');
 document.body.appendChild(host);
 
 const engine = new DropzoneEngine(host, {
-  isMultipleEnabled: true,
+  isMultiple: true,
   maxFileCount: 10,
   uploadFileCallback: async ({ file, signal, setProgress }) => { /* ... */ }
 });
@@ -86,7 +86,7 @@ host.addEventListener('files-change', (e) => render(e.detail.files));
 
 The engine dispatches the same events (bubbling, not composed) on `host`;
 `element` in every ctx/detail is `host`. Config keys are the camelCase
-DropzoneConfig names (isMultipleEnabled, not multiple).
+DropzoneConfig names (isMultiple, not multiple).
 
 STYLES
 ------
@@ -138,7 +138,7 @@ tag => tag.startsWith('web-dropzone')); bind properties with .prop:
 
 Svelte / Lit: set properties directly (Lit: .uploadFileCallback=${fn}).
 
-Framework-rendered UI: use mode="headless" and render from `files-change`
+Framework-rendered UI: use render-mode="headless" and render from `files-change`
 (rAF-coalesced snapshot). See examples-react.html / examples-vue.html and
 advanced-patterns.txt.
 
