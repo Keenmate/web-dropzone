@@ -29,7 +29,7 @@ describe('<web-dropzone> interaction model', () => {
         expect(el.controller).toBe(controller); // built once
     });
 
-    it('fires ready with the context on connect; the twin gets the same detail first', () => {
+    it('fires ready with the context on connect (core: on the next microtask); the twin gets the same detail first', async () => {
         el = document.createElement('web-dropzone');
         const seen: string[] = [];
         let twinDetail: any;
@@ -38,6 +38,8 @@ describe('<web-dropzone> interaction model', () => {
             seen.push(`event composed=${e.composed} same=${e.detail === twinDetail}`);
         });
         document.body.appendChild(el);
+        expect(seen).toEqual([]);
+        await el.whenReady();
         expect(seen).toEqual(['twin', 'event composed=false same=true']);
         expect(twinDetail.controller).toBe(el.controller);
         expect(twinDetail.element).toBe(el);
