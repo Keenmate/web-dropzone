@@ -328,7 +328,7 @@
                             for="dz-decoupled"
                             selector-appearance="card"
                             card-size="compact"
-                            label="Drop attachments here"
+                            labels='{"prompt": "Drop attachments here"}'
                         ></web-dropzone-picker>
                         <button id="dz-decoupled-upload" type="button" style="margin-top:1rem; padding:0.6rem 1.1rem; background:#2563eb; color:white; border:0; border-radius:6px; font-weight:500; cursor:pointer;">
                             Upload all
@@ -341,7 +341,7 @@
                         <web-dropzone-list
                             for="dz-decoupled"
                             list-appearance="detailed"
-                            empty-message="No attachments yet — drop some on the left."
+                            labels='{"empty": "No attachments yet — drop some on the left."}'
                         ></web-dropzone-list>
                     </div>
                 </div>
@@ -380,7 +380,7 @@
                         for="dz-avatar"
                         selector-appearance="card"
                         card-size="minimal"
-                        label="Drop avatar image"
+                        labels='{"prompt": "Drop avatar image"}'
                         icon="🖼️"
                     ></web-dropzone-picker>
                     <div style="margin-top:1rem;">
@@ -396,7 +396,7 @@
                     <web-dropzone-picker
                         for="dz-docs"
                         selector-appearance="button"
-                        label="Add documents"
+                        labels='{"prompt": "Add documents"}'
                     ></web-dropzone-picker>
                     <div style="margin-top:1rem;">
                         <web-dropzone-list for="dz-docs" list-appearance="list"></web-dropzone-list>
@@ -430,7 +430,7 @@
                         for="dz-modeb"
                         selector-appearance="card"
                         card-size="compact"
-                        label="Drop public files"
+                        labels='{"prompt": "Drop public files"}'
                         icon="🌐"
                     ></web-dropzone-picker>
                 </div>
@@ -441,7 +441,7 @@
                         for="dz-modeb"
                         selector-appearance="card"
                         card-size="compact"
-                        label="Drop private files"
+                        labels='{"prompt": "Drop private files"}'
                         icon="🔒"
                     ></web-dropzone-picker>
                 </div>
@@ -496,7 +496,7 @@
                     <web-dropzone-picker
                         for="dz-indicator"
                         selector-appearance="button"
-                        label="Add files"
+                        labels='{"prompt": "Add files"}'
                     ></web-dropzone-picker>
                 </div>
                 <p style="font-size:0.85rem; color:#64748b; margin-top:1rem; margin-bottom:0;">↘ A floating chip is pinned to the right edge of the page. Click it to slide out the queue.</p>
@@ -529,7 +529,7 @@
                     <web-dropzone-picker
                         for="dz-flex"
                         selector-appearance="button"
-                        label="Pick files"
+                        labels='{"prompt": "Pick files"}'
                     ></web-dropzone-picker>
                 </div>
             </div>
@@ -638,7 +638,7 @@ spinner.renderBodyCallback = ({ aggregate }) =&gt; {
                             selector-appearance="card"
                             card-size="compact"
                             accept="image/*"
-                            label="Drop images here"
+                            labels='{"prompt": "Drop images here"}'
                         ></web-dropzone-picker>
                     </div>
                 </div>
@@ -648,7 +648,7 @@ spinner.renderBodyCallback = ({ aggregate }) =&gt; {
                         <web-dropzone-list
                             for="dz-grid"
                             list-appearance="grid"
-                            empty-message="No images yet — drop some on the left."
+                            labels='{"empty": "No images yet — drop some on the left."}'
                             style="--dz-preview-grid-columns: repeat(auto-fill, minmax(6rem, 1fr)); --dz-preview-grid-gap: 0.5rem;"
                         ></web-dropzone-list>
                     </div>
@@ -677,7 +677,7 @@ spinner.renderBodyCallback = ({ aggregate }) =&gt; {
 
             <div class="grid" style="margin-top:1rem">
                 <div>
-                    <web-dropzone-picker for="dz-byo" selector-appearance="card" label="Drop files for BYO renderer"></web-dropzone-picker>
+                    <web-dropzone-picker for="dz-byo" selector-appearance="card" labels='{"prompt": "Drop files for BYO renderer"}'></web-dropzone-picker>
                 </div>
                 <div>
                     <strong style="display:block;margin-bottom:0.4rem">Hand-rolled list (no satellite)</strong>

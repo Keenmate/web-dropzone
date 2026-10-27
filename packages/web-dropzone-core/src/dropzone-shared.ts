@@ -43,8 +43,6 @@ export const DEFAULT_CONFIG: Required<Omit<DropzoneConfig, 'fileIcons' | 'getFil
     displayMode: 'list',
     isFilesInside: false,
     icon: UI_ICONS.cloudUpload,
-    emptyMessage: 'No files selected',
-    summaryTemplate: '{count} file(s), {size}',
     popoverPlacement: 'bottom-start',
     overlayIcon: UI_ICONS.upload,
     name: '',

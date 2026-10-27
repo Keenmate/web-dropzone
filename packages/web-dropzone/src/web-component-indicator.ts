@@ -43,8 +43,7 @@ import {
     STATUS_ICONS,
     createDropzoneSpinner,
     formatFileSize,
-    fileStatusLabel,
-    createLabelFn
+    fileStatusLabel
 } from '@keenmate/web-dropzone-core';
 import {
     buildStatusSurfaceArgs,
@@ -55,7 +54,7 @@ import type {
     StatusSurfaceCallback
 } from './status-surface';
 import type { DropzoneElement } from './web-component';
-import type { FileState, FileStatus } from '@keenmate/web-dropzone-core';
+import type { FileState, FileStatus, LabelFn } from '@keenmate/web-dropzone-core';
 
 const POSITIONS = ['right', 'left', 'top', 'bottom', 'inline'] as const;
 type IndicatorPosition = typeof POSITIONS[number];
@@ -68,14 +67,14 @@ type DrawerMode = typeof DRAWER_MODES[number];
  * overridden the body/fileInfo/progress trio. Exposed via the shared
  * status-surface contract — see [status-surface.ts](./status-surface.ts).
  */
-function defaultChipLabel(args: StatusSurfaceArgs, fallback: string): string {
+function defaultChipLabel(args: StatusSurfaceArgs, label: LabelFn): string {
     const a = args.aggregate;
-    if (a.total === 0) return fallback;
-    if (a.error > 0)     return `${a.error} failed`;
-    if (a.uploading > 0) return `${a.uploading} uploading`;
-    if (a.paused > 0)    return `${a.paused} paused`;
-    if (a.pending > 0)   return `${a.pending} queued`;
-    return `${a.complete} done`;
+    if (a.total === 0)   return label('indicatorIdle');
+    if (a.error > 0)     return label('indicatorFailed', { count: a.error });
+    if (a.uploading > 0) return label('indicatorUploading', { count: a.uploading });
+    if (a.paused > 0)    return label('indicatorPaused', { count: a.paused });
+    if (a.pending > 0)   return label('indicatorQueued', { count: a.pending });
+    return label('indicatorDone', { count: a.complete });
 }
 
 export class DropzoneIndicatorElement extends SatelliteElement {
@@ -210,7 +209,7 @@ export class DropzoneIndicatorElement extends SatelliteElement {
     }
 
     static get observedAttributes(): string[] {
-        return ['for', 'position', 'label', 'drawer'];
+        return ['for', 'position', 'labels', 'drawer'];
     }
 
     attributeChangedCallback(name: string): void {
@@ -264,13 +263,13 @@ export class DropzoneIndicatorElement extends SatelliteElement {
         if (mode === 'auto') {
             const btn = document.createElement('button');
             btn.type = 'button';
-            btn.setAttribute('aria-label', 'Upload status');
+            btn.setAttribute('aria-label', this.label('indicatorStatus'));
             btn.addEventListener('click', () => this.toggleDrawer());
             this.chipEl = btn;
         } else {
             const div = document.createElement('div');
             div.setAttribute('role', 'status');
-            div.setAttribute('aria-label', 'Upload status');
+            div.setAttribute('aria-label', this.label('indicatorStatus'));
             this.chipEl = div;
         }
         this.chipEl.className = 'dz__indicator__chip';
@@ -285,7 +284,7 @@ export class DropzoneIndicatorElement extends SatelliteElement {
             this.drawerEl.className = 'dz__indicator__drawer';
             this.drawerEl.setAttribute('part', 'drawer');
             this.drawerEl.setAttribute('role', 'dialog');
-            this.drawerEl.setAttribute('aria-label', 'Upload queue');
+            this.drawerEl.setAttribute('aria-label', this.label('indicatorQueue'));
             this.populateDrawer();
             this.shadow.appendChild(this.drawerEl);
         }
@@ -312,7 +311,6 @@ export class DropzoneIndicatorElement extends SatelliteElement {
 
     private populateDrawer(): void {
         if (!this.drawerEl) return;
-        const labelAttr = this.getAttribute('label') ?? 'Uploads';
         // Body intentionally empty — the embedded `<web-dropzone-list>` is
         // mounted in `bindEmbeddedList` once `storeEl` is known, so we can
         // call `bindToStore` BEFORE the list is connected. Putting the
@@ -320,8 +318,8 @@ export class DropzoneIndicatorElement extends SatelliteElement {
         // fire mid-parse with no binding, logging "store not found".
         this.drawerEl.innerHTML = `
             <header class="dz__indicator__drawer-header">
-                <span class="dz__indicator__drawer-title">${escapeHtml(labelAttr)}</span>
-                <button type="button" class="dz__indicator__drawer-close" aria-label="Close"></button>
+                <span class="dz__indicator__drawer-title">${escapeHtml(this.label('indicatorTitle'))}</span>
+                <button type="button" class="dz__indicator__drawer-close" aria-label="${escapeHtml(this.label('close'))}"></button>
             </header>
             <div class="dz__indicator__drawer-body"></div>
         `;
@@ -365,6 +363,7 @@ export class DropzoneIndicatorElement extends SatelliteElement {
 
     private refresh(): void {
         if (!this.store) return;
+        this.refreshStaticLabels();
         const files = this.store.getFiles();
         const args = buildStatusSurfaceArgs(files, this.storeEl!.controller, this.storeEl!);
 
@@ -435,6 +434,19 @@ export class DropzoneIndicatorElement extends SatelliteElement {
         this.bodyDefaultMounted = true;
     }
 
+    /** Chip / drawer accessible names + drawer title / close — live with `labels`. */
+    private refreshStaticLabels(): void {
+        const setAttr = (el: Element | null | undefined, name: string, value: string) => {
+            if (el && el.getAttribute(name) !== value) el.setAttribute(name, value);
+        };
+        setAttr(this.chipEl, 'aria-label', this.label('indicatorStatus'));
+        setAttr(this.drawerEl, 'aria-label', this.label('indicatorQueue'));
+        setAttr(this.drawerCloseBtn, 'aria-label', this.label('close'));
+        const title = this.drawerEl?.querySelector('.dz__indicator__drawer-title');
+        const titleText = this.label('indicatorTitle');
+        if (title && title.textContent !== titleText) title.textContent = titleText;
+    }
+
     private refreshFileInfoSlot(args: StatusSurfaceArgs): void {
         if (!this.fileInfoSlotEl) return;
         const result = this._renderFileInfoCallback
@@ -472,8 +484,7 @@ export class DropzoneIndicatorElement extends SatelliteElement {
                 || !!this._renderProgressCallback;
             if (label.hidden !== labelHidden) label.hidden = labelHidden;
             if (!labelHidden) {
-                const labelFallback = this.getAttribute('label') ?? 'No uploads';
-                const nextLabel = defaultChipLabel(args, labelFallback);
+                const nextLabel = defaultChipLabel(args, this.label);
                 if (label.textContent !== nextLabel) label.textContent = nextLabel;
             }
         }
@@ -494,7 +505,7 @@ export class DropzoneIndicatorElement extends SatelliteElement {
         const status = args.currentFile.status as FileStatus;
         // Static glyph for non-uploading focal states (paused / error /
         // complete). Returned as a string so it memoizes by equality.
-        return `<span class="dz__indicator__file-info__icon" data-status="${status}" title="${escapeHtml(fileStatusLabel(createLabelFn(() => this.store?.getConfig().labels), args.currentFile))}">${STATUS_ICONS[status]}</span>`;
+        return `<span class="dz__indicator__file-info__icon" data-status="${status}" title="${escapeHtml(fileStatusLabel(this.label, args.currentFile))}">${STATUS_ICONS[status]}</span>`;
     }
 
     /**

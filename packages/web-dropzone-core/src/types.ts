@@ -548,15 +548,11 @@ export interface DropzoneConfig {
      * bulk-action buttons. Resolved through `resolveLabel`.
      */
     labels?: Partial<DropzoneLabels> | null;
-    /** Message shown when no files are selected (in file list) */
-    emptyMessage?: string;
 
     // ========================================================================
     // COMPACT MODE OPTIONS
     // ========================================================================
 
-    /** Text template for compact summary (use {count} and {size} placeholders) */
-    summaryTemplate?: string;
     /** Popover placement relative to summary */
     popoverPlacement?: Placement;
 

@@ -504,7 +504,7 @@ startBtn.addEventListener('click', () =&gt; dz.uploadAll())
 
         <!-- SUMMARY TEMPLATE (popover/compact-specific) -->
         <div class="card">
-            <h2>DC10 · Summary Template (<code>summary-template</code>)</h2>
+            <h2>DC10 · Summary text (<code>labels.summary</code>)</h2>
             <p>When <code>list-appearance="popover"</code> the summary line supports <code>{count}</code> and <code>{size}</code> placeholders — quick customization without writing JS. For richer summaries (pluralization, badges) use <code>renderSummaryCallback</code>; see <a href="examples-structural.html">Structural Rendering</a>.</p>
 
             <div class="grid">
@@ -515,12 +515,12 @@ startBtn.addEventListener('click', () =&gt; dz.uploadAll())
 
                 <div class="form-group">
                     <label>Custom: <code>📎 {count} attachments ({size})</code></label>
-                    <web-dropzone list-appearance="popover" summary-template="📎 {count} attachments ({size})" accept="*/*"></web-dropzone>
+                    <web-dropzone list-appearance="popover" labels='{"summary": "📎 {count} attachments ({size})"}' accept="*/*"></web-dropzone>
                 </div>
 
                 <div class="form-group">
                     <label>Localized: <code>{count} soubor(ů) — {size}</code></label>
-                    <web-dropzone list-appearance="popover" summary-template="{count} soubor(ů) — {size}" accept="*/*"></web-dropzone>
+                    <web-dropzone list-appearance="popover" labels='{"summary": "{count} soubor(ů) — {size}"}' accept="*/*"></web-dropzone>
                 </div>
             </div>
         </div>

@@ -29,15 +29,15 @@
     <div class="fixture">
         <div class="fixture-label">one headless store (#sat) + configured satellites</div>
         <web-dropzone id="sat" render-mode="headless" accept="*/*" auto-upload="false"></web-dropzone>
-        <web-dropzone-picker id="pick-card" for="sat" label="Drop invoices" hint="PDF only"></web-dropzone-picker>
-        <web-dropzone-picker id="pick-btn" for="sat" selector-appearance="button" label="Browse"></web-dropzone-picker>
+        <web-dropzone-picker id="pick-card" for="sat" labels='{"prompt": "Drop invoices", "hint": "PDF only"}'></web-dropzone-picker>
+        <web-dropzone-picker id="pick-btn" for="sat" selector-appearance="button" labels='{"selectFiles": "Browse"}'></web-dropzone-picker>
         <web-dropzone-picker id="pick-dis" for="sat" selector-appearance="button" disabled></web-dropzone-picker>
         <web-dropzone-picker id="pick-inside" for="sat" inside="true">
             <web-dropzone-list id="list-nested" for="sat" nested="true"></web-dropzone-list>
         </web-dropzone-picker>
         <web-dropzone-list id="list-badges" for="sat" list-appearance="badges"></web-dropzone-list>
-        <web-dropzone-list id="list-empty" for="sat" empty-message="Nothing yet"></web-dropzone-list>
-        <web-dropzone-indicator id="ind-left" for="sat" position="left" label="Queue"></web-dropzone-indicator>
+        <web-dropzone-list id="list-empty" for="sat" labels='{"empty": "Nothing yet"}'></web-dropzone-list>
+        <web-dropzone-indicator id="ind-left" for="sat" position="left" labels='{"indicatorTitle": "Queue"}'></web-dropzone-indicator>
         <web-dropzone-indicator id="ind-off" for="sat" position="inline" drawer="off"></web-dropzone-indicator>
         <web-dropzone-progress id="prog-sat" for="sat"></web-dropzone-progress>
     </div>

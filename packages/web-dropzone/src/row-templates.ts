@@ -232,7 +232,7 @@ export function renderDetailedItem(file: FileState, opts: RowTemplateOptions = {
     const showType = showPart(p, 'type');
     const meta = (showSize || showType) ? `<div class="dz__file-item__meta">
                     ${showSize ? `<span class="dz__file-item__size">${formatFileSize(file.size)}</span>` : ''}
-                    ${showType ? `<span class="dz__file-item__type">${escapeHtml(file.type || 'Unknown')}</span>` : ''}
+                    ${showType ? `<span class="dz__file-item__type">${escapeHtml(file.type || label('unknownType'))}</span>` : ''}
                 </div>` : '';
     return `
         <div class="dz__file-item dz__file-item--detailed" data-file-id="${file.id}" data-status="${file.status}"${reorderAttr}>

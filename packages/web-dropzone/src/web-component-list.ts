@@ -35,10 +35,9 @@ import {
     formatFileSize,
     STATUS_ICONS,
     UI_ICONS,
-    statusLabel,
-    createLabelFn
+    statusLabel
 } from '@keenmate/web-dropzone-core';
-import type { FileStatus, LabelFn } from '@keenmate/web-dropzone-core';
+import type { FileStatus } from '@keenmate/web-dropzone-core';
 import {
     patchProgressFill,
     patchProgressText,
@@ -70,7 +69,6 @@ const SUPPORTED_APPEARANCES: ReadonlyArray<ListAppearance> = [
     'list', 'detailed', 'grid', 'badges', 'rolling', 'popover'
 ];
 
-const DEFAULT_SUMMARY_TEMPLATE = '{count} file(s), {size}';
 
 export class DropzoneListElement extends SatelliteElement {
     protected readonly satelliteTagName = 'web-dropzone-list';
@@ -121,7 +119,7 @@ export class DropzoneListElement extends SatelliteElement {
     }
 
     static get observedAttributes(): string[] {
-        return ['for', 'list-appearance', 'grid-layout', 'grid-status', 'empty-message', 'nested'];
+        return ['for', 'list-appearance', 'grid-layout', 'grid-status', 'labels', 'nested'];
     }
 
     attributeChangedCallback(): void {
@@ -201,9 +199,7 @@ export class DropzoneListElement extends SatelliteElement {
                 this.container.innerHTML = '';
                 return;
             }
-            const emptyMessage = this.getAttribute('empty-message')
-                ?? this.store.getConfig().emptyMessage
-                ?? 'No files selected';
+            const emptyMessage = this.label('empty');
             // Rolling memoization snapshots are stale once the list empties
             // out — drop them so the next non-empty render starts fresh.
             if (appearance === 'rolling') this.rollingSurface.reset();
@@ -267,13 +263,13 @@ export class DropzoneListElement extends SatelliteElement {
         const isBadges = appearance === 'badges';
         if (this.showAll) {
             return isBadges
-                ? `<button type="button" class="dz__badge dz__badge--more" data-dz-action="toggle-visible" aria-label="Show fewer">−</button>`
-                : `<button type="button" class="dz__show-more" data-dz-action="toggle-visible">Show less</button>`;
+                ? `<button type="button" class="dz__badge dz__badge--more" data-dz-action="toggle-visible" aria-label="${escapeHtml(this.label('showLess'))}">−</button>`
+                : `<button type="button" class="dz__show-more" data-dz-action="toggle-visible">${escapeHtml(this.label('showLess'))}</button>`;
         }
         const hidden = total - cap;
         return isBadges
-            ? `<button type="button" class="dz__badge dz__badge--more" data-dz-action="toggle-visible" aria-label="Show ${hidden} more">+${hidden}</button>`
-            : `<button type="button" class="dz__show-more" data-dz-action="toggle-visible">Show ${hidden} more</button>`;
+            ? `<button type="button" class="dz__badge dz__badge--more" data-dz-action="toggle-visible" aria-label="${escapeHtml(this.label('showMore', { count: hidden }))}">+${hidden}</button>`
+            : `<button type="button" class="dz__show-more" data-dz-action="toggle-visible">${escapeHtml(this.label('showMore', { count: hidden }))}</button>`;
     }
 
     /** Bind the toggle button's click handler (only present when the
@@ -318,14 +314,11 @@ export class DropzoneListElement extends SatelliteElement {
         const statusName = statusLabel(this.label, status as FileStatus);
 
         const totalSize = files.reduce((sum, f) => sum + f.size, 0);
-        const template = cfg.summaryTemplate || DEFAULT_SUMMARY_TEMPLATE;
-        const text = template
-            .replace('{count}', String(files.length))
-            .replace('{size}', formatFileSize(totalSize));
+        const text = this.label('summary', { count: files.length, size: formatFileSize(totalSize) });
 
         this.container.innerHTML = `
             <div class="dz__summary">
-                <div class="dz__summary__line" tabindex="0" role="button" aria-label="Click to view files">
+                <div class="dz__summary__line" tabindex="0" role="button" aria-label="${escapeHtml(this.label('viewFiles'))}">
                     <span class="${iconClass}" data-status="${status}" aria-label="${escapeHtml(this.label('statusAria', { status: statusName }))}">${icon}</span>
                     <span class="dz__summary__text">${escapeHtml(text)}</span>
                 </div>
@@ -374,9 +367,6 @@ export class DropzoneListElement extends SatelliteElement {
         // 'rolling' uses the list-item template for the front-file row.
         return renderListItem(file, opts);
     }
-
-    /** UI strings from the bound store's `labels` (built-in English before binding). */
-    private readonly label: LabelFn = createLabelFn(() => this.store?.getConfig().labels);
 
     /** The file has an upload handler (store-level or per-file, Mode B). */
     private hasUploadHandler(file: FileState): boolean {
@@ -625,8 +615,9 @@ export class DropzoneListElement extends SatelliteElement {
         const countEl = queueBtn.querySelector('.dz__rolling__queue-count');
         if (countEl) countEl.textContent = String(queueCount);
         queueBtn.classList.toggle('dz__rolling__queue--hidden', !showQueueBtn);
-        queueBtn.setAttribute('aria-label', `Show full queue (${queueCount} files)`);
-        queueBtn.setAttribute('title', `Show all ${queueCount} files`);
+        const queueLabel = this.label('showQueue', { count: queueCount });
+        queueBtn.setAttribute('aria-label', queueLabel);
+        queueBtn.setAttribute('title', queueLabel);
     }
 
     // ========================================================================

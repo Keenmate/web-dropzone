@@ -22,7 +22,7 @@
 import { fileLogger, initLogger, uiLogger } from './logger';
 import { dispatch, runBeforeCallback, withComponentContext } from '@keenmate/web-components-core';
 import { createDropzoneController, type DropzoneController } from './controller';
-import { createLabelFn, type LabelFn } from './labels';
+import { createLabelFn, countLabel, type LabelFn } from './labels';
 import type {
     DropzoneContext,
     DropzoneEngineEventName,
@@ -1168,7 +1168,7 @@ export class DropzoneEngine {
                 // by a cancel (which owns the outcome).
                 return null;
             }
-            const msg = err instanceof Error ? err.message : 'Upload failed';
+            const msg = err instanceof Error ? err.message : this.label('errorUpload');
             const policy = this.config.retryPolicy ?? {};
             const maxAttempts = Math.max(1, policy.attempts ?? 1);
             fileLogger.debug('Auto-retry: handler rejected', {
@@ -1257,7 +1257,7 @@ export class DropzoneEngine {
                         file,
                         validation: {
                             valid: false,
-                            error: 'Add rejected by beforeFilesAddCallback',
+                            error: this.label('errorRejected'),
                             code: 'rejected'
                         }
                     });
@@ -1308,7 +1308,7 @@ export class DropzoneEngine {
                     file,
                     validation: {
                         valid: false,
-                        error: `Maximum ${maxCount} file${maxCount === 1 ? '' : 's'} allowed`,
+                        error: countLabel(this.label, 'errorMaxFileCount', maxCount),
                         code: 'count'
                     }
                 });
@@ -1328,7 +1328,7 @@ export class DropzoneEngine {
                         file,
                         validation: {
                             valid: false,
-                            error: `Duplicate file: ${file.name}`,
+                            error: this.label('errorDuplicate', { name: file.name }),
                             code: 'duplicate'
                         }
                     });
@@ -1344,7 +1344,7 @@ export class DropzoneEngine {
                     file,
                     validation: {
                         valid: false,
-                        error: `Total size would exceed ${formatFileSize(maxTotal)}`,
+                        error: this.label('errorMaxTotalSize', { size: formatFileSize(maxTotal) }),
                         code: 'size'
                     }
                 });

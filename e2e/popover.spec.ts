@@ -6,7 +6,7 @@ import { test, expect, dz, addNamed, type Page } from './fixtures';
  * `popover-placement`). Escape and an outside click dismiss it.
  *
  * Fixture: test/popover.html — `#pop` (default placement, custom
- * summary-template), `#top` (popover-placement="top-end", with room above).
+ * labels.summary), `#top` (popover-placement="top-end", with room above).
  */
 
 const PAGE = '/test/popover.html';
@@ -71,7 +71,7 @@ test.describe('dismissal', () => {
     });
 });
 
-test.describe('summary-template', () => {
+test.describe('labels.summary', () => {
     test('{count} and {size} are filled in and follow the selection', async ({ page }) => {
         await addNamed(page, 'pop', ['a.txt']);
         await expect(summary(page, 'pop').locator('.dz__summary__text')).toHaveText('1 docs · 64 B');
@@ -82,7 +82,7 @@ test.describe('summary-template', () => {
     test('the default template is "{count} file(s), {size}"; a live change re-renders', async ({ page }) => {
         await addNamed(page, 'top', ['a.txt']);
         await expect(summary(page, 'top').locator('.dz__summary__text')).toHaveText('1 file(s), 64 B');
-        await dz(page, 'top').evaluate(async (el: any) => { el.summaryTemplate = 'Files: {count}'; await el.whenSettled(); });
+        await dz(page, 'top').evaluate(async (el: any) => { el.labels = { summary: 'Files: {count}' }; await el.whenSettled(); });
         await expect(summary(page, 'top').locator('.dz__summary__text')).toHaveText('Files: 1');
     });
 });

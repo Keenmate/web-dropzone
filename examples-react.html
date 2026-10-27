@@ -283,7 +283,7 @@ createRoot(document.getElementById('react-root')).render(React.createElement(Upl
 
             return html`
                 <web-dropzone ref=${storeRef} id="rx-store" render-mode="headless" multiple max-file-count="6"></web-dropzone>
-                <web-dropzone-picker for="rx-store" selector-appearance="card" label="Drop files for React"></web-dropzone-picker>
+                <web-dropzone-picker for="rx-store" selector-appearance="card" labels='{"prompt": "Drop files for React"}'></web-dropzone-picker>
 
                 ${files.length === 0
                     ? html`<div className="rx-empty">No files yet — drop something above.</div>`

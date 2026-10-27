@@ -62,7 +62,7 @@ test.describe('<web-dropzone-progress>', () => {
 const satFiles = (page: Page) => dz(page, 'sat').evaluate((el: any) => el.files.map((f: any) => f.name));
 
 test.describe('<web-dropzone-picker> attributes', () => {
-    test('card: label replaces the prompt, hint renders', async ({ page }) => {
+    test('card: labels.prompt replaces the prompt, labels.hint renders', async ({ page }) => {
         const card = dz(page, 'pick-card').locator('.dz__dropzone--card');
         await expect(card.locator('.dz__dropzone__text')).toHaveText('Drop invoices');
         await expect(card.locator('.dz__dropzone__hint')).toHaveText('PDF only');
@@ -94,7 +94,7 @@ test.describe('<web-dropzone-picker> attributes', () => {
 });
 
 test.describe('<web-dropzone-list> attributes', () => {
-    test('empty-message renders while the store is empty, rows replace it', async ({ page }) => {
+    test('labels.empty renders while the store is empty, rows replace it', async ({ page }) => {
         await expect(dz(page, 'list-empty').locator('.dz__empty')).toHaveText('Nothing yet');
         await addNamed(page, 'sat', ['a.txt']);
         await expect(dz(page, 'list-empty').locator('.dz__empty')).toHaveCount(0);
@@ -117,7 +117,7 @@ test.describe('<web-dropzone-indicator> attributes', () => {
         await expect(dz(page, 'ind-off')).toHaveAttribute('data-drawer', 'off');
     });
 
-    test('drawer="auto": the chip is a button that toggles the drawer (title = label)', async ({ page }) => {
+    test('drawer="auto": the chip is a button that toggles the drawer (title = labels.indicatorTitle)', async ({ page }) => {
         const ind = dz(page, 'ind-left');
         await expect(ind.locator('button.dz__indicator__chip')).toHaveCount(1);
         await expect(ind.locator('.dz__indicator__drawer-title')).toHaveText('Queue');
@@ -169,5 +169,25 @@ test.describe('<web-dropzone-progress> data-status', () => {
         await expect.poll(() => pendingNames(page)).toContain('a.txt');
         await resolveUpload(page, 'a.txt');
         await expect(prog(page)).toHaveAttribute('data-status', 'complete');
+    });
+});
+
+test.describe('satellite labels', () => {
+    test('a satellite inherits the store labels; its own labels win per key; live property change re-renders', async ({ page }) => {
+        // Store labels → every satellite (here: the list's empty text).
+        await dz(page, 'sat').evaluate(async (el: any) => { el.labels = { empty: 'Store empty', prompt: 'Store prompt' }; await el.whenSettled(); });
+        await expect(dz(page, 'list-empty').locator('.dz__empty')).toHaveText('Nothing yet'); // own key wins
+        await dz(page, 'list-empty').evaluate((el) => el.removeAttribute('labels'));
+        await expect(dz(page, 'list-empty').locator('.dz__empty')).toHaveText('Store empty');
+        // The card keeps its own prompt; the hint key is its own too.
+        await expect(dz(page, 'pick-card').locator('.dz__dropzone__text')).toHaveText('Drop invoices');
+        await dz(page, 'pick-card').evaluate((el: any) => { el.labels = { hint: 'Only PDF' }; });
+        await expect(dz(page, 'pick-card').locator('.dz__dropzone__text')).toHaveText('Store prompt');
+        await expect(dz(page, 'pick-card').locator('.dz__dropzone__hint')).toHaveText('Only PDF');
+    });
+
+    test('a malformed labels attribute keeps the previous value', async ({ page }) => {
+        await dz(page, 'list-empty').evaluate((el) => el.setAttribute('labels', '{oops'));
+        await expect(dz(page, 'list-empty').locator('.dz__empty')).toHaveText('Nothing yet');
     });
 });

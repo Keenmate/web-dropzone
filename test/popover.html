@@ -10,13 +10,13 @@
     </style>
 </head>
 <body>
-    <h1>popover — placement, dismissal, summary-template</h1>
+    <h1>popover — placement, dismissal, labels.summary</h1>
     <p>Targeted by <code>e2e/popover.spec.ts</code>.</p>
     <button id="outside" type="button">outside</button>
 
     <div class="fixture">
-        <div class="fixture-label">default placement (bottom-start), summary-template="{count} docs · {size}"</div>
-        <web-dropzone id="pop" accept="*/*" display-mode="compact" summary-template="{count} docs · {size}"></web-dropzone>
+        <div class="fixture-label">default placement (bottom-start), labels.summary="{count} docs · {size}"</div>
+        <web-dropzone id="pop" accept="*/*" display-mode="compact" labels='{"summary": "{count} docs · {size}"}'></web-dropzone>
     </div>
 
     <div class="spacer"></div>

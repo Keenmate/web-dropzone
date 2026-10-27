@@ -45,7 +45,7 @@ import {
 } from '@keenmate/web-components-core';
 import { WebDropzone } from './dropzone';
 import { linkStoreController, linkStoreReorder, STORE_BUILD_EVENT } from './store-link';
-import { initLogger, createDropzoneController, isLabelsValue } from '@keenmate/web-dropzone-core';
+import { initLogger, createDropzoneController, isLabelsValue, countLabel, defaultLabel } from '@keenmate/web-dropzone-core';
 import type {
     DropzoneController,
     DropzoneEngineHost,
@@ -226,11 +226,9 @@ const INPUTS: readonly InputDef[] = [
     { configKey: 'cancelIcon',              attribute: 'cancel-icon',         converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'HTML for the row Cancel (⊘) button glyph (raw HTML — NOT sanitized). Unset = built-in icon.' },
     { configKey: 'removeIcon',              attribute: 'remove-icon',         converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'HTML for the row Remove (✕) button glyph (raw HTML — NOT sanitized). Unset = built-in icon.' },
     { configKey: 'icon',                    attribute: 'icon',                converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'Prompt icon (emoji or markup).' },
-    { configKey: 'labels',                  attribute: 'labels',              converter: labelsConverter,                                                              on: 'update', type: 'Partial<DropzoneLabels>', description: 'UI strings, merged per key over the built-in English (`{name}` / `{count}` / `{status}` placeholders): prompt, hint, dragActive, selectFiles, noFileChosen, overlay, status names, row + bulk buttons. Property (object) or JSON attribute. Live.' },
-    { configKey: 'emptyMessage',            attribute: 'empty-message',       converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'Message shown when the file list is empty.' },
+    { configKey: 'labels',                  attribute: 'labels',              converter: labelsConverter,                                                              on: 'update', type: 'Partial<DropzoneLabels>', description: 'Every UI string (see `DropzoneLabels` / `DEFAULT_LABELS`), merged per key over the built-in English; `{name}` / `{count}` / `{size}` / … placeholders: prompt, hint, empty, summary, status names, row + bulk buttons, popover, limits line, progress strip, validation messages. Satellites inherit them (and take their own `labels` on top). Property (object) or JSON attribute. Live.' },
 
     // ── Compact mode ──────────────────────────────────────────────────────────
-    { configKey: 'summaryTemplate',         attribute: 'summary-template',    converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'Template string for the compact-mode summary line.' },
     { configKey: 'popoverPlacement',        attribute: 'popover-placement',   converter: toEnum(PLACEMENTS, { default: 'bottom-start' }),                              shouldReflect: true, on: 'update', description: 'Placement of the compact-mode popover relative to the summary (floating-ui placement).' },
 
     // ── Drag overlay ──────────────────────────────────────────────────────────
@@ -461,7 +459,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
         // affects validity.
         if ('name' in partial || 'valueFormat' in partial) {
             this.#syncFormValue();
-        } else if ('minFileCount' in partial) {
+        } else if ('minFileCount' in partial || 'labels' in partial) {
             this.#syncValidity(this.#dropzone?.getFiles().length ?? 0);
         }
     }
@@ -670,7 +668,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
         if (min > 0 && fileCount < min) {
             internals.setValidity(
                 { valueMissing: true },
-                `At least ${min} file${min === 1 ? '' : 's'} required`
+                countLabel(this.#dropzone?.label ?? defaultLabel, 'errorMinFileCount', min)
             );
         } else {
             internals.setValidity({});

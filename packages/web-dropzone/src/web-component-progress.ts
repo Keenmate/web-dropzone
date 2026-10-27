@@ -28,7 +28,7 @@ import {
     subscribeStoreEvents,
     createMicrotaskScheduler
 } from './satellite-base';
-import { escapeHtml, formatFileSize, createLabelFn } from '@keenmate/web-dropzone-core';
+import { escapeHtml, formatFileSize } from '@keenmate/web-dropzone-core';
 import type { DropzoneElement } from './web-component';
 import type { OverallProgress } from '@keenmate/web-dropzone-core';
 
@@ -43,7 +43,6 @@ export class DropzoneProgressElement extends SatelliteElement {
      */
     private scheduleRefresh = createMicrotaskScheduler(() => this.refresh());
     /** UI strings from the bound store's `labels`. */
-    private readonly label = createLabelFn(() => this.store?.getConfig().labels);
 
     constructor() {
         super();
@@ -62,7 +61,7 @@ export class DropzoneProgressElement extends SatelliteElement {
     }
 
     static get observedAttributes(): string[] {
-        return ['for'];
+        return ['for', 'labels'];
     }
 
     attributeChangedCallback(): void {
@@ -174,12 +173,18 @@ export class DropzoneProgressElement extends SatelliteElement {
 
     private renderCountsInner(o: OverallProgress, totalFileCount: number): string {
         const pausedSegment = o.pausedCount > 0
-            ? ` · <span class="dz__overall-progress__paused">${o.pausedCount} paused</span>`
+            ? ` · <span class="dz__overall-progress__paused">${escapeHtml(this.label('progressPaused', { count: o.pausedCount }))}</span>`
             : '';
         const failedSegment = o.failedCount > 0
-            ? ` · <span class="dz__overall-progress__failed">${o.failedCount} failed</span>`
+            ? ` · <span class="dz__overall-progress__failed">${escapeHtml(this.label('progressFailed', { count: o.failedCount }))}</span>`
             : '';
-        return `${o.completedCount} of ${totalFileCount} · ${escapeHtml(formatFileSize(o.uploadedBytes))} / ${escapeHtml(formatFileSize(o.totalBytes))}${pausedSegment}${failedSegment}`;
+        const counts = this.label('progressCounts', {
+            completed: o.completedCount,
+            total: totalFileCount,
+            uploadedSize: formatFileSize(o.uploadedBytes),
+            totalSize: formatFileSize(o.totalBytes)
+        });
+        return `${escapeHtml(counts)}${pausedSegment}${failedSegment}`;
     }
 
     private renderActions(o: OverallProgress, pipelineActive: boolean): string {

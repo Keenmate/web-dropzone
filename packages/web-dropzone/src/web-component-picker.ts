@@ -20,7 +20,7 @@ import {
     subscribeStoreEvents,
     resolveEnumAttribute
 } from './satellite-base';
-import { escapeHtml, UI_ICONS, createLabelFn } from '@keenmate/web-dropzone-core';
+import { escapeHtml, UI_ICONS } from '@keenmate/web-dropzone-core';
 import type { DropzoneElement } from './web-component';
 import type {
     SelectorAppearance,
@@ -41,7 +41,6 @@ export class DropzonePickerElement extends SatelliteElement {
     private dragActive = false;
     private dragCounter = 0;
     /** UI strings from the bound store's `labels` (the picker's own attributes win). */
-    private readonly label = createLabelFn(() => this.store?.getConfig().labels);
 
     // Mode B per-picker upload binding (see ARCHITECTURE.md). These are
     // JS-only properties — there's no HTML attribute equivalent because the
@@ -97,7 +96,7 @@ export class DropzonePickerElement extends SatelliteElement {
     static get observedAttributes(): string[] {
         return [
             'for', 'selector-appearance', 'card-size', 'accept', 'multiple',
-            'label', 'icon', 'hint', 'disabled', 'inside', 'no-file-chosen-text'
+            'labels', 'icon', 'disabled', 'inside'
         ];
     }
 
@@ -152,15 +151,15 @@ export class DropzonePickerElement extends SatelliteElement {
 
         const acceptAttr = this.getAttribute('accept') ?? storeCfg.accept ?? '';
         const multipleAttr = this.resolveMultiple(storeCfg.isMultiple);
-        const label = this.getAttribute('label') ?? this.label('selectFiles');
+        const label = this.label('selectFiles');
         const icon = this.getAttribute('icon') ?? storeCfg.icon ?? DEFAULT_ICON;
-        const hint = this.getAttribute('hint') ?? this.label('hint');
+        const hint = this.label('hint');
 
         // Card: the hidden input IS the keyboard control — name it after the
         // prompt (not the transient drag text). Button / minimal / native
         // render their own <button>, so the input leaves the tab order (one
         // tab stop per selector).
-        const promptText = this.getAttribute('label') ?? this.label('prompt');
+        const promptText = this.label('prompt');
         const inputA11yAttrs = appearance === 'card'
             ? `aria-label="${escapeHtml(promptText)}"`
             : 'tabindex="-1" aria-hidden="true"';
@@ -209,13 +208,13 @@ export class DropzonePickerElement extends SatelliteElement {
                 </div>
             `;
         } else if (appearance === 'native') {
-            const noFileText = this.getAttribute('no-file-chosen-text') ?? this.label('noFileChosen');
+            const noFileText = this.label('noFileChosen');
             const files = this.store.getFiles();
             const labelText = files.length === 0
                 ? noFileText
                 : files.length === 1
                     ? files[0].name
-                    : `${files.length} files chosen`;
+                    : this.label('filesChosen', { count: files.length });
             inner = `
                 <div class="dz__dropzone dz__dropzone--native ${disabled ? 'dz__dropzone--disabled' : ''}">
                     ${inputHtml}
@@ -406,7 +405,7 @@ export class DropzonePickerElement extends SatelliteElement {
         if (textEl) {
             textEl.textContent = active
                 ? this.label('dragActive')
-                : (this.getAttribute('label') ?? this.label('prompt'));
+                : this.label('prompt');
         }
     }
 

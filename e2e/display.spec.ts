@@ -125,9 +125,9 @@ test.describe('text inputs', () => {
         await expect(card(page).locator('.dz__dropzone__hint')).toHaveText('PDF only');
     });
 
-    test('empty-message renders while empty; a live change re-renders', async ({ page }) => {
+    test('labels.empty renders while empty; a live change re-renders', async ({ page }) => {
         await expect(dz(page, 'texts').locator('.dz__empty')).toHaveText('Nothing uploaded yet');
-        await setAttr(page, 'texts', 'empty-message', 'Still empty');
+        await dz(page, 'texts').evaluate(async (el: any) => { el.labels = { ...el.labels, empty: 'Still empty' }; await el.whenSettled(); });
         await expect(dz(page, 'texts').locator('.dz__empty')).toHaveText('Still empty');
     });
 
@@ -141,5 +141,24 @@ test.describe('text inputs', () => {
         await dz(page, 'ov').evaluate(async (el: any) => { el.labels = { overlay: 'Release!' }; await el.whenSettled(); });
         await dragFiles(page.locator('body'), 'dragenter');
         await expect(page.locator('.dz__overlay__text')).toHaveText('Release!');
+    });
+});
+
+test.describe('labels — validation messages', () => {
+    test('rejections carry the labelled message ({size} / {count} placeholders)', async ({ page }) => {
+        const out = await page.evaluate(async () => {
+            const el = document.createElement('web-dropzone') as any;
+            el.setAttribute('max-file-count', '1');
+            el.setAttribute('display-mode', 'list');
+            el.labels = { errorMaxFileCountOne: 'Jen {count} soubor', errorDuplicate: 'Dvojitý: {name}' };
+            document.body.append(el);
+            await el.whenReady();
+            const errors: string[] = [];
+            el.addEventListener('file-reject', (e: any) => e.detail.rejectedFiles.forEach((r: any) => errors.push(r.validation.error)));
+            await el.addFiles([new File(['a'], 'a.txt'), new File(['b'], 'b.txt')]);
+            el.remove();
+            return errors;
+        });
+        expect(out).toEqual(['Jen 1 soubor']);
     });
 });

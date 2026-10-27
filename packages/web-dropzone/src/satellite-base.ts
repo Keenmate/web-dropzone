@@ -10,7 +10,8 @@
  */
 
 import type { DropzoneElement } from './web-component';
-import type { DropzoneController, DropzoneContext } from '@keenmate/web-dropzone-core';
+import type { DropzoneController, DropzoneContext, DropzoneLabels, LabelFn } from '@keenmate/web-dropzone-core';
+import { createLabelFn, isLabelsValue, parseLabelsAttribute, uiLogger } from '@keenmate/web-dropzone-core';
 import { dispatch, observeThemeContext, withComponentContext, THEME_CONTEXT_ATTRIBUTE, THEME_SOURCE_ATTRIBUTE } from '@keenmate/web-components-core';
 import { storeControllerOf, STORE_BUILD_EVENT } from './store-link';
 
@@ -247,6 +248,47 @@ export abstract class SatelliteElement extends SatelliteBaseElement {
 
     /** Unsubscribe from core's theme context; set while connected. */
     private themeUnsub: (() => void) | null = null;
+
+    /** `el.labels` assigned as a property (wins over the `labels` attribute). */
+    private labelsProp: Partial<DropzoneLabels> | null = null;
+    /** Last valid parse of the `labels` attribute (a malformed one keeps it). */
+    private labelsAttrValue: Partial<DropzoneLabels> | null = null;
+    private labelsAttrRaw: string | null = null;
+
+    /**
+     * The satellite's own UI strings — a partial `DropzoneLabels` object, as a
+     * property or a JSON `labels` attribute (`labels='{"prompt":"Drop here"}'`).
+     * Merged per key on top of the bound store's `labels`, then the built-in
+     * English. Live: assigning re-renders. Add `'labels'` to the subclass's
+     * `observedAttributes` so the attribute re-renders too.
+     */
+    get labels(): Partial<DropzoneLabels> | null {
+        return this.labelsProp ?? this.readLabelsAttribute();
+    }
+    set labels(value: Partial<DropzoneLabels> | null) {
+        if (value != null && !isLabelsValue(value)) {
+            uiLogger.warn(`<${this.satelliteTagName}> labels: expected an object of strings; keeping the previous value`);
+            return;
+        }
+        this.labelsProp = value ?? null;
+        (this as unknown as { attributeChangedCallback?: (name: string) => void }).attributeChangedCallback?.('labels');
+    }
+
+    private readLabelsAttribute(): Partial<DropzoneLabels> | null {
+        const raw = this.getAttribute('labels');
+        if (raw === this.labelsAttrRaw) return this.labelsAttrValue;
+        this.labelsAttrRaw = raw;
+        const parsed = parseLabelsAttribute(raw);
+        if (parsed === undefined) {
+            uiLogger.warn(`<${this.satelliteTagName}> labels attribute: expected a JSON object of strings; keeping the previous value`);
+        } else {
+            this.labelsAttrValue = parsed;
+        }
+        return this.labelsAttrValue;
+    }
+
+    /** UI strings: own `labels` → the bound store's `labels` → built-in English. */
+    protected readonly label: LabelFn = createLabelFn(() => [this.labels, this.store?.getConfig().labels]);
 
     connectedCallback(): void {
         this.subscribeThemeContext();
