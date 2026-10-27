@@ -147,6 +147,11 @@ export class DropzonePickerElement extends SatelliteElement {
         const appearance = this.resolveSelectorAppearance();
         const cardSize = this.resolveCardSize();
         const disabled = this.isDisabled();
+        const isReadonly = !!this.store.getConfig().isReadonly;
+        // `disabled` (= can't add) covers readonly too; only a real disable greys the surface.
+        const stateClass = this.isOwnOrStoreDisabled()
+            ? 'dz__dropzone--disabled'
+            : isReadonly ? 'dz__dropzone--readonly' : '';
         const storeCfg = this.store.getConfig();
 
         const acceptAttr = this.getAttribute('accept') ?? storeCfg.accept ?? '';
@@ -188,7 +193,7 @@ export class DropzonePickerElement extends SatelliteElement {
         let inner = '';
         if (appearance === 'button') {
             inner = `
-                <div class="dz__dropzone dz__dropzone--button ${disabled ? 'dz__dropzone--disabled' : ''}">
+                <div class="dz__dropzone dz__dropzone--button ${stateClass}">
                     ${inputHtml}
                     <button type="button" class="dz__button" ${disabled ? 'disabled' : ''}>
                         <span class="dz__button__label">${escapeHtml(label)}</span>
@@ -199,7 +204,7 @@ export class DropzonePickerElement extends SatelliteElement {
         } else if (appearance === 'minimal') {
             const ariaLabel = promptText;
             inner = `
-                <div class="dz__dropzone dz__dropzone--minimal ${disabled ? 'dz__dropzone--disabled' : ''}">
+                <div class="dz__dropzone dz__dropzone--minimal ${stateClass}">
                     ${inputHtml}
                     <button type="button" class="dz__minimal" aria-label="${escapeHtml(ariaLabel)}" ${disabled ? 'disabled' : ''}>
                         <span class="dz__minimal__icon">${icon}</span>
@@ -216,7 +221,7 @@ export class DropzonePickerElement extends SatelliteElement {
                     ? files[0].name
                     : this.label('filesChosen', { count: files.length });
             inner = `
-                <div class="dz__dropzone dz__dropzone--native ${disabled ? 'dz__dropzone--disabled' : ''}">
+                <div class="dz__dropzone dz__dropzone--native ${stateClass}">
                     ${inputHtml}
                     <button type="button" class="dz__native__button" ${disabled ? 'disabled' : ''}>${escapeHtml(label)}</button>
                     <span class="dz__native__label" title="${escapeHtml(labelText)}">${escapeHtml(labelText)}</span>
@@ -243,7 +248,7 @@ export class DropzonePickerElement extends SatelliteElement {
                 'dz__dropzone',
                 'dz__dropzone--card',
                 `dz__dropzone--card-${cardSize}`,
-                disabled ? 'dz__dropzone--disabled' : '',
+                stateClass,
                 this.dragActive ? 'dz__dropzone--active' : '',
                 insideMode ? 'dz__dropzone--files-inside' : '',
                 hasFiles ? 'dz__dropzone--has-files' : ''
@@ -295,11 +300,16 @@ export class DropzonePickerElement extends SatelliteElement {
         return raw !== 'false';
     }
 
-    private isDisabled(): boolean {
-        if (this.hasAttribute('disabled')) {
-            return this.getAttribute('disabled') !== 'false';
-        }
+    /** Disabled by its own `disabled` attribute or the store's (not counting `readonly`). */
+    private isOwnOrStoreDisabled(): boolean {
+        if (this.hasAttribute('disabled')) return this.getAttribute('disabled') !== 'false';
         return !!this.store?.getConfig().isDisabled;
+    }
+
+    /** The picker can't add files: disabled, or the store is read-only. */
+    private isDisabled(): boolean {
+        // A read-only store blocks adding too (the picker only adds files).
+        return this.isOwnOrStoreDisabled() || !!this.store?.getConfig().isReadonly;
     }
 
     // ========================================================================

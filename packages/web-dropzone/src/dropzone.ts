@@ -540,8 +540,13 @@ export class WebDropzone extends DropzoneEngine {
      * The native `<input type="file">` is included in every variant so the
      * file picker dialog can be opened from a click on any of them.
      */
+    /** The user can't add files: `disabled` (input or fieldset) or `readonly`. */
+    private get isAddBlocked(): boolean {
+        return !!this.config.isDisabled || !!this.config.isReadonly;
+    }
+
     private renderSelector(appearance: SelectorAppearance, cardSize: CardSize): string {
-        const disabled = this.config.isDisabled ? 'dz__dropzone--disabled' : '';
+        const disabled = this.config.isDisabled ? 'dz__dropzone--disabled' : this.config.isReadonly ? 'dz__dropzone--readonly' : '';
         const active = this.dragActive ? 'dz__dropzone--active' : '';
         const hasFiles = this.files.length > 0 ? 'dz__dropzone--has-files' : '';
         const filesInside = this.config.isFilesInside ? 'dz__dropzone--files-inside' : '';
@@ -558,7 +563,7 @@ export class WebDropzone extends DropzoneEngine {
                 ${inputA11yAttrs}
                 ${this.config.isMultiple ? 'multiple' : ''}
                 ${this.config.accept ? `accept="${escapeHtml(this.config.accept)}"` : ''}
-                ${this.config.isDisabled ? 'disabled' : ''}
+                ${this.isAddBlocked ? 'disabled' : ''}
             >
         `;
 
@@ -568,7 +573,7 @@ export class WebDropzone extends DropzoneEngine {
             return `
                 <div class="dz__dropzone dz__dropzone--button ${disabled}">
                     ${input}
-                    <button type="button" class="dz__button" ${this.config.isDisabled ? 'disabled' : ''}>
+                    <button type="button" class="dz__button" ${this.isAddBlocked ? 'disabled' : ''}>
                         <span class="dz__button__label">${label}</span>
                         ${count > 0 ? `<span class="dz__button__badge">${count}</span>` : ''}
                     </button>
@@ -583,7 +588,7 @@ export class WebDropzone extends DropzoneEngine {
             return `
                 <div class="dz__dropzone dz__dropzone--minimal ${disabled}">
                     ${input}
-                    <button type="button" class="dz__minimal" aria-label="${ariaLabel}" ${this.config.isDisabled ? 'disabled' : ''}>
+                    <button type="button" class="dz__minimal" aria-label="${ariaLabel}" ${this.isAddBlocked ? 'disabled' : ''}>
                         <span class="dz__minimal__icon">${icon}</span>
                         ${count > 0 ? `<span class="dz__minimal__badge">${count}</span>` : ''}
                     </button>
@@ -602,7 +607,7 @@ export class WebDropzone extends DropzoneEngine {
             return `
                 <div class="dz__dropzone dz__dropzone--native ${disabled}">
                     ${input}
-                    <button type="button" class="dz__native__button" ${this.config.isDisabled ? 'disabled' : ''}>${label}</button>
+                    <button type="button" class="dz__native__button" ${this.isAddBlocked ? 'disabled' : ''}>${label}</button>
                     <span class="dz__native__label" title="${escapeHtml(labelText)}">${escapeHtml(labelText)}</span>
                 </div>
             `;
@@ -1564,6 +1569,7 @@ export class WebDropzone extends DropzoneEngine {
      * tab order and hides it via `visibility: hidden`.
      */
     private isFileUserRemovable(file: FileState): boolean {
+        if (this.config.isReadonly) return false;
         if (file.status !== 'complete') return true;
         return this.config.isUploadedFileRemovalAllowed !== false;
     }
@@ -1844,8 +1850,8 @@ export class WebDropzone extends DropzoneEngine {
                 <div class="dz__popover__header">
                     <span class="dz__popover__count">${escapeHtml(this.getFileCountLabel())}</span>
                     <div class="dz__popover__actions">
-                        ${this.config.isDisabled ? '' : `<button type="button" class="dz__popover__action" data-dz-action="add-more">${escapeHtml(this.label('addMore'))}</button>`}
-                        <button type="button" class="dz__popover__action" data-dz-action="clear">${escapeHtml(this.label('clearAll'))}</button>
+                        ${this.isAddBlocked ? '' : `<button type="button" class="dz__popover__action" data-dz-action="add-more">${escapeHtml(this.label('addMore'))}</button>`}
+                        ${this.config.isReadonly ? '' : `<button type="button" class="dz__popover__action" data-dz-action="clear">${escapeHtml(this.label('clearAll'))}</button>`}
                     </div>
                 </div>
                 <div class="dz__popover__limits">${escapeHtml(this.getLimitsHint())}</div>
@@ -2495,7 +2501,7 @@ export class WebDropzone extends DropzoneEngine {
         e.preventDefault();
         e.stopPropagation();
 
-        if (this.config.isDisabled) return;
+        if (this.isAddBlocked) return;
 
         if (!this.dragActive) {
             this.dragActive = true;
@@ -2524,7 +2530,7 @@ export class WebDropzone extends DropzoneEngine {
         this.dragActive = false;
         this.dropzoneEl?.classList.remove('dz__dropzone--active');
 
-        if (this.config.isDisabled) return;
+        if (this.isAddBlocked) return;
 
         const files = e.dataTransfer?.files;
         if (files && files.length > 0) {
@@ -2548,7 +2554,7 @@ export class WebDropzone extends DropzoneEngine {
         // popover Add-more handler.
         if (e.target === this.inputEl) return;
 
-        if (this.config.isDisabled) return;
+        if (this.isAddBlocked) return;
 
         // For selector=button/minimal + listAppearance=popover, clicks on the
         // selector toggle the popover when files exist. Otherwise (or when
@@ -2660,7 +2666,7 @@ export class WebDropzone extends DropzoneEngine {
         if (!e.dataTransfer?.types.includes('Files')) return;
 
         // Only activate if not disabled and target exists
-        if (this.config.isDisabled || !this.overlayTarget) return;
+        if (this.isAddBlocked || !this.overlayTarget) return;
 
         // Only create overlay if not already showing
         if (this.dragOverlay) return;

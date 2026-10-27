@@ -36,6 +36,11 @@
         </fieldset>
     </form>
 
+    <form id="ro-form">
+        <div class="fixture-label">readonly (selection locked, still submitted)</div>
+        <web-dropzone id="ro" readonly name="docs" accept="*/*" display-mode="list"></web-dropzone>
+    </form>
+
     <script type="module">
         import '/src/index.ts';
         customElements.whenDefined('web-dropzone').then(() => { window.__ready = true; });

@@ -125,3 +125,32 @@ test.describe('<fieldset disabled>', () => {
         expect(await count(page, 'in-fs')).toBe(0);
     });
 });
+
+test.describe('readonly host (C5)', () => {
+    test('no user add (click / drop), not greyed, not disabled', async ({ page }) => {
+        await expect(dz(page, 'ro')).toHaveAttribute('readonly', '');
+        await expect(card(page, 'ro')).toHaveClass(/dz__dropzone--readonly/);
+        await expect(card(page, 'ro')).not.toHaveClass(/dz__dropzone--disabled/);
+        await card(page, 'ro').click({ force: true });
+        await dragFiles(card(page, 'ro'), 'drop', ['a.txt']);
+        await page.waitForTimeout(100);
+        expect(choosers()).toBe(0);
+        expect(await count(page, 'ro')).toBe(0);
+    });
+
+    test('programmatic files show without a Remove button and ARE submitted with the form', async ({ page }) => {
+        await dz(page, 'ro').evaluate((el: any) => el.addFiles([new File(['x'], 'r.txt', { type: 'text/plain' })]));
+        await expect.poll(() => count(page, 'ro')).toBe(1);
+        await expect(page.locator('#ro .dz__file-item__remove')).toHaveClass(/--hidden/);
+        const submitted = await page.locator('#ro-form').evaluate((form: HTMLFormElement) =>
+            new FormData(form).getAll('docs').map((f: any) => f.name));
+        expect(submitted).toEqual(['r.txt']);
+    });
+
+    test('el.isReadonly = false unlocks adding; the attribute follows (reflected)', async ({ page }) => {
+        await dz(page, 'ro').evaluate(async (el: any) => { el.isReadonly = false; await el.whenSettled(); });
+        await expect(dz(page, 'ro')).not.toHaveAttribute('readonly');
+        await dragFiles(card(page, 'ro'), 'drop', ['b.txt']);
+        await expect.poll(() => count(page, 'ro')).toBe(1);
+    });
+});

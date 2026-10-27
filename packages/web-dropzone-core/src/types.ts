@@ -447,6 +447,14 @@ export interface DropzoneConfig {
     /** Whether the dropzone is disabled (HTML attr: `disabled`) */
     isDisabled?: boolean;
     /**
+     * Read-only (HTML attr: `readonly`): the selection can't be changed by the
+     * user — no add (click / drop / overlay / Add more), no row Remove, no
+     * Clear all — but it stays visible, focusable and is still submitted with
+     * the form. Uploads keep running (pause / resume / retry / cancel stay).
+     * The programmatic API is unaffected.
+     */
+    isReadonly?: boolean;
+    /**
      * Render mode — bulk / structural / headless. Hard switch: gates
      * which other config keys apply. See `DropzoneRenderMode` for semantics.
      * Defaults to 'bulk' when any renderer-trigger attribute is set,

@@ -35,6 +35,7 @@ export const DEFAULT_CONFIG: Required<Omit<DropzoneConfig, 'fileIcons' | 'getFil
     maxVisibleFileCount: 7,
     dedupeMode: 'name',
     isDisabled: false,
+    isReadonly: false,
     // Default for programmatic (non-web-component) usage. The web-component
     // wrapper always resolves an explicit mode in `buildConfig` before
     // construction reaches here.

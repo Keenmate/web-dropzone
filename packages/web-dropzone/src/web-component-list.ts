@@ -375,6 +375,7 @@ export class DropzoneListElement extends SatelliteElement {
 
     /** `allow-uploaded-file-removal="false"` hides the remove button on completed rows (layout kept). */
     private isFileUserRemovable(file: FileState): boolean {
+        if (this.store?.getConfig().isReadonly) return false;
         if (file.status !== 'complete') return true;
         return this.store?.getConfig().isUploadedFileRemovalAllowed !== false;
     }
