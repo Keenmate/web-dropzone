@@ -18,6 +18,14 @@ import type { DropzoneController, FileState } from '@keenmate/web-dropzone-core'
 
 const links = new WeakMap<HTMLElement, DropzoneController>();
 
+/**
+ * Internal, non-bubbling signal dispatched on `<web-dropzone>` every time a
+ * store is built (first build, mode-flip rebuild, re-add after a removal).
+ * Satellites waiting for a store listen for it — the public `ready` event is
+ * core's once-per-element event and doesn't cover rebuilds. Not public API.
+ */
+export const STORE_BUILD_EVENT = 'dz-store-build';
+
 /** Called by `<web-dropzone>` once, at construction. */
 export function linkStoreController(storeEl: HTMLElement, controller: DropzoneController): void {
     links.set(storeEl, controller);

@@ -12,7 +12,7 @@
 import type { DropzoneElement } from './web-component';
 import type { DropzoneController, DropzoneContext } from '@keenmate/web-dropzone-core';
 import { dispatch, observeThemeContext, withComponentContext, THEME_CONTEXT_ATTRIBUTE, THEME_SOURCE_ATTRIBUTE } from '@keenmate/web-components-core';
-import { storeControllerOf } from './store-link';
+import { storeControllerOf, STORE_BUILD_EVENT } from './store-link';
 
 /**
  * Look up the `<web-dropzone>` element a satellite binds to via its `for=`
@@ -51,8 +51,9 @@ function readyController(storeEl: DropzoneElement): DropzoneController | undefin
  *
  * Race handling: a satellite can connect before the store does — either
  * because the store hasn't upgraded yet (custom element registration
- * order) or because its first build hasn't run yet. We listen for the
- * store's `ready` event and re-check then. The listener is attached even on
+ * order) or because its build hasn't run yet. We listen for the store's
+ * internal build signal (`STORE_BUILD_EVENT`, every build — core's public
+ * `ready` fires only once per element) and re-check then. The listener is attached even on
  * the un-upgraded element — `addEventListener` is inherited from
  * `HTMLElement`, so the upgrade preserves it.
  *
@@ -71,12 +72,12 @@ export function whenStoreReady(
     const handler = () => {
         const ready = readyController(storeEl);
         if (ready) {
-            storeEl.removeEventListener('ready', handler);
+            storeEl.removeEventListener(STORE_BUILD_EVENT, handler);
             onResolved(ready);
         }
     };
-    storeEl.addEventListener('ready', handler);
-    return () => storeEl.removeEventListener('ready', handler);
+    storeEl.addEventListener(STORE_BUILD_EVENT, handler);
+    return () => storeEl.removeEventListener(STORE_BUILD_EVENT, handler);
 }
 
 /**

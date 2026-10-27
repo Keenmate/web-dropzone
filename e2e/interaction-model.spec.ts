@@ -91,7 +91,7 @@ test.describe('events + on* twins', () => {
         expect(JSON.parse((await checkOf(page, 'twin:files-reject')).json).rejectedFiles[0].validation.code).toBe('count');
     });
 
-    test('ready fires on build with the context; data-ready + controller.isReady follow', async ({ page }) => {
+    test('ready fires on build with the context; the ready attribute, :state(ready) + controller.isReady follow', async ({ page }) => {
         const result = await page.evaluate(async () => {
             const el = document.createElement('web-dropzone') as any;
             const seen: string[] = [];
@@ -100,14 +100,20 @@ test.describe('events + on* twins', () => {
             const before = el.controller.isReady;
             document.body.appendChild(el);
             await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-            const out = { seen, before, after: el.controller.isReady, dataReady: el.hasAttribute('data-ready') };
+            const out = {
+                seen, before, after: el.controller.isReady, readyAttr: el.hasAttribute('ready'),
+                state: el.matches(':state(ready)'), isReady: el.isReady, dataReady: el.hasAttribute('data-ready')
+            };
             el.remove();
             return out;
         });
         expect(result.seen).toEqual(['twin:true', 'event:false']);
         expect(result.before).toBe(false);
         expect(result.after).toBe(true);
-        expect(result.dataReady).toBe(true);
+        expect(result.readyAttr).toBe(true);
+        expect(result.state).toBe(true);
+        expect(result.isReady).toBe(true);
+        expect(result.dataReady).toBe(false);
     });
 });
 

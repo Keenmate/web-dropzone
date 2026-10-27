@@ -66,12 +66,13 @@ test.describe('display + mode', () => {
         expect(await names(page, 'caps')).toEqual(['a.txt', 'b.txt']);
     });
 
-    test('headless → bulk (mode flip) rebuilds: picker renders and `ready` fires again', async ({ page }) => {
+    test('headless → bulk (mode flip) rebuilds: picker renders; `ready` (once per element) does not fire again', async ({ page }) => {
         await expect(dz(page, 'flip').locator('.dz__dropzone')).toHaveCount(0);
         await expect.poll(() => logLines(page, 'flip')).toEqual(['ready:']);
         await setAttr(page, 'flip', 'display-mode', 'list');
         await expect(dz(page, 'flip').locator('.dz__dropzone--card')).toHaveCount(1);
-        await expect.poll(() => logLines(page, 'flip')).toEqual(['ready:', 'ready:']);
+        await page.waitForTimeout(50);
+        expect(await logLines(page, 'flip')).toEqual(['ready:']);
         // The rebuilt store works: a drop on the new picker adds.
         await dragFiles(dz(page, 'flip').locator('.dz__dropzone'), 'drop', ['x.txt']);
         await expect.poll(() => names(page, 'flip')).toEqual(['x.txt']);

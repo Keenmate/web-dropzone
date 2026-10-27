@@ -11,8 +11,8 @@
  * (`this.internals` / `el.form`). This file keeps only what is genuinely
  * dropzone-specific: the bridge from the merged `config` to the headless store
  * (`WebDropzone` in `dropzone.ts`), the operating-mode resolution, form-value
- * sync (real `File` blobs via `setFormValue`), custom-style injection, and the
- * `ready` event the satellites wait for.
+ * sync (real `File` blobs via `setFormValue`) and custom-style injection. The
+ * `ready` event / attribute, `defer` / `release()` and `destroy()` come from core.
  *
  * Interaction model (web-components-core SPEC §12.5): the engine notifies,
  * the element emits. Every engine happening arrives through the host's
@@ -44,7 +44,7 @@ import {
     type EventDef,
 } from '@keenmate/web-components-core';
 import { WebDropzone } from './dropzone';
-import { linkStoreController, linkStoreReorder } from './store-link';
+import { linkStoreController, linkStoreReorder, STORE_BUILD_EVENT } from './store-link';
 import { initLogger, createDropzoneController, isLabelsValue } from '@keenmate/web-dropzone-core';
 import type {
     DropzoneController,
@@ -307,7 +307,7 @@ const EVENTS: readonly EventDef[] = [
     { name: 'file-update', description: 'A file field other than progress / status changed (preview generated, upload result merged). `detail`: `{ file }`. Twin: `onFileUpdate(detail)`.' },
     { name: 'overlay-enter', description: 'A drag entered the drag overlay (`overlay-target`). `detail`: `{ overlayElement }`. Twin: `onOverlayEnter(detail)`.' },
     { name: 'overlay-leave', description: 'A drag left the drag overlay. `detail`: `{ overlayElement }`. Twin: `onOverlayLeave(detail)`.' },
-    { name: 'ready', description: 'The store was built (first connect, and again after a rebuild — a mode flip or a DOM move); `el.controller` is live. `detail`: `controller` / `element`. Twin: `onReady(detail)`. The `data-ready` attribute follows on the next frame.' },
+    { name: 'ready', description: 'Core lifecycle event: fired ONCE, after the first build (the store is live, `el.controller` works). A later rebuild (mode flip) or a DOM move does not fire it again. The host gets the `ready` attribute and `:state(ready)`; `await el.whenReady()` is the promise form. Hold the first build with the `defer` attribute and `release()`. `detail`: `controller` / `element`. Twin: `onReady(detail)`.' },
 ];
 
 // Track instances for the global API (window.components['web-dropzone']).
@@ -351,10 +351,6 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
     #dropzone?: WebDropzone;
     #container: HTMLElement;
     #customStyleSheet?: HTMLStyleElement;
-    /** Disabled by an ancestor `<fieldset disabled>` (`formDisabledCallback`).
-     *  Kept apart from the `disabled` input so the author's value survives
-     *  the fieldset being re-enabled; the store sees the OR of both. */
-    #isFormDisabled = false;
 
     /**
      * What the engine reports to — built once, so every engine (each rebuild)
@@ -413,21 +409,12 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
     }
 
     /**
-     * Called by the browser when an ancestor `<fieldset>` is disabled /
-     * re-enabled. The store is disabled while either the fieldset or the
-     * `disabled` input says so; `el.disabled` keeps reporting the author's
-     * value (like a native input's `disabled` property).
+     * Core reports a flip of the effective disabled state — the `disabled`
+     * input OR an ancestor `<fieldset disabled>` (`isEffectivelyDisabled`).
+     * `el.isDisabled` keeps the author's value, like a native control.
      */
-    formDisabledCallback(isDisabled: boolean): void {
-        if (this.#isFormDisabled === isDisabled) return;
-        this.#isFormDisabled = isDisabled;
-        this.flush();
-        this.#dropzone?.updateConfig({ isDisabled: this.#effectiveDisabled() });
-    }
-
-    /** The store's `isDisabled`: the `disabled` input OR a disabled fieldset. */
-    #effectiveDisabled(): boolean {
-        return !!this.config.isDisabled || this.#isFormDisabled;
+    protected override disabledChanged(isDisabled: boolean): void {
+        this.#dropzone?.updateConfig({ isDisabled });
     }
 
     // ── core lifecycle hooks ──────────────────────────────────────────────────
@@ -465,7 +452,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
             if (key === 'getCustomStylesCallback') continue; // handled above
             storePartial[key] = value === null ? undefined : value;
         }
-        if ('isDisabled' in storePartial) storePartial.isDisabled = this.#effectiveDisabled();
+        delete storePartial.isDisabled; // applied by disabledChanged() (input OR fieldset)
         if (this.#dropzone && Object.keys(storePartial).length > 0) {
             this.#dropzone.updateConfig(storePartial as Partial<DropzoneConfig>);
         }
@@ -483,19 +470,13 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
      * Activate: (re)start the store's page-level wiring. The store itself is
      * built once by `reinit()` and survives a DOM move — files, in-flight
      * uploads and popover state are kept (decision D1). Only a store torn down
-     * by `destroy()` is rebuilt here.
+     * by a removal (`removedCallback`) is rebuilt here, fresh and empty. The
+     * FOUC hook is core's `ready` attribute / `:state(ready)`.
      */
     protected override connect(): void {
         instances.add(this);
         if (this.#dropzone) this.#dropzone.activate();
         else this.#buildStore();
-
-        // FOUC prevention — expose [data-ready] once initialized.
-        if (typeof requestAnimationFrame === 'function') {
-            requestAnimationFrame(() => this.setAttribute('data-ready', ''));
-        } else {
-            this.setAttribute('data-ready', '');
-        }
 
         initLogger.debug('DropzoneElement connected');
     }
@@ -503,7 +484,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
     /**
      * Deactivate: stop the store's document / window listeners and popover
      * positioning. The store, its files and uploads are kept — a DOM move
-     * reconnects without a rebuild; call `destroy()` to tear it down.
+     * reconnects without a rebuild; `destroy()` tears it down.
      */
     protected override disconnect(): void {
         instances.delete(this);
@@ -517,7 +498,8 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
      * cancel every upload by the cancel rule (handlers get their signal and
      * up to `cancel-timeout`; no `beforeFileCancelCallback` — there is no UI
      * to veto from) and then destroy the store. Re-adding the element after
-     * that builds a fresh, empty store (`connect()`); re-adding it while the
+     * that builds a fresh, empty store (`connect()`; `ready` does not fire
+     * again — it is a once-per-element core event); re-adding it while the
      * cancels are still settling keeps the store (its uploads cancelled).
      */
     protected override removedCallback(): void {
@@ -526,11 +508,29 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
         if (!engine) return;
         void engine.cancelAllNow().finally(() => {
             if (this.#dropzone !== engine || this.isConnected) return; // re-added meanwhile
-            engine.destroy();
-            this.#dropzone = undefined;
-            this.#syncFormValue();
+            this.#teardownStore(engine);
             initLogger.debug('DropzoneElement removed — uploads cancelled, store destroyed');
         });
+    }
+
+    /**
+     * `el.destroy()` (core) — final teardown, immediate: every running upload
+     * handler gets its AbortSignal at once (no `cancel-timeout` grace, no
+     * events after — the app asked for it; contrast `removedCallback`, which
+     * cancels by the cancel rule first). Destroys the store and clears the
+     * form value; the element is inert afterwards.
+     */
+    protected override destroyCallback(): void {
+        instances.delete(this);
+        if (this.#dropzone) this.#teardownStore(this.#dropzone);
+    }
+
+    /** Destroy `engine` (if it is still the live store) and clear the form value. */
+    #teardownStore(engine: WebDropzone): void {
+        if (this.#dropzone !== engine) return;
+        engine.destroy();
+        this.#dropzone = undefined;
+        this.#syncFormValue();
     }
 
     // ── store lifecycle ───────────────────────────────────────────────────────
@@ -558,10 +558,11 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
         this.#dropzone = new WebDropzone(this.#container, config, this.#engineHost);
         this.#syncFormValue();
 
-        // The store is live: `el.controller` now reaches it. Satellite
-        // renderers (`<web-dropzone-picker for=>`, …) that connected first
-        // wait for this event.
-        this.emit('ready');
+        // The store is live: `el.controller` now reaches it. Satellites that
+        // are waiting for a store (connected first, or mounted by the store
+        // itself during the build) bind on this internal signal; core's public
+        // `ready` fires once, after the first build.
+        this.dispatchEvent(new Event(STORE_BUILD_EVENT));
 
         initLogger.debug('Dropzone initialized', { config });
     }
@@ -593,7 +594,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
             if (cfg[key] === null) delete cfg[key];
         }
 
-        cfg.isDisabled = this.#effectiveDisabled();
+        cfg.isDisabled = this.isEffectivelyDisabled;
 
         const mode = this.#resolveMode();
         cfg.mode = mode;
@@ -854,12 +855,6 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
 
     /** Retry a single file. */
     retryFile(id: string): void { this.flush(); this.#dropzone?.retryFile(id); }
-
-    /** Destroy the component. */
-    destroy(): void {
-        this.#dropzone?.destroy();
-        this.#dropzone = undefined;
-    }
 }
 
 // Auto-register the custom element (browser only)

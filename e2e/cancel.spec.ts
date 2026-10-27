@@ -352,7 +352,7 @@ test.describe('element removal (removedCallback) vs DOM move', () => {
         await expect.poll(() => statusOf(page, 'mover', 'k1.txt')).toBe('complete');
     });
 
-    test('re-adding a removed element later builds a fresh, empty store (ready fires)', async ({ page }) => {
+    test('re-adding a removed element later builds a fresh, empty store (ready does not re-fire)', async ({ page }) => {
         await addNamed(page, 'mover', ['r1.txt']);
         await expect.poll(() => pendingNames(page)).toContain('r1.txt');
         await page.evaluate(() => { (window as any).__el = document.getElementById('mover'); (window as any).__el.remove(); });
@@ -365,7 +365,7 @@ test.describe('element removal (removedCallback) vs DOM move', () => {
             await el.whenSettled();
             return { ready, isReady: el.controller.isReady, files: el.files.length };
         });
-        expect(out).toEqual({ ready: 1, isReady: true, files: 0 });
+        expect(out).toEqual({ ready: 0, isReady: true, files: 0 });
     });
 
     test('should-keep-alive-when-removed: removal keeps uploads running', async ({ page }) => {

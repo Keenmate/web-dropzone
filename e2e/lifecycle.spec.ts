@@ -117,3 +117,41 @@ test.describe('re-parent keeps the element working', () => {
         await expect(page.locator('.dz__overlay')).toHaveCount(0);
     });
 });
+
+test.describe('core lifecycle — defer / release / destroy', () => {
+    test('defer holds the first build until release(); ready fires once, then', async ({ page }) => {
+        const held = await page.evaluate(async () => {
+            const el = document.createElement('web-dropzone') as any;
+            el.id = 'deferred';
+            el.setAttribute('defer', '');
+            el.setAttribute('display-mode', 'list');
+            (window as any).__deferReady = 0;
+            el.addEventListener('ready', () => { (window as any).__deferReady++; });
+            document.getElementById('slot-b')!.append(el);
+            await new Promise(r => setTimeout(r, 30));
+            return { ready: (window as any).__deferReady, isReady: el.isReady, isLive: el.controller.isReady };
+        });
+        expect(held).toEqual({ ready: 0, isReady: false, isLive: false });
+        await expect(dz(page, 'deferred').locator('.dz__dropzone')).toHaveCount(0);
+        const released = await dz(page, 'deferred').evaluate(async (el: any) => {
+            el.release();
+            await el.whenReady();
+            return { ready: (window as any).__deferReady, isReady: el.isReady, isLive: el.controller.isReady, attr: el.hasAttribute('ready') };
+        });
+        expect(released).toEqual({ ready: 1, isReady: true, isLive: true, attr: true });
+        await expect(dz(page, 'deferred').locator('.dz__dropzone')).toHaveCount(1);
+    });
+
+    test('destroy() makes the element inert — re-inserting it builds nothing', async ({ page }) => {
+        await addNamed(page, 'lc', ['a.txt']);
+        const out = await dz(page, 'lc').evaluate(async (el: any) => {
+            el.destroy();
+            const parent = el.parentElement;
+            el.remove();
+            parent.append(el);
+            await new Promise(r => setTimeout(r, 30));
+            return { isDestroyed: el.isDestroyed, files: el.files.length, isLive: el.controller.isReady, rows: el.shadowRoot.querySelectorAll('.dz__file-item').length };
+        });
+        expect(out).toEqual({ isDestroyed: true, files: 0, isLive: false, rows: 0 });
+    });
+});
