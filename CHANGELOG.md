@@ -56,6 +56,14 @@ server-side command, *clear* empties a set, *destroy* is the only teardown verb.
 - **Removing a running file cancels it first** (same rule, no cancel gate), then removes it —
   `removeFile` / `removeFiles` / `clear` resolve after that.
 - `OverallProgress` gains `pendingCount` and `cancellingCount`.
+- **Row buttons split** — every row (list / detailed / grid / badges / popover, the in-element
+  list and `<web-dropzone-list>`) has **⊘ Cancel** (`aria-label="Cancel <name>"`; uploading /
+  paused files, and queued ones when an upload handler will run them; asks
+  `beforeFileCancelCallback`; the row stays as `cancelled` with Retry) and **✕ Remove**
+  (`aria-label="Remove <name>"`; always; a running upload is cancelled first, then removed;
+  confirmed through `beforeFilesRemoveCallback`). Before, ✕ on an uploading row cancelled it and a
+  second ✕ removed it. New `item-controls` token `cancel`; the glyphs are configurable as HTML via
+  **`cancel-icon`** / **`remove-icon`** (`CANCEL_ICON` exported).
 
 ### Fixed — upload lifecycle
 

@@ -482,6 +482,18 @@
   pointer-events: none;
 }
 
+/* `remove-icon` input: the custom HTML replaces the CSS-masked ✕ (every
+   remove-button variant — list, detailed, grid, badges, popover). */
+[data-dz-action="remove"][data-custom-icon]::before {
+  content: none;
+}
+
+[data-dz-action="remove"][data-custom-icon] > svg {
+  width: 1em;
+  height: 1em;
+  display: block;
+}
+
 /* Badge action button collapses entirely when no action is applicable
    — badges are inline-flex with each card sizing independently, so a
    reserved-but-invisible slot would leave an awkward gap. Defined

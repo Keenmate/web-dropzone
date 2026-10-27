@@ -84,6 +84,7 @@ export {
     ACTION_ICONS,
     ACTION_LABELS,
     actionForStatus,
+    CANCEL_ICON,
     createDropzoneSpinner,
     FILE_TYPE_ICONS,
     UI_ICONS

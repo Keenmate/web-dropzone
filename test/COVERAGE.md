@@ -126,7 +126,11 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Resume from `context.startBytes` / `startPercent` after pause | ✓      | `upload-edge.spec.ts` | `upload-edge.html` |
 | Retry from error re-invokes the handler                       | ✓      | `upload-edge.spec.ts` | `upload-edge.html` |
 | Per-row Pause / Resume / Retry buttons cycle status (UI path) | ✓      | `row-actions.spec.ts` | `row-actions.html` |
-| ✕ while uploading cancels (row stays); second ✕ removes        | ✓      | `row-actions.spec.ts` | `row-actions.html` |
+| ⊘ Cancel (uploading / queued / paused; row stays) vs ✕ Remove (always; running → cancel, then remove) | ✓ | `row-actions.spec.ts` | `row-actions.html` |
+| ⊘ asks `beforeFileCancelCallback`; ✕ asks `beforeFilesRemoveCallback` | ✓ | `row-actions.spec.ts` | `row-actions.html` |
+| ⊘ / ✕ aria-labels "Cancel / Remove <file>"; ⊘ hidden when nothing to cancel (plain picker too); keyboard Tab + Enter | ✓ | `row-actions.spec.ts` | `row-actions.html` |
+| `cancel-icon` / `remove-icon` HTML glyphs (+ live change)      | ✓      | `row-actions.spec.ts` | `row-actions.html` |
+| ⊘ / ✕ in the list satellite and popover rows                   | ✓      | `row-actions.spec.ts` | `row-actions.html` |
 | Cancelled row offers Retry                                    | ✓      | `row-actions.spec.ts` (NOTES #8 fixed) | `row-actions.html` |
 | `retryPolicy` attempts / delayMs / backoff → complete or error | ✓     | `upload-edge.spec.ts` | `upload-edge.html` |
 | `retryPolicy` retry aborted when paused during the backoff     | ✓     | `upload-edge.spec.ts` | `upload-edge.html` |

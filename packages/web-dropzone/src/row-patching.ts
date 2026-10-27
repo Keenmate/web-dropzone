@@ -27,7 +27,7 @@ import {
     actionForStatus
 } from '@keenmate/web-dropzone-core';
 import type { FileState, FileStatus } from '@keenmate/web-dropzone-core';
-import { progressLabel } from './row-templates';
+import { progressLabel, isCancelOffered } from './row-templates';
 
 /**
  * Set the progress-bar fill's width. Idempotent — assigning the same
@@ -98,6 +98,29 @@ export function patchRemoveButton(
         btn.setAttribute('tabindex', '-1');
         btn.setAttribute('aria-hidden', 'true');
     }
+}
+
+/**
+ * In-place patch the per-row Cancel button: `--hidden` (inert) when there is
+ * nothing to cancel, disabled while `cancelling`.
+ */
+export function patchCancelButton(
+    btn: HTMLElement | null,
+    file: FileState,
+    baseClass: string,
+    hasUploadHandler: boolean
+): void {
+    if (!btn) return;
+    const offered = isCancelOffered(file, hasUploadHandler);
+    btn.classList.toggle(`${baseClass}--hidden`, !offered);
+    if (offered) {
+        btn.removeAttribute('tabindex');
+        btn.removeAttribute('aria-hidden');
+    } else {
+        btn.setAttribute('tabindex', '-1');
+        btn.setAttribute('aria-hidden', 'true');
+    }
+    (btn as HTMLButtonElement).disabled = file.status === 'cancelling';
 }
 
 /**

@@ -21,6 +21,28 @@
         <web-dropzone id="manual" accept="*/*" display-mode="list" auto-upload="false"></web-dropzone>
     </div>
 
+    <div class="fixture">
+        <div class="fixture-label">plain picker — no upload handler (pending rows have nothing to cancel)</div>
+        <web-dropzone id="plain" accept="*/*" display-mode="list"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">custom cancel-icon / remove-icon</div>
+        <web-dropzone id="icons" accept="*/*" display-mode="detailed" auto-upload="false"
+            cancel-icon="<b class='my-cancel'>C</b>" remove-icon="<b class='my-remove'>R</b>"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">list satellite (detailed) bound to #sat-store</div>
+        <web-dropzone id="sat-store" accept="*/*" concurrency="3"></web-dropzone>
+        <web-dropzone-list id="sat-list" for="sat-store" list-appearance="detailed"></web-dropzone-list>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">popover (compact) rows</div>
+        <web-dropzone id="pop" accept="*/*" display-mode="compact" concurrency="3"></web-dropzone>
+    </div>
+
     <script type="module">
         import '/src/index.ts';
         import { installAddNamed, installPump, logEvents } from './fixture-kit.js';
@@ -28,8 +50,8 @@
         const handler = installPump();
 
         customElements.whenDefined('web-dropzone').then(() => {
-            for (const id of ['rows', 'manual']) document.getElementById(id).uploadFileCallback = handler;
-            logEvents(document.getElementById('rows'), ['file-remove', 'file-retry'],
+            for (const id of ['rows', 'manual', 'icons', 'sat-store', 'pop']) document.getElementById(id).uploadFileCallback = handler;
+            logEvents(document.getElementById('rows'), ['file-remove', 'file-retry', 'file-cancel'],
                 document.querySelector('[data-testid="rows-log"]'));
             window.__ready = true;
         });

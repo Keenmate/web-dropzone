@@ -42,7 +42,8 @@ import {
     patchProgressFill,
     patchProgressText,
     patchStatusIcon,
-    patchActionButton as patchRowActionButton
+    patchActionButton as patchRowActionButton,
+    patchCancelButton
 } from './row-patching';
 import type {
     DropzoneConfig,
@@ -773,6 +774,15 @@ export class WebDropzone extends DropzoneEngine {
                 if (id) this.handleUserActionClick(id);
             });
         });
+        root.querySelectorAll<HTMLElement>('[data-dz-action="cancel"]').forEach(btn => {
+            if (btn.dataset.dzBoundCancel === '1') return;
+            btn.dataset.dzBoundCancel = '1';
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const id = btn.dataset.fileId;
+                if (id) void this.cancelFile(id); // asks beforeFileCancelCallback
+            });
+        });
     }
 
     /**
@@ -790,12 +800,14 @@ export class WebDropzone extends DropzoneEngine {
             btn.addEventListener('click', () => {
                 const id = (btn as HTMLElement).dataset.fileId;
                 if (!id) return;
-                this.handleUserRemoveClick(id);
-                if (this.files.length === 0) {
-                    this.closePopover();
-                } else {
-                    this.updatePopoverContent();
-                }
+                void this.handleUserRemoveClick(id).then(() => {
+                    if (!this.popover) return;
+                    if (this.files.length === 0) {
+                        this.closePopover();
+                    } else {
+                        this.updatePopoverContent();
+                    }
+                });
             });
         });
         // Per-row pause / resume / retry. No need to refresh the popover body
@@ -810,31 +822,32 @@ export class WebDropzone extends DropzoneEngine {
                 if (id) this.handleUserActionClick(id);
             });
         });
+        root.querySelectorAll('[data-dz-action="cancel"]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const id = (btn as HTMLElement).dataset.fileId;
+                if (id) void this.cancelFile(id); // asks beforeFileCancelCallback
+            });
+        });
     }
 
     /**
-     * Two-step X click — give the user a chance to recover from an
-     * accidental click on an in-progress upload:
-     *   - `uploading` → cancelFile (abort + status flips to `cancelled`,
-     *      row stays in the list with the Retry button available).
-     *   - everything else → removeFile (drop from the list, fire
-     *      file-remove / file-delete as appropriate).
-     *
-     * Apps that want single-click removal everywhere can listen to
-     * `file-remove` / `file-delete` and bypass the two-step UX by
-     * calling `removeFile(id)` directly from their own click handler.
+     * Row ✕ click — remove the file, confirmed through
+     * `beforeFilesRemoveCallback`. A running upload is cancelled first (its
+     * handler gets the signal and up to `cancel-timeout`), then the file is
+     * removed. Cancelling without removing is the row's ⊘ Cancel button.
      */
-    private handleUserRemoveClick(id: string): void {
+    private handleUserRemoveClick(id: string): Promise<void> {
         const file = this.files.find(f => f.id === id);
-        if (!file) return;
-        if (file.status === 'cancelling') return; // already on its way out
-        if (file.status === 'uploading') {
-            void this.cancelFile(id);
-        } else {
-            // User-initiated remove runs the confirm gate (if set). Programmatic
-            // `removeFile(id)` callers stay un-gated unless they opt in.
-            void this.removeFile(id, { confirm: true });
-        }
+        if (!file || file.status === 'cancelling') return Promise.resolve();
+        // User-initiated remove runs the confirm gate (if set). Programmatic
+        // `removeFile(id)` callers stay un-gated unless they opt in.
+        return this.removeFile(id, { confirm: true });
+    }
+
+    /** The file has an upload handler (store-level or per-file, Mode B). */
+    private hasUploadHandler(file: FileState): boolean {
+        return !!(file.uploadFileCallback || this.config.uploadFileCallback);
     }
 
     /**
@@ -950,9 +963,15 @@ export class WebDropzone extends DropzoneEngine {
         patchProgressText(row, 'dz__popover__progress-text', file);
         patchStatusIcon(row, 'dz__popover__status', file.status);
         patchRowActionButton(
-            row.querySelector('.dz__popover__row-action'),
+            row.querySelector('.dz__popover__row-action[data-dz-action="row-action"]'),
             file,
             'dz__popover__row-action'
+        );
+        patchCancelButton(
+            row.querySelector('[data-dz-action="cancel"]'),
+            file,
+            'dz__popover__row-action',
+            this.hasUploadHandler(file)
         );
 
         this.syncRemoveButtonHiddenState(
@@ -1017,7 +1036,7 @@ export class WebDropzone extends DropzoneEngine {
                 : 'dz__badge';
             patchStatusIcon(row, 'dz__badge-status', file.status);
             patchRowActionButton(
-                row.querySelector('.dz__badge-action'),
+                row.querySelector('.dz__badge-action[data-dz-action="row-action"]'),
                 file,
                 'dz__badge-action'
             );
@@ -1036,7 +1055,7 @@ export class WebDropzone extends DropzoneEngine {
             patchProgressText(row, 'dz__file-item__progress-text', file);
             patchStatusIcon(row, 'dz__file-item__status', file.status);
             patchRowActionButton(
-                row.querySelector('.dz__file-item__action'),
+                row.querySelector('.dz__file-item__action[data-dz-action="row-action"]'),
                 file,
                 'dz__file-item__action'
             );
@@ -1052,7 +1071,7 @@ export class WebDropzone extends DropzoneEngine {
             patchProgressFill(row, 'dz__preview-item__progress-fill', file.progress);
             patchStatusIcon(row, 'dz__preview-item__status', file.status);
             patchRowActionButton(
-                row.querySelector('.dz__preview-item__action'),
+                row.querySelector('.dz__preview-item__action[data-dz-action="row-action"]'),
                 file,
                 'dz__preview-item__action'
             );
@@ -1070,6 +1089,13 @@ export class WebDropzone extends DropzoneEngine {
                 }
             }
         }
+
+        const actionClass = appearance === 'badges'
+            ? 'dz__badge-action'
+            : appearance === 'grid'
+                ? 'dz__preview-item__action'
+                : 'dz__file-item__action';
+        patchCancelButton(row.querySelector('[data-dz-action="cancel"]'), file, actionClass, this.hasUploadHandler(file));
 
         const removeSelector = appearance === 'badges'
             ? '.dz__badge-remove'
@@ -1568,7 +1594,10 @@ export class WebDropzone extends DropzoneEngine {
             // config satisfies FileIconOverrides structurally, so pass it whole;
             // the context base gives the per-row ctx its controller / element.
             iconOverrides: this.config,
-            iconContext: this.contextBase
+            iconContext: this.contextBase,
+            hasUploadHandler: this.hasUploadHandler(file),
+            cancelIcon: this.config.cancelIcon,
+            removeIcon: this.config.removeIcon
         };
     }
 
@@ -1615,12 +1644,13 @@ export class WebDropzone extends DropzoneEngine {
                 </td>
                 <td class="dz__popover__cell dz__popover__cell--action">
                     ${RowTemplate.renderRowActionButton(file, 'dz__popover__row-action')}
+                    ${RowTemplate.renderCancelButton(file, 'dz__popover__row-action', this.rowOpts(file, 'popover'))}
                 </td>
                 <td class="dz__popover__cell dz__popover__cell--status">
                     <span class="dz__popover__status ${statusClass}" title="${STATUS_LABELS[file.status]}" aria-label="Status: ${STATUS_LABELS[file.status]}" data-status="${file.status}">${STATUS_ICONS[file.status]}</span>
                 </td>
                 <td class="dz__popover__cell dz__popover__cell--actions">
-                    <button type="button" ${RowTemplate.removeButtonAttrs(file, 'dz__popover__remove', removable)}></button>
+                    ${RowTemplate.renderRemoveButton(file, 'dz__popover__remove', removable, this.config.removeIcon)}
                 </td>
             </tr>
         `;
@@ -2496,6 +2526,7 @@ export class WebDropzone extends DropzoneEngine {
         // Don't trigger if clicking on remove or row-action button
         if ((e.target as HTMLElement).closest('[data-dz-action="remove"]')) return;
         if ((e.target as HTMLElement).closest('[data-dz-action="row-action"]')) return;
+        if ((e.target as HTMLElement).closest('[data-dz-action="cancel"]')) return;
 
         // The hidden input sits inside the dropzone, so when we open the file
         // picker programmatically (popover's "Add more", the dropzone's own

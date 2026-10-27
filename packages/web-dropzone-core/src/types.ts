@@ -113,6 +113,7 @@ export type DropzoneControl = 'picker' | 'list' | 'overall-progress';
  * - 'progress' — per-row progress bar + percent
  * - 'status'   — status icon (pending / uploading / complete / error)
  * - 'action'   — pause / resume / retry button
+ * - 'cancel'   — cancel (⊘) button (uploading / queued / paused files)
  * - 'remove'   — remove (×) button
  */
 export type FileItemPart =
@@ -123,6 +124,7 @@ export type FileItemPart =
     | 'progress'
     | 'status'
     | 'action'
+    | 'cancel'
     | 'remove';
 
 /**
@@ -683,6 +685,12 @@ export interface DropzoneConfig {
     cancelTimeout?: number;
     /** What a cancel that timed out does — see {@link CancelTimeoutBehavior}. Default `'error'`. */
     cancelTimeoutBehavior?: CancelTimeoutBehavior;
+    /** HTML for the row Cancel (⊘) button glyph. Unset → the built-in icon.
+     *  ⚠️ Raw HTML — NOT sanitized. */
+    cancelIcon?: string;
+    /** HTML for the row Remove (✕) button glyph. Unset → the built-in
+     *  (CSS-masked `--dz-icon-remove`) glyph. ⚠️ Raw HTML — NOT sanitized. */
+    removeIcon?: string;
     /**
      * Whether the user can remove files that have already finished uploading
      * (`status === 'complete'`). When `false`, the remove button is hidden

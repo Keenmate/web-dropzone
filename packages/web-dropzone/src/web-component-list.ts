@@ -42,6 +42,7 @@ import {
     patchProgressText,
     patchStatusIcon,
     patchActionButton,
+    patchCancelButton,
     patchRemoveButton
 } from './row-patching';
 import { isStoreFileReorderEligible } from './store-link';
@@ -359,13 +360,21 @@ export class DropzoneListElement extends SatelliteElement {
             iconOverrides: cfg,
             iconContext: this.iconContext(),
             removable: this.isFileUserRemovable(file),
-            reorderEligible: this.isReorderEligible(file)
+            reorderEligible: this.isReorderEligible(file),
+            hasUploadHandler: this.hasUploadHandler(file),
+            cancelIcon: cfg?.cancelIcon,
+            removeIcon: cfg?.removeIcon
         };
         if (appearance === 'badges')   return renderBadgeItem(file, opts);
         if (appearance === 'grid')     return renderGridItem(file, opts);
         if (appearance === 'detailed') return renderDetailedItem(file, opts);
         // 'rolling' uses the list-item template for the front-file row.
         return renderListItem(file, opts);
+    }
+
+    /** The file has an upload handler (store-level or per-file, Mode B). */
+    private hasUploadHandler(file: FileState): boolean {
+        return !!(file.uploadFileCallback || this.store?.getConfig().uploadFileCallback);
     }
 
     /** `uploaded-deletable="false"` hides the remove button on completed rows (layout kept). */
@@ -643,25 +652,25 @@ export class DropzoneListElement extends SatelliteElement {
             return;
         }
 
-        // Remove button (also always in the DOM). Match the core store's
-        // cancel-vs-remove semantics: clicking X on an uploading file cancels
-        // the upload (no gate) and leaves the row in the list as 'cancelled';
-        // clicking X on anything else routes through removeFile with the
-        // confirm flag so `beforeFilesRemoveCallback` (if set) gets the
-        // chance to veto. Programmatic `removeFile(id)` callers are still
-        // un-gated by default.
+        // Cancel (⊘) — asks `beforeFileCancelCallback`; the row stays as
+        // `cancelled` (Retry available).
+        const cancelBtn = target.closest<HTMLElement>('[data-dz-action="cancel"]');
+        if (cancelBtn) {
+            const id = cancelBtn.getAttribute('data-file-id');
+            if (id) void this.store.cancelFile(id);
+            return;
+        }
+
+        // Remove (✕) — confirmed through `beforeFilesRemoveCallback`; a
+        // running upload is cancelled first, then the file is removed.
+        // Programmatic `removeFile(id)` callers stay un-gated by default.
         const removeBtn = target.closest<HTMLElement>('[data-dz-action="remove"]');
         if (removeBtn) {
             const id = removeBtn.getAttribute('data-file-id');
             if (!id) return;
             const file = this.store.getFile(id);
-            if (!file) return;
-            if (file.status === 'cancelling') return; // already on its way out
-            if (file.status === 'uploading') {
-                void this.store.cancelFile(id);
-            } else {
-                void this.store.removeFile(id, { confirm: true });
-            }
+            if (!file || file.status === 'cancelling') return;
+            void this.store.removeFile(id, { confirm: true });
         }
     };
 
@@ -733,6 +742,7 @@ export class DropzoneListElement extends SatelliteElement {
                 'dz__badge-remove',
                 file.status === 'cancelling'
             );
+            patchCancelButton(row.querySelector<HTMLElement>('[data-dz-action="cancel"]'), file, 'dz__badge-action', this.hasUploadHandler(file));
             return;
         }
 
@@ -758,6 +768,7 @@ export class DropzoneListElement extends SatelliteElement {
             `${prefix}__remove`,
             file.status === 'cancelling'
         );
+        patchCancelButton(row.querySelector<HTMLElement>('[data-dz-action="cancel"]'), file, `${prefix}__action`, this.hasUploadHandler(file));
     }
 
     // ========================================================================

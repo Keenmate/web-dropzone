@@ -57,9 +57,11 @@ test.describe('item-controls', () => {
     test('unset → every part renders in a detailed row', async ({ page }) => {
         await addNamed(page, 'all', ['a.txt']);
         const row = dz(page, 'all').locator('.dz__file-item');
-        for (const part of ['icon', 'name', 'size', 'type', 'progress', 'status', 'action', 'remove']) {
+        for (const part of ['icon', 'name', 'size', 'type', 'progress', 'status', 'remove']) {
             await expect(row.locator(`.dz__file-item__${part}`), part).toHaveCount(1);
         }
+        await expect(row.locator('[data-dz-action="row-action"]'), 'action').toHaveCount(1);
+        await expect(row.locator('[data-dz-action="cancel"]'), 'cancel').toHaveCount(1);
     });
 
     test('item-controls="name,remove" → only those parts', async ({ page }) => {
