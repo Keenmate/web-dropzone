@@ -325,3 +325,69 @@ test.describe('cancelAll + "Cancel all"', () => {
         await expect.poll(() => statusOf(page, 'q', 's1.txt')).toBe('cancelled');
     });
 });
+
+test.describe('element removal (removedCallback) vs DOM move', () => {
+    test('removing the element cancels every upload (signal + file-cancel), then destroys the store', async ({ page }) => {
+        await addNamed(page, 'mover', ['m1.txt', 'm2.txt', 'm3.txt']); // concurrency 2 → m3 queued
+        await expect.poll(() => pendingNames(page)).toEqual(['m1.txt', 'm2.txt']);
+        await page.evaluate(() => { (window as any).__el = document.getElementById('mover'); (window as any).__el.remove(); });
+        await expect.poll(() => page.evaluate(() => (window as any).__aborted['m1.txt'])).toBe(true);
+        expect(await page.evaluate(() => (window as any).__aborted['m2.txt'])).toBe(true);
+        await expect.poll(() => logOf(page, 'mover')).toContain('file-cancel:m1.txt:cancelled');
+        const log = await logOf(page, 'mover');
+        expect(log).toContain('file-cancel:m2.txt:cancelled');
+        expect(log).toContain('file-cancel:m3.txt:cancelled');
+        expect(await callsOf(page, 'm3.txt')).toBe(0);
+        await expect.poll(() => page.evaluate(() => (window as any).__el.controller.isReady)).toBe(false);
+    });
+
+    test('a DOM move keeps the store — uploads continue and complete', async ({ page }) => {
+        await addNamed(page, 'mover', ['k1.txt']);
+        await expect.poll(() => pendingNames(page)).toContain('k1.txt');
+        await page.evaluate(() => document.getElementById('host-b')!.append(document.getElementById('mover')!));
+        await page.waitForTimeout(100); // past the removal check
+        expect(await page.evaluate(() => (window as any).__aborted['k1.txt'])).toBeUndefined();
+        expect(await statusOf(page, 'mover', 'k1.txt')).toBe('uploading');
+        await resolveUpload(page, 'k1.txt', 'ok');
+        await expect.poll(() => statusOf(page, 'mover', 'k1.txt')).toBe('complete');
+    });
+
+    test('re-adding a removed element later builds a fresh, empty store (ready fires)', async ({ page }) => {
+        await addNamed(page, 'mover', ['r1.txt']);
+        await expect.poll(() => pendingNames(page)).toContain('r1.txt');
+        await page.evaluate(() => { (window as any).__el = document.getElementById('mover'); (window as any).__el.remove(); });
+        await expect.poll(() => page.evaluate(() => (window as any).__el.controller.isReady)).toBe(false);
+        const out = await page.evaluate(async () => {
+            const el = (window as any).__el;
+            let ready = 0;
+            el.addEventListener('ready', () => { ready++; });
+            document.getElementById('host-a')!.append(el);
+            await el.whenSettled();
+            return { ready, isReady: el.controller.isReady, files: el.files.length };
+        });
+        expect(out).toEqual({ ready: 1, isReady: true, files: 0 });
+    });
+
+    test('should-keep-alive-when-removed: removal keeps uploads running', async ({ page }) => {
+        await addNamed(page, 'keep', ['alive.txt']);
+        await expect.poll(() => pendingNames(page)).toContain('alive.txt');
+        await page.evaluate(() => { (window as any).__el = document.getElementById('keep'); (window as any).__el.remove(); });
+        await page.waitForTimeout(150);
+        expect(await page.evaluate(() => (window as any).__aborted['alive.txt'])).toBeUndefined();
+        await resolveUpload(page, 'alive.txt', 'ok');
+        await expect.poll(() => page.evaluate(() => (window as any).__el.files[0]?.status)).toBe('complete');
+        await page.evaluate(() => document.getElementById('keep-host')!.append((window as any).__el));
+        expect(await page.evaluate(() => (document.getElementById('keep') as any).files.length)).toBe(1);
+    });
+
+    test('form.reset() during an upload cancels it, then removes the file', async ({ page }) => {
+        await addNamed(page, 'form-dz', ['f.txt']);
+        await expect.poll(() => pendingNames(page)).toContain('f.txt');
+        await page.evaluate(() => (document.getElementById('the-form') as HTMLFormElement).reset());
+        await expect.poll(() => page.evaluate(() => (document.getElementById('form-dz') as any).files.length)).toBe(0);
+        expect(await page.evaluate(() => (window as any).__aborted['f.txt'])).toBe(true);
+        const log = await logOf(page, 'form-dz');
+        expect(log.indexOf('file-cancel:f.txt:cancelled')).toBeGreaterThan(-1);
+        expect(log.indexOf('file-cancel:f.txt:cancelled')).toBeLessThan(log.indexOf('file-remove:f.txt'));
+    });
+});

@@ -37,6 +37,12 @@ server-side command, *clear* empties a set, *destroy* is the only teardown verb.
   resolves when every cancel finished. A **"Cancel all"** button joins Pause all in
   `<web-dropzone-progress>` (and the in-element strip), shown only while something is
   uploading / queued / paused.
+- **Removing the element from the page tears it down** (web-components-core `removedCallback()`:
+  still detached one frame after `disconnect()`, so a DOM move never triggers it): every upload is
+  cancelled by the cancel rule (handlers get their signal and `cancel-timeout`; `file-cancel`
+  fires; no `beforeFileCancelCallback`), then the store is destroyed. Re-adding the element later
+  builds a fresh, empty store. Opt out with **`should-keep-alive-when-removed`** (uploads keep
+  running while detached).
 - **`removeFiles(ids, opts?)`** on the element and `DropzoneController` — the pair of
   `addFiles`. With `{ confirm: true }` the `beforeFilesRemoveCallback` gate runs **once** for the
   batch. `removeFile(id)` and `clear()` are now thin wrappers over it (one `change` per batch).

@@ -260,6 +260,9 @@ const INPUTS: readonly InputDef[] = [
     { configKey: 'reorderCompletedDelay',   attribute: 'reorder-completed-delay', converter: toInt({ default: 1500 }),                                                 shouldReflect: true, on: 'update', description: 'Delay in ms before a completed file reorders. Only meaningful when should-sink-completed is on.' },
     { configKey: 'progressMode',            attribute: 'progress-mode',       converter: toEnum(['optimistic', 'pessimistic'] as const, { default: 'optimistic' }),   shouldReflect: true, on: 'update', description: 'Progress reporting contract: optimistic (tick before ACK, snap back on failure) or pessimistic (tick only after ACK).' },
 
+    // ── Lifecycle ─────────────────────────────────────────────────────────────
+    { configKey: 'shouldKeepAliveWhenRemoved', attribute: 'should-keep-alive-when-removed', converter: toBool('default-false'),                                    on: 'none', type: 'boolean', description: 'Keep the store (files, running uploads) when the element is removed from the page. Default: a removal cancels every upload (handlers get their signal + cancel-timeout) and then destroys the store. A DOM move never tears anything down.' },
+
     // ── Persistence ───────────────────────────────────────────────────────────
     { configKey: 'storageKey',              attribute: 'storage-key',         converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'Opaque key scoping persisted UI state. Unset disables persistence.' },
 
@@ -506,6 +509,28 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
         instances.delete(this);
         this.#dropzone?.deactivate();
         initLogger.debug('DropzoneElement disconnected');
+    }
+
+    /**
+     * Removed from the page (still detached one frame after `disconnect()` —
+     * a DOM move never gets here). Unless `should-keep-alive-when-removed`:
+     * cancel every upload by the cancel rule (handlers get their signal and
+     * up to `cancel-timeout`; no `beforeFileCancelCallback` — there is no UI
+     * to veto from) and then destroy the store. Re-adding the element after
+     * that builds a fresh, empty store (`connect()`); re-adding it while the
+     * cancels are still settling keeps the store (its uploads cancelled).
+     */
+    protected override removedCallback(): void {
+        if (this.config.shouldKeepAliveWhenRemoved) return;
+        const engine = this.#dropzone;
+        if (!engine) return;
+        void engine.cancelAllNow().finally(() => {
+            if (this.#dropzone !== engine || this.isConnected) return; // re-added meanwhile
+            engine.destroy();
+            this.#dropzone = undefined;
+            this.#syncFormValue();
+            initLogger.debug('DropzoneElement removed — uploads cancelled, store destroyed');
+        });
     }
 
     // ── store lifecycle ───────────────────────────────────────────────────────

@@ -388,3 +388,8 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | JSON attribute; malformed JSON warns + keeps the previous value | ✓    | `labels.spec.ts` | `cancel.html` |
 | `cancelling` / `cancelTimeout` strings                         | ✓      | `labels.spec.ts` | `cancel.html` |
 | List + progress satellites follow the store labels (live)      | ✓      | `labels.spec.ts` | `cancel.html` |
+| Element removed → every upload cancelled (signal + `file-cancel`), queued never start, store destroyed | ✓ | `cancel.spec.ts` | `cancel.html` |
+| DOM move → uploads continue and complete (no removal teardown) | ✓     | `cancel.spec.ts` | `cancel.html` |
+| Re-adding a removed element → fresh empty store, `ready` fires | ✓     | `cancel.spec.ts` | `cancel.html` |
+| `should-keep-alive-when-removed` keeps uploads running          | ✓     | `cancel.spec.ts` | `cancel.html` |
+| `form.reset()` during an upload → cancel, then remove           | ✓     | `cancel.spec.ts` | `cancel.html` |
