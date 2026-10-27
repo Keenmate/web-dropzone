@@ -791,6 +791,15 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
     /** Pause every uploading / pending file. */
     pauseAll(): void { this.flush(); this.#dropzone?.pauseAll(); }
 
+    /**
+     * Cancel every uploading / pending / paused file (`beforeFileCancelCallback`
+     * asked once). Resolves when every cancel finished.
+     */
+    cancelAll(): Promise<void> {
+        this.flush();
+        return this.#dropzone?.cancelAll() ?? Promise.resolve();
+    }
+
     /** Resume every paused file. */
     resumeAll(): Promise<void> {
         this.flush();

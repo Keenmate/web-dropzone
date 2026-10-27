@@ -968,6 +968,32 @@ export class DropzoneEngine {
         return 'timeout-error';
     }
 
+    /**
+     * Cancel every `uploading` / `pending` / `paused` file (complete / error
+     * / cancelled files are untouched; `cancelling` ones are joined). Asks
+     * `beforeFileCancelCallback` ONCE with every file being cancelled.
+     * Resolves when every cancel finished (see {@link cancelFile}).
+     */
+    async cancelAll(): Promise<void> {
+        const targets = this.files.filter(f => CANCELLABLE.has(f.status));
+        if (targets.length > 0 && !(await this.askCancel(targets))) return;
+        await this.cancelAllNow();
+    }
+
+    /**
+     * {@link cancelAll} without the gate — for teardown (the element leaving
+     * the page): every running handler still gets its signal and up to
+     * `cancelTimeout` to settle.
+     */
+    async cancelAllNow(): Promise<void> {
+        // Start every cancel in one synchronous pass, so a slot freed by one
+        // cancel can't hand a not-yet-cancelled queued file to a worker.
+        const ids = this.files
+            .filter(f => CANCELLABLE.has(f.status) || f.status === 'cancelling')
+            .map(f => f.id);
+        await Promise.all(ids.map(id => this.runCancel(id)));
+    }
+
     /** Pause every uploading / pending file. */
     pauseAll(): void {
         for (const f of [...this.files]) {

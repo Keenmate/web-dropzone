@@ -371,3 +371,6 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `file-cancel` results `timeout-error` / `timeout-remove`       | ✓      | `cancel.spec.ts` | `cancel.html` |
 | `beforeFileCancelCallback({ files, allFiles })` veto keeps the upload running | ✓ | `cancel.spec.ts` | `cancel.html` |
 | Removing a running file cancels without the cancel gate (`file-cancel` → `file-remove`) | ✓ | `cancel.spec.ts` | `cancel.html` |
+| `cancelAll()` — uploading / pending / paused cancelled, complete untouched, gate once, resolves after all | ✓ | `cancel.spec.ts` | `cancel.html` |
+| `cancelAll()` veto keeps everything running                    | ✓      | `cancel.spec.ts` | `cancel.html` |
+| "Cancel all" in `<web-dropzone-progress>` (next to Pause all; only while active) + in-element strip | ✓ | `cancel.spec.ts` | `cancel.html` |

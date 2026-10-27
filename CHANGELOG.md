@@ -32,6 +32,11 @@ server-side command, *clear* empties a set, *destroy* is the only teardown verb.
   `{ file, result: 'cancelled' | 'timeout-error' | 'timeout-remove', uploadedBytes, metadata }`.
   Cleaning a partial upload up server-side is the app's job — `metadata` carries what the handler
   stashed via `ctx.setMetadata` (e.g. a tus.io upload URL).
+- **`cancelAll(): Promise<void>`** (element + `DropzoneController`) — cancels every `uploading` /
+  `pending` / `paused` file (complete files untouched), asking `beforeFileCancelCallback` once;
+  resolves when every cancel finished. A **"Cancel all"** button joins Pause all in
+  `<web-dropzone-progress>` (and the in-element strip), shown only while something is
+  uploading / queued / paused.
 - **`removeFiles(ids, opts?)`** on the element and `DropzoneController` — the pair of
   `addFiles`. With `{ confirm: true }` the `beforeFilesRemoveCallback` gate runs **once** for the
   batch. `removeFile(id)` and `clear()` are now thin wrappers over it (one `change` per batch).

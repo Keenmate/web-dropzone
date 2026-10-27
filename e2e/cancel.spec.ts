@@ -268,3 +268,60 @@ test.describe('beforeFileCancelCallback + file-cancel', () => {
         expect(log.indexOf('file-cancel:rm.txt:cancelled')).toBeLessThan(log.indexOf('file-remove:rm.txt'));
     });
 });
+
+test.describe('cancelAll + "Cancel all"', () => {
+    test('cancels uploading / pending / paused (complete untouched), gate asked once, resolves when all finished', async ({ page }) => {
+        await addNamed(page, 'q', ['done.txt']);
+        await expect.poll(() => pendingNames(page)).toContain('done.txt');
+        await resolveUpload(page, 'done.txt', 'ok');
+        await expect.poll(() => statusOf(page, 'q', 'done.txt')).toBe('complete');
+        await addNamed(page, 'q', ['up.txt', 'paused.txt', 'queued.txt']);
+        await expect.poll(() => pendingNames(page)).toContain('up.txt');
+        await dz(page, 'q').evaluate((el: any) => el.pauseFile(el.files.find((f: any) => f.name === 'paused.txt').id));
+        const out = await dz(page, 'q').evaluate(async (el: any) => {
+            const asked: string[][] = [];
+            el.beforeFileCancelCallback = (ctx: any) => { asked.push(ctx.files.map((f: any) => f.name)); };
+            await el.controller.cancelAll();
+            el.beforeFileCancelCallback = null;
+            return { asked, statuses: el.files.map((f: any) => `${f.name}:${f.status}`) };
+        });
+        expect(out.asked).toEqual([['up.txt', 'paused.txt', 'queued.txt']]);
+        expect(out.statuses).toEqual(['done.txt:complete', 'up.txt:cancelled', 'paused.txt:cancelled', 'queued.txt:cancelled']);
+        expect(await callsOf(page, 'queued.txt')).toBe(0);
+    });
+
+    test('a vetoing gate keeps everything running', async ({ page }) => {
+        await addNamed(page, 'q', ['a.txt', 'b.txt']);
+        await expect.poll(() => pendingNames(page)).toContain('a.txt');
+        const statuses = await dz(page, 'q').evaluate(async (el: any) => {
+            el.beforeFileCancelCallback = () => false;
+            await el.cancelAll();
+            el.beforeFileCancelCallback = null;
+            return el.files.map((f: any) => f.status);
+        });
+        expect(statuses).toEqual(['uploading', 'pending']);
+    });
+
+    test('the progress satellite shows "Cancel all" only while something is uploading / queued / paused; clicking it cancels', async ({ page }) => {
+        const btn = page.locator('#progress-sat').locator('[data-dz-action="cancel-all"]');
+        await addNamed(page, 'list-store', ['1.txt', '2.txt']);
+        await expect.poll(() => pendingNames(page)).toEqual(['1.txt']);
+        await expect(btn).toBeVisible();
+        await expect(btn).toHaveText('Cancel all');
+        // Sits next to Pause all.
+        await expect(page.locator('#progress-sat').locator('[data-dz-action="pause-all"]')).toBeVisible();
+        await btn.click();
+        await expect.poll(() => statusOf(page, 'list-store', '1.txt')).toBe('cancelled');
+        expect(await statusOf(page, 'list-store', '2.txt')).toBe('cancelled');
+        await expect(btn).toHaveCount(0);
+    });
+
+    test('the in-element strip offers "Cancel all" too', async ({ page }) => {
+        await addNamed(page, 'q', ['s1.txt']);
+        await expect.poll(() => pendingNames(page)).toContain('s1.txt');
+        const btn = dz(page, 'q').locator('.dz__overall-progress [data-dz-action="cancel-all"]');
+        await expect(btn).toBeVisible();
+        await btn.click();
+        await expect.poll(() => statusOf(page, 'q', 's1.txt')).toBe('cancelled');
+    });
+});

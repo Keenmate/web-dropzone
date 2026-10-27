@@ -2067,6 +2067,9 @@ export class WebDropzone extends DropzoneEngine {
         if (pipelineActive && o.pausedCount > 0) {
             out.push(`<button type="button" class="dz__overall-progress__action" data-dz-action="resume-all">Resume all</button>`);
         }
+        if (pipelineActive && o.uploadingCount + o.pendingCount + o.pausedCount > 0) {
+            out.push(`<button type="button" class="dz__overall-progress__action" data-dz-action="cancel-all">Cancel all</button>`);
+        }
         if (o.failedCount > 0) {
             out.push(`<button type="button" class="dz__overall-progress__action" data-dz-action="retry-all">Retry all</button>`);
         }
@@ -2084,8 +2087,9 @@ export class WebDropzone extends DropzoneEngine {
         const pipelineActive = !!this.config.uploadFileCallback;
         const p = pipelineActive && o.uploadingCount > 0 ? '1' : '0';
         const r = pipelineActive && o.pausedCount > 0 ? '1' : '0';
+        const c = pipelineActive && o.uploadingCount + o.pendingCount + o.pausedCount > 0 ? '1' : '0';
         const e = o.failedCount > 0 ? '1' : '0';
-        return `${p}${r}${e}`;
+        return `${p}${r}${c}${e}`;
     }
 
     /**
@@ -2110,6 +2114,12 @@ export class WebDropzone extends DropzoneEngine {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 void this.resumeAll();
+            });
+        });
+        root.querySelectorAll('[data-dz-action="cancel-all"]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                void this.cancelAll();
             });
         });
     }

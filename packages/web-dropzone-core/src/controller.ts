@@ -52,6 +52,8 @@ export interface DropzoneController {
     cancelFile(id: string): Promise<void>;
     retryFile(id: string): void;
     pauseAll(): void;
+    /** Cancel every uploading / pending / paused file (gate asked once); resolves when all cancels finished. */
+    cancelAll(): Promise<void>;
     resumeAll(): Promise<void>;
     retryAll(): void;
 }
@@ -87,6 +89,7 @@ const METHODS = {
     cancelFile: () => Promise.resolve(),
     retryFile: () => undefined,
     pauseAll: () => undefined,
+    cancelAll: () => Promise.resolve(),
     resumeAll: () => Promise.resolve(),
     retryAll: () => undefined
 } satisfies Record<Exclude<keyof DropzoneController, 'isReady'>, () => unknown>;

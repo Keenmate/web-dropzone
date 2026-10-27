@@ -2,7 +2,7 @@
  * `<web-dropzone-progress for="<store-id>">` — satellite renderer.
  *
  * Aggregate progress strip — bar + counts + percent + bulk-action buttons
- * (Pause all / Resume all / Retry all). Same surface the convenience form
+ * (Pause all / Resume all / Cancel all / Retry all). Same surface the convenience form
  * used to render inline inside `<web-dropzone>`; promoted to a standalone
  * element so decoupled layouts (headless store + custom HTML) can drop it
  * anywhere on the page.
@@ -187,6 +187,10 @@ export class DropzoneProgressElement extends SatelliteElement {
         if (pipelineActive && o.pausedCount > 0) {
             out.push(`<button type="button" class="dz__overall-progress__action" data-dz-action="resume-all">Resume all</button>`);
         }
+        // Cancel all — only while something is uploading / queued / paused.
+        if (pipelineActive && o.uploadingCount + o.pendingCount + o.pausedCount > 0) {
+            out.push(`<button type="button" class="dz__overall-progress__action" data-dz-action="cancel-all">Cancel all</button>`);
+        }
         if (o.failedCount > 0) {
             out.push(`<button type="button" class="dz__overall-progress__action" data-dz-action="retry-all">Retry all</button>`);
         }
@@ -196,8 +200,9 @@ export class DropzoneProgressElement extends SatelliteElement {
     private overallActionsSignature(o: OverallProgress, pipelineActive: boolean): string {
         const p = pipelineActive && o.uploadingCount > 0 ? '1' : '0';
         const r = pipelineActive && o.pausedCount > 0 ? '1' : '0';
+        const c = pipelineActive && o.uploadingCount + o.pendingCount + o.pausedCount > 0 ? '1' : '0';
         const e = o.failedCount > 0 ? '1' : '0';
-        return `${p}${r}${e}`;
+        return `${p}${r}${c}${e}`;
     }
 
     private bindActionHandlers(root: ParentNode): void {
@@ -219,6 +224,12 @@ export class DropzoneProgressElement extends SatelliteElement {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 void store.resumeAll();
+            });
+        });
+        root.querySelectorAll('[data-dz-action="cancel-all"]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                void store.cancelAll();
             });
         });
     }
