@@ -487,8 +487,18 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
 
     // ── store lifecycle ───────────────────────────────────────────────────────
 
+    /**
+     * Replace the store (a mode flip). The old store's files can't move to
+     * the new one (in-flight handlers are bound to it), so they are removed
+     * and REPORTED — `file-remove` per file + one `change` — before the old
+     * store is destroyed; their uploads get the abort signal.
+     */
     #rebuildStore(): void {
-        this.#dropzone?.destroy();
+        const old = this.#dropzone;
+        if (old) {
+            old.dropAllFiles();
+            old.destroy();
+        }
         this.#dropzone = undefined;
         this.#buildStore();
     }

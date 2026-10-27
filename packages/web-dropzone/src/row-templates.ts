@@ -103,11 +103,11 @@ export function renderPlaceholderInner(file: FileState, useThumbnail: boolean, i
 }
 
 /**
- * Per-row action button (pause / resume / retry). The slot is ALWAYS in
- * the DOM so column widths stay reserved as state transitions. When
- * there's no applicable action (pending / complete / cancelled) the
- * `--hidden` modifier hides the button visually and drops it from the
- * tab order.
+ * Per-row action button (pause / resume / retry — see `actionForStatus`).
+ * The slot is ALWAYS in the DOM so column widths stay reserved as state
+ * transitions. When there's no applicable action (pending / complete) the
+ * `--hidden` modifier hides the button visually and drops it from the tab
+ * order.
  */
 export function renderRowActionButton(file: FileState, baseClass: string): string {
     const action = actionForStatus(file.status);

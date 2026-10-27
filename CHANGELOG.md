@@ -28,6 +28,23 @@ server-side command, *clear* empties a set, *destroy* is the only teardown verb.
   `addFiles`. With `{ confirm: true }` the `beforeFilesRemoveCallback` gate runs **once** for the
   batch. `removeFile(id)` and `clear()` are now thin wrappers over it (one `change` per batch).
 
+### Fixed — upload lifecycle
+
+- **Cancel during the auto-retry backoff** was ignored (the wake-up only checked pause /
+  removal, and the finished attempt's controller lingered) — the file now goes `cancelled`
+  at once, the backoff wakes and the slot frees; pause during the backoff frees it too.
+- **`destroy()` kept uploading queued files** (workers looped on `files`) — it now stops the
+  queue, wakes sleeping retries and clears the reorder timers.
+- **Late events after teardown** — a handler settling after `destroy()`, after its file was
+  removed, or after a newer attempt replaced it, no longer emits anything; previews and
+  reorder timers resolving late are dropped too.
+- **The mode-flip rebuild dropped every file silently** — it now reports them
+  (`file-remove` per file + `change`) and aborts their uploads before rebuilding. (Files can't
+  move to the new store: in-flight handlers are bound to the old one.)
+- **`file-progress` after a cancel** — `cancelFile` drops the held progress-throttle tick.
+- **Retry vs resume on a cancelled file** — both restart from 0 now (`retryFile` used to keep
+  the old progress); the server-side state of a cancelled upload is assumed gone.
+
 ### Changed — BREAKING (interaction model, web-components-core rc15)
 
 Events and callbacks follow the shared KeenMate interaction model (web-components-core

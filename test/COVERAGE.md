@@ -350,3 +350,14 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Button / minimal: single tab stop                             | ✓      | `a11y.spec.ts` (NOTES #14 fixed) | `a11y.html` |
 | Disabled dropzone skipped by Tab                              | ✓      | `a11y.spec.ts` | `a11y.html` |
 | Row ✕ named "Remove <file>"; Enter removes; status pill labelled | ✓   | `a11y.spec.ts` | `a11y.html` |
+
+## 23. Cancel / remove / teardown
+
+| Feature                                                       | Status | Spec              | Fixture       |
+| ------------------------------------------------------------- | :----: | ----------------- | ------------- |
+| Cancel during the auto-retry backoff → `cancelled`, no further attempt | ✓ | `cancel.spec.ts` | `cancel.html` |
+| `destroy()` stops the queue (queued files never start, no events after) | ✓ | `cancel.spec.ts` | `cancel.html` |
+| Late handler result after `destroy()` / after removal → no events | ✓  | `cancel.spec.ts` | `cancel.html` |
+| Mode-flip rebuild reports dropped files (`file-remove` + `change`) | ✓ | `cancel.spec.ts` | `cancel.html` |
+| No `file-progress` after a cancel (held throttle tick dropped) | ✓     | `cancel.spec.ts` | `cancel.html` |
+| `retryFile` / `resumeFile` on a cancelled file restart from 0  | ✓      | `cancel.spec.ts` | `cancel.html` |

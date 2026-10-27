@@ -1533,9 +1533,9 @@ export class WebDropzone extends DropzoneEngine {
         return this.config.isUploadedFileDeletable !== false;
     }
 
-    /** Two-step action click — uploading→pauseFile, paused→resumeFile,
-     *  error→retryFile. Other statuses are no-ops (the button is rendered
-     *  inert via `--hidden`). */
+    /** Row action click (see `actionForStatus`) — uploading→pauseFile,
+     *  paused→resumeFile, error / cancelled→retryFile. Other statuses are
+     *  no-ops (the button is rendered inert via `--hidden`). */
     private handleUserActionClick(id: string): void {
         const file = this.files.find(f => f.id === id);
         if (!file) return;

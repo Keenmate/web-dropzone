@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — cancel / remove / teardown</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-dropzone { display: block; max-width: 520px; }
+    </style>
+</head>
+<body>
+    <h1>cancel / remove / teardown</h1>
+    <p>Targeted by <code>e2e/cancel.spec.ts</code>. Every upload parks in <code>window.__pending</code> until the spec settles it.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">#q — concurrency 1, handler honours the AbortSignal</div>
+        <web-dropzone id="q" accept="*/*" max-file-count="20" display-mode="detailed" concurrency="1"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">#stubborn — handler IGNORES the signal; cancel-timeout="300" (behavior: error)</div>
+        <web-dropzone id="stubborn" accept="*/*" max-file-count="20" display-mode="detailed" concurrency="1" cancel-timeout="300"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">#stubborn-remove — handler ignores the signal; cancel-timeout="300" cancel-timeout-behavior="remove"</div>
+        <web-dropzone id="stubborn-remove" accept="*/*" max-file-count="20" display-mode="detailed" concurrency="1" cancel-timeout="300" cancel-timeout-behavior="remove"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">#policy — retryPolicy { attempts: 3, delayMs: 400 }</div>
+        <web-dropzone id="policy" accept="*/*" max-file-count="20" display-mode="detailed"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">#throttle — progress-throttle="300"</div>
+        <web-dropzone id="throttle" accept="*/*" max-file-count="20" display-mode="detailed" progress-throttle="300"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">#flip — mode flips via the mode attribute (rebuild)</div>
+        <web-dropzone id="flip" accept="*/*" max-file-count="20" display-mode="detailed" mode="bulk"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">#list — list satellite + progress satellite bound to #list-store</div>
+        <web-dropzone id="list-store" accept="*/*" max-file-count="20" concurrency="1"></web-dropzone>
+        <web-dropzone-list id="list-sat" for="list-store" list-appearance="detailed"></web-dropzone-list>
+        <web-dropzone-progress id="progress-sat" for="list-store"></web-dropzone-progress>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">#form — inside a form (reset during upload)</div>
+        <form id="the-form">
+            <web-dropzone id="form-dz" name="files" accept="*/*" max-file-count="20" display-mode="detailed" concurrency="1"></web-dropzone>
+            <button type="reset" id="form-reset">Reset</button>
+        </form>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">#host-a / #host-b — removal vs DOM move</div>
+        <div id="host-a"><web-dropzone id="mover" accept="*/*" max-file-count="20" display-mode="detailed" concurrency="2"></web-dropzone></div>
+        <div id="host-b"></div>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">#keep — should-keep-alive-when-removed</div>
+        <div id="keep-host"><web-dropzone id="keep" accept="*/*" max-file-count="20" display-mode="detailed" should-keep-alive-when-removed></web-dropzone></div>
+    </div>
+
+    <script type="module">
+        import '/src/index.ts';
+
+        // name -> { resolve, reject, setProgress, signal, startPercent, dz }
+        const pending = new Map();
+        window.__pending = pending;
+        window.__pendingNames = () => Array.from(pending.keys());
+        window.__calls = {};      // name -> handler invocation count
+        window.__startPercent = {}; // name -> startPercent of the latest call
+        window.__aborted = {};     // name -> signal fired
+        window.__resolve = (name, outcome = 'ok') => {
+            const e = pending.get(name);
+            if (!e) throw new Error(`No pending: ${name}`);
+            pending.delete(name);
+            if (outcome === 'ok') e.resolve();
+            else e.reject(new Error('simulated'));
+        };
+        window.__progress = (name, pct) => {
+            const e = pending.get(name);
+            if (!e) throw new Error(`No pending: ${name}`);
+            e.setProgress(pct);
+        };
+
+        const IGNORES_SIGNAL = new Set(['stubborn', 'stubborn-remove']);
+        function makeHandler(id) {
+            return ({ file, setProgress, signal, startPercent }) => {
+                window.__calls[file.name] = (window.__calls[file.name] ?? 0) + 1;
+                window.__startPercent[file.name] = startPercent;
+                return new Promise((resolve, reject) => {
+                    pending.set(file.name, { resolve, reject, setProgress, signal, startPercent, dz: id });
+                    signal.addEventListener('abort', () => {
+                        window.__aborted[file.name] = true;
+                        if (IGNORES_SIGNAL.has(id)) return; // keeps running
+                        pending.delete(file.name);
+                        reject(new DOMException('Aborted', 'AbortError'));
+                    });
+                });
+            };
+        }
+
+        // Per-dropzone event log: "<event>:<name>[:extra]".
+        window.__log = {};
+        const LOGGED = ['file-add', 'file-remove', 'file-delete', 'change', 'file-progress',
+            'file-status-change', 'file-upload-complete', 'file-cancel', 'file-retry'];
+        function wire(el) {
+            const id = el.id;
+            window.__log[id] = [];
+            el.uploadFileCallback = makeHandler(id);
+            for (const name of LOGGED) {
+                el.addEventListener(name, (e) => {
+                    const d = e.detail ?? {};
+                    const fname = d.file?.name ?? '';
+                    const extra = name === 'file-status-change' ? `:${d.prevStatus}>${d.nextStatus}`
+                        : name === 'file-progress' ? `:${d.progress}`
+                        : name === 'file-cancel' ? `:${d.result}`
+                        : '';
+                    window.__log[id].push(`${name}:${fname}${extra}`);
+                });
+            }
+        }
+
+        customElements.whenDefined('web-dropzone').then(() => {
+            for (const el of document.querySelectorAll('web-dropzone')) wire(el);
+            document.getElementById('policy').retryPolicy = { attempts: 3, delayMs: 400, backoff: 1 };
+        });
+
+        window.__addNamed = (id, names) => {
+            const dz = document.getElementById(id);
+            const files = names.map(n => new File([new Uint8Array(1000)], n, { type: 'text/plain' }));
+            return dz.addFiles(files);
+        };
+        window.__fileId = (id, name) => document.getElementById(id).files.find(f => f.name === name)?.id;
+        window.__status = (id, name) => document.getElementById(id).files.find(f => f.name === name)?.status;
+    </script>
+</body>
+</html>
