@@ -23,7 +23,7 @@ destructure them when needed.
 
 CALLBACK OVERVIEW
 -----------------
-renderFileItemCallback({ file, index, displayMode, isInPopover })  -> string | HTMLElement
+renderFileItemCallback({ file, fileIndex, displayMode, isInPopover })  -> string | HTMLElement
 renderListWrapperCallback({ rowsHtml, files })                      -> string | HTMLElement
 renderPromptCallback(ctx)                                           -> string | HTMLElement
 renderSummaryCallback({ files })                                    -> string | HTMLElement
@@ -52,7 +52,7 @@ Required hooks:
   replace the row on state changes.
 - Built-in actions are auto-wired by attribute (needs data-file-id too):
     data-dz-action="remove"      Remove (runs beforeFilesRemoveCallback)
-    data-dz-action="cancel"      Cancel (runs beforeFileCancelCallback)
+    data-dz-action="cancel"      Cancel (runs beforeFilesCancelCallback)
     data-dz-action="row-action"  pause / resume / retry, chosen by status
 - String rows are re-rendered (replaceWith) on every status/progress change,
   so listeners added by hand are lost each tick; use data-dz-action or the

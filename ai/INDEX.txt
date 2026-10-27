@@ -17,7 +17,7 @@ upload-pipeline.txt      - uploadFileCallback ctx, concurrency, auto-upload, pau
                            resume / retry / cancel rule, retryPolicy, progress-mode,
                            progress-throttle, removal teardown, server cleanup
 validation.txt           - accept, size/count caps, dedupe-mode, validateCallback,
-                           beforeFilesAddCallback, files-reject codes, min-file-count
+                           beforeFilesAddCallback, file-reject codes, min-file-count
 labels-i18n.txt          - the labels input: every key + default, placeholders,
                            JSON attribute, resolveLabel seam
 events-callbacks.txt     - event table, on* twins, ctx/detail context, gates,
@@ -53,7 +53,7 @@ B
 -
 badges (list-appearance) -> display-modes.txt
 batch() / setAttributes() -> basic-setup.txt
-beforeFileCancelCallback -> events-callbacks.txt, upload-pipeline.txt
+beforeFilesCancelCallback -> events-callbacks.txt, upload-pipeline.txt
 beforeFilesAddCallback -> validation.txt, events-callbacks.txt
 beforeFilesRemoveCallback -> events-callbacks.txt
 bindToStore() -> satellites.txt
@@ -101,7 +101,7 @@ file-row-update -> custom-rendering.txt
 fileIcons / getFileIconCallback -> custom-rendering.txt
 files-change -> events-callbacks.txt, advanced-patterns.txt
 files-inside -> display-modes.txt, satellites.txt (inside / nested)
-files-reject / validation codes -> validation.txt
+file-reject / validation codes -> validation.txt
 FileState -> basic-setup.txt, typescript-types.txt
 form / ElementInternals / name -> form-integration.txt
 

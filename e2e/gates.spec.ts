@@ -8,7 +8,7 @@ import { test, expect, dz, addNamed } from './fixtures';
  *
  *   - `beforeFilesAddCallback({ files, existingFiles })` → false | File[] | void
  *     Runs once per add batch AFTER sync validation. Resolving false
- *     fires `files-reject` with `code: 'rejected'`; a File[] replaces
+ *     fires `file-reject` with `code: 'rejected'`; a File[] replaces
  *     the batch (see interaction-model.spec.ts).
  *
  *   - `beforeFilesRemoveCallback({ files, allFiles })` → false | void
@@ -31,7 +31,7 @@ test.describe('beforeFilesAddCallback', () => {
         expect(count).toBe(1);
     });
 
-    test('resolve(false) — files-reject with code="rejected"; store stays empty', async ({ page }) => {
+    test('resolve(false) — file-reject with code="rejected"; store stays empty', async ({ page }) => {
         await addNamed(page, 'add-reject', ['nope.txt']);
         const count = await dz(page, 'add-reject').evaluate((el: any) => el.files.length);
         expect(count).toBe(0);

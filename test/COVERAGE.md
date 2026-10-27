@@ -69,7 +69,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `dedupe-mode="none"` allows duplicates                        | ✓      | `validation-rules.spec.ts` | `validation-rules.html` |
 | `dedupe-mode="name-size"` (across adds and within one batch)  | ✓      | `validation-rules.spec.ts` | `validation-rules.html` |
 | `accept=".pdf,.docx"` extension list, case-insensitive        | ✓      | `validation-rules.spec.ts` | `validation-rules.html` |
-| One batch → one `files-reject` with mixed codes (type/size/count) | ✓  | `validation-rules.spec.ts` | `validation-rules.html` |
+| One batch → one `file-reject` with mixed codes (type/size/count) | ✓  | `validation-rules.spec.ts` | `validation-rules.html` |
 | `beforeFilesAddCallback` async gate (accept)                | ✓      | `gates.spec.ts`      | `gates.html`       |
 | `beforeFilesAddCallback` async gate (cancel, code='cancelled') | ✓   | `gates.spec.ts`      | `gates.html`       |
 | `beforeFilesAddCallback` receives ctx `{ files, existingFiles }` | ✓      | `gates.spec.ts`      | `gates.html`       |
@@ -85,7 +85,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `file-remove` fires with `{ file }`-only detail              | ✓      | `events.spec.ts` | `events.html` |
 | `change` fires with empty detail (native input convention)    | ✓      | `events.spec.ts` | `events.html` |
 | `files-change` rAF-coalesces a multi-file batch              | ✓      | `events.spec.ts` | `events.html` |
-| `files-reject` carries grouped rejections                   | ✓      | `validation.spec.ts`, `validation-rules.spec.ts` | `validation.html`, `validation-rules.html` |
+| `file-reject` carries grouped rejections                   | ✓      | `validation.spec.ts`, `validation-rules.spec.ts` | `validation.html`, `validation-rules.html` |
 | `file-progress` / `file-status-change` during upload         | ✓      | `upload.spec.ts` | `upload.html`  |
 | `file-update` after handler post-merges metadata             | ✓      | `events-extra.spec.ts` | `events-extra.html` |
 | `file-delete` only for files with server state (with `file-remove`; `clear()` too) | ✓ | `events-extra.spec.ts` | `events-extra.html` |
@@ -127,7 +127,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Retry from error re-invokes the handler                       | ✓      | `upload-edge.spec.ts` | `upload-edge.html` |
 | Per-row Pause / Resume / Retry buttons cycle status (UI path) | ✓      | `row-actions.spec.ts` | `row-actions.html` |
 | ⊘ Cancel (uploading / queued / paused; row stays) vs ✕ Remove (always; running → cancel, then remove) | ✓ | `row-actions.spec.ts` | `row-actions.html` |
-| ⊘ asks `beforeFileCancelCallback`; ✕ asks `beforeFilesRemoveCallback` | ✓ | `row-actions.spec.ts` | `row-actions.html` |
+| ⊘ asks `beforeFilesCancelCallback`; ✕ asks `beforeFilesRemoveCallback` | ✓ | `row-actions.spec.ts` | `row-actions.html` |
 | ⊘ / ✕ aria-labels "Cancel / Remove <file>"; ⊘ hidden when nothing to cancel (plain picker too); keyboard Tab + Enter | ✓ | `row-actions.spec.ts` | `row-actions.html` |
 | `cancel-icon` / `remove-icon` HTML glyphs (+ live change)      | ✓      | `row-actions.spec.ts` | `row-actions.html` |
 | ⊘ / ✕ in the list satellite and popover rows                   | ✓      | `row-actions.spec.ts` | `row-actions.html` |
@@ -240,13 +240,13 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Present-tense events; `on*` twin runs first with the same detail | ✓   | `interaction-model.spec.ts`   | `interaction-model.html`  |
 | Events not composed, still bubble to `document`; old names never fire | ✓ | `interaction-model.spec.ts` | `interaction-model.html` |
 | Details / ctx carry `controller` + `element`, non-enumerable  | ✓      | `interaction-model.spec.ts`   | `interaction-model.html`  |
-| `change` detail `{ files }`; `files-reject` / `file-retry` / `file-status-change` context | ✓ | `interaction-model.spec.ts` | `interaction-model.html` |
+| `change` detail `{ files }`; `file-reject` / `file-retry` / `file-status-change` context | ✓ | `interaction-model.spec.ts` | `interaction-model.html` |
 | `ready` (+ twin) on build; `data-ready`; `controller.isReady`  | ✓      | `interaction-model.spec.ts`   | `interaction-model.html`  |
 | `el.controller` stable across a rebuild; no `getStore` / engine | ✓     | `interaction-model.spec.ts`   | `interaction-model.html`  |
 | `beforeFilesAddCallback` — `false` cancels, `File[]` replaces, nothing continues | ✓ | `interaction-model.spec.ts` | `interaction-model.html` |
 | `beforeFilesRemoveCallback` via row ✕ (`data-dz-action="remove"`) | ✓   | `interaction-model.spec.ts`   | `interaction-model.html`  |
 | `validateCallback` / `getFileIconCallback` / `getCustomStylesCallback` ctx | ✓ | `interaction-model.spec.ts` | `interaction-model.html` |
-| `uploadFileCallback(ctx)` + `file-upload-complete` twin       | ✓      | `interaction-model.spec.ts`   | `interaction-model.html`  |
+| `uploadFileCallback(ctx)` + `file-upload` twin       | ✓      | `interaction-model.spec.ts`   | `interaction-model.html`  |
 | Structural render callbacks ctx; `file-row-update` not composed | ✓     | `interaction-model.spec.ts`   | `interaction-model.html`  |
 | `renderRollingBodyCallback` settable as an element input      | ✓      | `interaction-model.spec.ts`   | `interaction-model.html`  |
 | `renderSummaryCallback` + `loadStateCallback` ctx             | ✓      | `interaction-model.spec.ts`   | `interaction-model.html`  |
@@ -373,7 +373,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `cancel-timeout` / `cancel-timeout-behavior` reactive          | ✓      | `cancel.spec.ts` | `cancel.html` |
 | `file-cancel` detail `{ file, result, uploadedBytes, metadata }` + `onFileCancel` twin | ✓ | `cancel.spec.ts` | `cancel.html` |
 | `file-cancel` results `timeout-error` / `timeout-remove`       | ✓      | `cancel.spec.ts` | `cancel.html` |
-| `beforeFileCancelCallback({ files, allFiles })` veto keeps the upload running | ✓ | `cancel.spec.ts` | `cancel.html` |
+| `beforeFilesCancelCallback({ files, allFiles })` veto keeps the upload running | ✓ | `cancel.spec.ts` | `cancel.html` |
 | Removing a running file cancels without the cancel gate (`file-cancel` → `file-remove`) | ✓ | `cancel.spec.ts` | `cancel.html` |
 | `cancelAll()` — uploading / pending / paused cancelled, complete untouched, gate once, resolves after all | ✓ | `cancel.spec.ts` | `cancel.html` |
 | `cancelAll()` veto keeps everything running                    | ✓      | `cancel.spec.ts` | `cancel.html` |

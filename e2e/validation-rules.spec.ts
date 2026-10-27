@@ -130,7 +130,7 @@ test.describe('accept extension list', () => {
 });
 
 test.describe('mixed rejection codes', () => {
-    test('one batch → ONE files-reject carrying every rejected file with its own code', async ({ page }) => {
+    test('one batch → ONE file-reject carrying every rejected file with its own code', async ({ page }) => {
         await stage(page, 'mixed', [
             { name: 'ok1.txt', size: 10 },
             { name: 'pic.png', size: 10, type: 'image/png' },

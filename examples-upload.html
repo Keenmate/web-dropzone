@@ -374,7 +374,7 @@ dropzone.retryPolicy = { attempts: 3, delayMs: 1000, backoff: 2 }</code></pre>
             custom:    'Rejected'
         }
         function wireRejections(dz) {
-            dz.addEventListener('files-reject', (e) => {
+            dz.addEventListener('file-reject', (e) => {
                 const groups = new Map()
                 for (const r of e.detail.rejectedFiles) {
                     const code = r.validation.code || 'custom'
@@ -576,7 +576,7 @@ dropzone.retryPolicy = { attempts: 3, delayMs: 1000, backoff: 2 }</code></pre>
             })
 
             // Toast outcomes + log success / failure.
-            dz.addEventListener('file-upload-complete', (e) => {
+            dz.addEventListener('file-upload', (e) => {
                 const attempts = e.detail.file.metadata?.attempts ?? '?'
                 appendLog('Done', e.detail.file,
                     `total attempts=${attempts} · serverGuid=${e.detail.file.metadata?.serverGuid ?? '?'}`)

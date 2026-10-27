@@ -12,10 +12,10 @@ Every add (drop, picker, overlay, addFiles) runs one pipeline:
        f. total size cap (max-total-size)         code 'size'
   2. beforeFilesAddCallback (once per batch, may be async)
                                                   veto -> code 'rejected'
-  3. commit: file-add per file, change, files-reject (if any), auto-upload
+  3. commit: file-add per file, change, file-reject (if any), auto-upload
 
 Rejected files never enter the list. They are reported together in ONE
-files-reject event per batch.
+file-reject event per batch.
 
 INPUTS
 ------
@@ -102,9 +102,9 @@ dz.beforeFilesAddCallback = async ({ files, existingFiles }) => {
 - throw         -> treated as a veto (logged)
 While pending, the files are not in the list and no file-add fires.
 
-files-reject
+file-reject
 ------------
-dz.addEventListener('files-reject', (e) => {
+dz.addEventListener('file-reject', (e) => {
   for (const { file, validation } of e.detail.rejectedFiles) {
     // file: native File
     // validation: { valid: false, error: string, code }

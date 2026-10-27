@@ -658,7 +658,7 @@ export class DropzoneListElement extends SatelliteElement {
             return;
         }
 
-        // Cancel (⊘) — asks `beforeFileCancelCallback`; the row stays as
+        // Cancel (⊘) — asks `beforeFilesCancelCallback`; the row stays as
         // `cancelled` (Retry available).
         const cancelBtn = target.closest<HTMLElement>('[data-dz-action="cancel"]');
         if (cancelBtn) {

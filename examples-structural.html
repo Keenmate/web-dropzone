@@ -25,7 +25,7 @@
   const el = document.getElementById('x')
   // Every callback takes ONE ctx (+ ctx.controller / ctx.element)
   el.renderPromptCallback      = (ctx)                                       =&gt; '...'  // dropzone prompt
-  el.renderFileItemCallback    = ({ file, index, displayMode, isInPopover }) =&gt; '...'  // one file row
+  el.renderFileItemCallback    = ({ file, fileIndex, displayMode, isInPopover }) =&gt; '...'  // one file row
   el.renderListWrapperCallback = ({ rowsHtml, files })                       =&gt; '...'  // wraps the rows
   el.renderSummaryCallback     = ({ files })                                 =&gt; '...'  // compact-mode summary
 &lt;/script&gt;</code></pre>
@@ -76,7 +76,7 @@
         <!-- FILE ITEM -->
         <div class="card">
             <h2>SR03 · Custom File Item (<code>renderFileItemCallback</code>)</h2>
-            <p>Each call receives one <code>ctx</code>: the <code>file</code> (<code>FileState</code>), its render position (<code>index</code>, <code>displayMode</code>, <code>isInPopover</code>) and <code>controller</code> / <code>element</code>. Return a string or an <code>HTMLElement</code>.</p>
+            <p>Each call receives one <code>ctx</code>: the <code>file</code> (<code>FileState</code>), its render position (<code>fileIndex</code>, <code>displayMode</code>, <code>isInPopover</code>) and <code>controller</code> / <code>element</code>. Return a string or an <code>HTMLElement</code>.</p>
 
             <div class="form-group">
                 <label>Receipts list with date + currency formatting</label>

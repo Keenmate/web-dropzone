@@ -1274,7 +1274,7 @@ store.addEventListener('files-change', (e) =&gt; {
                 addLogRow('file-remove', e.detail.file.name);
             });
             dzModeB.addEventListener('file-status-change', (e) => {
-                addLogRow('file-status-change', `${e.detail.id.slice(-6)}: ${e.detail.prevStatus} → ${e.detail.nextStatus}`);
+                addLogRow('file-status-change', `${e.detail.id.slice(-6)}: ${e.detail.oldStatus} → ${e.detail.newStatus}`);
             });
             // Don't flood with file-progress — sample every 20%.
             const lastProgress = new Map();

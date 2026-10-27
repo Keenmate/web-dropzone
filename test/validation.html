@@ -45,7 +45,7 @@
         const wire = (id, logId) => {
             const dz = document.getElementById(id);
             const log = document.getElementById(logId);
-            dz.addEventListener('files-reject', (e) => {
+            dz.addEventListener('file-reject', (e) => {
                 for (const r of e.detail.rejectedFiles) {
                     log.textContent += `${r.validation.code} ${r.file.name}\n`;
                 }

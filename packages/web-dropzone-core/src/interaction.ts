@@ -38,7 +38,7 @@ export interface ValidateContext extends DropzoneContext {
 
 /**
  * `beforeFilesAddCallback(ctx)` — once per add batch, after validation.
- * Return `false` to cancel (the files are reported in `files-reject` with
+ * Return `false` to cancel (the files are reported in `file-reject` with
  * `code: 'rejected'`), a `File[]` to add those instead (validated again,
  * the hook is not re-run), or nothing to continue. May be async.
  */
@@ -62,13 +62,13 @@ export interface BeforeFilesRemoveContext extends DropzoneContext {
 }
 
 /**
- * `beforeFileCancelCallback(ctx)` — before a cancel: `cancelFile(id)` / the
+ * `beforeFilesCancelCallback(ctx)` — before a cancel: `cancelFile(id)` / the
  * row Cancel button (`files` = `[file]`) and `cancelAll()` / "Cancel all"
  * (once, `files` = every file being cancelled). Return `false` to veto (the
  * uploads keep running). May be async. Internal cancels — removing a running
  * file, the element being removed from the page — don't ask.
  */
-export interface BeforeFileCancelContext extends DropzoneContext {
+export interface BeforeFilesCancelContext extends DropzoneContext {
     /** The files about to be cancelled. */
     files: FileState[];
     /** Every file currently in the dropzone. */
@@ -129,7 +129,7 @@ export interface FileItemRenderContext extends DropzoneContext {
     /** The file to render. */
     file: FileState;
     /** Index of the file in the rendered list. */
-    index: number;
+    fileIndex: number;
     /** The display mode (from `display-mode`, or derived from `list-appearance`). */
     displayMode: DisplayMode;
     /** Whether the row renders inside the compact popover. */
@@ -184,8 +184,8 @@ export interface ChangeEventDetail extends DropzoneContext {
     files: FileState[];
 }
 
-/** `files-reject` — files failed validation or the add was cancelled. */
-export interface FilesRejectEventDetail extends DropzoneContext {
+/** `file-reject` — files failed validation or the add was cancelled. */
+export interface FileRejectEventDetail extends DropzoneContext {
     rejectedFiles: RejectedFile[];
 }
 
@@ -194,8 +194,8 @@ export interface FileRetryEventDetail extends DropzoneContext {
     file: FileState;
 }
 
-/** `file-upload-complete` — `uploadFileCallback` resolved for a file. */
-export interface FileUploadCompleteEventDetail extends DropzoneContext {
+/** `file-upload` — `uploadFileCallback` resolved for a file. */
+export interface FileUploadEventDetail extends DropzoneContext {
     file: FileState;
 }
 
@@ -232,11 +232,11 @@ export interface FileProgressEventDetail extends DropzoneContext {
     file: FileState;
 }
 
-/** `file-status-change` — a file's status transitioned (`prevStatus !== nextStatus`). */
+/** `file-status-change` — a file's status transitioned (`oldStatus !== newStatus`). */
 export interface FileStatusChangeEventDetail extends DropzoneContext {
     id: string;
-    prevStatus: FileState['status'];
-    nextStatus: FileState['status'];
+    oldStatus: FileState['status'];
+    newStatus: FileState['status'];
     file: FileState;
 }
 
@@ -278,9 +278,9 @@ export type DropzoneEventMap = {
     'file-remove': FileRemoveEventDetail;
     'files-change': FilesChangeEventDetail;
     'change': ChangeEventDetail;
-    'files-reject': FilesRejectEventDetail;
+    'file-reject': FileRejectEventDetail;
     'file-retry': FileRetryEventDetail;
-    'file-upload-complete': FileUploadCompleteEventDetail;
+    'file-upload': FileUploadEventDetail;
     'file-delete': FileDeleteEventDetail;
     'file-cancel': FileCancelEventDetail;
     'file-progress': FileProgressEventDetail;

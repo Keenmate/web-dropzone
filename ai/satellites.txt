@@ -105,7 +105,7 @@ percent + bulk buttons:
   Pause all    store has uploadFileCallback and something is uploading
   Resume all   store has uploadFileCallback and something is paused
   Cancel all   store has uploadFileCallback and something is uploading /
-               queued / paused (asks beforeFileCancelCallback once)
+               queued / paused (asks beforeFilesCancelCallback once)
   Retry all    any file failed (error or cancelled)
 Auto-hides when there is no activity (data-empty="true").
 Host attribute data-status = uploading | paused | error | complete.

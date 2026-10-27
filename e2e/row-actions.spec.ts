@@ -119,10 +119,10 @@ test.describe('remove ✕', () => {
         await expect(row(page, 'rows', 'keep.txt')).toHaveCount(1);
     });
 
-    test('⊘ asks beforeFileCancelCallback (veto → keeps uploading)', async ({ page }) => {
+    test('⊘ asks beforeFilesCancelCallback (veto → keeps uploading)', async ({ page }) => {
         await addNamed(page, 'rows', ['v.txt']);
         await expect.poll(() => status(page, 'rows', 'v.txt')).toBe('uploading');
-        await dz(page, 'rows').evaluate((el: any) => { el.beforeFileCancelCallback = () => false; });
+        await dz(page, 'rows').evaluate((el: any) => { el.beforeFilesCancelCallback = () => false; });
         await cancelBtn(page, 'rows', 'v.txt').click();
         await page.waitForTimeout(100);
         expect(await status(page, 'rows', 'v.txt')).toBe('uploading');

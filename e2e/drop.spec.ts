@@ -6,7 +6,7 @@ import { test, expect, dz, dragFiles, logLines } from './fixtures';
  * target is `.dz__dropzone` in the picker's shadow root.
  *
  * Fixture: test/drop.html. `#drop` is a card with accept=".txt" and
- * max-file-count="3"; file-add / files-reject / change log into `drop-log`.
+ * max-file-count="3"; file-add / file-reject / change log into `drop-log`.
  * `#drop-btn` checks the button appearance is a drop target as well.
  * Drags are synthetic (`dragFiles`, real File objects in a DataTransfer).
  */
@@ -58,7 +58,7 @@ test.describe('drop', () => {
         await dragFiles(c, 'drop', ['a.txt', 'pic.png', 'b.txt', 'c.txt', 'd.txt']);
         await expect.poll(() => names(page, 'drop')).toEqual(['a.txt', 'b.txt', 'c.txt']);
         const lines = await logLines(page, 'drop');
-        const reject = lines.find((l) => l.startsWith('files-reject:'));
+        const reject = lines.find((l) => l.startsWith('file-reject:'));
         expect(reject).toBeDefined();
         expect(reject).toContain('pic.png=type');
         expect(reject).toContain('d.txt=count');

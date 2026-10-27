@@ -27,12 +27,12 @@ EVENT TABLE (<web-dropzone>)
 | file-remove          | onFileRemove         | { file }                                      |
 | change               | onChange             | { files }                                     |
 | files-change         | onFilesChange        | { changedIds, files }                         |
-| files-reject         | onFilesReject        | { rejectedFiles: [{ file, validation }] }     |
+| file-reject         | onFileReject        | { rejectedFiles: [{ file, validation }] }     |
 | file-progress        | onFileProgress       | { id, progress, status, file }                |
-| file-status-change   | onFileStatusChange   | { id, prevStatus, nextStatus, file }          |
+| file-status-change   | onFileStatusChange   | { id, oldStatus, newStatus, file }          |
 | file-update          | onFileUpdate         | { file }                                      |
 | file-retry           | onFileRetry          | { file }                                      |
-| file-upload-complete | onFileUploadComplete | { file }                                      |
+| file-upload | onFileUpload | { file }                                      |
 | file-cancel          | onFileCancel         | { file, result, uploadedBytes, metadata }     |
 | file-delete          | onFileDelete         | { file }                                      |
 | overlay-enter        | onOverlayEnter       | { overlayElement }                            |
@@ -40,7 +40,7 @@ EVENT TABLE (<web-dropzone>)
 | ready                | onReady              | context only (controller, element)            |
 
 `file` is a FileState (id, file, name, size, type, status, progress, error,
-previewUrl, downloadUrl, metadata, ...). In files-reject, `file` is the native
+previewUrl, downloadUrl, metadata, ...). In file-reject, `file` is the native
 File (it never entered the list).
 
 WHEN EACH FIRES
@@ -53,16 +53,16 @@ change              once per add batch / removal batch. Re-stamps the form value
 files-change        at most once per animation frame: ids touched since the last
                     tick (alive or removed) + full snapshot. Best channel for
                     reactive renderers.
-files-reject        validation failures, or a beforeFilesAddCallback veto
+file-reject        validation failures, or a beforeFilesAddCallback veto
                     (code 'rejected'). One event per batch.
 file-progress       progress value changed (also the 0->100 jump on complete).
                     Rate-limited by progress-throttle.
-file-status-change  prevStatus !== nextStatus guaranteed.
+file-status-change  oldStatus !== newStatus guaranteed.
 file-update         a field other than progress/status changed: previewUrl
                     generated, or the upload result merged (metadata,
                     downloadUrl, previewUrl, name).
 file-retry          a failed / cancelled file was re-queued (status already 'pending').
-file-upload-complete  uploadFileCallback resolved.
+file-upload  uploadFileCallback resolved.
 file-cancel         a cancel FINISHED (see below).
 file-delete         fires together with file-remove when the removed file has
                     server-side state: status 'complete', OR non-empty metadata
@@ -116,10 +116,10 @@ CALLBACK TABLE
 | validateCallback           | { file, existingFiles }                | ValidationResult (SYNC)                  |
 | beforeFilesAddCallback     | { files, existingFiles }               | false | File[] | void (may be async)     |
 | beforeFilesRemoveCallback  | { files, allFiles }                    | false | void (may be async)              |
-| beforeFileCancelCallback   | { files, allFiles }                    | false | void (may be async)              |
+| beforeFilesCancelCallback   | { files, allFiles }                    | false | void (may be async)              |
 | uploadFileCallback         | { file, signal, setProgress, startBytes, startPercent, metadata, setMetadata, uploadMetadata } | Promise<void | FileUploadResult> |
 | getFileIconCallback        | { file }                               | HTML string | null                       |
-| renderFileItemCallback     | { file, index, displayMode, isInPopover } | string | HTMLElement (structural)  |
+| renderFileItemCallback     | { file, fileIndex, displayMode, isInPopover } | string | HTMLElement (structural)  |
 | renderListWrapperCallback  | { rowsHtml, files }                    | string | HTMLElement (structural)        |
 | renderPromptCallback       | context only                           | string | HTMLElement (structural)        |
 | renderSummaryCallback      | { files }                              | string | HTMLElement (structural)        |
@@ -133,7 +133,7 @@ Non-callback object inputs (property-only): retryPolicy, fileIcons.
 GATES IN DETAIL
 ---------------
 beforeFilesAddCallback - once per add batch, AFTER validation:
-  false     -> files reported in files-reject with code 'rejected'
+  false     -> files reported in file-reject with code 'rejected'
   File[]    -> replaces the batch (validated again; the hook is not re-run)
   nothing   -> continue
 While its promise is pending, files are NOT in the list (no file-add).
@@ -150,11 +150,11 @@ programmatic removeFile / removeFiles / clear only with { confirm: true }
 dz.beforeFilesRemoveCallback = ({ files }) =>
   files.some(f => f.status === 'complete') ? confirm('Remove uploaded files?') || false : undefined;
 
-beforeFileCancelCallback - cancelFile(id) / row Cancel ask with [file];
+beforeFilesCancelCallback - cancelFile(id) / row Cancel ask with [file];
 cancelAll() / "Cancel all" ask ONCE with every file being cancelled.
 NOT asked for internal cancels (Remove on a running file, element removal).
 
-dz.beforeFileCancelCallback = async ({ files }) =>
+dz.beforeFilesCancelCallback = async ({ files }) =>
   (await confirmDialog(`Stop ${files.length} upload(s)?`)) ? undefined : false;
 
 Only `false` cancels - undefined / true / anything else continues.
@@ -165,7 +165,7 @@ dz.onFileAdd = ({ file, controller }) => {
   if (controller.getFiles().length > 20) controller.removeFile(file.id);
 };
 
-dz.onFilesReject = ({ rejectedFiles, element }) => {
+dz.onFileReject = ({ rejectedFiles, element }) => {
   element.dispatchEvent(new CustomEvent('toast', { bubbles: true,
     detail: rejectedFiles.map(r => `${r.file.name}: ${r.validation.error}`) }));
 };
@@ -186,11 +186,11 @@ Do not depend on them.
 
 ORDERING NOTES
 --------------
-- Add: file-add (per file) -> change -> files-reject (if any) -> (auto-upload starts).
+- Add: file-add (per file) -> change -> file-reject (if any) -> (auto-upload starts).
 - Remove: [cancel running uploads first] -> file-remove (+ file-delete) per file
   -> change.
 - Upload success: [file-update if result merged] -> file-status-change
-  (uploading->complete) + file-progress -> file-upload-complete.
+  (uploading->complete) + file-progress -> file-upload.
 - files-change is asynchronous (next frame); everything else is synchronous
   with the state change.
 

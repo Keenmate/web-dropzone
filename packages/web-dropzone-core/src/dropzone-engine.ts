@@ -587,16 +587,16 @@ export class DropzoneEngine {
         const file = this.files.find(f => f.id === id);
         if (!file) return;
         const clamped = Math.max(0, Math.min(100, progress));
-        let nextStatus = file.status;
+        let newStatus = file.status;
         if (clamped > 0 && clamped < 100 && file.status === 'pending') {
-            nextStatus = 'uploading';
+            newStatus = 'uploading';
         } else if (clamped === 100 && file.status === 'uploading') {
-            nextStatus = 'complete';
+            newStatus = 'complete';
         }
         // Row patch is event-driven now — `mutateFileState` emits
         // `file-progress` (and `file-status-change` when status flips);
         // the renderer's listener on the host element does the DOM write.
-        this.mutateFileState(file, { progress: clamped, status: nextStatus });
+        this.mutateFileState(file, { progress: clamped, status: newStatus });
         fileLogger.debug('File progress updated', { id, progress: file.progress, status: file.status });
     }
 
@@ -643,7 +643,7 @@ export class DropzoneEngine {
         file: FileState,
         patch: { status?: FileState['status']; progress?: number }
     ): void {
-        const prevStatus = file.status;
+        const oldStatus = file.status;
         const prevProgress = file.progress;
 
         if (patch.status !== undefined) file.status = patch.status;
@@ -651,15 +651,15 @@ export class DropzoneEngine {
             file.progress = Math.max(0, Math.min(100, patch.progress));
         }
 
-        if (file.status !== prevStatus) {
+        if (file.status !== oldStatus) {
             // Crossing the `complete` boundary (re)starts the delayed visual
             // reorder — here, not in a renderer, so every surface (in-class
             // list, popover, `<web-dropzone-list>` satellite) gets it.
             if (this.config.shouldSinkCompleted &&
-                (prevStatus === 'complete' || file.status === 'complete')) {
+                (oldStatus === 'complete' || file.status === 'complete')) {
                 this.scheduleReorder(file.id, file.status === 'complete');
             }
-            this.emitFileStatusChanged(file, prevStatus, file.status);
+            this.emitFileStatusChanged(file, oldStatus, file.status);
         }
         if (file.progress !== prevProgress) {
             this.emitFileProgress(file);
@@ -892,17 +892,17 @@ export class DropzoneEngine {
     }
 
     /**
-     * Run `beforeFileCancelCallback` (if set) for `files`; `true` = proceed.
+     * Run `beforeFilesCancelCallback` (if set) for `files`; `true` = proceed.
      * Core `runBeforeCallback` contract: one ctx, may be async, `false` (or a
      * throw) vetoes.
      */
     protected async askCancel(files: FileState[]): Promise<boolean> {
-        const gate = this.config.beforeFileCancelCallback;
+        const gate = this.config.beforeFilesCancelCallback;
         if (!gate) return true;
         const result = await runBeforeCallback(
             gate,
             this.ctx({ files, allFiles: this.getFiles() }),
-            'beforeFileCancelCallback'
+            'beforeFilesCancelCallback'
         );
         return !result.isRejected;
     }
@@ -979,7 +979,7 @@ export class DropzoneEngine {
     /**
      * Cancel every `uploading` / `pending` / `paused` file (complete / error
      * / cancelled files are untouched; `cancelling` ones are joined). Asks
-     * `beforeFileCancelCallback` ONCE with every file being cancelled.
+     * `beforeFilesCancelCallback` ONCE with every file being cancelled.
      * Resolves when every cancel finished (see {@link cancelFile}).
      */
     async cancelAll(): Promise<void> {
@@ -1652,7 +1652,7 @@ export class DropzoneEngine {
     }
 
     protected emitRejectEvent(rejectedFiles: RejectedFile[]): void {
-        this.notify('files-reject', { rejectedFiles });
+        this.notify('file-reject', { rejectedFiles });
     }
 
     protected emitRetryEvent(file: FileState): void {
@@ -1660,7 +1660,7 @@ export class DropzoneEngine {
     }
 
     protected emitUploadedEvent(file: FileState): void {
-        this.notify('file-upload-complete', { file });
+        this.notify('file-upload', { file });
     }
 
     /** `file-cancel` — a cancel finished (see {@link cancelFile}). */
@@ -1692,16 +1692,16 @@ export class DropzoneEngine {
 
     /**
      * Substrate event — fires whenever a file's status transitions.
-     * `prevStatus !== nextStatus` is guaranteed (no-op mutations are
+     * `oldStatus !== newStatus` is guaranteed (no-op mutations are
      * suppressed in `mutateFileState`).
      */
     protected emitFileStatusChanged(
         file: FileState,
-        prevStatus: FileState['status'],
-        nextStatus: FileState['status']
+        oldStatus: FileState['status'],
+        newStatus: FileState['status']
     ): void {
         this.notify('file-status-change', {
-            id: file.id, prevStatus, nextStatus, file
+            id: file.id, oldStatus, newStatus, file
         });
         this.markFilesChanged(file.id);
     }

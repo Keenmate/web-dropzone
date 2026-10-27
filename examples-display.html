@@ -625,7 +625,7 @@ startBtn.addEventListener('click', () =&gt; dz.uploadAll())
 
             <div class="note">
                 <div class="note-title">Tip</div>
-                <p>Files that don't match <code>accept</code> are rejected at validation time and surface via the <code>files-reject</code> event — see <a href="examples-validation.html">Validation</a>.</p>
+                <p>Files that don't match <code>accept</code> are rejected at validation time and surface via the <code>file-reject</code> event — see <a href="examples-validation.html">Validation</a>.</p>
             </div>
         </div>
 
@@ -675,7 +675,7 @@ startBtn.addEventListener('click', () =&gt; dz.uploadAll())
 
 el.addEventListener('file-add',     e => console.log('added',    e.detail))
 el.addEventListener('file-remove',   e => console.log('removed',  e.detail))
-el.addEventListener('files-reject', e => console.log('rejected', e.detail))
+el.addEventListener('file-reject', e => console.log('rejected', e.detail))
 el.addEventListener('change',         e => console.log('change',   e.detail))
 
 el.addFiles(fileList)        // programmatic add (FileList or File[])
@@ -743,7 +743,7 @@ el.getFileIconCallback = ({ file }) =&gt;
         };
         for (const dz of document.querySelectorAll('web-dropzone')) {
             dz.uploadFileCallback = simulateUpload({ bucket: 'display', durationMs: 3000, failRate: 0.2 });
-            dz.addEventListener('files-reject', (e) => {
+            dz.addEventListener('file-reject', (e) => {
                 const groups = new Map();
                 for (const r of e.detail.rejectedFiles) {
                     const code = r.validation.code || 'custom';
@@ -779,7 +779,7 @@ el.getFileIconCallback = ({ file }) =&gt;
         }
         apiEl.addEventListener('file-add',     e => append(`+ added    ${e.detail.file.name}`))
         apiEl.addEventListener('file-remove',   e => append(`- removed  ${e.detail.file.name}`))
-        apiEl.addEventListener('files-reject', e => append(`! rejected ${e.detail.rejectedFiles.length} file(s)`))
+        apiEl.addEventListener('file-reject', e => append(`! rejected ${e.detail.rejectedFiles.length} file(s)`))
         apiEl.addEventListener('change',         e => append(`~ change   now ${e.target.files.length} file(s)`))
 
         window.logFiles = () => {

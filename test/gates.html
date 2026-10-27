@@ -47,7 +47,7 @@
 
             const rejectEl = document.getElementById('add-reject');
             rejectEl.beforeFilesAddCallback = async () => false;
-            rejectEl.addEventListener('files-reject', (e) => {
+            rejectEl.addEventListener('file-reject', (e) => {
                 const log = document.getElementById('add-reject-log');
                 for (const r of e.detail.rejectedFiles) {
                     log.textContent += `${r.validation.code} ${r.file.name}\n`;

@@ -67,9 +67,9 @@ ROLES & STATES
   from events if you need it:
 
   const live = document.getElementById('sr-status');   // <div aria-live="polite" class="sr-only">
-  dz.onFilesReject = ({ rejectedFiles }) =>
+  dz.onFileReject = ({ rejectedFiles }) =>
     live.textContent = rejectedFiles.map(r => `${r.file.name}: ${r.validation.error}`).join('. ');
-  dz.onFileUploadComplete = ({ file }) => live.textContent = `${file.name} uploaded`;
+  dz.onFileUpload = ({ file }) => live.textContent = `${file.name} uploaded`;
 
 DRAG AND DROP
 -------------

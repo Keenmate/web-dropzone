@@ -104,7 +104,7 @@ CANCEL RULE
 cancelFile(id) applies to uploading / pending / paused files; a file already
 'cancelling' joins the running cancel (no second gate). Anything else: no-op.
 
-1. beforeFileCancelCallback({ files: [file], allFiles }) - false vetoes.
+1. beforeFilesCancelCallback({ files: [file], allFiles }) - false vetoes.
 2. Nothing running (pending, paused, between retry attempts, app-driven) ->
    'cancelled' immediately.
 3. Handler running -> status 'cancelling', its signal aborts, the cancel waits
@@ -194,7 +194,7 @@ ELEMENT REMOVAL TEARDOWN
 Removing <web-dropzone> from the page (still detached one frame after
 disconnect - a DOM move never triggers it):
   1. every upload is cancelled by the cancel rule (handlers get their signal +
-     cancel-timeout; file-cancel fires; NO beforeFileCancelCallback),
+     cancel-timeout; file-cancel fires; NO beforeFilesCancelCallback),
   2. then the store is destroyed.
 Re-adding it later builds a fresh, empty store. Re-adding while cancels are
 still settling keeps the store (uploads cancelled).

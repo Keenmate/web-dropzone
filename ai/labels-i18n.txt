@@ -138,7 +138,7 @@ These are currently hard-coded English (not overridable through labels):
   progress strip counts ("3 of 5 · ... · 1 paused · 2 failed");
   indicator chip ("N failed / uploading / paused / queued / done",
   aria-label "Upload status", drawer "Upload queue", "Close");
-  validation error messages (map files-reject `validation.code` instead).
+  validation error messages (map file-reject `validation.code` instead).
 For full control of those, use structural / headless rendering.
 
 REMOVED IN 1.0.0-rc03

@@ -38,7 +38,7 @@
         import { installAddNamed, logEvents } from './fixture-kit.js';
         installAddNamed();
 
-        logEvents(document.getElementById('caps'), ['file-add', 'files-reject'],
+        logEvents(document.getElementById('caps'), ['file-add', 'file-reject'],
             document.querySelector('[data-testid="caps-log"]'));
         const flipLog = document.querySelector('[data-testid="flip-log"]');
         document.getElementById('flip').addEventListener('ready', () => { flipLog.textContent += 'ready:\n'; });

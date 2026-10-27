@@ -69,7 +69,7 @@ test.describe('events + on* twins', () => {
         expect(JSON.parse(change.json).files).toHaveLength(1);
     });
 
-    test('file-remove / files-reject / file-retry / file-status-change carry the context', async ({ page }) => {
+    test('file-remove / file-reject / file-retry / file-status-change carry the context', async ({ page }) => {
         await addNamed(page, 'events', ['a.txt']);
         await page.evaluate(() => {
             const el = document.getElementById('events') as any;
@@ -86,9 +86,9 @@ test.describe('events + on* twins', () => {
         // Rejection: maxFileCount 1 → the second file is rejected with code "count".
         await page.evaluate(() => { (document.getElementById('events') as any).maxFileCount = 1; });
         await addNamed(page, 'events', ['x.txt', 'y.txt']);
-        await expect.poll(async () => (await logOf(page)).includes('twin:files-reject')).toBe(true);
-        await expectContext(page, 'twin:files-reject');
-        expect(JSON.parse((await checkOf(page, 'twin:files-reject')).json).rejectedFiles[0].validation.code).toBe('count');
+        await expect.poll(async () => (await logOf(page)).includes('twin:file-reject')).toBe(true);
+        await expectContext(page, 'twin:file-reject');
+        expect(JSON.parse((await checkOf(page, 'twin:file-reject')).json).rejectedFiles[0].validation.code).toBe('count');
     });
 
     test('ready fires on build with the context; the ready attribute, :state(ready) + controller.isReady follow', async ({ page }) => {
@@ -146,7 +146,7 @@ test.describe('el.controller (replaces getStore)', () => {
 });
 
 test.describe('beforeFilesAddCallback({ files, existingFiles })', () => {
-    test('false cancels → files-reject with code "rejected"', async ({ page }) => {
+    test('false cancels → file-reject with code "rejected"', async ({ page }) => {
         await page.evaluate(() => { (window as any).__addMode = 'cancel'; });
         await addNamed(page, 'add-gate', ['a.txt']);
         const log = await logOf(page);
@@ -214,7 +214,7 @@ test.describe('beforeFilesRemoveCallback / validateCallback / getFileIconCallbac
 });
 
 test.describe('uploadFileCallback(ctx)', () => {
-    test('one ctx: file, signal, setProgress, resume state; file-upload-complete twin', async ({ page }) => {
+    test('one ctx: file, signal, setProgress, resume state; file-upload twin', async ({ page }) => {
         await addNamed(page, 'upload', ['up.txt']);
         await expect.poll(async () => (await logOf(page)).some(l => l.startsWith('upload up.txt'))).toBe(true);
         expect(await logOf(page)).toContain('upload up.txt startBytes=0 startPercent=0 signal=true');
@@ -225,7 +225,7 @@ test.describe('uploadFileCallback(ctx)', () => {
 
         await page.evaluate(() => (window as any).__finish('up.txt'));
         await expect.poll(async () => (await logOf(page)).includes('complete up.txt meta=42')).toBe(true);
-        await expectContext(page, 'twin:file-upload-complete');
+        await expectContext(page, 'twin:file-upload');
     });
 });
 

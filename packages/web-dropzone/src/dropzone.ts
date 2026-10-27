@@ -781,7 +781,7 @@ export class WebDropzone extends DropzoneEngine {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const id = btn.dataset.fileId;
-                if (id) void this.cancelFile(id); // asks beforeFileCancelCallback
+                if (id) void this.cancelFile(id); // asks beforeFilesCancelCallback
             });
         });
     }
@@ -827,7 +827,7 @@ export class WebDropzone extends DropzoneEngine {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const id = (btn as HTMLElement).dataset.fileId;
-                if (id) void this.cancelFile(id); // asks beforeFileCancelCallback
+                if (id) void this.cancelFile(id); // asks beforeFilesCancelCallback
             });
         });
     }
@@ -1241,7 +1241,7 @@ export class WebDropzone extends DropzoneEngine {
         const { listAppearance } = resolveDisplayConfig(this.config);
         if (this.isStructuralMode() && this.config.renderFileItemCallback) {
             const displayMode = this.config.displayMode ?? this.deriveLegacyDisplayMode(listAppearance);
-            return this.config.renderFileItemCallback(this.ctx({ file, index, displayMode, isInPopover: false }));
+            return this.config.renderFileItemCallback(this.ctx({ file, fileIndex: index, displayMode, isInPopover: false }));
         }
         // Fall through to the string-only path — same selection logic as
         // renderFileItem, popover branch removed.
@@ -1511,7 +1511,7 @@ export class WebDropzone extends DropzoneEngine {
         // derived from listAppearance.
         if (this.isStructuralMode() && this.config.renderFileItemCallback) {
             const displayMode = this.config.displayMode ?? this.deriveLegacyDisplayMode(listAppearance);
-            const result = this.config.renderFileItemCallback(this.ctx({ file, index, displayMode, isInPopover }));
+            const result = this.config.renderFileItemCallback(this.ctx({ file, fileIndex: index, displayMode, isInPopover }));
             return typeof result === 'string' ? result : result.outerHTML;
         }
 
@@ -1690,8 +1690,8 @@ export class WebDropzone extends DropzoneEngine {
         const iconEl = this.summaryEl.querySelector('.dz__summary__icon') as HTMLElement | null;
         if (!iconEl) return;
         const overall = this.getOverallProgress();
-        const nextStatus = overall.hasActivity ? overall.aggregateStatus : 'pending';
-        if (iconEl.dataset.status === nextStatus) return;
+        const newStatus = overall.hasActivity ? overall.aggregateStatus : 'pending';
+        if (iconEl.dataset.status === newStatus) return;
         iconEl.outerHTML = this.renderSummaryIcon();
     }
 

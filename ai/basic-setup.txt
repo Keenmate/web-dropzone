@@ -90,7 +90,7 @@ dz.addEventListener('change', (e) => {
   console.log('Files now:', e.detail.files);
 });
 
-dz.addEventListener('files-reject', (e) => {
+dz.addEventListener('file-reject', (e) => {
   for (const { file, validation } of e.detail.rejectedFiles) {
     console.log(file.name, validation.code, validation.error);
   }

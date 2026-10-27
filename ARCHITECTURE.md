@@ -63,8 +63,8 @@ The renderer talks to the core through exactly two surfaces — nothing else.
 
 1. **TypeScript:** the `DropzoneController` facade in [`packages/web-dropzone-core/src/controller.ts`](./packages/web-dropzone-core/src/controller.ts) — `el.controller`, and the `controller` on every event detail / callback ctx. Read methods (`getFiles`, `getConfig`, `getOverallProgress`, `isReady`, …) plus mutators (`addFiles`, `removeFile`, `clear`, `pauseFile`, `resumeFile`, `retryFile`, `setFileStatus`, `updateFileProgress`, …). It is built once and delegates to the store's CURRENT engine, so it survives rebuilds. Every satellite stores `store: DropzoneController` (`storeEl.controller`), never the engine. Custom satellites do the same.
 2. **DOM CustomEvents** dispatched on the store element — bubbling, **not composed** (web-components-core SPEC §12.5); each has a camelCase `on*` twin receiving the same detail, and every detail carries `controller` / `element` (non-enumerable):
-   - **Per-file:** `file-add`, `file-remove`, `file-progress`, `file-status-change`, `file-update`, `file-retry`, `file-upload-complete`, `file-delete`.
-   - **Batch / aggregate:** `change` (`{ files }`), `files-change`, `files-reject`.
+   - **Per-file:** `file-add`, `file-remove`, `file-progress`, `file-status-change`, `file-update`, `file-retry`, `file-upload`, `file-delete`.
+   - **Batch / aggregate:** `change` (`{ files }`), `files-change`, `file-reject`.
    - **Lifecycle:** `ready` (fires after every store build; satellites use it — with `controller.isReady` — to resolve their `for=` reference race-free).
    - **Drag:** `overlay-enter`, `overlay-leave`.
 
@@ -204,7 +204,7 @@ We ship the architecture in stages. Each stage compiles, each leaves the existin
 
 | # | Stage | What it delivers | Status |
 |---|---|---|---|
-| 1 | **Granular store events** | `file-progress` (per-tick: id, progress, status) and `file-status-change` (id, prevStatus, nextStatus) dispatched on the store element (bubbling; not composed since the interaction-model release). Substrate for satellites. No rendering changes. | done |
+| 1 | **Granular store events** | `file-progress` (per-tick: id, progress, status) and `file-status-change` (id, oldStatus, newStatus) dispatched on the store element (bubbling; not composed since the interaction-model release). Substrate for satellites. No rendering changes. | done |
 | 2 | **Picker satellite** | Introduce `<web-dropzone-picker for=>` — card / button / minimal appearances, drag-drop + click-to-browse, contributes to a store via `addFiles`. The existing `<web-dropzone selector-appearance=…>` convenience form continues to render its own internal picker (separate code path, kept for back-compat). | done |
 | 3 | **List satellite** | Introduce `<web-dropzone-list for=>` — list / detailed / grid / badges appearances, in-place row patching on `file-progress` / `file-status-change` ticks, pause/resume/cancel/retry/remove actions wired through to the store. Rolling/popover appearances deferred (the existing convenience form still covers them inside `<web-dropzone>`). | done |
 | 4 | **Indicator + drawer** | New satellite `<web-dropzone-indicator for=>`. Floating chip showing "N uploading / N% / N failed" with state-coloured styling, anchored to a screen edge (`position="right\|left\|top\|bottom"`). Click → slide-out drawer that embeds a `<web-dropzone-list>` for the full queue view — no list rendering is duplicated. | done |

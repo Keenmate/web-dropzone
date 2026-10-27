@@ -27,8 +27,8 @@ class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneController>
   overlayTarget: HTMLElement | string | null
   labels: Partial<DropzoneLabels> | null
   // + one accessor per input configKey (accept, maxFileSize, uploadFileCallback, ...)
-  // + on* twins: onFileAdd, onFileRemove, onFilesChange, onChange, onFilesReject,
-  //   onFileRetry, onFileUploadComplete, onFileDelete, onFileCancel,
+  // + on* twins: onFileAdd, onFileRemove, onFilesChange, onChange, onFileReject,
+  //   onFileRetry, onFileUpload, onFileDelete, onFileCancel,
   //   onFileProgress, onFileStatusChange, onFileUpdate, onOverlayEnter,
   //   onOverlayLeave, onReady   -> ((detail) => void) | null
   addFiles(files: FileList | File[]): Promise<void>
@@ -51,7 +51,7 @@ Note: element addFiles has no opts; Mode B opts go through
 el.controller.addFiles(files, opts).
 
 IMPORTANT: the per-input accessors (accept, maxFileSize, uploadFileCallback,
-retryPolicy, cancelTimeout, beforeFileCancelCallback, ...) exist at runtime
+retryPolicy, cancelTimeout, beforeFilesCancelCallback, ...) exist at runtime
 (installed by core from the input table) but are NOT declared on
 DropzoneElement's TypeScript type - only the aliases/enums listed above are.
 In TS, either widen the type or use setAttributes:
@@ -150,7 +150,7 @@ type DropzoneContext = ComponentContext<DropzoneController, HTMLElement>;
 ValidateContext          { file: File; existingFiles: FileState[] }
 BeforeFilesAddContext    { files: File[]; existingFiles: FileState[] }
 BeforeFilesRemoveContext { files: FileState[]; allFiles: FileState[] }
-BeforeFileCancelContext  { files: FileState[]; allFiles: FileState[] }
+BeforeFilesCancelContext  { files: FileState[]; allFiles: FileState[] }
 FileIconContext          { file: File }
 FileUploadContext        { file: File; signal: AbortSignal; setProgress(p: number): void;
                            startBytes: number; startPercent: number;
@@ -159,7 +159,7 @@ FileUploadContext        { file: File; signal: AbortSignal; setProgress(p: numbe
                            uploadMetadata: Readonly<Record<string, unknown>> | undefined }
 PersistStateContext      { key: string; state: DropzoneState }
 LoadStateContext         { key: string }
-FileItemRenderContext    { file: FileState; index: number; displayMode: DisplayMode;
+FileItemRenderContext    { file: FileState; fileIndex: number; displayMode: DisplayMode;
                            isInPopover: boolean }
 ListWrapperRenderContext { rowsHtml: string; files: FileState[] }
 PromptRenderContext      = DropzoneContext
@@ -174,15 +174,15 @@ type DropzoneEventMap = {
   'file-remove': FileRemoveEventDetail;           // { file }
   'files-change': FilesChangeEventDetail;         // { changedIds: string[]; files }
   'change': ChangeEventDetail;                    // { files }
-  'files-reject': FilesRejectEventDetail;         // { rejectedFiles: RejectedFile[] }
+  'file-reject': FileRejectEventDetail;         // { rejectedFiles: RejectedFile[] }
   'file-retry': FileRetryEventDetail;             // { file }
-  'file-upload-complete': FileUploadCompleteEventDetail; // { file }
+  'file-upload': FileUploadEventDetail; // { file }
   'file-delete': FileDeleteEventDetail;           // { file }
   'file-cancel': FileCancelEventDetail;           // { file; result: FileCancelResult;
                                                   //   uploadedBytes: number;
                                                   //   metadata: Record<string, unknown> | undefined }
   'file-progress': FileProgressEventDetail;       // { id; progress; status; file }
-  'file-status-change': FileStatusChangeEventDetail; // { id; prevStatus; nextStatus; file }
+  'file-status-change': FileStatusChangeEventDetail; // { id; oldStatus; newStatus; file }
   'file-update': FileUpdateEventDetail;           // { file }
   'overlay-enter': OverlayEventDetail;            // { overlayElement: HTMLElement }
   'overlay-leave': OverlayEventDetail;

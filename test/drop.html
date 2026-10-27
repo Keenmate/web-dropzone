@@ -27,7 +27,7 @@
         import { logEvents } from './fixture-kit.js';
 
         customElements.whenDefined('web-dropzone').then(() => {
-            logEvents(document.getElementById('drop'), ['file-add', 'files-reject', 'change'],
+            logEvents(document.getElementById('drop'), ['file-add', 'file-reject', 'change'],
                 document.querySelector('[data-testid="drop-log"]'));
             window.__ready = true;
         });

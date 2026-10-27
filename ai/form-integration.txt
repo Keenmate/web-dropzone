@@ -96,7 +96,7 @@ dz.uploadFileCallback = async ({ file, signal }) => {
   const res = await fetch('/api/files', { method: 'POST', body: file, signal });
   return { metadata: { serverId: (await res.json()).id } };
 };
-dz.onChange = sync; dz.onFileUploadComplete = sync;
+dz.onChange = sync; dz.onFileUpload = sync;
 function sync({ controller }) {
   f.fileIds.value = JSON.stringify(controller.getFiles()
     .filter(x => x.status === 'complete').map(x => x.metadata.serverId));

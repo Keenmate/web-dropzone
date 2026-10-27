@@ -9,7 +9,7 @@ A lightweight, accessible file upload web component with drag-drop support, file
 
 Breaking — see [CHANGELOG.md](CHANGELOG.md) for the migration tables.
 
-- **One cancel rule** — `cancelFile(id)` now returns a promise and gives a running upload handler its `AbortSignal` plus up to `cancel-timeout` ms (default 2000) to settle; the row shows "Cancelling…". Settles in time → `cancelled`; otherwise `cancel-timeout-behavior` (`error`, retryable — or `remove`). Late results are ignored and the concurrency slot is freed either way. `beforeFileCancelCallback` can veto, `file-cancel` reports how it ended (`{ file, result, uploadedBytes, metadata }`), and `cancelAll()` + a **Cancel all** button cover the whole queue.
+- **One cancel rule** — `cancelFile(id)` now returns a promise and gives a running upload handler its `AbortSignal` plus up to `cancel-timeout` ms (default 2000) to settle; the row shows "Cancelling…". Settles in time → `cancelled`; otherwise `cancel-timeout-behavior` (`error`, retryable — or `remove`). Late results are ignored and the concurrency slot is freed either way. `beforeFilesCancelCallback` can veto, `file-cancel` reports how it ended (`{ file, result, uploadedBytes, metadata }`), and `cancelAll()` + a **Cancel all** button cover the whole queue.
 - **Row buttons split** — **⊘ Cancel** stops the upload and keeps the row (Retry available); **✕ Remove** always removes (a running upload is cancelled first). Both glyphs are configurable (`cancel-icon` / `remove-icon`).
 - **`labels`** — every UI string in one input (property or JSON attribute, merged per key over English, `{name}` placeholders, live). Replaces `prompt-text`, `hint-text`, `drag-active-text`, `no-file-chosen-text`, `overlay-text`, `select-files-text` and the `STATUS_LABELS` / `ACTION_LABELS` exports.
 - **Removal vs move** — removing `<web-dropzone>` from the page cancels its uploads and destroys the store (a DOM move doesn't); opt out with `keep-alive-when-removed`.
@@ -79,7 +79,7 @@ dropzone.addEventListener('file-add', (e) => {
   console.log('File added:', e.detail.file);
 });
 
-dropzone.addEventListener('files-reject', (e) => {
+dropzone.addEventListener('file-reject', (e) => {
   for (const { file, validation } of e.detail.rejectedFiles) {
     console.log(`Rejected ${file.name}: ${validation.error} (${validation.code})`);
   }
@@ -192,12 +192,12 @@ Every event bubbles and is **not composed**, fires on `<web-dropzone>`, and has 
 | `file-remove` | `onFileRemove` | `{ file }` | A file left the dropzone (one per file; also on clear) |
 | `change` | `onChange` | `{ files }` | The selection changed (add / remove / clear) |
 | `files-change` | `onFilesChange` | `{ changedIds, files }` | Coalesced queue tick, at most once per animation frame |
-| `files-reject` | `onFilesReject` | `{ rejectedFiles: [{ file, validation: { valid, error, code } }] }` | Files failed validation, or `beforeFilesAddCallback` vetoed the add (`code: 'rejected'`) |
+| `file-reject` | `onFileReject` | `{ rejectedFiles: [{ file, validation: { valid, error, code } }] }` | Files failed validation, or `beforeFilesAddCallback` vetoed the add (`code: 'rejected'`) |
 | `file-progress` | `onFileProgress` | `{ id, progress, status, file }` | A file's progress changed |
-| `file-status-change` | `onFileStatusChange` | `{ id, prevStatus, nextStatus, file }` | A file's status transitioned |
+| `file-status-change` | `onFileStatusChange` | `{ id, oldStatus, newStatus, file }` | A file's status transitioned |
 | `file-update` | `onFileUpdate` | `{ file }` | Another field changed (preview generated, upload result merged) |
 | `file-retry` | `onFileRetry` | `{ file }` | A failed / cancelled file was re-queued |
-| `file-upload-complete` | `onFileUploadComplete` | `{ file }` | `uploadFileCallback` resolved for a file |
+| `file-upload` | `onFileUpload` | `{ file }` | `uploadFileCallback` resolved for a file |
 | `file-delete` | `onFileDelete` | `{ file }` | A removed file had server-side state — wire your server DELETE here |
 | `file-cancel` | `onFileCancel` | `{ file, result, uploadedBytes, metadata }` | A cancel finished — `result`: `cancelled` \| `timeout-error` \| `timeout-remove` |
 | `overlay-enter` / `overlay-leave` | `onOverlayEnter` / `onOverlayLeave` | `{ overlayElement }` | A drag entered / left the drag overlay |
@@ -218,7 +218,7 @@ dropzone.addEventListener('file-add', (e) => {
 });
 
 // Files rejected (validation failed, or beforeFilesAddCallback vetoed the add → code 'rejected')
-dropzone.addEventListener('files-reject', (e) => {
+dropzone.addEventListener('file-reject', (e) => {
   for (const { file, validation } of e.detail.rejectedFiles) {
     console.log(`${file.name}: ${validation.error} (${validation.code})`);
   }
@@ -235,12 +235,12 @@ Every callback takes **one** `ctx` object that also carries `controller` / `elem
 | Callback | `ctx` | Returns |
 |----------|-------|---------|
 | `validateCallback` | `{ file, existingFiles }` | `ValidationResult` (sync) |
-| `beforeFilesAddCallback` | `{ files, existingFiles }` | `false` vetoes (→ `files-reject`, code `rejected`); a `File[]` replaces the batch (validated again) |
+| `beforeFilesAddCallback` | `{ files, existingFiles }` | `false` vetoes (→ `file-reject`, code `rejected`); a `File[]` replaces the batch (validated again) |
 | `beforeFilesRemoveCallback` | `{ files, allFiles }` | `false` vetoes (row ✕, Clear all, `removeFile(s)` / `clear` with `{ confirm: true }`) |
-| `beforeFileCancelCallback` | `{ files, allFiles }` | `false` vetoes (`cancelFile`, row ⊘; `cancelAll` / Cancel all ask once) |
+| `beforeFilesCancelCallback` | `{ files, allFiles }` | `false` vetoes (`cancelFile`, row ⊘; `cancelAll` / Cancel all ask once) |
 | `uploadFileCallback` | `{ file, signal, setProgress, startBytes, startPercent, metadata, setMetadata, uploadMetadata }` | `Promise<void \| { metadata, downloadUrl, previewUrl, name }>` |
 | `getFileIconCallback` | `{ file }` | icon HTML, or `null` to fall through |
-| `renderFileItemCallback` | `{ file, index, displayMode, isInPopover }` | `string \| HTMLElement` (structural mode) |
+| `renderFileItemCallback` | `{ file, fileIndex, displayMode, isInPopover }` | `string \| HTMLElement` (structural mode) |
 | `renderListWrapperCallback` | `{ rowsHtml, files }` | `string \| HTMLElement` (structural mode) |
 | `renderPromptCallback` | context only | `string \| HTMLElement` (structural mode) |
 | `renderSummaryCallback` | `{ files }` | `string \| HTMLElement` (structural mode) |
@@ -388,7 +388,7 @@ your server-side cleanup, **destroy** tears the element's store down.
   or `remove`. Anything it reports after the timeout is ignored; the concurrency slot frees as
   soon as it settles or the timeout fires.
 - `cancelAll()` / **Cancel all** cancels every uploading / queued / paused file
-  (`beforeFileCancelCallback` is asked once with all of them).
+  (`beforeFilesCancelCallback` is asked once with all of them).
 - The row **✕** (and `removeFile`) on a running file cancels it first, then removes it.
 - Removing `<web-dropzone>` from the page cancels everything the same way, then destroys the
   store (a DOM move keeps it). `keep-alive-when-removed` opts out.
@@ -413,7 +413,7 @@ dropzone.addEventListener('file-cancel', ({ detail }) => {
 });
 
 // Ask first (row ⊘, cancelFile, cancelAll — once for the whole batch)
-dropzone.beforeFileCancelCallback = async ({ files }) =>
+dropzone.beforeFilesCancelCallback = async ({ files }) =>
   (await myConfirm(`Cancel ${files.length} upload(s)?`)) ? undefined : false;
 ```
 

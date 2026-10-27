@@ -111,7 +111,7 @@
         // Per-dropzone event log: "<event>:<name>[:extra]".
         window.__log = {};
         const LOGGED = ['file-add', 'file-remove', 'file-delete', 'change', 'file-progress',
-            'file-status-change', 'file-upload-complete', 'file-cancel', 'file-retry'];
+            'file-status-change', 'file-upload', 'file-cancel', 'file-retry'];
         function wire(el) {
             const id = el.id;
             window.__log[id] = [];
@@ -120,7 +120,7 @@
                 el.addEventListener(name, (e) => {
                     const d = e.detail ?? {};
                     const fname = d.file?.name ?? '';
-                    const extra = name === 'file-status-change' ? `:${d.prevStatus}>${d.nextStatus}`
+                    const extra = name === 'file-status-change' ? `:${d.oldStatus}>${d.newStatus}`
                         : name === 'file-progress' ? `:${d.progress}`
                         : name === 'file-cancel' ? `:${d.result}`
                         : '';

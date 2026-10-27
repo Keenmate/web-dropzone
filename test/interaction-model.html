@@ -28,7 +28,7 @@
     </div>
 
     <div class="fixture">
-        <div class="fixture-label">uploadFileCallback ctx + file-upload-complete</div>
+        <div class="fixture-label">uploadFileCallback ctx + file-upload</div>
         <web-dropzone id="upload" display-mode="list" accept="*/*"></web-dropzone>
     </div>
 
@@ -74,8 +74,8 @@
         };
 
         const EVENTS = [
-            'file-add', 'file-remove', 'files-change', 'change', 'files-reject', 'file-retry',
-            'file-upload-complete', 'file-delete', 'file-progress', 'file-status-change',
+            'file-add', 'file-remove', 'files-change', 'change', 'file-reject', 'file-retry',
+            'file-upload', 'file-delete', 'file-progress', 'file-status-change',
             'file-update', 'overlay-enter', 'overlay-leave', 'ready'
         ];
         const twinOf = (name) => 'on' + name.split('-').map(p => p[0].toUpperCase() + p.slice(1)).join('');
@@ -115,7 +115,7 @@
                 }
                 return undefined;
             };
-            addGate.addEventListener('files-reject', (e) => {
+            addGate.addEventListener('file-reject', (e) => {
                 for (const r of e.detail.rejectedFiles) log(`reject:${r.validation.code}:${r.file.name}`);
             });
 
@@ -149,7 +149,7 @@
             };
             window.__progress = (name, pct) => window.__uploads.get(name).ctx.setProgress(pct);
             window.__finish = (name) => window.__uploads.get(name).resolve({ metadata: { serverId: 42 } });
-            up.onFileUploadComplete = (d) => { check('twin:file-upload-complete', d, up); log(`complete ${d.file.name} meta=${d.file.metadata?.serverId}`); };
+            up.onFileUpload = (d) => { check('twin:file-upload', d, up); log(`complete ${d.file.name} meta=${d.file.metadata?.serverId}`); };
 
             // ===== structural =====
             const st = document.getElementById('structural');
@@ -159,7 +159,7 @@
                 const row = document.createElement('div');
                 row.className = 'im-row';
                 row.dataset.fileId = ctx.file.id;
-                row.textContent = `${ctx.index}:${ctx.file.name}:${ctx.displayMode}:${ctx.isInPopover}`;
+                row.textContent = `${ctx.fileIndex}:${ctx.file.name}:${ctx.displayMode}:${ctx.isInPopover}`;
                 row.addEventListener('file-row-update', (e) => {
                     if (!window.__rowUpdateChecked) { window.__rowUpdateChecked = true; check('file-row-update', e.detail, st); }
                     log(`row-update ${e.detail.file.name} composed=${e.composed}`);

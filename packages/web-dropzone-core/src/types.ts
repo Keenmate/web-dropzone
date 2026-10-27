@@ -11,7 +11,7 @@ import type {
     ValidateContext,
     BeforeFilesAddContext,
     BeforeFilesRemoveContext,
-    BeforeFileCancelContext,
+    BeforeFilesCancelContext,
     FileIconContext,
     FileUploadContext,
     PersistStateContext,
@@ -615,7 +615,7 @@ export interface DropzoneConfig {
     /** Gate fired once per add batch AFTER all sync validation passes —
      *  `beforeFilesAddCallback({ files, existingFiles })`; may be async.
      *  Return `false` to cancel — the files are then reported via
-     *  `files-reject` with `code: 'rejected'`; return a `File[]` to add
+     *  `file-reject` with `code: 'rejected'`; return a `File[]` to add
      *  those instead (they are validated again; the hook is not re-run);
      *  return nothing to continue. While a promise is pending the files do
      *  NOT appear in the dropzone (no `file-add`, not in `files`); the
@@ -631,13 +631,13 @@ export interface DropzoneConfig {
      *  skip this gate unless called with `{ confirm: true }`. A throw cancels. */
     beforeFilesRemoveCallback?:
         ((ctx: BeforeFilesRemoveContext) => false | void | Promise<false | void>) | null;
-    /** Gate fired before a cancel — `beforeFileCancelCallback({ files,
+    /** Gate fired before a cancel — `beforeFilesCancelCallback({ files,
      *  allFiles })`; may be async. `cancelFile(id)` / the row Cancel button
      *  pass `[file]`; `cancelAll()` / "Cancel all" ask ONCE with every file.
      *  Return `false` to veto (uploads keep running). A throw vetoes.
      *  Internal cancels (removing a running file, element removal) skip it. */
-    beforeFileCancelCallback?:
-        ((ctx: BeforeFileCancelContext) => false | void | Promise<false | void>) | null;
+    beforeFilesCancelCallback?:
+        ((ctx: BeforeFilesCancelContext) => false | void | Promise<false | void>) | null;
     /**
      * Per-file upload handler. When set, the component takes ownership of the
      * upload lifecycle: a worker pool runs queued files at the configured
@@ -767,7 +767,7 @@ export interface DropzoneConfig {
 
     /**
      * Custom renderer for a single file row —
-     * `renderFileItemCallback({ file, index, displayMode, isInPopover })`.
+     * `renderFileItemCallback({ file, fileIndex, displayMode, isInPopover })`.
      *
      * Return type drives the framework's update strategy:
      *  - **string** — framework swaps `outerHTML` on every state change.

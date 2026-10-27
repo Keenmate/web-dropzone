@@ -160,7 +160,7 @@ test.describe('cancel rule', () => {
         await resolveUpload(page, 's.txt', 'ok'); // late — ignored
         await page.waitForTimeout(50);
         expect(await statusOf(page, 'stubborn', 's.txt')).toBe('error');
-        expect(await logOf(page, 'stubborn')).not.toContain('file-upload-complete:s.txt');
+        expect(await logOf(page, 'stubborn')).not.toContain('file-upload:s.txt');
     });
 
     test('cancel-timeout-behavior="remove": a timed-out cancel removes the file', async ({ page }) => {
@@ -179,7 +179,7 @@ test.describe('cancel rule', () => {
         await resolveUpload(page, 'ok.txt', 'ok');
         await done;
         expect(await statusOf(page, 'stubborn', 'ok.txt')).toBe('cancelled');
-        expect(await logOf(page, 'stubborn')).not.toContain('file-upload-complete:ok.txt');
+        expect(await logOf(page, 'stubborn')).not.toContain('file-upload:ok.txt');
     });
 
     test('cancel-timeout / cancel-timeout-behavior are reactive inputs', async ({ page }) => {
@@ -194,7 +194,7 @@ test.describe('cancel rule', () => {
     });
 });
 
-test.describe('beforeFileCancelCallback + file-cancel', () => {
+test.describe('beforeFilesCancelCallback + file-cancel', () => {
     test('file-cancel detail: { file, result, uploadedBytes, metadata } + onFileCancel twin', async ({ page }) => {
         await addNamed(page, 'q', ['d.txt']);
         await expect.poll(() => pendingNames(page)).toContain('d.txt');
@@ -238,12 +238,12 @@ test.describe('beforeFileCancelCallback + file-cancel', () => {
         await expect.poll(() => pendingNames(page)).toEqual(['v.txt']);
         const out = await dz(page, 'q').evaluate(async (el: any) => {
             const seen: any[] = [];
-            el.beforeFileCancelCallback = (ctx: any) => {
+            el.beforeFilesCancelCallback = (ctx: any) => {
                 seen.push({ files: ctx.files.map((f: any) => f.name), all: ctx.allFiles.length, ctl: !!ctx.controller });
                 return Promise.resolve(false);
             };
             await el.cancelFile(el.files[0].id);
-            el.beforeFileCancelCallback = null;
+            el.beforeFilesCancelCallback = null;
             return { seen, status: el.files[0].status };
         });
         expect(out.seen).toEqual([{ files: ['v.txt'], all: 2, ctl: true }]);
@@ -257,9 +257,9 @@ test.describe('beforeFileCancelCallback + file-cancel', () => {
         await expect.poll(() => pendingNames(page)).toContain('rm.txt');
         const asked = await dz(page, 'q').evaluate(async (el: any) => {
             let n = 0;
-            el.beforeFileCancelCallback = () => { n++; return false; };
+            el.beforeFilesCancelCallback = () => { n++; return false; };
             await el.removeFile(el.files[0].id);
-            el.beforeFileCancelCallback = null;
+            el.beforeFilesCancelCallback = null;
             return n;
         });
         expect(asked).toBe(0);
@@ -280,9 +280,9 @@ test.describe('cancelAll + "Cancel all"', () => {
         await dz(page, 'q').evaluate((el: any) => el.pauseFile(el.files.find((f: any) => f.name === 'paused.txt').id));
         const out = await dz(page, 'q').evaluate(async (el: any) => {
             const asked: string[][] = [];
-            el.beforeFileCancelCallback = (ctx: any) => { asked.push(ctx.files.map((f: any) => f.name)); };
+            el.beforeFilesCancelCallback = (ctx: any) => { asked.push(ctx.files.map((f: any) => f.name)); };
             await el.controller.cancelAll();
-            el.beforeFileCancelCallback = null;
+            el.beforeFilesCancelCallback = null;
             return { asked, statuses: el.files.map((f: any) => `${f.name}:${f.status}`) };
         });
         expect(out.asked).toEqual([['up.txt', 'paused.txt', 'queued.txt']]);
@@ -294,9 +294,9 @@ test.describe('cancelAll + "Cancel all"', () => {
         await addNamed(page, 'q', ['a.txt', 'b.txt']);
         await expect.poll(() => pendingNames(page)).toContain('a.txt');
         const statuses = await dz(page, 'q').evaluate(async (el: any) => {
-            el.beforeFileCancelCallback = () => false;
+            el.beforeFilesCancelCallback = () => false;
             await el.cancelAll();
-            el.beforeFileCancelCallback = null;
+            el.beforeFilesCancelCallback = null;
             return el.files.map((f: any) => f.status);
         });
         expect(statuses).toEqual(['uploading', 'pending']);

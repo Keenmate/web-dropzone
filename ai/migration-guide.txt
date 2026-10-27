@@ -22,7 +22,7 @@ teardown verb.
 |-------------------------------------------------------|---------------------------------------|
 | reorder-completed / isReorderCompletedEnabled /       | sink-completed /               |
 |   el.reorderCompleted                                 |   shouldSinkCompleted                 |
-| files-reject code 'cancelled' (add gate veto)         | 'rejected'                            |
+| file-reject code 'cancelled' (add gate veto)         | 'rejected'                            |
 
 STEP 2: STORE ACCESS
 --------------------
@@ -48,12 +48,12 @@ must move onto the element.
 | file-removed                | file-remove / onFileRemove           | { file }                       |
 | files-changed               | files-change / onFilesChange         | { changedIds, files }          |
 | change (no detail)          | change / onChange                    | { files }                      |
-| files-rejected              | files-reject / onFilesReject         | { rejectedFiles }              |
+| files-rejected              | file-reject / onFileReject         | { rejectedFiles }              |
 | file-retry                  | file-retry / onFileRetry             | { file }                       |
-| file-uploaded               | file-upload-complete / onFileUploadComplete | { file }                |
+| file-uploaded               | file-upload / onFileUpload | { file }                |
 | file-deleted                | file-delete / onFileDelete           | { file }                       |
 | file-progress               | file-progress / onFileProgress       | { id, progress, status, file } |
-| file-status-changed         | file-status-change / onFileStatusChange | { id, prevStatus, nextStatus, file } |
+| file-status-changed         | file-status-change / onFileStatusChange | { id, oldStatus, newStatus, file } |
 | file-updated                | file-update / onFileUpdate           | { file }                       |
 | overlay-enter / -leave      | same + onOverlayEnter / onOverlayLeave | { overlayElement }           |
 | store-ready                 | ready / onReady (data-ready stays)   | context only                   |
@@ -80,7 +80,7 @@ STEP 4: CALLBACKS TAKE ONE ctx
 | picker uploadCallback / FileState.uploadCallback /     | uploadFileCallback (same ctx)                 |
 |   addFiles(files, { uploadCallback })                  |                                               |
 | persistStateCallback(key, state) / loadStateCallback(key) | ({ key, state }) / ({ key })               |
-| renderFileItemCallback(file, { index, displayMode, isInPopover }) | ({ file, index, displayMode, isInPopover }) |
+| renderFileItemCallback(file, { fileIndex, displayMode, isInPopover }) | ({ file, fileIndex, displayMode, isInPopover }) |
 | renderListWrapperCallback(rowsHtml, files)             | ({ rowsHtml, files })                         |
 | renderPromptCallback() / renderSummaryCallback(files)  | (ctx) / ({ files })                           |
 | renderRolling*Callback(args) - config only             | same ctx (args.controller), now element inputs |
@@ -107,7 +107,7 @@ STEP 6: CANCEL RULE
   cancel-timeout-behavior: error (default; file.error 'cancel-timeout') |
   remove. Late results ignored.
 - FileStatus gains 'cancelling'. Handle it in switch statements.
-- New: beforeFileCancelCallback({ files, allFiles }), cancelAll(),
+- New: beforeFilesCancelCallback({ files, allFiles }), cancelAll(),
   file-cancel event, OverallProgress.pendingCount / cancellingCount.
 - Row buttons split: Cancel (circle-slash) vs Remove (x). Before, x on an
   uploading row cancelled it and a second x removed it. Now x always removes
@@ -149,7 +149,7 @@ STEP 8: LIFECYCLE
 
 STEP 9: NEW API
 ---------------
-removeFiles(ids, { confirm? }), cancelAll(), el.controller, beforeFileCancelCallback,
+removeFiles(ids, { confirm? }), cancelAll(), el.controller, beforeFilesCancelCallback,
 file-cancel, labels, cancel-timeout, cancel-timeout-behavior, cancel-icon,
 remove-icon, keep-alive-when-removed, fileIcons + getFileIconCallback,
 FILE_TYPE_ICONS / UI_ICONS, <web-dropzone-picker>.openFileDialog().
@@ -173,22 +173,22 @@ STEP 10: THEMING
 STEP 11: TYPE RENAMES
 ---------------------
 FileAddedEventDetail -> FileAddEventDetail, FileRemovedEventDetail ->
-FileRemoveEventDetail, FilesRejectedEventDetail -> FilesRejectEventDetail,
-FileUploadedEventDetail -> FileUploadCompleteEventDetail,
+FileRemoveEventDetail, FileRejectedEventDetail -> FileRejectEventDetail,
+FileUploadedEventDetail -> FileUploadEventDetail,
 FileDeletedEventDetail -> FileDeleteEventDetail, FileStatusChangedEventDetail
 -> FileStatusChangeEventDetail, FileUpdatedEventDetail -> FileUpdateEventDetail,
 FilesChangedEventDetail -> FilesChangeEventDetail, DropzoneEventDetail ->
 DropzoneEventMap. New: DropzoneContext, one *Context per callback,
 OverlayEventDetail, ReadyEventDetail, SummaryActivateEventDetail,
 QueueOpenEventDetail, DropzoneListEventMap, FileCancelEventDetail,
-FileCancelResult, CancelTimeoutBehavior, BeforeFileCancelContext,
+FileCancelResult, CancelTimeoutBehavior, BeforeFilesCancelContext,
 DropzoneLabels.
 
 QUICK SEARCH-AND-REPLACE LIST
 -----------------------------
 'file-added'->'file-add'   'file-removed'->'file-remove'
-'files-changed'->'files-change'   'files-rejected'->'files-reject'
-'file-uploaded'->'file-upload-complete'   'file-deleted'->'file-delete'
+'files-changed'->'files-change'   'files-rejected'->'file-reject'
+'file-uploaded'->'file-upload'   'file-deleted'->'file-delete'
 'file-status-changed'->'file-status-change'   'file-updated'->'file-update'
 'store-ready'->'ready'   getStore()->controller
 beforeFilesAddedCallback->beforeFilesAddCallback

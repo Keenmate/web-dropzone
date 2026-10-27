@@ -84,8 +84,8 @@ window.components['web-dropzone'].version()
 window.components['web-dropzone'].config.core   // { name, version } of web-dropzone-core
 
 Event tracing:
-['file-add','file-remove','change','files-reject','file-status-change',
- 'file-cancel','file-delete','file-upload-complete','ready']
+['file-add','file-remove','change','file-reject','file-status-change',
+ 'file-cancel','file-delete','file-upload','ready']
   .forEach(n => dz.addEventListener(n, e => console.log(n, e.detail)));
 (console.log of e.detail does not show controller / element - they are
 non-enumerable; access them directly.)
@@ -104,7 +104,7 @@ Property set but not applied when read back
      dz.setAttributes({...}) / dz.batch(fn). Element methods flush first.
 
 Files rejected unexpectedly
-  -> listen to files-reject and log validation.code; dedupe-mode="name" rejects
+  -> listen to file-reject and log validation.code; dedupe-mode="name" rejects
      same-named files; max-file-count counts files already in the list.
 
 Satellite shows nothing / "store not found" warning

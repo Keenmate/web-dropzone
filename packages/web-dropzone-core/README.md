@@ -46,11 +46,11 @@ Hosted by `<web-dropzone>`, the engine *notifies* and the element *emits* (with 
 
 - `file-add` `{ file }`, `file-remove` `{ file }`
 - `change` `{ files }`, `files-change` `{ changedIds, files }` (rAF-coalesced)
-- `files-reject` `{ rejectedFiles }`
+- `file-reject` `{ rejectedFiles }`
 - `file-progress` `{ id, progress, status, file }`
-- `file-status-change` `{ id, prevStatus, nextStatus, file }`
+- `file-status-change` `{ id, oldStatus, newStatus, file }`
 - `file-update` `{ file }` — a field other than progress / status changed (`previewUrl` generated, upload result merged)
-- `file-retry` `{ file }`, `file-upload-complete` `{ file }`, `file-delete` `{ file }`
+- `file-retry` `{ file }`, `file-upload` `{ file }`, `file-delete` `{ file }`
 
 `<web-dropzone>` adds `overlay-enter` / `overlay-leave` `{ overlayElement }` and `ready`. See [`ARCHITECTURE.md`](https://github.com/keenmate/web-dropzone/blob/main/ARCHITECTURE.md) for the topology this package fits into.
 

@@ -29,7 +29,7 @@ test.describe('validation caps', () => {
         await setAttr(page, 'caps', 'max-file-count', '2');
         await addNamed(page, 'caps', ['a.txt', 'b.txt', 'c.txt']);
         await expect.poll(() => names(page, 'caps')).toEqual(['a.txt', 'b.txt']);
-        expect(await logLines(page, 'caps')).toContain('files-reject:c.txt=count');
+        expect(await logLines(page, 'caps')).toContain('file-reject:c.txt=count');
     });
 
     test('removing max-file-count returns to unlimited', async ({ page }) => {
@@ -52,7 +52,7 @@ test.describe('validation caps', () => {
         await setAttr(page, 'caps', 'accept', '.pdf');
         await expect(dz(page, 'caps').locator('input[type="file"]')).toHaveAttribute('accept', '.pdf');
         await addNamed(page, 'caps', ['a.txt']);
-        await expect.poll(() => logLines(page, 'caps')).toContain('files-reject:a.txt=type');
+        await expect.poll(() => logLines(page, 'caps')).toContain('file-reject:a.txt=type');
         expect(await names(page, 'caps')).toEqual([]);
     });
 });

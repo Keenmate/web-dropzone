@@ -119,7 +119,7 @@
         <!-- CUSTOM VALIDATE CALLBACK -->
         <div class="card">
             <h2>VA04 · Custom Validator</h2>
-            <p>Set <code>validateCallback</code> on the element to add custom validation. Return <code>{ valid: false, error: '...' }</code> to reject; the failure surfaces alongside built-in validation errors via the <code>files-reject</code> event.</p>
+            <p>Set <code>validateCallback</code> on the element to add custom validation. Return <code>{ valid: false, error: '...' }</code> to reject; the failure surfaces alongside built-in validation errors via the <code>file-reject</code> event.</p>
 
             <div class="form-group">
                 <label>Reject filenames containing spaces</label>
@@ -146,7 +146,7 @@ el.validateCallback = ({ file, existingFiles }) => {
         <!-- ASYNC CONFIRMATION GATES -->
         <div class="card">
             <h2>VA05 · Async Confirmation Gates</h2>
-            <p><code>beforeFilesAddCallback</code> and <code>beforeFilesRemoveCallback</code> let you pop a dialog before files actually enter or leave the dropzone. They run AFTER the sync validators pass (size, type, count, <code>validateCallback</code>) and are skipped for programmatic <code>removeFile(id)</code> / <code>clear()</code> calls unless you pass <code>{ confirm: true }</code>. Each gate takes one <code>ctx</code> (<code>{ files, existingFiles }</code> / <code>{ files, allFiles }</code>, plus <code>controller</code> / <code>element</code>). Returning <code>false</code> cancels — on the add gate the files land in <code>files-reject</code> with <code>code: 'rejected'</code>; returning a <code>File[]</code> from the add gate adds those files instead.</p>
+            <p><code>beforeFilesAddCallback</code> and <code>beforeFilesRemoveCallback</code> let you pop a dialog before files actually enter or leave the dropzone. They run AFTER the sync validators pass (size, type, count, <code>validateCallback</code>) and are skipped for programmatic <code>removeFile(id)</code> / <code>clear()</code> calls unless you pass <code>{ confirm: true }</code>. Each gate takes one <code>ctx</code> (<code>{ files, existingFiles }</code> / <code>{ files, allFiles }</code>, plus <code>controller</code> / <code>element</code>). Returning <code>false</code> cancels — on the add gate the files land in <code>file-reject</code> with <code>code: 'rejected'</code>; returning a <code>File[]</code> from the add gate adds those files instead.</p>
 
             <div class="form-group">
                 <label>Confirm-on-add + confirm-on-remove</label>
@@ -202,7 +202,7 @@ el.beforeFilesRemoveCallback = async ({ files, allFiles }) =&gt; {
             <p>Each rejection includes a <code>code</code> so you can branch on it programmatically.</p>
 
             <div class="code-block">
-                <pre><code>el.addEventListener('files-reject', (e) => {
+                <pre><code>el.addEventListener('file-reject', (e) => {
     for (const { file, validation } of e.detail.rejectedFiles) {
         switch (validation.code) {
             case 'size':   showError(`${file.name} is too large`);  break
@@ -235,7 +235,7 @@ el.beforeFilesRemoveCallback = async ({ files, allFiles }) =&gt; {
             const id = log.dataset.logFor
             const dz = document.getElementById(id)
             if (!dz) return
-            dz.addEventListener('files-reject', (e) => {
+            dz.addEventListener('file-reject', (e) => {
                 log.innerHTML = e.detail.rejectedFiles.map(r => `
                     <div class="row">
                         <span class="name">${escapeHtml(r.file.name)}</span>
@@ -265,7 +265,7 @@ el.beforeFilesRemoveCallback = async ({ files, allFiles }) =&gt; {
         }
 
         // Async confirmation gates — confirm() blocks the await, simulating an
-        // app-rendered modal. Cancel on add lands the file in files-reject
+        // app-rendered modal. Cancel on add lands the file in file-reject
         // with code='cancelled' (logged alongside other rejections above).
         // The console.log lines let you verify in DevTools that the gate fires
         // (and with what files) — useful when debugging consumer wiring.

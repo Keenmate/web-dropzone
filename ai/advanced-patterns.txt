@@ -206,4 +206,4 @@ customElements.define('upload-counter', UploadCounter);
   dz.beforeFilesRemoveCallback = ({ files }) =>
     files.some(f => f.status === 'complete') && !confirm('Delete uploaded files?') ? false : undefined;
 - Prevent cancelling near completion:
-  dz.beforeFileCancelCallback = ({ files }) => files.every(f => f.progress < 95) ? undefined : false;
+  dz.beforeFilesCancelCallback = ({ files }) => files.every(f => f.progress < 95) ? undefined : false;

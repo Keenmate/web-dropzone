@@ -156,7 +156,7 @@ Every row (list, detailed, grid, badges, popover, <web-dropzone-list>) has:
 
   Cancel (circle-slash)  aria-label "Cancel <name>". Offered for uploading /
                          paused files, and for queued files when an upload
-                         handler will run them. Asks beforeFileCancelCallback.
+                         handler will run them. Asks beforeFilesCancelCallback.
                          The row STAYS with status "cancelled" and a Retry action.
   Remove (x)             aria-label "Remove <name>". Always offered (except
                          completed rows when allow-uploaded-file-removal="false"). A

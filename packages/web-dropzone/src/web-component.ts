@@ -54,9 +54,9 @@ import type {
     FileRemoveEventDetail,
     FilesChangeEventDetail,
     ChangeEventDetail,
-    FilesRejectEventDetail,
+    FileRejectEventDetail,
     FileRetryEventDetail,
-    FileUploadCompleteEventDetail,
+    FileUploadEventDetail,
     FileDeleteEventDetail,
     FileCancelEventDetail,
     FileProgressEventDetail,
@@ -268,14 +268,14 @@ const INPUTS: readonly InputDef[] = [
 
     // ── Callbacks (property-only) — each takes ONE ctx carrying `controller` + `element` ──
     { configKey: 'validateCallback',              converter: cb(),      on: 'update', type: '(ctx: ValidateContext) => ValidationResult', description: 'Custom per-file validation, after the built-in size / type checks. `ctx`: `{ file, existingFiles }`. Sync.' },
-    { configKey: 'beforeFilesAddCallback',        converter: cb(),      on: 'update', type: '(ctx: BeforeFilesAddContext) => false | File[] | void | Promise<false | File[] | void>', description: 'Gate before a validated batch is added. `ctx`: `{ files, existingFiles }`. `false` cancels (files reported in `files-reject` with code `rejected`); a `File[]` replaces the batch (validated again); may be async.' },
+    { configKey: 'beforeFilesAddCallback',        converter: cb(),      on: 'update', type: '(ctx: BeforeFilesAddContext) => false | File[] | void | Promise<false | File[] | void>', description: 'Gate before a validated batch is added. `ctx`: `{ files, existingFiles }`. `false` cancels (files reported in `file-reject` with code `rejected`); a `File[]` replaces the batch (validated again); may be async.' },
     { configKey: 'beforeFilesRemoveCallback',     converter: cb(),      on: 'update', type: '(ctx: BeforeFilesRemoveContext) => false | void | Promise<false | void>', description: 'Gate before a user-initiated removal (row ✕, Clear all) or `removeFile` / `clear` with `{ confirm: true }`. `ctx`: `{ files, allFiles }`. `false` cancels; may be async.' },
-    { configKey: 'beforeFileCancelCallback',      converter: cb(),      on: 'update', type: '(ctx: BeforeFileCancelContext) => false | void | Promise<false | void>', description: 'Gate before a cancel: `cancelFile(id)` / the row Cancel button (`files: [file]`) and `cancelAll()` / "Cancel all" (once, every file). `ctx`: `{ files, allFiles }`. `false` vetoes; may be async. Internal cancels (removing a running file, element removal) skip it.' },
+    { configKey: 'beforeFilesCancelCallback',      converter: cb(),      on: 'update', type: '(ctx: BeforeFilesCancelContext) => false | void | Promise<false | void>', description: 'Gate before a cancel: `cancelFile(id)` / the row Cancel button (`files: [file]`) and `cancelAll()` / "Cancel all" (once, every file). `ctx`: `{ files, allFiles }`. `false` vetoes; may be async. Internal cancels (removing a running file, element removal) skip it.' },
     { configKey: 'uploadFileCallback',            converter: cb(),      on: 'update', type: '(ctx: FileUploadContext) => Promise<void | FileUploadResult>', description: 'Component-driven upload handler; added files run through the worker pool. `ctx`: `{ file, signal, setProgress, startBytes, startPercent, metadata, setMetadata, uploadMetadata }`.' },
     { configKey: 'retryPolicy',                   converter: toValue(), on: 'update', type: 'RetryPolicy', description: 'Retry policy applied when uploadFileCallback rejects. Property-only object.' },
     { configKey: 'fileIcons',                     converter: toValue(), on: 'update', type: 'Record<string, string>', description: 'Icon overrides keyed by extension or category (raw HTML — NOT sanitized). Property-only object.' },
     { configKey: 'getFileIconCallback',           converter: cb(),      on: 'update', type: '(ctx: FileIconContext) => string | null | undefined', description: 'Full-control file-icon resolver (raw HTML — NOT sanitized). `ctx`: `{ file }`. Return null to fall back to fileIcons / category.' },
-    { configKey: 'renderFileItemCallback',        converter: cb(),      on: 'update', type: '(ctx: FileItemRenderContext) => string | HTMLElement', description: 'Custom render for a single file row (structural mode). `ctx`: `{ file, index, displayMode, isInPopover }`.' },
+    { configKey: 'renderFileItemCallback',        converter: cb(),      on: 'update', type: '(ctx: FileItemRenderContext) => string | HTMLElement', description: 'Custom render for a single file row (structural mode). `ctx`: `{ file, fileIndex, displayMode, isInPopover }`.' },
     { configKey: 'renderListWrapperCallback',     converter: cb(),      on: 'update', type: '(ctx: ListWrapperRenderContext) => string | HTMLElement', description: 'Custom wrapper around the rendered file rows (structural mode). `ctx`: `{ rowsHtml, files }`.' },
     { configKey: 'renderPromptCallback',          converter: cb(),      on: 'update', type: '(ctx: PromptRenderContext) => string | HTMLElement', description: 'Custom render for the drop-area prompt (structural mode). `ctx`: context only.' },
     { configKey: 'renderSummaryCallback',         converter: cb(),      on: 'update', type: '(ctx: SummaryRenderContext) => string | HTMLElement', description: 'Custom render for the compact-mode summary (structural mode). `ctx`: `{ files }`.' },
@@ -294,16 +294,16 @@ const INPUTS: readonly InputDef[] = [
  */
 const EVENTS: readonly EventDef[] = [
     { name: 'file-add', description: 'A file entered the dropzone (one event per file). `detail`: `{ file }`. Twin: `onFileAdd(detail)`.' },
-    { name: 'file-remove', description: 'A file left the dropzone (one event per file; also on Clear all). `detail`: `{ file }`. Twin: `onFileRemove(detail)`.' },
+    { name: 'file-remove', description: 'A file left the list — LOCAL, client-side (row ✕, `removeFile(s)`, Clear all, a single-file replace, a mode-flip rebuild); one event per file. A running upload is cancelled first. Compare `file-delete`. `detail`: `{ file }`. Twin: `onFileRemove(detail)`.' },
     { name: 'files-change', description: 'Coalesced "queue updated" tick, at most once per animation frame. `detail`: `{ changedIds, files }`. Twin: `onFilesChange(detail)`.' },
     { name: 'change', description: 'The selection changed (add / remove / clear). `detail`: `{ files }`. Twin: `onChange(detail)`.' },
-    { name: 'files-reject', description: 'Files failed validation, or `beforeFilesAddCallback` vetoed the add (code `rejected`). `detail`: `{ rejectedFiles: [{ file, validation: { valid, error, code } }] }`. Twin: `onFilesReject(detail)`.' },
+    { name: 'file-reject', description: 'Files failed validation, or `beforeFilesAddCallback` vetoed the add (code `rejected`). `detail`: `{ rejectedFiles: [{ file, validation: { valid, error, code } }] }`. Twin: `onFileReject(detail)`.' },
     { name: 'file-retry', description: 'A failed / cancelled file was re-queued (status already `pending`). `detail`: `{ file }`. Twin: `onFileRetry(detail)`.' },
-    { name: 'file-upload-complete', description: '`uploadFileCallback` resolved for a file. `detail`: `{ file }`. Twin: `onFileUploadComplete(detail)`.' },
-    { name: 'file-delete', description: 'A removed file had server-side state (completed, or metadata stashed via `setMetadata`) — fires with `file-remove`; wire your server DELETE here. `detail`: `{ file }`. Twin: `onFileDelete(detail)`.' },
+    { name: 'file-upload', description: '`uploadFileCallback` resolved for a file. `detail`: `{ file }`. Twin: `onFileUpload(detail)`.' },
+    { name: 'file-delete', description: 'SERVER state: a removed file had server-side state (upload completed, or metadata stashed via `setMetadata`) — fires right after its `file-remove`; wire your server DELETE here. `detail`: `{ file }`. Twin: `onFileDelete(detail)`.' },
     { name: 'file-cancel', description: 'A cancel finished. `detail`: `{ file, result: \'cancelled\' | \'timeout-error\' | \'timeout-remove\', uploadedBytes, metadata }`. Server-side cleanup of a partial upload is the app\'s job. Twin: `onFileCancel(detail)`.' },
     { name: 'file-progress', description: 'A file\'s progress changed. `detail`: `{ id, progress, status, file }`. Twin: `onFileProgress(detail)`.' },
-    { name: 'file-status-change', description: 'A file\'s status transitioned. `detail`: `{ id, prevStatus, nextStatus, file }`. Twin: `onFileStatusChange(detail)`.' },
+    { name: 'file-status-change', description: 'A file\'s status transitioned. `detail`: `{ id, oldStatus, newStatus, file }`. Twin: `onFileStatusChange(detail)`.' },
     { name: 'file-update', description: 'A file field other than progress / status changed (preview generated, upload result merged). `detail`: `{ file }`. Twin: `onFileUpdate(detail)`.' },
     { name: 'overlay-enter', description: 'A drag entered the drag overlay (`overlay-target`). `detail`: `{ overlayElement }`. Twin: `onOverlayEnter(detail)`.' },
     { name: 'overlay-leave', description: 'A drag left the drag overlay. `detail`: `{ overlayElement }`. Twin: `onOverlayLeave(detail)`.' },
@@ -335,9 +335,9 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
     declare onFileRemove: ((detail: FileRemoveEventDetail) => void) | null;
     declare onFilesChange: ((detail: FilesChangeEventDetail) => void) | null;
     declare onChange: ((detail: ChangeEventDetail) => void) | null;
-    declare onFilesReject: ((detail: FilesRejectEventDetail) => void) | null;
+    declare onFileReject: ((detail: FileRejectEventDetail) => void) | null;
     declare onFileRetry: ((detail: FileRetryEventDetail) => void) | null;
-    declare onFileUploadComplete: ((detail: FileUploadCompleteEventDetail) => void) | null;
+    declare onFileUpload: ((detail: FileUploadEventDetail) => void) | null;
     declare onFileDelete: ((detail: FileDeleteEventDetail) => void) | null;
     declare onFileCancel: ((detail: FileCancelEventDetail) => void) | null;
     declare onFileProgress: ((detail: FileProgressEventDetail) => void) | null;
@@ -496,7 +496,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
      * Removed from the page (still detached one frame after `disconnect()` —
      * a DOM move never gets here). Unless `keep-alive-when-removed`:
      * cancel every upload by the cancel rule (handlers get their signal and
-     * up to `cancel-timeout`; no `beforeFileCancelCallback` — there is no UI
+     * up to `cancel-timeout`; no `beforeFilesCancelCallback` — there is no UI
      * to veto from) and then destroy the store. Re-adding the element after
      * that builds a fresh, empty store (`connect()`; `ready` does not fire
      * again — it is a once-per-element core event); re-adding it while the
@@ -777,7 +777,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
     pauseAll(): void { this.flush(); this.#dropzone?.pauseAll(); }
 
     /**
-     * Cancel every uploading / pending / paused file (`beforeFileCancelCallback`
+     * Cancel every uploading / pending / paused file (`beforeFilesCancelCallback`
      * asked once). Resolves when every cancel finished.
      */
     cancelAll(): Promise<void> {

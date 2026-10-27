@@ -369,9 +369,9 @@ export class DropzoneIndicatorElement extends SatelliteElement {
         const args = buildStatusSurfaceArgs(files, this.storeEl!.controller, this.storeEl!);
 
         // ---- Chip dataset (drives color + 'empty' state via CSS) --------
-        const nextStatus = args.overallStatus;
-        if (this.chipEl.dataset.status !== nextStatus) {
-            this.chipEl.dataset.status = nextStatus;
+        const newStatus = args.overallStatus;
+        if (this.chipEl.dataset.status !== newStatus) {
+            this.chipEl.dataset.status = newStatus;
         }
         const nextEmpty = args.aggregate.total === 0 ? 'true' : 'false';
         if (this.chipEl.dataset.empty !== nextEmpty) {

@@ -72,16 +72,16 @@
             const dz = document.getElementById(id);
             const log = document.getElementById(`${id}-log`);
             if (!log) return;
-            dz.addEventListener('files-reject', (e) => {
+            dz.addEventListener('file-reject', (e) => {
                 for (const r of e.detail.rejectedFiles) {
                     log.textContent += `${r.validation.code} ${r.file.name}\n`;
                 }
             });
         };
         ['min-size', 'max-total', 'min-count', 'dedupe-name', 'dedupe-ns', 'accept-ext', 'mixed'].forEach(wireLog);
-        // Number of files-reject dispatches on #mixed (one batch → one event).
+        // Number of file-reject dispatches on #mixed (one batch → one event).
         window.__mixedRejectEvents = 0;
-        document.getElementById('mixed').addEventListener('files-reject', () => { window.__mixedRejectEvents++; });
+        document.getElementById('mixed').addEventListener('file-reject', () => { window.__mixedRejectEvents++; });
 
         // Track submit attempts on the min-count form
         document.getElementById('min-count-form').addEventListener('submit', (e) => {
