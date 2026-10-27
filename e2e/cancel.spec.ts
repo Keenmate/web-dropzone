@@ -193,3 +193,78 @@ test.describe('cancel rule', () => {
         expect(cfg).toEqual({ t: 50, b: 'remove', attr: 'remove' });
     });
 });
+
+test.describe('beforeFileCancelCallback + file-cancel', () => {
+    test('file-cancel detail: { file, result, uploadedBytes, metadata } + onFileCancel twin', async ({ page }) => {
+        await addNamed(page, 'q', ['d.txt']);
+        await expect.poll(() => pendingNames(page)).toContain('d.txt');
+        await pumpProgress(page, 'd.txt', 50);
+        const detail = await dz(page, 'q').evaluate(async (el: any) => {
+            el.files[0].metadata = { uploadUrl: '/tus/123' };
+            let twin: any = null;
+            let event: any = null;
+            el.onFileCancel = (d: any) => { twin = d; };
+            el.addEventListener('file-cancel', (e: any) => { event = e.detail; }, { once: true });
+            await el.cancelFile(el.files[0].id);
+            el.onFileCancel = null;
+            return {
+                sameObject: twin === event,
+                name: event.file.name, result: event.result,
+                uploadedBytes: event.uploadedBytes, metadata: event.metadata,
+                hasController: !!event.controller, keys: Object.keys(event).sort()
+            };
+        });
+        expect(detail).toEqual({
+            sameObject: true, name: 'd.txt', result: 'cancelled', uploadedBytes: 500,
+            metadata: { uploadUrl: '/tus/123' }, hasController: true,
+            keys: ['file', 'metadata', 'result', 'uploadedBytes']
+        });
+    });
+
+    test('result timeout-error / timeout-remove', async ({ page }) => {
+        await addNamed(page, 'stubborn', ['te.txt']);
+        await addNamed(page, 'stubborn-remove', ['tr.txt']);
+        await expect.poll(() => pendingNames(page)).toEqual(expect.arrayContaining(['te.txt', 'tr.txt']));
+        await dz(page, 'stubborn').evaluate((el: any) => el.cancelFile(el.files[0].id));
+        await dz(page, 'stubborn-remove').evaluate((el: any) => el.cancelFile(el.files[0].id));
+        expect(await logOf(page, 'stubborn')).toContain('file-cancel:te.txt:timeout-error');
+        const rlog = await logOf(page, 'stubborn-remove');
+        expect(rlog).toContain('file-cancel:tr.txt:timeout-remove');
+        expect(rlog.indexOf('file-remove:tr.txt')).toBeLessThan(rlog.indexOf('file-cancel:tr.txt:timeout-remove'));
+    });
+
+    test('the gate gets { files, allFiles }; false vetoes (upload keeps running)', async ({ page }) => {
+        await addNamed(page, 'q', ['v.txt', 'w.txt']);
+        await expect.poll(() => pendingNames(page)).toEqual(['v.txt']);
+        const out = await dz(page, 'q').evaluate(async (el: any) => {
+            const seen: any[] = [];
+            el.beforeFileCancelCallback = (ctx: any) => {
+                seen.push({ files: ctx.files.map((f: any) => f.name), all: ctx.allFiles.length, ctl: !!ctx.controller });
+                return Promise.resolve(false);
+            };
+            await el.cancelFile(el.files[0].id);
+            el.beforeFileCancelCallback = null;
+            return { seen, status: el.files[0].status };
+        });
+        expect(out.seen).toEqual([{ files: ['v.txt'], all: 2, ctl: true }]);
+        expect(out.status).toBe('uploading');
+        expect(await page.evaluate(() => (window as any).__aborted['v.txt'])).toBeUndefined();
+        expect(await logOf(page, 'q')).not.toContain('file-cancel:v.txt:cancelled');
+    });
+
+    test('removing a running file cancels it WITHOUT asking the cancel gate (file-cancel, then file-remove)', async ({ page }) => {
+        await addNamed(page, 'q', ['rm.txt']);
+        await expect.poll(() => pendingNames(page)).toContain('rm.txt');
+        const asked = await dz(page, 'q').evaluate(async (el: any) => {
+            let n = 0;
+            el.beforeFileCancelCallback = () => { n++; return false; };
+            await el.removeFile(el.files[0].id);
+            el.beforeFileCancelCallback = null;
+            return n;
+        });
+        expect(asked).toBe(0);
+        const log = await logOf(page, 'q');
+        expect(log.indexOf('file-cancel:rm.txt:cancelled')).toBeGreaterThan(-1);
+        expect(log.indexOf('file-cancel:rm.txt:cancelled')).toBeLessThan(log.indexOf('file-remove:rm.txt'));
+    });
+});

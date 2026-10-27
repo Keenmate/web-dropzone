@@ -17,7 +17,7 @@
 
 import type { ComponentContext } from '@keenmate/web-components-core';
 import type { DropzoneController } from './controller';
-import type { FileState, RejectedFile, DisplayMode, DropzoneState } from './types';
+import type { FileState, RejectedFile, DisplayMode, DropzoneState, FileCancelResult } from './types';
 
 export type { DropzoneController } from './controller';
 
@@ -56,6 +56,20 @@ export interface BeforeFilesAddContext extends DropzoneContext {
  */
 export interface BeforeFilesRemoveContext extends DropzoneContext {
     /** The files about to leave (one for a row ✕, all for Clear all). */
+    files: FileState[];
+    /** Every file currently in the dropzone. */
+    allFiles: FileState[];
+}
+
+/**
+ * `beforeFileCancelCallback(ctx)` — before a cancel: `cancelFile(id)` / the
+ * row Cancel button (`files` = `[file]`) and `cancelAll()` / "Cancel all"
+ * (once, `files` = every file being cancelled). Return `false` to veto (the
+ * uploads keep running). May be async. Internal cancels — removing a running
+ * file, the element being removed from the page — don't ask.
+ */
+export interface BeforeFileCancelContext extends DropzoneContext {
+    /** The files about to be cancelled. */
     files: FileState[];
     /** Every file currently in the dropzone. */
     allFiles: FileState[];
@@ -193,6 +207,22 @@ export interface FileDeleteEventDetail extends DropzoneContext {
     file: FileState;
 }
 
+/**
+ * `file-cancel` — a cancel finished. `result`: `cancelled` (the handler
+ * settled in time, or nothing was running), `timeout-error` /
+ * `timeout-remove` (it didn't — `cancel-timeout-behavior` applied).
+ * `uploadedBytes` / `metadata` describe what the server may hold: cleaning a
+ * partial upload up server-side is the app's job.
+ */
+export interface FileCancelEventDetail extends DropzoneContext {
+    file: FileState;
+    result: FileCancelResult;
+    /** Bytes the upload had reported when the cancel finished. */
+    uploadedBytes: number;
+    /** What the handler stashed via `ctx.setMetadata` (e.g. a tus.io upload URL). */
+    metadata: Record<string, unknown> | undefined;
+}
+
 /** `file-progress` — a file's progress value changed. */
 export interface FileProgressEventDetail extends DropzoneContext {
     id: string;
@@ -252,6 +282,7 @@ export type DropzoneEventMap = {
     'file-retry': FileRetryEventDetail;
     'file-upload-complete': FileUploadCompleteEventDetail;
     'file-delete': FileDeleteEventDetail;
+    'file-cancel': FileCancelEventDetail;
     'file-progress': FileProgressEventDetail;
     'file-status-change': FileStatusChangeEventDetail;
     'file-update': FileUpdateEventDetail;

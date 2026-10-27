@@ -24,7 +24,7 @@ import { FILE_TYPE_ICONS, UI_ICONS } from './icons';
  * is either a callback (no default) or a runtime-resolved reference
  * (`container`, `hostElement`, `overlayTarget`).
  */
-export const DEFAULT_CONFIG: Required<Omit<DropzoneConfig, 'fileIcons' | 'getFileIconCallback' | 'validateCallback' | 'beforeFilesAddCallback' | 'beforeFilesRemoveCallback' | 'uploadFileCallback' | 'renderFileItemCallback' | 'renderListWrapperCallback' | 'renderPromptCallback' | 'renderSummaryCallback' | 'getCustomStylesCallback' | 'persistStateCallback' | 'loadStateCallback' | 'storageKey' | 'container' | 'hostElement' | 'overlayTarget' | 'selectorAppearance' | 'listAppearance' | 'gridLayout' | 'gridStatus' | 'controls' | 'itemControls' | 'cardSize' | 'isShowThumbnailsEnabled' | 'retryPolicy' | 'rollingRotation' | 'isHeadless' | 'renderRollingBodyCallback' | 'renderRollingFileInfoCallback' | 'renderRollingProgressCallback'>> = {
+export const DEFAULT_CONFIG: Required<Omit<DropzoneConfig, 'fileIcons' | 'getFileIconCallback' | 'validateCallback' | 'beforeFilesAddCallback' | 'beforeFilesRemoveCallback' | 'beforeFileCancelCallback' | 'uploadFileCallback' | 'renderFileItemCallback' | 'renderListWrapperCallback' | 'renderPromptCallback' | 'renderSummaryCallback' | 'getCustomStylesCallback' | 'persistStateCallback' | 'loadStateCallback' | 'storageKey' | 'container' | 'hostElement' | 'overlayTarget' | 'selectorAppearance' | 'listAppearance' | 'gridLayout' | 'gridStatus' | 'controls' | 'itemControls' | 'cardSize' | 'isShowThumbnailsEnabled' | 'retryPolicy' | 'rollingRotation' | 'isHeadless' | 'renderRollingBodyCallback' | 'renderRollingFileInfoCallback' | 'renderRollingProgressCallback'>> = {
     isMultipleEnabled: true,
     accept: '',
     maxFileSize: 0,

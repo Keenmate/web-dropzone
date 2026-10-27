@@ -58,6 +58,7 @@ import type {
     FileRetryEventDetail,
     FileUploadCompleteEventDetail,
     FileDeleteEventDetail,
+    FileCancelEventDetail,
     FileProgressEventDetail,
     FileStatusChangeEventDetail,
     FileUpdateEventDetail,
@@ -249,6 +250,7 @@ const INPUTS: readonly InputDef[] = [
     { configKey: 'validateCallback',              converter: cb(),      on: 'update', type: '(ctx: ValidateContext) => ValidationResult', description: 'Custom per-file validation, after the built-in size / type checks. `ctx`: `{ file, existingFiles }`. Sync.' },
     { configKey: 'beforeFilesAddCallback',        converter: cb(),      on: 'update', type: '(ctx: BeforeFilesAddContext) => false | File[] | void | Promise<false | File[] | void>', description: 'Gate before a validated batch is added. `ctx`: `{ files, existingFiles }`. `false` cancels (files reported in `files-reject` with code `rejected`); a `File[]` replaces the batch (validated again); may be async.' },
     { configKey: 'beforeFilesRemoveCallback',     converter: cb(),      on: 'update', type: '(ctx: BeforeFilesRemoveContext) => false | void | Promise<false | void>', description: 'Gate before a user-initiated removal (row ✕, Clear all) or `removeFile` / `clear` with `{ confirm: true }`. `ctx`: `{ files, allFiles }`. `false` cancels; may be async.' },
+    { configKey: 'beforeFileCancelCallback',      converter: cb(),      on: 'update', type: '(ctx: BeforeFileCancelContext) => false | void | Promise<false | void>', description: 'Gate before a cancel: `cancelFile(id)` / the row Cancel button (`files: [file]`) and `cancelAll()` / "Cancel all" (once, every file). `ctx`: `{ files, allFiles }`. `false` vetoes; may be async. Internal cancels (removing a running file, element removal) skip it.' },
     { configKey: 'uploadFileCallback',            converter: cb(),      on: 'update', type: '(ctx: FileUploadContext) => Promise<void | FileUploadResult>', description: 'Component-driven upload handler; added files run through the worker pool. `ctx`: `{ file, signal, setProgress, startBytes, startPercent, metadata, setMetadata, uploadMetadata }`.' },
     { configKey: 'retryPolicy',                   converter: toValue(), on: 'update', type: 'RetryPolicy', description: 'Retry policy applied when uploadFileCallback rejects. Property-only object.' },
     { configKey: 'fileIcons',                     converter: toValue(), on: 'update', type: 'Record<string, string>', description: 'Icon overrides keyed by extension or category (raw HTML — NOT sanitized). Property-only object.' },
@@ -279,6 +281,7 @@ const EVENTS: readonly EventDef[] = [
     { name: 'file-retry', description: 'A failed / cancelled file was re-queued (status already `pending`). `detail`: `{ file }`. Twin: `onFileRetry(detail)`.' },
     { name: 'file-upload-complete', description: '`uploadFileCallback` resolved for a file. `detail`: `{ file }`. Twin: `onFileUploadComplete(detail)`.' },
     { name: 'file-delete', description: 'A removed file had server-side state (completed, or metadata stashed via `setMetadata`) — fires with `file-remove`; wire your server DELETE here. `detail`: `{ file }`. Twin: `onFileDelete(detail)`.' },
+    { name: 'file-cancel', description: 'A cancel finished. `detail`: `{ file, result: \'cancelled\' | \'timeout-error\' | \'timeout-remove\', uploadedBytes, metadata }`. Server-side cleanup of a partial upload is the app\'s job. Twin: `onFileCancel(detail)`.' },
     { name: 'file-progress', description: 'A file\'s progress changed. `detail`: `{ id, progress, status, file }`. Twin: `onFileProgress(detail)`.' },
     { name: 'file-status-change', description: 'A file\'s status transitioned. `detail`: `{ id, prevStatus, nextStatus, file }`. Twin: `onFileStatusChange(detail)`.' },
     { name: 'file-update', description: 'A file field other than progress / status changed (preview generated, upload result merged). `detail`: `{ file }`. Twin: `onFileUpdate(detail)`.' },
@@ -316,6 +319,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
     declare onFileRetry: ((detail: FileRetryEventDetail) => void) | null;
     declare onFileUploadComplete: ((detail: FileUploadCompleteEventDetail) => void) | null;
     declare onFileDelete: ((detail: FileDeleteEventDetail) => void) | null;
+    declare onFileCancel: ((detail: FileCancelEventDetail) => void) | null;
     declare onFileProgress: ((detail: FileProgressEventDetail) => void) | null;
     declare onFileStatusChange: ((detail: FileStatusChangeEventDetail) => void) | null;
     declare onFileUpdate: ((detail: FileUpdateEventDetail) => void) | null;

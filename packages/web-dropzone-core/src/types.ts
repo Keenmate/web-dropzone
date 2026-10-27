@@ -11,6 +11,7 @@ import type {
     ValidateContext,
     BeforeFilesAddContext,
     BeforeFilesRemoveContext,
+    BeforeFileCancelContext,
     FileIconContext,
     FileUploadContext,
     PersistStateContext,
@@ -630,6 +631,13 @@ export interface DropzoneConfig {
      *  skip this gate unless called with `{ confirm: true }`. A throw cancels. */
     beforeFilesRemoveCallback?:
         ((ctx: BeforeFilesRemoveContext) => false | void | Promise<false | void>) | null;
+    /** Gate fired before a cancel — `beforeFileCancelCallback({ files,
+     *  allFiles })`; may be async. `cancelFile(id)` / the row Cancel button
+     *  pass `[file]`; `cancelAll()` / "Cancel all" ask ONCE with every file.
+     *  Return `false` to veto (uploads keep running). A throw vetoes.
+     *  Internal cancels (removing a running file, element removal) skip it. */
+    beforeFileCancelCallback?:
+        ((ctx: BeforeFileCancelContext) => false | void | Promise<false | void>) | null;
     /**
      * Per-file upload handler. When set, the component takes ownership of the
      * upload lifecycle: a worker pool runs queued files at the configured

@@ -24,6 +24,14 @@ server-side command, *clear* empties a set, *destroy* is the only teardown verb.
 
 ### Added
 
+- **`beforeFileCancelCallback(ctx)`** — gate before a cancel (core `runBeforeCallback` contract:
+  one ctx `{ files, allFiles }`, may be async, `false` vetoes). `cancelFile(id)` and the row
+  Cancel button ask with `[file]`; `cancelAll()` / "Cancel all" ask **once** with every file.
+  Internal cancels (removing a running file, the element leaving the page) don't ask.
+- **`file-cancel` event** (+ `onFileCancel` twin) after a cancel finished:
+  `{ file, result: 'cancelled' | 'timeout-error' | 'timeout-remove', uploadedBytes, metadata }`.
+  Cleaning a partial upload up server-side is the app's job — `metadata` carries what the handler
+  stashed via `ctx.setMetadata` (e.g. a tus.io upload URL).
 - **`removeFiles(ids, opts?)`** on the element and `DropzoneController` — the pair of
   `addFiles`. With `{ confirm: true }` the `beforeFilesRemoveCallback` gate runs **once** for the
   batch. `removeFile(id)` and `clear()` are now thin wrappers over it (one `change` per batch).

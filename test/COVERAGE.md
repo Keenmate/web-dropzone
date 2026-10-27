@@ -367,3 +367,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `cancel-timeout-behavior="remove"` removes a timed-out file    | ✓      | `cancel.spec.ts` | `cancel.html` |
 | Handler resolving while `cancelling` → `cancelled`             | ✓      | `cancel.spec.ts` | `cancel.html` |
 | `cancel-timeout` / `cancel-timeout-behavior` reactive          | ✓      | `cancel.spec.ts` | `cancel.html` |
+| `file-cancel` detail `{ file, result, uploadedBytes, metadata }` + `onFileCancel` twin | ✓ | `cancel.spec.ts` | `cancel.html` |
+| `file-cancel` results `timeout-error` / `timeout-remove`       | ✓      | `cancel.spec.ts` | `cancel.html` |
+| `beforeFileCancelCallback({ files, allFiles })` veto keeps the upload running | ✓ | `cancel.spec.ts` | `cancel.html` |
+| Removing a running file cancels without the cancel gate (`file-cancel` → `file-remove`) | ✓ | `cancel.spec.ts` | `cancel.html` |

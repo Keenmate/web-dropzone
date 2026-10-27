@@ -54,6 +54,9 @@ import {
     DEFAULT_CONFIG
 } from './dropzone-shared';
 
+/** Statuses a cancel applies to (a `cancelling` file joins its running cancel). */
+const CANCELLABLE: ReadonlySet<FileState['status']> = new Set(['uploading', 'pending', 'paused']);
+
 /** Sentinel: an upload attempt was detached by a cancel that timed out. */
 const DETACHED: unique symbol = Symbol('detached');
 
@@ -868,8 +871,32 @@ export class DropzoneEngine {
      * Unlike pauseFile(), a cancelled file won't auto-resume — the user has
      * to retry (which restarts from 0).
      */
-    cancelFile(id: string): Promise<void> {
-        return this.runCancel(id).then(() => undefined);
+    async cancelFile(id: string): Promise<void> {
+        const file = this.files.find(f => f.id === id);
+        if (!file || this.isDestroyed) return;
+        if (file.status === 'cancelling') {
+            await this.runCancel(id); // join the running cancel — no second ask
+            return;
+        }
+        if (!CANCELLABLE.has(file.status)) return;
+        if (!(await this.askCancel([file]))) return;
+        await this.runCancel(id);
+    }
+
+    /**
+     * Run `beforeFileCancelCallback` (if set) for `files`; `true` = proceed.
+     * Core `runBeforeCallback` contract: one ctx, may be async, `false` (or a
+     * throw) vetoes.
+     */
+    protected async askCancel(files: FileState[]): Promise<boolean> {
+        const gate = this.config.beforeFileCancelCallback;
+        if (!gate) return true;
+        const result = await runBeforeCallback(
+            gate,
+            this.ctx({ files, allFiles: this.getFiles() }),
+            'beforeFileCancelCallback'
+        );
+        return !result.isCancelled;
     }
 
     /** The cancel rule (no gate): join a running cancel or start one. */
@@ -878,10 +905,11 @@ export class DropzoneEngine {
         if (running) return running;
         const file = this.files.find(f => f.id === id);
         if (!file || this.isDestroyed) return Promise.resolve(null);
-        if (file.status !== 'uploading' && file.status !== 'pending' && file.status !== 'paused') {
-            return Promise.resolve(null);
-        }
-        const cancel = this.performCancel(file).finally(() => {
+        if (!CANCELLABLE.has(file.status)) return Promise.resolve(null);
+        const cancel = this.performCancel(file).then(result => {
+            if (result) this.emitCancelEvent(file, result);
+            return result;
+        }).finally(() => {
             if (this.cancels.get(id) === cancel) this.cancels.delete(id);
         });
         this.cancels.set(id, cancel);
@@ -1599,6 +1627,16 @@ export class DropzoneEngine {
 
     protected emitUploadedEvent(file: FileState): void {
         this.notify('file-upload-complete', { file });
+    }
+
+    /** `file-cancel` — a cancel finished (see {@link cancelFile}). */
+    protected emitCancelEvent(file: FileState, result: FileCancelResult): void {
+        this.notify('file-cancel', {
+            file,
+            result,
+            uploadedBytes: Math.floor(file.size * (file.progress / 100)),
+            metadata: file.metadata
+        });
     }
 
     protected emitDeleteEvent(file: FileState): void {
