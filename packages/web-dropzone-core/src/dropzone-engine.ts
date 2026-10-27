@@ -343,7 +343,7 @@ export class DropzoneEngine {
                 this.ctx({ files: targets, allFiles: this.getFiles() }),
                 'beforeFilesRemoveCallback'
             );
-            if (gate.isCancelled) return;
+            if (gate.isRejected) return;
         }
 
         // Remove on a running file = cancel, then remove: its handler gets
@@ -904,7 +904,7 @@ export class DropzoneEngine {
             this.ctx({ files, allFiles: this.getFiles() }),
             'beforeFileCancelCallback'
         );
-        return !result.isCancelled;
+        return !result.isRejected;
     }
 
     /** The cancel rule (no gate): join a running cancel or start one. */
@@ -1251,7 +1251,7 @@ export class DropzoneEngine {
                 this.ctx({ files: [...acceptedFiles], existingFiles: this.getFiles() }),
                 'beforeFilesAddCallback'
             );
-            if (gate.isCancelled) {
+            if (gate.isRejected) {
                 for (const file of acceptedFiles) {
                     rejectedFiles.push({
                         file,
