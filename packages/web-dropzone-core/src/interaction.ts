@@ -39,7 +39,7 @@ export interface ValidateContext extends DropzoneContext {
 /**
  * `beforeFilesAddCallback(ctx)` — once per add batch, after validation.
  * Return `false` to cancel (the files are reported in `files-reject` with
- * `code: 'cancelled'`), a `File[]` to add those instead (validated again,
+ * `code: 'rejected'`), a `File[]` to add those instead (validated again,
  * the hook is not re-run), or nothing to continue. May be async.
  */
 export interface BeforeFilesAddContext extends DropzoneContext {

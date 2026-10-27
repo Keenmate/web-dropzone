@@ -95,7 +95,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `file-row-update` on progress ticks (listener survival)       | ✓      | `events-extra.spec.ts` | `events-extra.html` |
 | `overlay-enter` / `overlay-leave` during drag (Playwright limit) | △    | `drag-overlay.spec.ts` | `drag-overlay.html` |
 | `el.target.files` snapshot in sync at dispatch                | ✓      | `events.spec.ts` | `events.html` |
-| Public methods: `addFiles`, `removeFile`, `clear`             | ✓      | `api.spec.ts`    | `api.html`    |
+| Public methods: `addFiles`, `removeFile`, `removeFiles` (batch, gate once), `clear` | ✓      | `api.spec.ts`    | `api.html`    |
 | Public method: `getFile(id)` / `getFile(missing)`             | ✓      | `api.spec.ts`    | `api.html`    |
 | Public methods: `pauseFile` / `cancelFile`                    | ✓      | `api.spec.ts`    | `api.html`    |
 | Public methods: `resumeFile`, `retryFile`                     | ✓      | `upload-edge.spec.ts` | `upload-edge.html` |
@@ -134,7 +134,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `uploaded-deletable="false"` hides ✕ on completed rows        | ✓      | `upload-edge.spec.ts` (NOTES #6 fixed) | `upload-edge.html` |
 | `reorder-completed-delay` — row moves only after the delay    | ✓      | `upload-edge.spec.ts` (NOTES #7 fixed) | `upload-edge.html` |
 | `progress-throttle` caps emission rate                        | ✓      | `upload-edge.spec.ts` | `upload-edge.html` |
-| `reorder-completed` reflows completed files                   | ✓      | `upload-edge.spec.ts` (DOM order: the reorder-completed-delay test) | `upload-edge.html` |
+| `should-sink-completed` reflows completed files               | ✓      | `upload-edge.spec.ts` (DOM order: the reorder-completed-delay test) | `upload-edge.html` |
 | `progress-mode="pessimistic"` preserves progress on failure   | ✓      | `upload-edge.spec.ts` | `upload-edge.html` |
 | Resume-aware progress on `file-progress`                      | △      | `upload-edge.spec.ts` | `upload-edge.html` |
 

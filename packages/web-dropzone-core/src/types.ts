@@ -337,7 +337,7 @@ export interface ValidationResult {
     /** Error message if validation failed */
     error?: string;
     /** Error code for programmatic handling */
-    code?: 'size' | 'type' | 'count' | 'duplicate' | 'custom' | 'cancelled';
+    code?: 'size' | 'type' | 'count' | 'duplicate' | 'custom' | 'rejected';
 }
 
 /**
@@ -593,7 +593,7 @@ export interface DropzoneConfig {
     /** Gate fired once per add batch AFTER all sync validation passes —
      *  `beforeFilesAddCallback({ files, existingFiles })`; may be async.
      *  Return `false` to cancel — the files are then reported via
-     *  `files-reject` with `code: 'cancelled'`; return a `File[]` to add
+     *  `files-reject` with `code: 'rejected'`; return a `File[]` to add
      *  those instead (they are validated again; the hook is not re-run);
      *  return nothing to continue. While a promise is pending the files do
      *  NOT appear in the dropzone (no `file-add`, not in `files`); the
@@ -668,7 +668,7 @@ export interface DropzoneConfig {
      * what still needs attention (errors at the top, not buried beneath
      * a long tail of green checkmarks).
      */
-    isReorderCompletedEnabled?: boolean;
+    shouldSinkCompleted?: boolean;
     /**
      * Delay in milliseconds between a file transitioning to `complete`
      * and its row sliding to the completed bucket (when reorder is on).

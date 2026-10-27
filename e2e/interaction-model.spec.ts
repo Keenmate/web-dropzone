@@ -140,12 +140,12 @@ test.describe('el.controller (replaces getStore)', () => {
 });
 
 test.describe('beforeFilesAddCallback({ files, existingFiles })', () => {
-    test('false cancels → files-reject with code "cancelled"', async ({ page }) => {
+    test('false cancels → files-reject with code "rejected"', async ({ page }) => {
         await page.evaluate(() => { (window as any).__addMode = 'cancel'; });
         await addNamed(page, 'add-gate', ['a.txt']);
         const log = await logOf(page);
         expect(log).toContain('beforeFilesAdd files=a.txt existing=0');
-        expect(log).toContain('reject:cancelled:a.txt');
+        expect(log).toContain('reject:rejected:a.txt');
         expect(await page.evaluate(() => (document.getElementById('add-gate') as any).files.length)).toBe(0);
         await expectContext(page, 'beforeFilesAdd');
     });

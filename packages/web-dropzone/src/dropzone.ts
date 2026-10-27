@@ -661,13 +661,13 @@ export class WebDropzone extends DropzoneEngine {
     }
 
     private renderFileListArea(listAppearance: ListAppearance): string {
-        const reorderClass = this.config.isReorderCompletedEnabled ? ' dz__file-list--reorder-completed' : '';
+        const reorderClass = this.config.shouldSinkCompleted ? ' dz__file-list--reorder-completed' : '';
         return `<div class="dz__file-list dz__file-list--${listAppearance}${reorderClass}"></div>`;
     }
 
     private renderFilesInsideArea(): string {
         const { listAppearance } = resolveDisplayConfig(this.config);
-        const reorderClass = this.config.isReorderCompletedEnabled ? ' dz__files-inside--reorder-completed' : '';
+        const reorderClass = this.config.shouldSinkCompleted ? ' dz__files-inside--reorder-completed' : '';
         return `<div class="dz__files-inside dz__files-inside--${listAppearance}${reorderClass}"></div>`;
     }
 

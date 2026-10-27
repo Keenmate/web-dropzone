@@ -188,7 +188,7 @@ Every event bubbles and is **not composed**, fires on `<web-dropzone>`, and has 
 | `file-remove` | `onFileRemove` | `{ file }` | A file left the dropzone (one per file; also on clear) |
 | `change` | `onChange` | `{ files }` | The selection changed (add / remove / clear) |
 | `files-change` | `onFilesChange` | `{ changedIds, files }` | Coalesced queue tick, at most once per animation frame |
-| `files-reject` | `onFilesReject` | `{ rejectedFiles: [{ file, validation: { valid, error, code } }] }` | Files failed validation, or `beforeFilesAddCallback` cancelled (`code: 'cancelled'`) |
+| `files-reject` | `onFilesReject` | `{ rejectedFiles: [{ file, validation: { valid, error, code } }] }` | Files failed validation, or `beforeFilesAddCallback` vetoed the add (`code: 'rejected'`) |
 | `file-progress` | `onFileProgress` | `{ id, progress, status, file }` | A file's progress changed |
 | `file-status-change` | `onFileStatusChange` | `{ id, prevStatus, nextStatus, file }` | A file's status transitioned |
 | `file-update` | `onFileUpdate` | `{ file }` | Another field changed (preview generated, upload result merged) |
@@ -230,7 +230,7 @@ Every callback takes **one** `ctx` object that also carries `controller` / `elem
 | Callback | `ctx` | Returns |
 |----------|-------|---------|
 | `validateCallback` | `{ file, existingFiles }` | `ValidationResult` (sync) |
-| `beforeFilesAddCallback` | `{ files, existingFiles }` | `false` cancels (→ `files-reject`, code `cancelled`); a `File[]` replaces the batch (validated again) |
+| `beforeFilesAddCallback` | `{ files, existingFiles }` | `false` vetoes (→ `files-reject`, code `rejected`); a `File[]` replaces the batch (validated again) |
 | `beforeFilesRemoveCallback` | `{ files, allFiles }` | `false` cancels |
 | `uploadFileCallback` | `{ file, signal, setProgress, startBytes, startPercent, metadata, setMetadata, uploadMetadata }` | `Promise<void \| { metadata, downloadUrl, previewUrl, name }>` |
 | `getFileIconCallback` | `{ file }` | icon HTML, or `null` to fall through |

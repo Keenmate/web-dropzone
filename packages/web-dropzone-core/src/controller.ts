@@ -21,6 +21,8 @@ export interface DropzoneController {
     addFiles(files: FileList | File[], opts?: AddFilesOptions): Promise<void>;
     /** Remove a file by id. Skips `beforeFilesRemoveCallback` unless `opts.confirm`. */
     removeFile(id: string, opts?: { confirm?: boolean }): Promise<void>;
+    /** Remove files by id (the pair of `addFiles`); with `opts.confirm` the gate runs once for the batch. */
+    removeFiles(ids: readonly string[], opts?: { confirm?: boolean }): Promise<void>;
     /** Remove every file (aborts uploads). Same gate semantics as `removeFile`. */
     clear(opts?: { confirm?: boolean }): Promise<void>;
 
@@ -69,6 +71,7 @@ const EMPTY_PROGRESS: OverallProgress = Object.freeze({
 const METHODS = {
     addFiles: () => Promise.resolve(),
     removeFile: () => Promise.resolve(),
+    removeFiles: () => Promise.resolve(),
     clear: () => Promise.resolve(),
     getFiles: () => [],
     getFile: () => undefined,

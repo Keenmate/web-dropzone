@@ -11,6 +11,23 @@ Target: **1.0.0-rc03**. No stable 1.0.0 is published, so the break ships as the 
 candidate — but `^1.0.0-rc02` consumers will pull it: the event,
 callback and store-access API below is breaking.
 
+### Changed — BREAKING (naming glossary)
+
+Verbs follow the shared glossary: *cancel* stops a running operation, *abort* is only the
+`AbortSignal`, *remove* takes a file out of the list locally, *delete* is a destructive
+server-side command, *clear* empties a set, *destroy* is the only teardown verb.
+
+| Old | New |
+|---|---|
+| `reorder-completed` attribute / `isReorderCompletedEnabled` config / `el.reorderCompleted` | `should-sink-completed` / `shouldSinkCompleted` (core-installed `el.shouldSinkCompleted`) — auto-moves completed files to the end |
+| `files-reject` validation code `cancelled` (a `beforeFilesAddCallback` veto) | `rejected` |
+
+### Added
+
+- **`removeFiles(ids, opts?)`** on the element and `DropzoneController` — the pair of
+  `addFiles`. With `{ confirm: true }` the `beforeFilesRemoveCallback` gate runs **once** for the
+  batch. `removeFile(id)` and `clear()` are now thin wrappers over it (one `change` per batch).
+
 ### Changed — BREAKING (interaction model, web-components-core rc15)
 
 Events and callbacks follow the shared KeenMate interaction model (web-components-core

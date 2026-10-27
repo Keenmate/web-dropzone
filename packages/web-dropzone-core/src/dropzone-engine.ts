@@ -285,68 +285,80 @@ export class DropzoneEngine {
     }
 
     /**
-     * Remove a file by ID. Pass `{ confirm: true }` to run the
-     * `beforeFilesRemoveCallback` async gate before proceeding —
-     * the call returns a Promise that resolves either way; cancellation
-     * is a silent no-op. Default (no opts) skips the gate, matching the
-     * "programmatic calls are intentional" stance.
+     * Remove one file by ID — `removeFiles([id], opts)`.
      */
-    async removeFile(id: string, opts?: { confirm?: boolean }): Promise<void> {
-        const index = this.files.findIndex(f => f.id === id);
-        if (index === -1) return;
+    removeFile(id: string, opts?: { confirm?: boolean }): Promise<void> {
+        return this.removeFiles([id], opts);
+    }
+
+    /**
+     * Remove files by ID (the pair of `addFiles`). Pass `{ confirm: true }` to
+     * run the `beforeFilesRemoveCallback` gate ONCE with every file being
+     * removed — `false` cancels the whole batch silently. Default (no opts)
+     * skips the gate, matching the "programmatic calls are intentional"
+     * stance. Unknown ids are ignored. Fires `file-remove` (+ `file-delete`
+     * when the file has server-side state) per file, then one `change`.
+     */
+    async removeFiles(ids: readonly string[], opts?: { confirm?: boolean }): Promise<void> {
+        const wanted = new Set(ids);
+        const targets = this.files.filter(f => wanted.has(f.id));
+        if (targets.length === 0) return;
 
         if (opts?.confirm && this.config.beforeFilesRemoveCallback) {
             const gate = await runBeforeCallback(
                 this.config.beforeFilesRemoveCallback,
-                this.ctx({ files: [this.files[index]], allFiles: this.getFiles() }),
+                this.ctx({ files: targets, allFiles: this.getFiles() }),
                 'beforeFilesRemoveCallback'
             );
             if (gate.isCancelled) return;
-            // Re-resolve index — the file might have been removed during the
-            // user's confirmation by another code path.
-            const recheckIndex = this.files.findIndex(f => f.id === id);
-            if (recheckIndex === -1) return;
         }
 
-        // Abort any in-flight upload for this file before dropping it from
-        // state. Clearing pausedIds first prevents runUpload's catch branch
-        // from flipping the (already-removed) file to 'paused'.
-        this.pausedIds.delete(id);
-        this.controllers.get(id)?.abort();
-        // Cancel any pending reorder timer — the row is going away, no
-        // point firing the deferred move after the row is gone.
-        const pendingReorder = this.reorderTimers.get(id);
-        if (pendingReorder !== undefined) {
-            clearTimeout(pendingReorder);
-            this.reorderTimers.delete(id);
+        // Re-resolve — the async gate may have run while other code paths
+        // mutated `this.files`.
+        const removed = this.files.filter(f => wanted.has(f.id));
+        if (removed.length === 0) return;
+        for (const file of removed) this.releaseFile(file.id);
+        this.files = this.files.filter(f => !wanted.has(f.id));
+
+        fileLogger.debug('Files removed', { count: removed.length, ids: removed.map(f => f.id) });
+
+        // file-delete fires on top of file-remove whenever the file has
+        // server-side state worth cleaning up — completed files (server has
+        // the full blob) OR any file whose handler stashed metadata via
+        // setMetadata (e.g. a tus.io session URL from a partial upload). The
+        // renderer reacts to file-remove (drops cached row element) and to
+        // change (refreshes summary / selector badge / overall progress).
+        for (const file of removed) {
+            this.emitRemoveEvent(file);
+            if (this.hasServerSideState(file)) this.emitDeleteEvent(file);
         }
-
-        // Re-resolve index because the async gate may have run between the
-        // initial find and now (other code paths can mutate `this.files`).
-        const liveIndex = this.files.findIndex(f => f.id === id);
-        if (liveIndex === -1) return;
-        const file = this.files[liveIndex];
-        const hasServerState = this.hasServerSideState(file);
-        this.files.splice(liveIndex, 1);
-        this.throttleLastFireAt.delete(id);
-        this.clearThrottlePending(id);
-
-        fileLogger.debug('File removed', { id, name: file.name, hasServerState });
-
-        // Emit events. file-delete fires on top of file-remove whenever
-        // the file has server-side state worth cleaning up — completed
-        // files (server has the full blob) OR any file whose handler
-        // stashed metadata via setMetadata (e.g. tus.io session URL from a
-        // partial upload that the user paused-then-removed). The renderer
-        // reacts to file-remove (drops cached row element) and to change
-        // (refreshes summary / selector badge / overall progress).
-        this.emitRemoveEvent(file);
-        if (hasServerState) this.emitDeleteEvent(file);
         this.emitChangeEvent();
 
         // Re-render the row set — per-tick updates flow through events,
         // but add / remove / clear still rebuild the inline list.
         this.renderFileList();
+    }
+
+    /**
+     * Drop every per-file runtime resource for a file that is leaving the
+     * list: abort its in-flight upload, forget pause state, cancel its
+     * reorder + progress-throttle timers. The FileState itself is spliced by
+     * the caller.
+     */
+    protected releaseFile(id: string): void {
+        // Clearing pausedIds first prevents the run path's catch branch from
+        // flipping the (already-removed) file to 'paused'.
+        this.pausedIds.delete(id);
+        this.controllers.get(id)?.abort();
+        this.controllers.delete(id);
+        this.activeIds.delete(id);
+        const pendingReorder = this.reorderTimers.get(id);
+        if (pendingReorder !== undefined) {
+            clearTimeout(pendingReorder);
+            this.reorderTimers.delete(id);
+        }
+        this.throttleLastFireAt.delete(id);
+        this.clearThrottlePending(id);
     }
 
     /**
@@ -363,48 +375,10 @@ export class DropzoneEngine {
     }
 
     /**
-     * Clear all files. Pass `{ confirm: true }` to run the
-     * `beforeFilesRemoveCallback` async gate with the full file list
-     * before wiping — gate returning false cancels the clear silently.
-     * Default (no opts) skips the gate.
+     * Remove every file — `removeFiles(<all ids>, opts)`. Same gate semantics.
      */
-    async clear(opts?: { confirm?: boolean }): Promise<void> {
-        if (opts?.confirm && this.config.beforeFilesRemoveCallback && this.files.length > 0) {
-            const gate = await runBeforeCallback(
-                this.config.beforeFilesRemoveCallback,
-                this.ctx({ files: [...this.files], allFiles: this.getFiles() }),
-                'beforeFilesRemoveCallback'
-            );
-            if (gate.isCancelled) return;
-        }
-
-        // Abort every in-flight upload before the FileState array is wiped —
-        // the run paths key off `this.files.find(...)` so an empty array would
-        // already be enough, but explicitly aborting also frees XHRs etc.
-        for (const ctrl of this.controllers.values()) ctrl.abort();
-        this.controllers.clear();
-        this.pausedIds.clear();
-        this.activeIds.clear();
-
-        const removedFiles = [...this.files];
-        this.files = [];
-        this.clearAllReorderTimers();
-
-        fileLogger.debug('All files cleared', { count: removedFiles.length });
-
-        // Emit events for each removed file — also fire file-delete for
-        // any file that had server-side state stashed (completed OR paused
-        // with metadata, etc.) so server cleanup hooks fire on Clear all.
-        // The renderer reacts to file-remove + change to keep its DOM
-        // cache (`fileRowElements`) and summary surfaces in sync.
-        removedFiles.forEach(file => {
-            this.emitRemoveEvent(file);
-            if (this.hasServerSideState(file)) this.emitDeleteEvent(file);
-        });
-        this.emitChangeEvent();
-
-        // Re-render the row set.
-        this.renderFileList();
+    clear(opts?: { confirm?: boolean }): Promise<void> {
+        return this.removeFiles(this.files.map(f => f.id), opts);
     }
 
     /**
@@ -613,7 +587,7 @@ export class DropzoneEngine {
             // Crossing the `complete` boundary (re)starts the delayed visual
             // reorder — here, not in a renderer, so every surface (in-class
             // list, popover, `<web-dropzone-list>` satellite) gets it.
-            if (this.config.isReorderCompletedEnabled &&
+            if (this.config.shouldSinkCompleted &&
                 (prevStatus === 'complete' || file.status === 'complete')) {
                 this.scheduleReorder(file.id, file.status === 'complete');
             }
@@ -650,7 +624,7 @@ export class DropzoneEngine {
         // calling scheduleReorder(id, false) directly handles the case
         // where the row is hidden behind a Show-more cap (querySelector
         // returns null and the inline branch skips).
-        if (this.config.isReorderCompletedEnabled) {
+        if (this.config.shouldSinkCompleted) {
             this.scheduleReorder(id, false);
         }
         file.error = undefined;
@@ -1043,7 +1017,7 @@ export class DropzoneEngine {
         // User-confirmation / transform gate. Runs ONCE per batch, AFTER all
         // sync validation passes. Files don't enter the queue (no
         // `file-add`, not in `this.files`) until it answers. `false` moves
-        // them to `rejectedFiles` with `code: 'cancelled'` so the consumer
+        // them to `rejectedFiles` with `code: 'rejected'` so the consumer
         // can distinguish user-cancel from validator-reject; a `File[]`
         // replaces the batch (validated again — the gate is not re-run).
         if (acceptedFiles.length > 0 && this.config.beforeFilesAddCallback) {
@@ -1058,8 +1032,8 @@ export class DropzoneEngine {
                         file,
                         validation: {
                             valid: false,
-                            error: 'Add cancelled by user',
-                            code: 'cancelled'
+                            error: 'Add rejected by beforeFilesAddCallback',
+                            code: 'rejected'
                         }
                     });
                 }
@@ -1237,7 +1211,7 @@ export class DropzoneEngine {
 
     /**
      * Return a snapshot of `this.files` ordered for rendering. When
-     * `isReorderCompletedEnabled` is on, reorder-eligible files (status
+     * `shouldSinkCompleted` is on, reorder-eligible files (status
      * 'complete' AND no pending reorder timer) slide to the end via a
      * stable sort (so within each bucket the original add order is
      * preserved). Used by the popover render path and the inline list's
@@ -1249,7 +1223,7 @@ export class DropzoneEngine {
      * CSS rule does — files mid-delay stay in the unresolved bucket.
      */
     getOrderedFiles(): FileState[] {
-        if (!this.config.isReorderCompletedEnabled) return this.files;
+        if (!this.config.shouldSinkCompleted) return this.files;
         return this.files
             .map((f, i) => ({ f, i, complete: this.isReorderEligible(f) ? 1 : 0 }))
             .sort((a, b) => (a.complete - b.complete) || (a.i - b.i))
@@ -1260,7 +1234,7 @@ export class DropzoneEngine {
      *  delay timer is pending for it. Used by the popover sort and by
      *  the inline render functions to stamp `data-reorder-bucket`. */
     isReorderEligible(file: FileState): boolean {
-        if (!this.config.isReorderCompletedEnabled) return false;
+        if (!this.config.shouldSinkCompleted) return false;
         if (file.status !== 'complete') return false;
         return !this.reorderTimers.has(file.id);
     }
@@ -1285,7 +1259,7 @@ export class DropzoneEngine {
             this.reorderTimers.delete(id);
         }
 
-        if (!this.config.isReorderCompletedEnabled) return;
+        if (!this.config.shouldSinkCompleted) return;
 
         const apply = () => {
             // The file may have been removed during the timer wait.

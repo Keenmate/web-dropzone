@@ -207,7 +207,7 @@ el.getCustomStylesCallback = () =&gt; `
                     accept="*/*"
                     multiple
                     auto-upload
-                    reorder-completed
+                    should-sink-completed
                     reorder-completed-delay="1200"
                     prompt-text="Drop files into the table">
                 </web-dropzone>
@@ -256,7 +256,7 @@ el.renderFileItemCallback = ({ file }) =&gt; `
                     accept="*/*"
                     multiple
                     auto-upload
-                    reorder-completed
+                    should-sink-completed
                     reorder-completed-delay="1200"
                     progress-throttle="120"
                     prompt-text="Drop files (click a row to toggle ⭐)">

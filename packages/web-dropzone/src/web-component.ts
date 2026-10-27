@@ -236,8 +236,8 @@ const INPUTS: readonly InputDef[] = [
     { configKey: 'concurrency',             attribute: 'concurrency',         converter: toInt({ default: 1 }),                                                        shouldReflect: true, on: 'update', description: 'Maximum concurrent uploads through the worker pool.' },
     { configKey: 'isAutoUploadEnabled',     attribute: 'auto-upload',         converter: toBool('default-true'),                                                       on: 'update', type: 'boolean', description: 'Auto-upload newly added files. Public property: `el.autoUpload`.' },
     { configKey: 'isUploadedFileDeletable',  attribute: 'uploaded-deletable',  converter: toBool('default-true'),                                                       on: 'update', type: 'boolean', description: 'Whether already-uploaded files can be removed. Public property: `el.uploadedDeletable`.' },
-    { configKey: 'isReorderCompletedEnabled', attribute: 'reorder-completed', converter: toBool('default-false'),                                                      on: 'update', type: 'boolean', description: 'Slide completed files to the bottom of the list. Public property: `el.reorderCompleted`.' },
-    { configKey: 'reorderCompletedDelay',   attribute: 'reorder-completed-delay', converter: toInt({ default: 1500 }),                                                 shouldReflect: true, on: 'update', description: 'Delay in ms before a completed file reorders. Only meaningful when reorder-completed is on.' },
+    { configKey: 'shouldSinkCompleted',     attribute: 'should-sink-completed', converter: toBool('default-false'),                                                  on: 'update', type: 'boolean', description: 'Auto-move completed files to the end of the list (after `reorder-completed-delay`).' },
+    { configKey: 'reorderCompletedDelay',   attribute: 'reorder-completed-delay', converter: toInt({ default: 1500 }),                                                 shouldReflect: true, on: 'update', description: 'Delay in ms before a completed file reorders. Only meaningful when should-sink-completed is on.' },
     { configKey: 'progressMode',            attribute: 'progress-mode',       converter: toEnum(['optimistic', 'pessimistic'] as const, { default: 'optimistic' }),   shouldReflect: true, on: 'update', description: 'Progress reporting contract: optimistic (tick before ACK, snap back on failure) or pessimistic (tick only after ACK).' },
 
     // ── Persistence ───────────────────────────────────────────────────────────
@@ -245,7 +245,7 @@ const INPUTS: readonly InputDef[] = [
 
     // ── Callbacks (property-only) — each takes ONE ctx carrying `controller` + `element` ──
     { configKey: 'validateCallback',              converter: cb(),      on: 'update', type: '(ctx: ValidateContext) => ValidationResult', description: 'Custom per-file validation, after the built-in size / type checks. `ctx`: `{ file, existingFiles }`. Sync.' },
-    { configKey: 'beforeFilesAddCallback',        converter: cb(),      on: 'update', type: '(ctx: BeforeFilesAddContext) => false | File[] | void | Promise<false | File[] | void>', description: 'Gate before a validated batch is added. `ctx`: `{ files, existingFiles }`. `false` cancels (files reported in `files-reject` with code `cancelled`); a `File[]` replaces the batch (validated again); may be async.' },
+    { configKey: 'beforeFilesAddCallback',        converter: cb(),      on: 'update', type: '(ctx: BeforeFilesAddContext) => false | File[] | void | Promise<false | File[] | void>', description: 'Gate before a validated batch is added. `ctx`: `{ files, existingFiles }`. `false` cancels (files reported in `files-reject` with code `rejected`); a `File[]` replaces the batch (validated again); may be async.' },
     { configKey: 'beforeFilesRemoveCallback',     converter: cb(),      on: 'update', type: '(ctx: BeforeFilesRemoveContext) => false | void | Promise<false | void>', description: 'Gate before a user-initiated removal (row ✕, Clear all) or `removeFile` / `clear` with `{ confirm: true }`. `ctx`: `{ files, allFiles }`. `false` cancels; may be async.' },
     { configKey: 'uploadFileCallback',            converter: cb(),      on: 'update', type: '(ctx: FileUploadContext) => Promise<void | FileUploadResult>', description: 'Component-driven upload handler; added files run through the worker pool. `ctx`: `{ file, signal, setProgress, startBytes, startPercent, metadata, setMetadata, uploadMetadata }`.' },
     { configKey: 'retryPolicy',                   converter: toValue(), on: 'update', type: 'RetryPolicy', description: 'Retry policy applied when uploadFileCallback rejects. Property-only object.' },
@@ -273,7 +273,7 @@ const EVENTS: readonly EventDef[] = [
     { name: 'file-remove', description: 'A file left the dropzone (one event per file; also on Clear all). `detail`: `{ file }`. Twin: `onFileRemove(detail)`.' },
     { name: 'files-change', description: 'Coalesced "queue updated" tick, at most once per animation frame. `detail`: `{ changedIds, files }`. Twin: `onFilesChange(detail)`.' },
     { name: 'change', description: 'The selection changed (add / remove / clear). `detail`: `{ files }`. Twin: `onChange(detail)`.' },
-    { name: 'files-reject', description: 'Files failed validation, or `beforeFilesAddCallback` cancelled the add (code `cancelled`). `detail`: `{ rejectedFiles: [{ file, validation: { valid, error, code } }] }`. Twin: `onFilesReject(detail)`.' },
+    { name: 'files-reject', description: 'Files failed validation, or `beforeFilesAddCallback` vetoed the add (code `rejected`). `detail`: `{ rejectedFiles: [{ file, validation: { valid, error, code } }] }`. Twin: `onFilesReject(detail)`.' },
     { name: 'file-retry', description: 'A failed / cancelled file was re-queued (status already `pending`). `detail`: `{ file }`. Twin: `onFileRetry(detail)`.' },
     { name: 'file-upload-complete', description: '`uploadFileCallback` resolved for a file. `detail`: `{ file }`. Twin: `onFileUploadComplete(detail)`.' },
     { name: 'file-delete', description: 'A removed file had server-side state (completed, or metadata stashed via `setMetadata`) — fires with `file-remove`; wire your server DELETE here. `detail`: `{ file }`. Twin: `onFileDelete(detail)`.' },
@@ -677,14 +677,6 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
         else this.setAttribute('uploaded-deletable', 'false');
     }
 
-    get reorderCompleted(): boolean {
-        return this.config.isReorderCompletedEnabled as boolean;
-    }
-    set reorderCompleted(value: boolean) {
-        if (value) this.setAttribute('reorder-completed', '');
-        else this.removeAttribute('reorder-completed');
-    }
-
     // Typed views of the reflected enum inputs (core installs the accessors;
     // these `declare`s only surface the precise TS types to consumers).
     declare displayMode: DisplayMode;
@@ -715,6 +707,12 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
     removeFile(id: string, opts?: { confirm?: boolean }): Promise<void> {
         this.flush();
         return this.#dropzone?.removeFile(id, opts) ?? Promise.resolve();
+    }
+
+    /** Remove files by ID (the pair of `addFiles`). Same gate semantics as `removeFile`; the gate runs once for the batch. */
+    removeFiles(ids: readonly string[], opts?: { confirm?: boolean }): Promise<void> {
+        this.flush();
+        return this.#dropzone?.removeFiles(ids, opts) ?? Promise.resolve();
     }
 
     /** Clear all files. Same gate semantics as `removeFile`. */

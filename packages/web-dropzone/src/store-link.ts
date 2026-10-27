@@ -32,7 +32,7 @@ const reorderLinks = new WeakMap<HTMLElement, (file: FileState) => boolean>();
 
 /**
  * Called by `<web-dropzone>` once, at construction: how a satellite list asks
- * whether a file's row sits in the "complete" reorder bucket (`reorder-completed`
+ * whether a file's row sits in the "complete" reorder bucket (`should-sink-completed`
  * on, status complete, `reorder-completed-delay` elapsed). Internal - the
  * public controller doesn't expose reorder timing.
  */

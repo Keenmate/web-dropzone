@@ -58,7 +58,7 @@ export const DEFAULT_CONFIG: Required<Omit<DropzoneConfig, 'fileIcons' | 'getFil
     concurrency: 1,
     isAutoUploadEnabled: true,
     isUploadedFileDeletable: true,
-    isReorderCompletedEnabled: false,
+    shouldSinkCompleted: false,
     reorderCompletedDelay: 1500,
     progressMode: 'optimistic'
 };

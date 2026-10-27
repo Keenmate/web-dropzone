@@ -139,7 +139,7 @@ export class DropzoneListElement extends SatelliteElement {
             'change':       () => this.scheduleRenderAll(),
             // Config re-render (e.g. `item-controls` changed) → re-render rows.
             'dz-config-changed': () => this.scheduleRenderAll(),
-            // `reorder-completed`: a completed row's delay elapsed (or a
+            // `should-sink-completed`: a completed row's delay elapsed (or a
             // retried row left the bucket) — internal store signal.
             'dz-reorder': (e) => {
                 const { id, isComplete } = (e as CustomEvent<{ id: string; isComplete: boolean }>).detail;
@@ -225,14 +225,14 @@ export class DropzoneListElement extends SatelliteElement {
         // so the rules apply unchanged.
         const isNested = this.getAttribute('nested') === 'true';
         const base = isNested ? 'dz__files-inside' : 'dz__file-list';
-        const reorderClass = this.store.getConfig().isReorderCompletedEnabled ? ` ${base}--reorder-completed` : '';
+        const reorderClass = this.store.getConfig().shouldSinkCompleted ? ` ${base}--reorder-completed` : '';
         const containerClass = `${base} ${base}--${appearance}${reorderClass}`;
 
         // Apply the max-visible-files cap. Mirrors the in-class renderer:
         // appearances with their own dedicated layout (rolling, popover)
         // are excluded above — we only reach here for list/detailed/grid/
         // badges. When the queue is empty we already returned.
-        // With `reorder-completed`, the cap windows the reordered list (rows
+        // With `should-sink-completed`, the cap windows the reordered list (rows
         // in the "complete" bucket last), as the in-class renderer does.
         const cap = this.store.getConfig().maxVisibleFiles ?? 0;
         const visible = cap > 0 && !this.showAll ? this.orderForReorder(files).slice(0, cap) : files;
@@ -374,14 +374,14 @@ export class DropzoneListElement extends SatelliteElement {
         return this.store?.getConfig().isUploadedFileDeletable !== false;
     }
 
-    /** Row belongs in the "complete" reorder bucket (`reorder-completed`, delay elapsed). */
+    /** Row belongs in the "complete" reorder bucket (`should-sink-completed`, delay elapsed). */
     private isReorderEligible(file: FileState): boolean {
         return !!this.storeEl && isStoreFileReorderEligible(this.storeEl, file);
     }
 
     /** Stable sort: rows in the "complete" reorder bucket last. */
     private orderForReorder(files: FileState[]): FileState[] {
-        if (!this.store?.getConfig().isReorderCompletedEnabled) return files;
+        if (!this.store?.getConfig().shouldSinkCompleted) return files;
         return files
             .map((f, i) => ({ f, i, complete: this.isReorderEligible(f) ? 1 : 0 }))
             .sort((a, b) => a.complete - b.complete || a.i - b.i)
@@ -389,7 +389,7 @@ export class DropzoneListElement extends SatelliteElement {
     }
 
     /**
-     * A `reorder-completed` delay elapsed (or a retried row left the bucket):
+     * A `should-sink-completed` delay elapsed (or a retried row left the bucket):
      * flip the row's bucket so the CSS `order` moves it. With a
      * `max-visible-files` cap the visible window changes too, so re-render.
      */

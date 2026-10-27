@@ -80,6 +80,35 @@ test.describe('removeFile / clear', () => {
         expect(remaining).toEqual(['a.txt', 'c.txt']);
     });
 
+    test('removeFiles(ids) drops a batch: one file-remove each, ONE change, gate once', async ({ page }) => {
+        await addNamed(page, 'api', ['a.txt', 'b.txt', 'c.txt']);
+        const out = await dz(page, 'api').evaluate(async (el: any) => {
+            const events: string[] = [];
+            const gateCalls: string[][] = [];
+            el.addEventListener('file-remove', (e: any) => events.push('remove:' + e.detail.file.name));
+            el.addEventListener('change', () => events.push('change'));
+            el.beforeFilesRemoveCallback = (ctx: any) => { gateCalls.push(ctx.files.map((f: any) => f.name)); };
+            const ids = el.files.filter((f: any) => f.name !== 'b.txt').map((f: any) => f.id);
+            await el.removeFiles([...ids, 'no-such-id'], { confirm: true });
+            el.beforeFilesRemoveCallback = null;
+            return { events, gateCalls, remaining: el.files.map((f: any) => f.name) };
+        });
+        expect(out.remaining).toEqual(['b.txt']);
+        expect(out.gateCalls).toEqual([['a.txt', 'c.txt']]);
+        expect(out.events).toEqual(['remove:a.txt', 'remove:c.txt', 'change']);
+    });
+
+    test('removeFiles is on the controller too; a vetoing gate keeps the whole batch', async ({ page }) => {
+        await addNamed(page, 'api', ['a.txt', 'b.txt']);
+        const remaining = await dz(page, 'api').evaluate(async (el: any) => {
+            el.beforeFilesRemoveCallback = () => false;
+            await el.controller.removeFiles(el.files.map((f: any) => f.id), { confirm: true });
+            el.beforeFilesRemoveCallback = null;
+            return el.files.map((f: any) => f.name);
+        });
+        expect(remaining).toEqual(['a.txt', 'b.txt']);
+    });
+
     test('clear drains the queue completely', async ({ page }) => {
         await addNamed(page, 'api', ['a.txt', 'b.txt']);
         await dz(page, 'api').evaluate((el: any) => el.clear());

@@ -95,7 +95,7 @@ test.describe('retry preserves progress', () => {
     });
 });
 
-test.describe('reorder-completed', () => {
+test.describe('should-sink-completed', () => {
     test('a completed file ends up at the bottom of the ordered queue', async ({ page }) => {
         await addNamed(page, 'reorder', ['x.txt', 'y.txt', 'z.txt']);
         await expect.poll(() => pendingNames(page).then(n => n.length)).toBeGreaterThanOrEqual(1);

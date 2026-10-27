@@ -643,7 +643,7 @@ dropzone.retryPolicy = { attempts: 3, delayMs: 1000, backoff: 2 }</code></pre>
             }))
             reorderRadios.forEach(r => r.addEventListener('change', () => {
                 const v = document.querySelector('input[name="playground-reorder"]:checked').value
-                dz.reorderCompleted = v === 'on'
+                dz.shouldSinkCompleted = v === 'on'
                 savePref('reorder', v)
             }))
             progressRadios.forEach(r => r.addEventListener('change', () => {
@@ -682,7 +682,7 @@ dropzone.retryPolicy = { attempts: 3, delayMs: 1000, backoff: 2 }</code></pre>
             dz.setAttribute('rolling-rotation', rotationSelect.value)
             dz.concurrency = parseInt(concSelect.value, 10)
             dz.retryPolicy = { attempts: parseInt(attemptsSelect.value, 10) + 1 }
-            dz.reorderCompleted = document.querySelector('input[name="playground-reorder"]:checked').value === 'on'
+            dz.shouldSinkCompleted = document.querySelector('input[name="playground-reorder"]:checked').value === 'on'
             dz.progressMode = document.querySelector('input[name="playground-progress"]:checked').value
             applyMode()
         }
