@@ -1,459 +1,141 @@
 LOGGING & DEBUGGING
 ===================
 
-CRITICAL: Categorized logging system for debugging
-- 4 categories: INIT, DATA, UI, INTERACTION
-- Runtime enable/disable
-- Log level control (error, warn, info, debug, trace)
-- Color-coded console output
-- No performance impact when disabled
+LOGGERS
+-------
+Built on @keenmate/web-components-core /logging (createLoggers; vendored
+loglevel engine). Namespace DROPZONE, four categories:
 
-ENABLING LOGGING
-----------------
-Enable all logging:
+  DROPZONE:INIT         element / store lifecycle, config
+  DROPZONE:FILE         add / remove, validation, progress, status, auto-retry,
+                        cancel timeouts
+  DROPZONE:UI           rendering, popover, overlay, persistence fallbacks
+  DROPZONE:INTERACTION  user interaction
 
-import { enableLogging } from '@keenmate/web-multiselect';
-enableLogging();
+The dropzone bundle is SILENT by default (disabled on load).
 
-Or via global API:
-window.components['web-multiselect'].logging.enableLogging();
+CONSOLE CONTROL (GLOBAL API)
+----------------------------
+const log = window.components['web-dropzone'].logging;
 
-DISABLING LOGGING
------------------
-Disable all logging:
+log.enableLogging();                              // every category at debug
+log.disableLogging();                             // silent
+log.setLogLevel('warn');                          // all categories
+log.setCategoryLevel('DROPZONE:FILE', 'debug');   // one category
+log.setCategoryLevel('FILE', 'debug');            // bare name also accepted
+log.getCategories();                              // ['DROPZONE:INIT', ...]
 
-import { disableLogging } from '@keenmate/web-multiselect';
-disableLogging();
+Levels: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'.
 
-Or:
-window.components['web-multiselect'].logging.disableLogging();
-
-LOG CATEGORIES
---------------
-Four logging categories:
-
-MULTISELECT:INIT
-- Component initialization
-- Configuration setup
-- DOM mounting
-- Shadow DOM creation
-
-MULTISELECT:DATA
-- Option processing
-- Data transformation
-- Selection changes
-- Value updates
-
-MULTISELECT:UI
-- Rendering
-- Dropdown positioning
-- Virtual scrolling
-- UI updates
-
-MULTISELECT:INTERACTION
-- User interactions
-- Keyboard events
-- Mouse events
-- Search operations
-
-LOG LEVELS
-----------
-Five log levels (lowest to highest):
-
-trace: Verbose debugging
-- Every function call
-- Internal state changes
-- Performance markers
-
-debug: Detailed debugging
-- Key operations
-- Decision points
-- Data structures
-
-info: General information
-- Important events
-- State transitions
-- User actions
-
-warn: Warnings
-- Non-critical issues
-- Deprecations
-- Best practice violations
-
-error: Errors
-- Critical failures
-- Exceptions
-- Invalid states
-
-SETTING LOG LEVEL
------------------
-Global log level:
-
-import { setLogLevel } from '@keenmate/web-multiselect';
-setLogLevel('debug');
-
-Levels: 'error', 'warn', 'info', 'debug', 'trace'
-
-Or via global API:
-window.components['web-multiselect'].logging.setLogLevel('debug');
-
-CATEGORY-SPECIFIC LEVELS
-------------------------
-Set level for specific category:
-
-import { setCategoryLevel } from '@keenmate/web-multiselect';
-
-setCategoryLevel('MULTISELECT:DATA', 'debug');
-setCategoryLevel('MULTISELECT:UI', 'warn');
-setCategoryLevel('MULTISELECT:INIT', 'info');
-setCategoryLevel('MULTISELECT:INTERACTION', 'debug');
-
-This allows fine-grained control
-
-CONSOLE OUTPUT
---------------
-Logging produces color-coded output:
-
-[MULTISELECT:INIT] Component initialized
-- Blue/cyan colors
-- Timestamps
-- Category labels
-- Clear hierarchy
-
-[MULTISELECT:DATA] Options updated: 150 items
-[MULTISELECT:UI] Dropdown opened
-[MULTISELECT:INTERACTION] Option selected: JavaScript
-
-DEBUGGING INITIALIZATION
-------------------------
-Debug component setup:
-
-import { setCategoryLevel } from '@keenmate/web-multiselect';
-setCategoryLevel('MULTISELECT:INIT', 'debug');
-
-Logs show:
-- Component creation
-- Config parsing
-- Attribute processing
-- Initial state
-
-DEBUGGING DATA
---------------
-Debug data handling:
-
-setCategoryLevel('MULTISELECT:DATA', 'debug');
-
-Logs show:
-- Options array updates
-- Selection changes
-- Value transformations
-- Callback executions
-
-DEBUGGING UI
+CODE CONTROL
 ------------
-Debug rendering and layout:
+import {
+  enableLogging, disableLogging, setLogLevel, setCategoryLevel,
+  LOGGING_CATEGORIES, initLogger, fileLogger, uiLogger, interactionLogger
+} from '@keenmate/web-dropzone';
 
-setCategoryLevel('MULTISELECT:UI', 'debug');
+if (import.meta.env.DEV) setCategoryLevel('DROPZONE:FILE', 'debug');
 
-Logs show:
-- Render cycles
-- Dropdown positioning
-- Virtual scroll updates
-- Style applications
+The loggers are loglevel-style: .trace/.debug/.info/.warn/.error.
 
-DEBUGGING INTERACTIONS
-----------------------
-Debug user interactions:
+CORE MESSAGES
+-------------
+Messages from web-components-core about the element (invalid attribute values,
+before*Callback throws, twin errors) go to core's CORE bundle (dropzone does
+not register a per-tag bundle with core), which defaults to 'warn' - so they
+show up even while DROPZONE logging is off. Watch the console when authoring
+markup.
 
-setCategoryLevel('MULTISELECT:INTERACTION', 'debug');
+Page-wide switch (core, non-enumerable): applies to EVERY bundle on the page,
+CORE and DROPZONE included:
 
-Logs show:
-- Click events
-- Keyboard input
-- Search operations
-- Focus changes
+window.components.logging.disableLogging();     // everything silent
+window.components.logging.enableLogging('debug');
+window.components.logging.setLogLevel('warn');
+window.components.logging.getCategories();      // ['CORE:ELEMENT', 'DROPZONE:INIT', ...]
 
-PRODUCTION BUILDS
------------------
-Disable logging in production:
+A later window.components['web-dropzone'].logging.* call wins for dropzone.
 
-// main.js
-if (import.meta.env.PROD) {
-  import { disableLogging } from '@keenmate/web-multiselect';
-  disableLogging();
-}
+Typical core warnings:
+  invalid attribute value (e.g. max-file-size="lots", labels='not json')
+    -> warned, previous value kept
+  a before*Callback threw -> logged, treated as a veto
 
-Or check NODE_ENV:
-if (process.env.NODE_ENV === 'production') {
-  disableLogging();
-}
-
-PERFORMANCE IMPACT
-------------------
-When disabled: Zero overhead
-- No log statements executed
-- No string formatting
-- No console calls
-
-When enabled:
-- Minimal impact
-- Only active categories log
-- Console.log is async
-
-CUSTOM LOGGING
---------------
-Log from your code:
-
-// Get logger instance (if exposed)
-const logger = window.components['web-multiselect'].logging.getLogger();
-
-// Or just use console
-console.log('[APP] Custom log');
-
-DEBUGGING COMMON ISSUES
------------------------
-Issue: Options not showing
-
-Enable logging:
-setCategoryLevel('MULTISELECT:DATA', 'debug');
-
-Check logs for:
-- Options array received
-- Data transformation
-- Filter/search state
-
-Issue: Dropdown positioning wrong
-
-Enable logging:
-setCategoryLevel('MULTISELECT:UI', 'debug');
-
-Check logs for:
-- Dropdown position calculations
-- Floating UI calls
-- Viewport boundaries
-
-Issue: Selection not working
-
-Enable logging:
-setCategoryLevel('MULTISELECT:INTERACTION', 'debug');
-
-Check logs for:
-- Click events
-- Selection callbacks
-- State updates
-
-Issue: Performance problems
-
-Enable logging:
-setCategoryLevel('MULTISELECT:UI', 'debug');
-
-Check logs for:
-- Render frequency
-- Virtual scroll status
-- Option count
-
-BROWSER DEVTOOLS
-----------------
-Additional debugging tools:
-
-Elements panel:
-1. Inspect <web-multiselect>
-2. Expand #shadow-root
-3. View internal DOM
-4. Check applied styles
-
-Console:
-- Enable logging
-- Run commands
-- Inspect state
-
-Breakpoints:
-- Set in source code
-- Debug callbacks
-- Step through execution
+USEFUL DEBUG OUTPUT
+-------------------
+DROPZONE:FILE debug shows the upload pipeline step by step:
+  'Files added' / 'Files rejected' (warn) / 'Files removed'
+  'File progress updated', 'File status updated'
+  'Auto-retry: handler rejected' / 'scheduling the next attempt' /
+  'snapping progress back to the baseline (optimistic mode)' /
+  'giving up - attempts exhausted' / 'stopped during the delay'
+  'Cancel timed out - the upload handler ignored its AbortSignal' (warn)
 
 INSPECTING STATE
 ----------------
-Check component state:
+const dz = document.querySelector('web-dropzone');
 
-const select = document.querySelector('web-multiselect');
+dz.files                                   // FileState[]
+dz.controller.getConfig()                  // merged config (defaults + inputs)
+dz.controller.getOverallProgress()         // counts + percent
+dz.controller.isReady                      // store built?
+window.components['web-dropzone'].getInstances()
+window.components['web-dropzone'].version()
+window.components['web-dropzone'].config.core   // { name, version } of web-dropzone-core
 
-console.log('Options:', select.options);
-console.log('Selected:', select.getSelected());
-console.log('Values:', select.getValue());
-console.log('Search term:', select.searchTerm);
-console.log('Multiple:', select.multiple);
-console.log('Dropdown open:', select.dropdownOpen);
+Event tracing:
+['file-add','file-remove','change','files-reject','file-status-change',
+ 'file-cancel','file-delete','file-upload-complete','ready']
+  .forEach(n => dz.addEventListener(n, e => console.log(n, e.detail)));
+(console.log of e.detail does not show controller / element - they are
+non-enumerable; access them directly.)
 
-DEBUGGING CALLBACKS
--------------------
-Log callback execution:
+TROUBLESHOOTING
+---------------
+Nothing renders
+  -> no display attribute and no mode: inferred headless. Add
+     display-mode="list" (or mode="bulk").
 
-select.changeCallback = (selectedOptions) => {
-  console.log('Change callback:', selectedOptions);
-  // Your logic
-};
+Render callbacks ignored
+  -> they need mode="structural" explicitly.
 
-select.searchCallback = async (searchTerm) => {
-  console.log('Search callback:', searchTerm);
-  const results = await fetchResults(searchTerm);
-  console.log('Search results:', results.length);
-  return results;
-};
+Property set but not applied when read back
+  -> writes coalesce on a microtask: await dz.whenSettled(), or use
+     dz.setAttributes({...}) / dz.batch(fn). Element methods flush first.
 
-DEBUGGING EVENTS
-----------------
-Log all events:
+Files rejected unexpectedly
+  -> listen to files-reject and log validation.code; dedupe-mode="name" rejects
+     same-named files; max-file-count counts files already in the list.
 
-['select', 'deselect', 'change'].forEach(eventName => {
-  select.addEventListener(eventName, (e) => {
-    console.log(`Event: ${eventName}`, e.detail);
-  });
-});
+Satellite shows nothing / "store not found" warning
+  -> for= must be the id of a <web-dropzone> reachable by
+     document.getElementById; inside a shadow root use bindToStore(el).
 
-PERFORMANCE PROFILING
----------------------
-Measure performance:
+Event listener on an outer element never fires
+  -> events are NOT composed: they don't leave an enclosing shadow root.
+     Listen on the dropzone itself.
 
-console.time('options-update');
-select.options = largeArray;
-console.timeEnd('options-update');
+Cancel stuck on "Cancelling..." then error 'cancel-timeout'
+  -> the upload handler ignored ctx.signal. Pass signal to fetch / abort the
+     XHR. Tune cancel-timeout / cancel-timeout-behavior.
 
-console.time('dropdown-open');
-// Click to open dropdown
-console.timeEnd('dropdown-open');
+Uploads stopped after removing the element
+  -> removal cancels uploads and destroys the store by design; use
+     should-keep-alive-when-removed for detach/reattach flows.
 
-Or use Performance API:
-const start = performance.now();
-select.options = largeArray;
-const end = performance.now();
-console.log(`Update took ${end - start}ms`);
+All files vanished after changing display attributes
+  -> the change flipped the resolved mode (e.g. headless -> bulk); a mode flip
+     rebuilds the store and removes files (reported via file-remove / change).
+     Set mode explicitly to avoid accidental flips.
 
-MEMORY DEBUGGING
-----------------
-Check memory usage:
+--dz-* set on <web-dropzone> not reaching a standalone satellite
+  -> standalone satellites carry their own defaults; set the variables on the
+     satellite or a common ancestor.
 
-// Before
-const before = performance.memory?.usedJSHeapSize;
+Form submits no files
+  -> needs `name`, ElementInternals support, and
+     enctype="multipart/form-data" for native submission.
 
-// Create multiselect
-const select = document.createElement('web-multiselect');
-select.options = largeArray;
-document.body.appendChild(select);
-
-// After
-const after = performance.memory?.usedJSHeapSize;
-console.log(`Memory increase: ${(after - before) / 1024 / 1024}MB`);
-
-NETWORK DEBUGGING
------------------
-Debug async search:
-
-select.searchCallback = async (searchTerm) => {
-  console.log('Fetching results for:', searchTerm);
-
-  const start = performance.now();
-  const response = await fetch(`/api/search?q=${searchTerm}`);
-  const end = performance.now();
-
-  console.log(`Fetch took ${end - start}ms`);
-
-  const results = await response.json();
-  console.log(`Returned ${results.length} results`);
-
-  return results;
-};
-
-ERROR HANDLING
---------------
-Log errors:
-
-select.searchCallback = async (searchTerm) => {
-  try {
-    const response = await fetch(`/api/search?q=${searchTerm}`);
-    return await response.json();
-  } catch (error) {
-    console.error('Search failed:', error);
-    return [];
-  }
-};
-
-Catch render errors:
-select.renderOptionContentCallback = (option, context) => {
-  try {
-    return customRender(option, context);
-  } catch (error) {
-    console.error('Render error:', error);
-    return option.label;  // Fallback
-  }
-};
-
-VERSION CHECKING
-----------------
-Check component version:
-
-import { version } from '@keenmate/web-multiselect';
-console.log('Version:', version);
-
-Or:
-console.log('Version:', window.components['web-multiselect'].version());
-
-DEBUGGING CHECKLIST
--------------------
-When debugging issues:
-
-1. Enable appropriate logging category
-2. Check browser console for errors
-3. Inspect component state
-4. Verify data structure
-5. Check event listeners
-6. Test in isolation
-7. Check browser compatibility
-8. Review documentation
-
-BEST PRACTICES
---------------
-✅ Enable logging in development
-✅ Disable logging in production
-✅ Use category-specific levels
-✅ Log important state changes
-✅ Handle errors gracefully
-✅ Use browser DevTools
-✅ Profile performance issues
-✅ Test with various data sizes
-
-❌ Don't leave logging enabled in production
-❌ Don't log sensitive data
-❌ Don't spam console
-❌ Don't ignore error logs
-❌ Don't skip browser tools
-
-COMMON DEBUG SCENARIOS
-----------------------
-Debug data not updating:
-setCategoryLevel('MULTISELECT:DATA', 'debug');
-select.options = newData;
-// Check console for data processing
-
-Debug render issues:
-setCategoryLevel('MULTISELECT:UI', 'debug');
-// Open dropdown
-// Check console for render calls
-
-Debug selection issues:
-setCategoryLevel('MULTISELECT:INTERACTION', 'debug');
-// Try selecting options
-// Check console for events
-
-Debug performance:
-console.time('operation');
-// Perform operation
-console.timeEnd('operation');
-
-EXAMPLES
---------
-See examples-logging.html for:
-- Logging demonstrations
-- Category examples
-- Debug workflows
-- Common issue resolutions
+Pause / Resume / Cancel all buttons missing in the progress strip
+  -> they need a store-level uploadFileCallback (per-picker handlers alone
+     don't enable them).

@@ -1,0 +1,253 @@
+UPLOAD PIPELINE
+===============
+
+Two ways to upload:
+A. Component-driven: set uploadFileCallback. A worker pool runs files at
+   `concurrency`, drives status/progress from your Promise, and gives you
+   pause / resume / cancel / retry / auto-retry.
+B. App-driven: no uploadFileCallback. Listen to file-add / change, upload
+   yourself, report with updateFileProgress(id, %) / setFileStatus(id, status).
+
+VERB GLOSSARY
+-------------
+cancel   stop a running upload (cancelFile / cancelAll)
+abort    ONLY the AbortSignal your handler receives (ctx.signal)
+remove   take a file out of the list locally (removeFile / removeFiles)
+delete   destructive server-side action - the app's job (file-delete event)
+clear    empty the list (clear)
+destroy  the only teardown verb (destroy(), element removal)
+
+uploadFileCallback
+------------------
+dz.uploadFileCallback = async (ctx) => { ... };
+
+ctx (FileUploadContext):
+  file            File            the native file
+  signal          AbortSignal     fires on pause / cancel / remove / destroy
+  setProgress(p)  (0-100) => void ignored once the signal aborted
+  startBytes      number          byte offset to resume from (0 = fresh)
+  startPercent    number          startBytes as 0-100
+  metadata        object|undef    FileState.metadata from earlier attempts
+  setMetadata(o)  => void         shallow-merge into FileState.metadata NOW
+                                  (survives pause / retry; next attempt sees it)
+  uploadMetadata  object|undef    per-picker metadata (Mode B, satellites.txt)
+  controller, element             non-enumerable
+
+Resolve = success. Optionally resolve with a FileUploadResult, merged
+atomically with the 'complete' flip (fires file-update):
+  { metadata?, downloadUrl?, previewUrl?, name? }
+Reject / throw = failure (retryPolicy applies). A synchronous throw counts too.
+When `signal` aborts, abort your request and reject (or resolve) promptly.
+
+BASIC XHR HANDLER WITH PROGRESS
+-------------------------------
+dz.uploadFileCallback = ({ file, signal, setProgress }) =>
+  new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/api/upload');
+    xhr.upload.onprogress = (e) => e.lengthComputable && setProgress(e.loaded / e.total * 100);
+    xhr.onload = () => xhr.status < 300
+      ? resolve({ metadata: { serverId: JSON.parse(xhr.responseText).id } })
+      : reject(new Error(`HTTP ${xhr.status}`));
+    xhr.onerror = () => reject(new Error('Network error'));
+    signal.addEventListener('abort', () => { xhr.abort(); reject(new DOMException('Aborted', 'AbortError')); });
+    const body = new FormData();
+    body.append('file', file);
+    xhr.send(body);
+  });
+
+PIPELINE INPUTS
+---------------
+concurrency="1"                 max parallel uploads (default 1 = sequential)
+auto-upload (default true)      auto-queue on add; auto-upload="false" stages
+                                files as 'pending' until uploadAll()
+progress-mode="optimistic"      see PROGRESS MODE
+progress-throttle="0"           ms; per-file throttle of progress events/patches
+cancel-timeout="2000"           ms a cancel waits for the handler to settle (min 0)
+cancel-timeout-behavior="error" error | remove
+retryPolicy (property)          { attempts, delayMs, backoff }
+should-keep-alive-when-removed  keep uploads alive when the element is removed
+
+STATUS MACHINE
+--------------
+pending -> uploading -> complete
+                     -> error          (rejected after all attempts)
+pending/uploading -> paused            (pauseFile)
+paused -> pending                      (resumeFile; progress preserved)
+uploading -> cancelling -> cancelled   (cancelFile, handler settled in time)
+                        -> error       (timed out, behavior "error",
+                                        file.error = 'cancel-timeout')
+                        -> [removed]   (timed out, behavior "remove")
+pending/paused -> cancelled            (cancelFile, nothing running)
+error/cancelled -> pending             (retryFile / retryAll)
+
+METHODS
+-------
+uploadAll(): Promise<void>      drain pending files through the pool. A call
+                                during a running drain tops the pool back up to
+                                `concurrency` and resolves with that drain.
+uploadFile(id): Promise<void>   run one file now, bypassing the queue
+pauseFile(id) / pauseAll()      pending|uploading -> paused; signal aborts
+resumeFile(id): Promise<void>   paused -> pending (+ uploadAll). On a
+                                cancelled file behaves like retryFile.
+resumeAll(): Promise<void>      every paused file
+cancelFile(id): Promise<void>   see CANCEL RULE
+cancelAll(): Promise<void>      every uploading/pending/paused file; gate asked once
+retryFile(id) / retryAll()      error|cancelled -> pending, fires file-retry,
+                                re-queues if a handler exists
+
+Methods flush pending property writes first, so
+`dz.concurrency = 4; dz.uploadAll()` uses 4.
+
+CANCEL RULE
+-----------
+cancelFile(id) applies to uploading / pending / paused files; a file already
+'cancelling' joins the running cancel (no second gate). Anything else: no-op.
+
+1. beforeFileCancelCallback({ files: [file], allFiles }) - false vetoes.
+2. Nothing running (pending, paused, between retry attempts, app-driven) ->
+   'cancelled' immediately.
+3. Handler running -> status 'cancelling', its signal aborts, the cancel waits
+   up to cancel-timeout ms:
+     settles in time (reject OR resolve) -> 'cancelled' (user asked to cancel,
+       even if the upload actually finished)
+     times out -> cancel-timeout-behavior:
+       error  -> status 'error', file.error 'cancel-timeout', retryable
+       remove -> the file is removed from the list
+   Anything the handler reports after the timeout is ignored. The concurrency
+   slot frees when the handler settles or the timeout fires.
+4. file-cancel fires: { file, result, uploadedBytes, metadata }.
+The returned promise resolves when all of this has finished.
+
+The row shows "Cancelling..." (labels.cancelling) with buttons disabled.
+A timed-out file shows labels.cancelTimeout ("Cancel timed out").
+
+Remove on a running file = cancel first (same rule, NO cancel gate), then remove.
+removeFile / removeFiles / clear resolve after that.
+
+RETRY & RESUME SEMANTICS
+------------------------
+- Pause -> resume: progress preserved; ctx.startBytes > 0 for resume-aware handlers.
+- Retry after 'error': progress preserved; the handler decides whether to
+  continue or restart (call ctx.setProgress(0) to restart the bar).
+- Retry / resume after 'cancelled': restarts from 0 (server-side state of a
+  cancelled upload is assumed gone). ctx.metadata may still hold the old
+  upload URL - when startBytes === 0, create a new upload.
+- Cancel during an auto-retry backoff: 'cancelled' at once, slot freed.
+
+RETRY POLICY
+------------
+dz.retryPolicy = { attempts: 3, delayMs: 1000, backoff: 2 };
+
+attempts  total attempts incl. the first (default 1 = no retries)
+delayMs   base delay (default 1000)
+backoff   multiplier (default 2) -> waits 1s, 2s, 4s...
+The wait is interruptible: pause / cancel / remove / destroy ends it.
+Only the last failure sets status 'error' (file.error = the Error message).
+
+PROGRESS MODE
+-------------
+optimistic (default)  handler may report bytes SENT; on failure the bar snaps
+                      back to the value at the start of the attempt.
+pessimistic           handler reports only server-ACKNOWLEDGED bytes; the bar
+                      never goes backwards.
+
+progress-throttle="120" coalesces file-progress events and row patches per file
+(leading edge immediate, trailing edge guaranteed; the final 100% / status flip
+always arrives). Useful with element-returning rows or framework renderers.
+
+AGGREGATE PROGRESS
+------------------
+dz.controller.getOverallProgress() ->
+{ uploadedBytes, totalBytes, percent,           // byte-weighted 0-100
+  completedCount, failedCount,                  // failed = error + cancelled
+  uploadingCount, pausedCount, pendingCount, cancellingCount,
+  hasActivity, aggregateStatus }                // 'uploading'|'paused'|'error'|'complete'
+
+APP-DRIVEN UPLOADS (NO HANDLER)
+-------------------------------
+dz.addEventListener('file-add', async ({ detail: { file } }) => {
+  dz.setFileStatus(file.id, 'uploading');
+  try {
+    await myUpload(file.file, (p) => dz.updateFileProgress(file.id, p));
+    dz.setFileStatus(file.id, 'complete');           // also sets progress 100
+  } catch (e) {
+    dz.setFileStatus(file.id, 'error', e.message);
+  }
+});
+
+updateFileProgress auto-flips pending->uploading (0<p<100) and
+uploading->complete (p === 100). Wire file-retry to the same uploader so
+"Retry all" works. cancelFile on such a file marks it 'cancelled' at once
+(nothing to abort) - stop your own request in onFileCancel.
+
+STAGE THEN SUBMIT
+-----------------
+<web-dropzone id="dz" display-mode="detailed" auto-upload="false"></web-dropzone>
+<button onclick="dz.uploadAll().then(() => form.submit())">Send</button>
+
+uploadAll resolves when the drain finishes; check statuses afterwards
+(dz.files.every(f => f.status === 'complete')).
+
+ELEMENT REMOVAL TEARDOWN
+------------------------
+Removing <web-dropzone> from the page (still detached one frame after
+disconnect - a DOM move never triggers it):
+  1. every upload is cancelled by the cancel rule (handlers get their signal +
+     cancel-timeout; file-cancel fires; NO beforeFileCancelCallback),
+  2. then the store is destroyed.
+Re-adding it later builds a fresh, empty store. Re-adding while cancels are
+still settling keeps the store (uploads cancelled).
+
+A DOM MOVE (re-parent / reorder) keeps files, in-flight uploads and an open
+popover; `ready` does not fire again.
+
+Opt out: should-keep-alive-when-removed - files and uploads survive while
+detached (call dz.destroy() yourself when done).
+
+destroy(): aborts all handlers (signal), stops the queue, wakes sleeping
+retries, clears timers; late results are ignored. No file-cancel events.
+
+SERVER CLEANUP (TUS-STYLE RESUMABLE + CANCEL)
+---------------------------------------------
+dz.uploadFileCallback = async ({ file, signal, setProgress, startBytes, metadata, setMetadata }) => {
+  let url = startBytes > 0 ? metadata?.uploadUrl : undefined;
+  if (!url) {
+    const res = await fetch('/files', { method: 'POST', signal, headers: {
+      'Tus-Resumable': '1.0.0', 'Upload-Length': String(file.size) } });
+    url = res.headers.get('Location');
+    setMetadata({ uploadUrl: url });            // survives pause / retry / cancel
+  }
+  const head = await fetch(url, { method: 'HEAD', signal, headers: { 'Tus-Resumable': '1.0.0' } });
+  let offset = Number(head.headers.get('Upload-Offset'));
+  const CHUNK = 5 * 1024 * 1024;
+  while (offset < file.size) {
+    const res = await fetch(url, { method: 'PATCH', signal, body: file.slice(offset, offset + CHUNK),
+      headers: { 'Tus-Resumable': '1.0.0', 'Upload-Offset': String(offset),
+                 'Content-Type': 'application/offset+octet-stream' } });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    offset = Number(res.headers.get('Upload-Offset'));
+    setProgress(offset / file.size * 100);       // acknowledged bytes
+  }
+  return { downloadUrl: url };
+};
+dz.progressMode = 'pessimistic';
+
+// Cancel kept the row: delete the partial upload on the server.
+dz.onFileCancel = ({ result, metadata }) => {
+  if (result !== 'timeout-remove' && metadata?.uploadUrl) {
+    fetch(metadata.uploadUrl, { method: 'DELETE', headers: { 'Tus-Resumable': '1.0.0' } });
+  }
+};
+// Removed (completed, or partial with metadata): delete on the server.
+dz.onFileDelete = ({ file }) => {
+  if (file.metadata?.uploadUrl) {
+    fetch(file.metadata.uploadUrl, { method: 'DELETE', headers: { 'Tus-Resumable': '1.0.0' } });
+  }
+};
+Make the DELETE idempotent - a cancelled-then-removed row triggers both.
+
+SEE ALSO
+--------
+events-callbacks.txt (file-cancel / file-delete), satellites.txt (Mode B
+per-picker handlers, progress strip buttons), validation.txt

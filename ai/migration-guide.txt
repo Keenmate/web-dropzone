@@ -1,516 +1,237 @@
 MIGRATION GUIDE
 ===============
 
-CRITICAL: Guide for migrating from other multiselect libraries
-- From Select2
-- From Choices.js
-- From Tom Select
-- From React Select
-- From Vue Multiselect
-- Common pitfalls and solutions
+Migrating between @keenmate/web-dropzone versions. Newest first.
+Release line: pre-rc builds -> 1.0.0-rc01 (2026-08-05) -> 1.0.0-rc02
+(2026-08-14) -> 1.0.0-rc03 (current [Unreleased] in CHANGELOG).
 
-FROM SELECT2
-------------
-jQuery-based → Web Component
+No stable 1.0.0 exists, so `^1.0.0-rc02` ranges WILL pull rc03 - pin
+until you have migrated.
 
-Select2 (jQuery):
-$('#mySelect').select2({
-  placeholder: 'Select options',
-  allowClear: true,
-  data: options
-});
+=====================================================================
+1.0.0-rc02 -> 1.0.0-rc03   (BREAKING)
+=====================================================================
 
-Web Multiselect:
-<web-multiselect
-  search-placeholder="Select options">
-</web-multiselect>
+STEP 1: VERB GLOSSARY RENAMES
+-----------------------------
+cancel = stop a running op, abort = only the AbortSignal, remove = local list
+removal, delete = server-side, clear = empty a set, destroy = the only
+teardown verb.
 
-<script>
-  const select = document.querySelector('web-multiselect');
-  select.options = options;
-</script>
+| Old                                                   | New                                   |
+|-------------------------------------------------------|---------------------------------------|
+| reorder-completed / isReorderCompletedEnabled /       | should-sink-completed /               |
+|   el.reorderCompleted                                 |   shouldSinkCompleted                 |
+| files-reject code 'cancelled' (add gate veto)         | 'rejected'                            |
 
-Key differences:
-- No jQuery dependency
-- Web Component (works everywhere)
-- Native shadow DOM
-- Better performance
-
-Migration steps:
-1. Remove jQuery and Select2
-2. Import web-multiselect
-3. Replace <select> with <web-multiselect>
-4. Update initialization code
-5. Update event handlers
-
-Events mapping:
-Select2 → Web Multiselect
-select2:select → 'select'
-select2:unselect → 'deselect'
-select2:change → 'change'
-select2:open → (no direct equivalent)
-select2:close → (no direct equivalent)
-
-FROM CHOICES.JS
----------------
-Vanilla JS library → Web Component
-
-Choices.js:
-const choices = new Choices('#mySelect', {
-  removeItemButton: true,
-  searchEnabled: true,
-  placeholderValue: 'Select options'
-});
-
-Web Multiselect:
-<web-multiselect
-  search-placeholder="Select options">
-</web-multiselect>
-
-<script>
-  const select = document.querySelector('web-multiselect');
-  select.options = options;
-</script>
-
-Key differences:
-- Web Component vs library instance
-- No manual instantiation needed
-- Built-in badge removal
-- Better virtual scrolling
-
-Migration steps:
-1. Remove Choices.js
-2. Import web-multiselect
-3. Replace element
-4. Update configuration
-5. Update API calls
-
-API mapping:
-Choices → Web Multiselect
-setChoices() → options property
-getValue() → getValue()
-setValue() → setSelected()
-clearStore() → setSelected([])
-destroy() → destroy()
-
-FROM TOM SELECT
----------------
-Modern vanilla library → Web Component
-
-Tom Select:
-new TomSelect('#select', {
-  create: true,
-  sortField: 'text',
-  maxItems: 5
-});
-
-Web Multiselect:
-<web-multiselect allow-add-new="true">
-</web-multiselect>
-
-<script>
-  const select = document.querySelector('web-multiselect');
-  select.options = sortedOptions;
-
-  select.addNewCallback = (value) => ({
-    value: value,
-    label: value
-  });
-</script>
-
-Key differences:
-- Declarative vs imperative
-- Web Component standard
-- No plugin system needed
-- Built-in virtual scrolling
-
-FROM REACT SELECT
------------------
-React component → Web Component
-
-React Select:
-import Select from 'react-select';
-
-<Select
-  options={options}
-  isMulti
-  onChange={handleChange}
-/>
-
-With Web Multiselect:
-import '@keenmate/web-multiselect';
-import { useRef, useEffect } from 'react';
-
-function MyComponent() {
-  const selectRef = useRef(null);
-
-  useEffect(() => {
-    const select = selectRef.current;
-    if (!select) return;
-
-    select.options = options;
-
-    const handleChange = (e) => {
-      console.log(e.detail.selectedOptions);
-    };
-
-    select.addEventListener('change', handleChange);
-    return () => select.removeEventListener('change', handleChange);
-  }, [options]);
-
-  return <web-multiselect ref={selectRef} />;
-}
-
-Key differences:
-- Not React-specific
-- Works in all frameworks
-- Native browser component
-- No React overhead
-
-FROM VUE MULTISELECT
+STEP 2: STORE ACCESS
 --------------------
-Vue component → Web Component
+| Old                                         | New                                         |
+|---------------------------------------------|---------------------------------------------|
+| el.getStore() (internal WebDropzone)        | el.controller (DropzoneController facade;   |
+|                                             |   survives rebuilds; .isReady)              |
+| DropzoneStoreAPI type                       | DropzoneController (+ createDropzoneController) |
+| DropzoneCore class                          | DropzoneEngine (engine.controller)          |
+| satellite.getStore()                        | satellite.controller (null until bound)     |
+| StatusSurfaceArgs.store                     | StatusSurfaceArgs.controller (+ element)    |
+| dispatchComposedEvent export                | removed                                     |
 
-Vue Multiselect:
-<template>
-  <multiselect
-    v-model="selected"
-    :options="options"
-    :multiple="true">
-  </multiselect>
-</template>
+STEP 3: EVENTS (renamed, NOT composed anymore, on* twins)
+---------------------------------------------------------
+Events now bubble but do NOT cross shadow roots. A listener on the element or
+a light-DOM ancestor still works; a listener outside an enclosing shadow root
+must move onto the element.
 
-With Web Multiselect:
-<template>
-  <web-multiselect
-    ref="select"
-    @change="handleChange">
-  </web-multiselect>
-</template>
+| Old                         | New                                  | Detail                         |
+|-----------------------------|--------------------------------------|--------------------------------|
+| file-added                  | file-add / onFileAdd                 | { file }                       |
+| file-removed                | file-remove / onFileRemove           | { file }                       |
+| files-changed               | files-change / onFilesChange         | { changedIds, files }          |
+| change (no detail)          | change / onChange                    | { files }                      |
+| files-rejected              | files-reject / onFilesReject         | { rejectedFiles }              |
+| file-retry                  | file-retry / onFileRetry             | { file }                       |
+| file-uploaded               | file-upload-complete / onFileUploadComplete | { file }                |
+| file-deleted                | file-delete / onFileDelete           | { file }                       |
+| file-progress               | file-progress / onFileProgress       | { id, progress, status, file } |
+| file-status-changed         | file-status-change / onFileStatusChange | { id, prevStatus, nextStatus, file } |
+| file-updated                | file-update / onFileUpdate           | { file }                       |
+| overlay-enter / -leave      | same + onOverlayEnter / onOverlayLeave | { overlayElement }           |
+| store-ready                 | ready / onReady (data-ready stays)   | context only                   |
+| list dz-summary-click       | summary-activate                     | store context                  |
+| list dz-queue-open          | queue-open                           | store context                  |
+| file-row-update (composed)  | file-row-update on the row, not composed | { file } + context         |
+| dz-config-changed           | internal, not public                 | -                              |
+(new) file-cancel / onFileCancel: { file, result, uploadedBytes, metadata }
 
-<script setup>
-import '@keenmate/web-multiselect';
-import { ref, onMounted } from 'vue';
+Every detail carries non-enumerable controller + element.
 
-const select = ref(null);
-const selected = ref([]);
+STEP 4: CALLBACKS TAKE ONE ctx
+------------------------------
+| Old                                                    | New                                           |
+|--------------------------------------------------------|-----------------------------------------------|
+| beforeFilesAddedCallback(files, existingFiles) -> bool | beforeFilesAddCallback({ files, existingFiles }) |
+|                                                        |   false vetoes (code 'rejected'); File[] replaces |
+| beforeFilesRemovedCallback(files, allFiles) -> bool    | beforeFilesRemoveCallback({ files, allFiles }) |
+|                                                        |   ONLY false cancels (undefined now continues) |
+| validateCallback(file, existingFiles)                  | validateCallback({ file, existingFiles })     |
+| fileIconCallback(file)                                 | getFileIconCallback({ file })                 |
+| uploadFileCallback(file, onProgress, signal, context)  | uploadFileCallback({ file, signal, setProgress, startBytes, |
+|                                                        |   startPercent, metadata, setMetadata, uploadMetadata }) |
+| picker uploadCallback / FileState.uploadCallback /     | uploadFileCallback (same ctx)                 |
+|   addFiles(files, { uploadCallback })                  |                                               |
+| persistStateCallback(key, state) / loadStateCallback(key) | ({ key, state }) / ({ key })               |
+| renderFileItemCallback(file, { index, displayMode, isInPopover }) | ({ file, index, displayMode, isInPopover }) |
+| renderListWrapperCallback(rowsHtml, files)             | ({ rowsHtml, files })                         |
+| renderPromptCallback() / renderSummaryCallback(files)  | (ctx) / ({ files })                           |
+| renderRolling*Callback(args) - config only             | same ctx (args.controller), now element inputs |
+| indicator render*Callback(args)                        | names unchanged; args.controller replaces args.store |
+| customStylesCallback()                                 | getCustomStylesCallback(ctx)                  |
 
-onMounted(() => {
-  select.value.options = options;
-});
+Before:
+dz.uploadFileCallback = async (file, onProgress, signal, context) => { ... onProgress(50) ... };
+After:
+dz.uploadFileCallback = async ({ file, setProgress, signal, startBytes, metadata, setMetadata }) => { ... setProgress(50) ... };
 
-const handleChange = (e) => {
-  selected.value = e.detail.selectedOptions;
-};
-</script>
+STEP 5: STRUCTURAL ROW BUTTONS
+------------------------------
+Built-in controls use data-dz-action (data-action is reserved):
+  data-action="remove"      -> data-dz-action="remove"
+  data-action="row-action"  -> data-dz-action="row-action"
+  (new)                        data-dz-action="cancel"
 
-Key differences:
-- Not Vue-specific
-- No v-model (use events)
-- Works without Vue
-- Framework-agnostic
-
-COMMON MIGRATION PATTERNS
---------------------------
-Setting options:
-
-Old (various):
-$('#select').select2({data: options});
-choices.setChoices(options);
-tomSelect.addOptions(options);
-
-New:
-select.options = options;
-
-Getting selection:
-
-Old (various):
-$('#select').val();
-choices.getValue();
-tomSelect.getValue();
-
-New:
-select.getValue();
-
-Clearing selection:
-
-Old (various):
-$('#select').val(null).trigger('change');
-choices.clearStore();
-tomSelect.clear();
-
-New:
-select.setSelected([]);
-
-CONFIGURATION MAPPING
----------------------
-Common config across libraries:
-
-Placeholder:
-placeholder → search-placeholder
-
-Multiple selection:
-multiple: true → multiple="true"
-
-Search:
-searchEnabled: true → enable-search="true"
-allowClear: true → (built-in with badge X buttons)
-
-Max items:
-maxItems: 5 → (implement in changeCallback)
-
-Create/add new:
-create: true → allow-add-new="true"
-
-Loading:
-ajax: {...} → searchCallback
-
-Sorting:
-sortField: 'text' → (sort options array before setting)
-
-DATA FORMAT DIFFERENCES
------------------------
-Most libraries use similar formats:
-
-Old (generic):
-{id: 1, text: 'Option 1'}
-{value: 1, label: 'Option 1'}
-
-Web Multiselect (default):
-{value: 1, label: 'Option 1'}
-
-Or use callbacks:
-select.getValueCallback = (item) => item.id;
-select.getDisplayValueCallback = (item) => item.text;
-
-EVENT HANDLING MIGRATION
-------------------------
-Old (jQuery-style):
-$('#select').on('select2:select', function(e) {
-  console.log(e.params.data);
-});
-
-New (standard DOM):
-select.addEventListener('select', (e) => {
-  console.log(e.detail.option);
-});
-
-Old (library instance):
-choices.passedElement.element.addEventListener('change', handler);
-
-New:
-select.addEventListener('change', handler);
-
-STYLING MIGRATION
------------------
-Most libraries use CSS classes:
-
-Old:
-.select2-container {...}
-.choices {...}
-
-New (CSS variables):
-web-multiselect {
-  --ml-accent-color: #3b82f6;
-  --ml-border-radius: 0.5rem;
-}
-
-Or inject styles:
-select.customStylesCallback = () => {
-  return `.option { ... }`;
-};
-
-AJAX/ASYNC SEARCH
------------------
-Old (Select2):
-$('#select').select2({
-  ajax: {
-    url: '/api/search',
-    processResults: function(data) {
-      return {results: data};
-    }
-  }
-});
-
-New:
-select.searchCallback = async (searchTerm) => {
-  const response = await fetch(`/api/search?q=${searchTerm}`);
-  return await response.json();
-};
-
-TEMPLATES/CUSTOM RENDERING
---------------------------
-Old (Select2):
-$('#select').select2({
-  templateResult: function(item) {
-    return $(`<span>${item.text}</span>`);
-  }
-});
-
-New:
-select.renderOptionContentCallback = (option) => {
-  return `<span>${option.label}</span>`;
-};
-
-PLUGINS/EXTENSIONS
-------------------
-Some libraries have plugin systems:
-
-If you need features:
-1. Check if built-in (likely is)
-2. Use callbacks for customization
-3. Use customStylesCallback for styling
-4. Use action buttons for bulk operations
-
-Most "plugins" are unnecessary with web-multiselect
-
-PERFORMANCE COMPARISON
-----------------------
-Typical benchmarks (10,000 items):
-
-Select2: ~2000ms load, laggy scroll
-Choices.js: ~800ms load, smooth scroll
-Tom Select: ~500ms load, smooth scroll
-React Select: ~400ms load (in React)
-Web Multiselect: ~30ms load (virtual scroll), 60fps scroll
-
-Virtual scrolling is automatic at 100+ items
-
-BUNDLE SIZE COMPARISON
-----------------------
-Approximate sizes (minified + gzipped):
-
-Select2: ~30KB + jQuery (~30KB) = 60KB
-Choices.js: ~20KB
-Tom Select: ~25KB
-React Select: ~30KB + React (~40KB) = 70KB
-Vue Multiselect: ~15KB + Vue (~30KB) = 45KB
-Web Multiselect: ~35KB (standalone)
-
-No framework dependencies needed
-
-BROWSER SUPPORT
----------------
-Most modern libraries and web-multiselect:
-- Chrome/Edge 67+
-- Firefox 63+
-- Safari 10.1+
-
-If migrating from older library with IE support:
-- Web Components don't support IE11
-- Consider polyfills or keep old library
-
-MIGRATION CHECKLIST
+STEP 6: CANCEL RULE
 -------------------
-✅ Install web-multiselect
-✅ Remove old library
-✅ Update HTML markup
-✅ Update initialization code
-✅ Update event handlers
-✅ Update data format if needed
-✅ Update styling
-✅ Test all functionality
-✅ Test in all target browsers
-✅ Test performance
-✅ Update documentation
-✅ Remove unused dependencies
+- cancelFile(id) now returns Promise<void>; applies to uploading / pending /
+  paused. Running handler -> status 'cancelling', signal aborts, waits
+  cancel-timeout (default 2000 ms). Settled -> 'cancelled'; timeout ->
+  cancel-timeout-behavior: error (default; file.error 'cancel-timeout') |
+  remove. Late results ignored.
+- FileStatus gains 'cancelling'. Handle it in switch statements.
+- New: beforeFileCancelCallback({ files, allFiles }), cancelAll(),
+  file-cancel event, OverallProgress.pendingCount / cancellingCount.
+- Row buttons split: Cancel (circle-slash) vs Remove (x). Before, x on an
+  uploading row cancelled it and a second x removed it. Now x always removes
+  (cancelling first). New item-controls token `cancel`; glyph inputs
+  cancel-icon / remove-icon; CANCEL_ICON export.
+- Removing a running file cancels it first; removeFile / removeFiles / clear
+  resolve after that.
+- Retry / resume of a cancelled file restarts from 0 (retryFile used to keep
+  the old progress).
 
-COMMON PITFALLS
----------------
-❌ Forgetting to import
-Fix: import '@keenmate/web-multiselect';
+STEP 7: LABELS REPLACE TEXT ATTRIBUTES
+--------------------------------------
+| Removed                                  | Use                               |
+|------------------------------------------|-----------------------------------|
+| prompt-text / promptText                 | labels.prompt                     |
+| hint-text / hintText                     | labels.hint                       |
+| drag-active-text / dragActiveText        | labels.dragActive                 |
+| no-file-chosen-text / noFileChosenText   | labels.noFileChosen               |
+| overlay-text / overlayText               | labels.overlay                    |
+| select-files-text / selectFilesText      | labels.selectFiles                |
+| STATUS_LABELS export                     | labels.statusPending ... statusCancelled |
+| ACTION_LABELS export                     | labels.pauseFile / resumeFile / retryFile |
 
-❌ Using jQuery patterns
-Fix: Use standard DOM methods
+<!-- before -->
+<web-dropzone prompt-text="Drop invoices" hint-text="PDF only" display-mode="list"></web-dropzone>
+<!-- after -->
+<web-dropzone labels='{"prompt":"Drop invoices","hint":"PDF only"}' display-mode="list"></web-dropzone>
 
-❌ Expecting immediate DOM availability
-Fix: Use customElements.whenDefined()
+Unchanged: empty-message, summary-template, and the picker satellite's own
+label / hint / no-file-chosen-text attributes.
 
-❌ Using .val() instead of .getValue()
-Fix: Use Web Component API
-
-❌ Setting options via attribute
-Fix: Use property: select.options = [...]
-
-❌ Styling Shadow DOM with external CSS
-Fix: Use CSS variables
-
-❌ Expecting v-model to work
-Fix: Use change event + setSelected()
-
-GRADUAL MIGRATION
+STEP 8: LIFECYCLE
 -----------------
-Migrate incrementally:
+- A DOM move no longer rebuilds the store (files and uploads survive, `ready`
+  fires once).
+- Removing the element from the page now cancels its uploads and destroys the
+  store (one frame after disconnect). Opt out: should-keep-alive-when-removed.
+- Mode-flip rebuild now reports dropped files (file-remove + change).
 
-1. Add web-multiselect to project
-2. Keep old library for now
-3. Migrate one component at a time
-4. Test thoroughly
-5. Remove old library when done
+STEP 9: NEW API
+---------------
+removeFiles(ids, { confirm? }), cancelAll(), el.controller, beforeFileCancelCallback,
+file-cancel, labels, cancel-timeout, cancel-timeout-behavior, cancel-icon,
+remove-icon, should-keep-alive-when-removed, fileIcons + getFileIconCallback,
+FILE_TYPE_ICONS / UI_ICONS, <web-dropzone-picker>.openFileDialog().
 
-Both can coexist temporarily
+STEP 10: THEMING
+----------------
+- Dark/light follows the page via data-context-theme (from
+  web-components-core), not :host-context(); NO prefers-color-scheme rule -
+  declare html { color-scheme: light dark } to follow the OS. Themed wrappers
+  need theme-source="closest". Dark mode flips color-scheme only.
+- Reads --base-primary-* instead of --base-accent-*:
+  --base-accent-color -> --base-primary-color (+ -hover / -active),
+  --base-accent-color-light -> --base-primary-bg-subtle,
+  --base-text-color-on-accent -> --base-on-primary-text-color.
+  Other 2.0.0 names: --base-outline-width, --base-focused-outline,
+  --base-*-text-color, --base-on-<role>-text-color, --base-input-text-color.
+- Shadows use --base-shadow-color.
+- All icons are Lucide SVGs (emoji defaults gone); --dz-icon-remove is Lucide x.
+- Component --dz-*-accent-* token names unchanged.
 
-TESTING AFTER MIGRATION
------------------------
-Test these scenarios:
+STEP 11: TYPE RENAMES
+---------------------
+FileAddedEventDetail -> FileAddEventDetail, FileRemovedEventDetail ->
+FileRemoveEventDetail, FilesRejectedEventDetail -> FilesRejectEventDetail,
+FileUploadedEventDetail -> FileUploadCompleteEventDetail,
+FileDeletedEventDetail -> FileDeleteEventDetail, FileStatusChangedEventDetail
+-> FileStatusChangeEventDetail, FileUpdatedEventDetail -> FileUpdateEventDetail,
+FilesChangedEventDetail -> FilesChangeEventDetail, DropzoneEventDetail ->
+DropzoneEventMap. New: DropzoneContext, one *Context per callback,
+OverlayEventDetail, ReadyEventDetail, SummaryActivateEventDetail,
+QueueOpenEventDetail, DropzoneListEventMap, FileCancelEventDetail,
+FileCancelResult, CancelTimeoutBehavior, BeforeFileCancelContext,
+DropzoneLabels.
 
-✅ Basic selection
-✅ Multi-selection
-✅ Search/filter
-✅ Dynamic options
-✅ Form submission
-✅ Event handling
-✅ Custom styling
-✅ Performance with large datasets
-✅ Mobile devices
-✅ Accessibility
-✅ Browser compatibility
+QUICK SEARCH-AND-REPLACE LIST
+-----------------------------
+'file-added'->'file-add'   'file-removed'->'file-remove'
+'files-changed'->'files-change'   'files-rejected'->'files-reject'
+'file-uploaded'->'file-upload-complete'   'file-deleted'->'file-delete'
+'file-status-changed'->'file-status-change'   'file-updated'->'file-update'
+'store-ready'->'ready'   getStore()->controller
+beforeFilesAddedCallback->beforeFilesAddCallback
+beforeFilesRemovedCallback->beforeFilesRemoveCallback
+customStylesCallback->getCustomStylesCallback   reorder-completed->should-sink-completed
+data-action="remove"->data-dz-action="remove"
+Then convert every callback to the single-ctx form by hand.
 
-ROLLBACK PLAN
---------------
-If migration issues occur:
+=====================================================================
+1.0.0-rc01 -> 1.0.0-rc02   (additive)
+=====================================================================
+No breaking changes. New: controls / item-controls allowlists, grid-layout
+(uniform | natural), grid-status (badge | overlay),
+--dz-preview-item-object-fit, show-thumbnails for badges and detailed.
+Fix: --dz-* set on <web-dropzone> now reach the internal satellites (they are
+marked `managed`). If you worked around that by theming satellites inside
+the shadow root, remove the workaround.
 
-1. Keep old library code in git history
-2. Document breaking changes
-3. Have fallback ready
-4. Test in staging first
-5. Monitor production after deploy
-
-GETTING HELP
-------------
-If stuck during migration:
-
-1. Check documentation: README.md
-2. Check examples: examples/*.html
-3. Check this guide
-4. Search issues on GitHub
-5. Open new issue if needed
-
-MIGRATION EXAMPLES
-------------------
-See examples-new-api.html for:
-- Modern patterns
-- Data handling
-- Event handling
-- Complete examples
-
-FRAMEWORK-SPECIFIC GUIDES
--------------------------
-React migration: import-patterns.txt
-Vue migration: import-patterns.txt
-Angular: basic-setup.txt
-Svelte: basic-setup.txt
-
-SUMMARY
--------
-Web Multiselect advantages:
-✅ Framework-agnostic
-✅ Better performance
-✅ Virtual scrolling
-✅ Modern APIs
-✅ Active development
-✅ Smaller footprint (standalone)
-✅ TypeScript support
-✅ Shadow DOM encapsulation
-
-Worth the migration effort!
+=====================================================================
+pre-rc builds -> 1.0.0-rc01
+=====================================================================
+- Built on web-components-core BlissElement:
+  * property writes coalesce on a microtask - `await el.whenSettled()` before
+    reading derived state (methods flush, so el.prop = x; el.method() works);
+  * el.setAttributes({...}) takes camelCase config keys and flushes; el.batch(fn);
+  * optional-string getters return null (not '') when unset.
+- Attribute renames: max-size -> max-file-size, max-files -> max-file-count
+  (config maxSize -> maxFileSize, maxFiles -> maxFileCount).
+- list-appearance="chips" -> "badges" (classes .dz__chip* -> .dz__badge*,
+  --dz-chip-* -> --dz-badge-*, --dz-chips-gap -> --dz-badges-gap).
+- Hidden filename inputs removed: forms submit real File blobs via
+  ElementInternals; value-format kept but inert.
+- Config keys: multiple -> isMultipleEnabled, disabled -> isDisabled,
+  filesInside -> isFilesInsideEnabled (attributes / el.multiple etc. unchanged).
+- Removed notification callbacks addCallback, removeCallback, changeCallback,
+  rejectCallback, retryCallback, uploadedCallback, deleteCallback - use events.
+- removeFile / clear / addFiles return Promises.
+- CSS partials lost the "_" prefix (src/css/_variables.css -> variables.css);
+  @layer variables, component, overrides; --base-* names moved to the
+  canonical set (--base-input-background -> --base-main-bg, --base-primary-bg
+  -> --base-elevated-bg, --base-primary-bg-hover -> --base-hover-bg).
+- .dz__dropzone card chrome moved to .dz__dropzone--card.
+- Package split: @keenmate/web-dropzone-core (headless) +
+  @keenmate/web-dropzone (renderer).
+(Event names / callback signatures introduced in this era were renamed again
+in rc03 - apply the rc03 steps afterwards.)

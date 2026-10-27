@@ -1,420 +1,188 @@
 BASIC SETUP
 ===========
 
-CRITICAL: This is a Web Component (Custom Element) with Shadow DOM
-- Works in vanilla HTML, React, Vue, Svelte, Angular, etc.
-- Can be used declaratively (HTML) or programmatically (JavaScript)
-- Styles are encapsulated in Shadow DOM
-- SSR-safe (won't crash during server-side rendering)
+<web-dropzone> is a file-selection + upload web component (Shadow DOM,
+form-associated, built on @keenmate/web-components-core BlissElement).
+One element is the STORE (files, validation, upload queue). It can render
+its own UI (picker + list + progress strip) or none at all (headless) and let
+satellite elements render instead.
 
 INSTALLATION
 ------------
-npm install @keenmate/web-multiselect
+npm install @keenmate/web-dropzone
 
-# Or yarn
-yarn add @keenmate/web-multiselect
+Two packages:
+- @keenmate/web-dropzone       the custom elements + CSS (bundles the core)
+- @keenmate/web-dropzone-core  headless DropzoneEngine (no DOM, no CSS)
 
-# Or pnpm
-pnpm add @keenmate/web-multiselect
+Most apps need only @keenmate/web-dropzone.
 
-DECLARATIVE USAGE (NO JAVASCRIPT)
-----------------------------------
-Simplest way to get started:
-
-<!-- 1. Import in HTML -->
-<script type="module">
-  import '@keenmate/web-multiselect';
-</script>
-
-<!-- 2. Use the component -->
-<web-multiselect>
-  <option value="js">JavaScript</option>
-  <option value="ts" selected>TypeScript</option>
-  <option value="py">Python</option>
-  <option value="java">Java</option>
-</web-multiselect>
-
-With groups:
-
-<web-multiselect>
-  <optgroup label="Frontend">
-    <option value="react">React</option>
-    <option value="vue">Vue</option>
-  </optgroup>
-  <optgroup label="Backend">
-    <option value="node">Node.js</option>
-    <option value="python">Python</option>
-  </optgroup>
-</web-multiselect>
-
-PROGRAMMATIC USAGE (JAVASCRIPT)
---------------------------------
-More control and dynamic data:
-
-// 1. Import
-import '@keenmate/web-multiselect';
-
-// 2. Create element
-const select = document.createElement('web-multiselect');
-
-// 3. Set options
-select.options = [
-  { value: 'js', label: 'JavaScript' },
-  { value: 'ts', label: 'TypeScript' },
-  { value: 'py', label: 'Python' }
-];
-
-// 4. Add to DOM
-document.body.appendChild(select);
-
-Or query existing element:
-
-const select = document.querySelector('web-multiselect');
-select.options = [
-  { value: 1, label: 'Option 1' },
-  { value: 2, label: 'Option 2' }
-];
-
-BASIC ATTRIBUTES
-----------------
-Common HTML attributes:
-
-<web-multiselect
-  multiple="false"              <!-- Single-select mode -->
-  enable-search="true"           <!-- Enable search box (default) -->
-  search-placeholder="Search..."
-  show-checkboxes="true"         <!-- Show checkboxes (default) -->
-  close-on-select="false"        <!-- Keep open after selection -->
-  max-height="20rem"             <!-- Dropdown height -->
-  input-size="md">               <!-- Input size: xs|sm|md|lg|xl -->
-  <option value="1">Option 1</option>
-  <option value="2">Option 2</option>
-</web-multiselect>
-
-CUSTOM DATA ATTRIBUTES
-----------------------
-Map your data structure using member attributes:
-
-<web-multiselect
-  value-member="id"
-  display-value-member="name"
-  icon-member="emoji"
-  group-member="category">
-</web-multiselect>
-
-<script>
-  const select = document.querySelector('web-multiselect');
-  select.options = [
-    { id: 1, name: 'Apple', emoji: '🍎', category: 'Fruits' },
-    { id: 2, name: 'Banana', emoji: '🍌', category: 'Fruits' },
-    { id: 3, name: 'Carrot', emoji: '🥕', category: 'Vegetables' }
-  ];
-</script>
-
-IMPORTANT: Declarative HTML parsing uses data- prefixed attributes:
-<option value="1" data-icon="🍎">Apple</option>
-
-SINGLE-SELECT MODE
-------------------
-Set multiple="false" for single selection:
-
-<web-multiselect multiple="false">
-  <option value="1">Option 1</option>
-  <option value="2">Option 2</option>
-</web-multiselect>
-
-Or programmatically:
-select.multiple = false;
-
-GETTING SELECTED VALUES
-------------------------
-Multiple ways to access selections:
-
-// Get selected option objects
-const selected = select.getSelected();
-console.log(selected); // [{ value: 1, label: 'Option 1' }, ...]
-
-// Get values only
-const values = select.getValue();
-console.log(values); // [1, 2, 3] or single value if multiple="false"
-
-// Listen to change event
-select.addEventListener('change', (e) => {
-  console.log('Selected:', e.detail.selectedOptions);
-  console.log('Values:', e.detail.selectedValues);
-});
-
-SETTING INITIAL VALUES
-----------------------
-Declarative (use selected attribute):
-
-<web-multiselect>
-  <option value="1" selected>Option 1</option>
-  <option value="2">Option 2</option>
-  <option value="3" selected>Option 3</option>
-</web-multiselect>
-
-Or with initial-values attribute:
-
-<web-multiselect initial-values='["1", "3"]'>
-  <option value="1">Option 1</option>
-  <option value="2">Option 2</option>
-  <option value="3">Option 3</option>
-</web-multiselect>
-
-Programmatic:
-
-// Method 1: Set values by IDs
-select.setSelected([1, 3]);
-
-// Method 2: Set during initialization
-select.options = [
-  { value: 1, label: 'Option 1', selected: true },
-  { value: 2, label: 'Option 2' },
-  { value: 3, label: 'Option 3', selected: true }
-];
-
-SEARCH CONFIGURATION
---------------------
-Control search behavior:
-
-<web-multiselect
-  enable-search="true"               <!-- Enable/disable search -->
-  search-placeholder="Type to search..."
-  min-search-length="2"              <!-- Minimum chars to trigger -->
-  search-mode="filter">              <!-- "filter" or "navigate" -->
-</web-multiselect>
-
-Disable search:
-<web-multiselect enable-search="false"></web-multiselect>
-
-DISABLED OPTIONS
-----------------
-Mark options as disabled:
-
-Declarative:
-<option value="1" disabled>Disabled Option</option>
-
-Programmatic:
-select.options = [
-  { value: 1, label: 'Available' },
-  { value: 2, label: 'Disabled', disabled: true }
-];
-
-GROUPING OPTIONS
-----------------
-Organize options into groups:
-
-Declarative:
-<web-multiselect allow-groups="true">
-  <optgroup label="Fruits">
-    <option value="apple">Apple</option>
-    <option value="banana">Banana</option>
-  </optgroup>
-  <optgroup label="Vegetables">
-    <option value="carrot">Carrot</option>
-  </optgroup>
-</web-multiselect>
-
-Programmatic:
-select.options = [
-  { value: 1, label: 'Apple', group: 'Fruits' },
-  { value: 2, label: 'Banana', group: 'Fruits' },
-  { value: 3, label: 'Carrot', group: 'Vegetables' }
-];
-
-DROPDOWN POSITIONING
---------------------
-Configure dropdown placement:
-
-<web-multiselect
-  max-height="20rem"                 <!-- Max dropdown height -->
-  dropdown-min-width="200px"         <!-- Min dropdown width -->
-  lock-placement="false">            <!-- Allow repositioning -->
-</web-multiselect>
-
-Dropdown uses Floating UI for smart positioning:
-- Auto-flips when near viewport edges
-- Respects scroll boundaries
-- Adjusts for available space
-
-CHECKBOXES
-----------
-Control checkbox display:
-
-<web-multiselect
-  show-checkboxes="true"             <!-- Show checkboxes (default) -->
-  checkbox-align="center">           <!-- "top", "center", "bottom" -->
-</web-multiselect>
-
-Hide checkboxes:
-<web-multiselect show-checkboxes="false"></web-multiselect>
-
-EMPTY STATES
-------------
-Customize messages:
-
-<web-multiselect
-  empty-message="No results found"
-  loading-message="Loading options...">
-</web-multiselect>
-
-FRAMEWORK INTEGRATION
+REGISTER THE ELEMENTS
 ---------------------
-React:
-import '@keenmate/web-multiselect';
+import '@keenmate/web-dropzone';
 
-function MyComponent() {
-  const selectRef = useRef(null);
+This one import defines all five custom elements:
+  <web-dropzone>            the store (+ built-in UI)
+  <web-dropzone-picker>     satellite: file selector
+  <web-dropzone-list>       satellite: file list
+  <web-dropzone-indicator>  satellite: floating status chip + drawer
+  <web-dropzone-progress>   satellite: aggregate progress strip
 
-  useEffect(() => {
-    const select = selectRef.current;
-    select.options = [...];
+Styles are injected into each shadow root automatically.
 
-    const handleChange = (e) => console.log(e.detail);
-    select.addEventListener('change', handleChange);
+FIRST DROPZONE
+--------------
+IMPORTANT: a bare <web-dropzone></web-dropzone> renders NOTHING. With no
+`mode` attribute the mode is inferred:
+  - any of display-mode / selector-appearance / list-appearance present -> "bulk"
+    (the element renders its own UI)
+  - none present -> "headless" (store only; satellites render)
 
-    return () => select.removeEventListener('change', handleChange);
-  }, []);
+So for a self-contained dropzone, always set one of the display attributes:
 
-  return <web-multiselect ref={selectRef} />;
+<web-dropzone display-mode="list"></web-dropzone>
+
+Or explicitly:
+
+<web-dropzone mode="bulk"></web-dropzone>      <!-- display-mode defaults to "list" -->
+
+COMMON ATTRIBUTES
+-----------------
+<web-dropzone
+  display-mode="detailed"          list | detailed | grid | compact
+  accept="image/*,.pdf"            MIME types / extensions, comma-separated
+  max-file-size="5MB"              bytes, or "300 kB", "1.5GB", "5M" (1024-based)
+  max-file-count="10"              0 = unlimited
+  multiple                         default true; multiple="false" = single file
+  name="attachments"               form field name (submits real File blobs)
+  disabled>
+</web-dropzone>
+
+Byte inputs (max-file-size, min-file-size, max-total-size) accept plain integers
+or a number + unit: B, K/KB, M/MB, G/GB, T/TB (case-insensitive, binary units).
+An unparsable value keeps the previous value (warns).
+
+READING FILES
+-------------
+const dz = document.querySelector('web-dropzone');
+
+dz.files                 // FileState[] snapshot
+dz.getFile(id)           // FileState | undefined
+dz.controller.getFiles() // same, via the public facade
+
+FileState (key fields):
+{
+  id: string,            // generated, stable for the file's lifetime
+  file: File,            // the native File
+  name, size, type,
+  status: 'pending' | 'uploading' | 'paused' | 'cancelling'
+        | 'complete' | 'error' | 'cancelled',
+  progress: number,      // 0-100
+  error?: string,
+  previewUrl?: string,   // data URL for images (async)
+  downloadUrl?: string,  // from the upload handler's result
+  metadata?: object      // server-side info (upload result / ctx.setMetadata)
 }
 
-Vue:
-<template>
-  <web-multiselect
-    ref="select"
-    @change="handleChange">
-  </web-multiselect>
-</template>
-
-<script setup>
-import '@keenmate/web-multiselect';
-import { onMounted, ref } from 'vue';
-
-const select = ref(null);
-
-onMounted(() => {
-  select.value.options = [...];
+LISTENING
+---------
+dz.addEventListener('change', (e) => {
+  console.log('Files now:', e.detail.files);
 });
 
-const handleChange = (e) => {
-  console.log(e.detail.selectedOptions);
-};
-</script>
-
-Svelte:
-<script>
-  import '@keenmate/web-multiselect';
-  import { onMount } from 'svelte';
-
-  let select;
-
-  onMount(() => {
-    select.options = [...];
-  });
-
-  function handleChange(e) {
-    console.log(e.detail.selectedOptions);
+dz.addEventListener('files-reject', (e) => {
+  for (const { file, validation } of e.detail.rejectedFiles) {
+    console.log(file.name, validation.code, validation.error);
   }
-</script>
+});
 
-<web-multiselect
-  bind:this={select}
-  on:change={handleChange}>
-</web-multiselect>
+// Or the camelCase twin property (receives the same detail):
+dz.onFileAdd = ({ file }) => console.log('added', file.name);
 
-DESTROYING INSTANCE
+All events bubble and are NOT composed. See events-callbacks.txt.
+
+UPLOADING (MINIMAL)
 -------------------
-Clean up when removing from DOM:
+Set uploadFileCallback and the component runs a worker pool for you:
 
-const select = document.querySelector('web-multiselect');
-select.destroy();
-select.remove();
+dz.uploadFileCallback = async ({ file, signal, setProgress }) => {
+  const body = new FormData();
+  body.append('file', file);
+  const res = await fetch('/api/upload', { method: 'POST', body, signal });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  setProgress(100);
+  return { metadata: { serverId: await res.text() } };
+};
 
-BROWSER SUPPORT
----------------
-Requires modern browsers with Web Components support:
-- Chrome/Edge 67+
-- Firefox 63+
-- Safari 10.1+
+Files auto-upload as they are added (auto-upload defaults to true).
+Without uploadFileCallback the dropzone only collects files; the app drives
+status via updateFileProgress / setFileStatus. See upload-pipeline.txt.
 
-No polyfills needed for modern browsers.
+METHODS (ELEMENT)
+-----------------
+addFiles(files)                    Promise<void>
+removeFile(id, { confirm? })       Promise<void>
+removeFiles(ids, { confirm? })     Promise<void>
+clear({ confirm? })                Promise<void>
+getFile(id)                        FileState | undefined
+updateFileProgress(id, percent)    void   (app-driven uploads)
+setFileStatus(id, status, error?)  void   (app-driven uploads)
+uploadAll() / uploadFile(id)       Promise<void>
+pauseFile(id) / pauseAll()         void
+resumeFile(id) / resumeAll()       Promise<void>
+cancelFile(id) / cancelAll()       Promise<void>
+retryFile(id) / retryAll()         void
+destroy()                          tear the store down
 
-SSR / SERVER-SIDE RENDERING
----------------------------
-Safe to import during SSR (won't crash):
+el.controller (DropzoneController) has the same methods plus getFiles(),
+getConfig(), getOverallProgress(), and isReady. See typescript-types.txt.
 
-✅ import '@keenmate/web-multiselect';  // Safe
-
-Component only works in browser:
-- Needs DOM, Shadow DOM, browser APIs
-- Will not render during SSR
-- Hydrates normally on client
-
-For SSR frameworks (Next.js, Nuxt, SvelteKit):
-- Import is safe
-- Component renders only on client
-- No special wrapper needed
-
-COMMON SETUP PATTERNS
----------------------
-Minimal (defaults):
-<web-multiselect>
-  <option value="1">Option 1</option>
-</web-multiselect>
-
-Single-select with search:
-<web-multiselect
-  multiple="false"
-  search-placeholder="Select one...">
-  <option value="1">Option 1</option>
-</web-multiselect>
-
-Multi-select with groups:
-<web-multiselect allow-groups="true">
-  <optgroup label="Group 1">
-    <option value="1">Option 1</option>
-  </optgroup>
-</web-multiselect>
-
-Programmatic with custom data:
-const select = document.createElement('web-multiselect');
-select.options = [
-  { id: 1, name: 'Option 1' },
-  { id: 2, name: 'Option 2' }
-];
-select.valueMember = 'id';
-select.displayValueMember = 'name';
-
-DEBUGGING
----------
-Enable logging to see component lifecycle:
-
-import { enableLogging } from '@keenmate/web-multiselect';
-enableLogging();
-
-Or via global API:
-window.components['web-multiselect'].logging.enableLogging();
-
-NEXT STEPS
+PROPERTIES
 ----------
-- Customize data structure → data-handling.txt
-- Add async search → search-features.txt
-- Customize appearance → styling-theming.txt
-- Handle events → events-callbacks.txt
-- Optimize performance → virtual-scrolling.txt
+Every input has a property named after its config key (camelCase), e.g.
+dz.accept, dz.maxFileSize, dz.maxFileCount, dz.labels, dz.cancelTimeout,
+dz.uploadFileCallback. Back-compat boolean aliases:
 
-CRITICAL REMINDERS
-------------------
-✅ Import the module to register the component
-✅ Component works in all frameworks (Web Standard)
-✅ Use Shadow DOM for encapsulated styles
-✅ Safe for SSR (won't crash)
-✅ Options can be set declaratively or programmatically
-✅ Use value-member to map custom data structures
+dz.multiple          <-> multiple            (isMultipleEnabled)
+dz.disabled          <-> disabled            (isDisabled)
+dz.filesInside       <-> files-inside        (isFilesInsideEnabled)
+dz.showThumbnails    <-> show-thumbnails     (tri-state: undefined = auto)
+dz.autoUpload        <-> auto-upload         (isAutoUploadEnabled)
+dz.uploadedDeletable <-> uploaded-deletable  (isUploadedFileDeletable)
 
-❌ Don't forget to import the module first
-❌ Don't assume options prop works like React (use property, not attribute)
-❌ Don't manipulate Shadow DOM directly
-❌ Don't expect SSR rendering (client-only component)
+PROPERTY WRITES ARE COALESCED
+-----------------------------
+Property/attribute changes apply on a microtask (core BlissElement). Methods
+flush first, so `dz.maxFileCount = 3; dz.addFiles(files)` works. To read
+derived state right after a write:
+
+dz.maxFileCount = 3;
+await dz.whenSettled();
+
+Batch several inputs synchronously:
+dz.setAttributes({ maxFileCount: 3, accept: 'image/*' });   // camelCase keys
+dz.batch(() => { dz.accept = '.pdf'; dz.maxFileSize = 1048576; });
+
+READY
+-----
+The store is built on first connect. `ready` fires then (and again after a
+rebuild caused by a mode flip); `data-ready` is set on the next frame
+(useful for FOUC-hiding CSS: web-dropzone:not([data-ready]) { visibility: hidden }).
+
+dz.addEventListener('ready', ({ detail }) => detail.controller.getFiles());
+dz.controller.isReady   // true once built
+
+BROWSER / SSR
+-------------
+- Requires Custom Elements v1, Shadow DOM, ElementInternals (form association).
+  Without ElementInternals the form value is a no-op; dz.files still works.
+- SSR-safe import (BlissElement stubs HTMLElement on the server); elements
+  register only when `customElements` exists.
+
+NEXT
+----
+display-modes.txt    appearances, compact popover, drag overlay, controls
+upload-pipeline.txt  uploadFileCallback, concurrency, pause/resume/cancel/retry
+validation.txt       accept, size/count caps, dedupe, validate callbacks
+labels-i18n.txt      the labels input (all UI strings)
+satellites.txt       picker / list / indicator / progress with for=

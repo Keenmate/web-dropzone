@@ -1,0 +1,208 @@
+SATELLITES
+==========
+
+<web-dropzone> is the STORE (files, validation, upload queue). Satellites are
+separate renderer elements, each with its own shadow root, each bound to one
+store via `for="<store-id>"`:
+
+  <web-dropzone-picker>     drag/click file selector -> store.addFiles
+  <web-dropzone-list>       file list (list/detailed/grid/badges/rolling/popover)
+  <web-dropzone-indicator>  floating status chip + slide-out drawer
+  <web-dropzone-progress>   aggregate progress strip + bulk buttons
+
+Wiring rule: every satellite has exactly ONE for=. Satellites never reference
+each other; the topology is a star around the store.
+
+BASIC DECOUPLED LAYOUT
+----------------------
+<!-- store only: no display attributes -> mode inferred "headless" -->
+<web-dropzone id="uploads" name="files" max-file-count="20"></web-dropzone>
+
+<form>  ... <web-dropzone-picker for="uploads" selector-appearance="button"></web-dropzone-picker> </form>
+<aside> <web-dropzone-list for="uploads" list-appearance="detailed"></web-dropzone-list> </aside>
+<web-dropzone-progress for="uploads"></web-dropzone-progress>
+<web-dropzone-indicator for="uploads" position="right"></web-dropzone-indicator>
+
+<script type="module">
+  import '@keenmate/web-dropzone';
+  document.getElementById('uploads').uploadFileCallback = upload;
+</script>
+
+Binding:
+- for= is resolved with document.getElementById when the satellite connects;
+  the target must be a <web-dropzone> (checked by tag name). A missing store
+  logs a "store not found" warning. Set for= before inserting the satellite.
+- Order does not matter: a satellite that connects before the store upgrades
+  or builds waits for the store's `ready` event.
+- Inside another shadow root (getElementById can't reach), bind in code:
+    satellite.bindToStore(storeEl);   // before or after connect
+- satellite.controller -> the bound store's DropzoneController (null until bound).
+- Satellites follow store rebuilds (they hold the store's controller).
+- Each satellite follows the page theme like the store (data-context-theme;
+  `theme-source` attribute supported).
+
+Bulk-mode <web-dropzone> builds its own UI from these same satellites
+(marked `managed`, so --dz-* set on <web-dropzone> cascades into them).
+
+<web-dropzone-picker>
+---------------------
+Attributes:
+  for                  store id
+  selector-appearance  card (default) | button | minimal | native
+  card-size            minimal | compact (default) | big
+  accept               file-dialog filter (default: store's accept). The store
+                       still validates everything.
+  multiple             "false" = single-file dialog (default: store's setting)
+  label                card prompt / button text (default labels.prompt /
+                       labels.selectFiles of the store)
+  hint                 card hint (default labels.hint)
+  icon                 raw HTML icon (default: store's icon)
+  no-file-chosen-text  native selector empty text (default labels.noFileChosen)
+  disabled             disables the picker (otherwise follows the store)
+  inside="true"        files-inside layout: renders a <slot> inside the card;
+                       put a <web-dropzone-list nested="true"> as its child
+
+Properties (JS only), Mode B per-picker routing:
+  uploadFileCallback   FileUploadHandler stamped on every file this picker adds
+  uploadMetadata       object stamped on every file -> ctx.uploadMetadata
+
+Method:
+  openFileDialog()     open the native dialog (no-op while disabled / unbound)
+
+The picker never rejects files itself; it calls store.addFiles(files, opts).
+Card drag highlight is scoped to that picker.
+
+<web-dropzone-list>
+-------------------
+Attributes:
+  for              store id
+  list-appearance  list (default) | detailed | grid | badges | rolling | popover
+  grid-layout      uniform | natural
+  grid-status      badge | overlay
+  empty-message    overrides the store's empty-message
+  nested="true"    files-inside class family (child of a picker with inside="true")
+
+Reads from the store config: item-controls, max-visible-files,
+should-sink-completed, show-thumbnails, uploaded-deletable, labels,
+cancel-icon / remove-icon, fileIcons / getFileIconCallback.
+
+Row buttons (Cancel / Remove / pause-resume-retry) call the store's API
+through its controller and run the same gates.
+
+Events (on the list element; bubbles, not composed; detail = store context):
+  summary-activate   popover appearance: the summary line was activated
+                     (click / Enter / Space). The standalone list owns NO popover -
+                     open your own UI here.
+  queue-open         rolling appearance: the queue button was clicked
+
+list.addEventListener('queue-open', () => drawer.show());
+
+<web-dropzone-progress>
+-----------------------
+Attributes: for.
+Aggregate bar + counts ("3 of 5 · 1.2 MB / 4.0 MB · 1 paused · 2 failed") +
+percent + bulk buttons:
+  Pause all    store has uploadFileCallback and something is uploading
+  Resume all   store has uploadFileCallback and something is paused
+  Cancel all   store has uploadFileCallback and something is uploading /
+               queued / paused (asks beforeFileCancelCallback once)
+  Retry all    any file failed (error or cancelled)
+Auto-hides when there is no activity (data-empty="true").
+Host attribute data-status = uploading | paused | error | complete.
+Shadow part: ::part(root) (the strip). Bar: role="progressbar" with aria-valuenow.
+
+Caveat: the Pause/Resume/Cancel all buttons check only the STORE-level
+uploadFileCallback; with Mode B (handlers set only on pickers) they are not shown.
+
+<web-dropzone-indicator>
+------------------------
+Attributes:
+  for       store id
+  position  right (default) | left | top | bottom (fixed to a viewport edge) | inline
+  drawer    auto (default): the chip is a <button> that toggles a slide-out
+            drawer (role="dialog") embedding a <web-dropzone-list>
+            off: the chip is a non-interactive <div role="status">, no drawer
+  label     drawer title (default "Uploads") and idle chip text (default "No uploads")
+
+Default chip: spinner / status glyph + label ("N failed" > "N uploading" >
+"N paused" > "N queued" > "N done") + overall percent.
+Host attributes: data-position, data-drawer, data-drawer-open.
+Shadow parts: ::part(chip), ::part(drawer).
+The chip hides while a non-inline drawer is open.
+
+Structural callbacks (JS properties, same contract as the rolling list's
+renderRolling*Callback on <web-dropzone>):
+  renderBodyCallback      the whole chip; false hides it
+  renderFileInfoCallback  focal-file slot
+  renderProgressCallback  progress slot
+Setting fileInfo or progress hides the default text label.
+
+STATUS SURFACE CONTRACT
+-----------------------
+type StatusSurfaceCallback = (args: StatusSurfaceArgs) =>
+  string | HTMLElement | false | null | undefined;
+
+StatusSurfaceArgs:
+  currentFile         focal file: first uploading/cancelling, else first pending,
+                      else first paused/error/cancelled, else the last file
+  currentFilePercent  currentFile?.progress
+  currentFileStatus   currentFile?.status
+  aggregate           { total, uploading, paused, pending, complete, error,
+                        cancelled, overallStatus }
+                      overallStatus: error > uploading > paused > pending >
+                      complete; 'idle' when empty
+  overallPercent      byte-weighted 0-100 (rounded)
+  overallStatus       = aggregate.overallStatus
+  files               read-only list
+  controller, element (non-enumerable) - the bound store
+
+Returns: null/undefined = library default; false = hide (body: whole surface);
+string = innerHTML, skipped when equal to the last string; HTMLElement =
+mounted, skipped when already the slot's only child.
+
+const spinner = createDropzoneSpinner({ ariaLabel: 'Uploading' });   // cache it
+indicator.renderFileInfoCallback = ({ currentFile }) =>
+  currentFile?.status === 'uploading' ? spinner : null;
+indicator.renderProgressCallback = ({ aggregate, overallPercent }) =>
+  aggregate.total ? `${aggregate.complete}/${aggregate.total} · ${overallPercent}%` : '';
+indicator.renderBodyCallback = ({ aggregate }) => aggregate.total === 0 ? false : null;
+
+MODE A vs MODE B
+----------------
+Mode A - independent contexts: N stores, each with its own satellites.
+
+<web-dropzone id="avatar" max-file-count="1"></web-dropzone>
+<web-dropzone-picker for="avatar" selector-appearance="minimal"></web-dropzone-picker>
+<web-dropzone id="docs"></web-dropzone>
+<web-dropzone-picker for="docs"></web-dropzone-picker>
+<web-dropzone-list   for="docs"></web-dropzone-list>
+
+Mode B - one shared queue / list / progress, per-picker upload semantics:
+
+<web-dropzone id="cloud"></web-dropzone>
+<web-dropzone-picker id="pub"  for="cloud" selector-appearance="button" label="Add public files"></web-dropzone-picker>
+<web-dropzone-picker id="priv" for="cloud" selector-appearance="button" label="Add private files"></web-dropzone-picker>
+<web-dropzone-list      for="cloud" list-appearance="rolling"></web-dropzone-list>
+<web-dropzone-indicator for="cloud" position="right"></web-dropzone-indicator>
+
+pub.uploadFileCallback  = (ctx) => uploadTo('/public', ctx);
+priv.uploadFileCallback = (ctx) => uploadTo('/private', ctx);
+priv.uploadMetadata = { tenant: 'acme', bucket: 'private' };
+
+The upload loop uses file.uploadFileCallback ?? store.uploadFileCallback, and
+passes file.uploadMetadata as ctx.uploadMetadata. Stamped handlers survive
+pause / resume / retry. Programmatic equivalent:
+store.controller.addFiles(files, { uploadFileCallback, uploadMetadata }).
+
+CUSTOM SATELLITES
+-----------------
+Anything that uses storeEl.controller + the store's DOM events is a satellite:
+
+const store = document.getElementById('uploads');
+const render = () => myList.render(store.controller.getFiles());
+store.addEventListener('ready', render);
+store.addEventListener('files-change', (e) => myList.render(e.detail.files));
+if (store.controller?.isReady) render();
+
+Events are not composed, so listen ON the store element (works from any
+shadow root). Use resolveLabel(store.labels, key, vars) for matching text.

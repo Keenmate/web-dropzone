@@ -1,365 +1,197 @@
 DOCUMENTATION INDEX
 ===================
 
+AI reference for <web-dropzone> (@keenmate/web-dropzone) and its satellites.
 Quick reference for finding documentation on specific topics.
 
 FILE OVERVIEW
 -------------
-basic-setup.txt          - Installation, first component, getting started
-import-patterns.txt      - How to import the component, types, styles
-data-handling.txt        - Working with custom data structures
-selection-modes.txt      - Single vs multi-select configuration
-search-features.txt      - Search, filter, and async data loading
-display-modes.txt        - Badge display and positioning options
-virtual-scrolling.txt    - Performance optimization for large datasets
-custom-rendering.txt     - Custom HTML rendering and callbacks
-action-buttons.txt       - Built-in and custom action buttons
-form-integration.txt     - Forms, hidden inputs, value formats
-events-callbacks.txt     - Events and callback functions
-keyboard-navigation.txt  - Keyboard shortcuts and accessibility
-styling-theming.txt      - CSS variables, themes, customization
-rtl-support.txt          - Right-to-left language support
-logging-debugging.txt    - Debug logging and troubleshooting
-typescript-types.txt     - TypeScript definitions and generics
-advanced-patterns.txt    - Complex use cases and patterns
-migration-guide.txt      - Migrating from other libraries
+basic-setup.txt          - Install, first dropzone, mode inference, methods, properties
+import-patterns.txt      - Packages, imports, headless core, styles, global API, frameworks
+display-modes.txt        - mode, selector/list appearances, display-mode shorthand,
+                           grid, files-inside, compact popover, rolling, controls,
+                           item-controls, Cancel vs Remove, drag overlay
+custom-rendering.txt     - mode="structural" render callbacks, file-row-update,
+                           file icons, raw-HTML inputs, getCustomStylesCallback
+upload-pipeline.txt      - uploadFileCallback ctx, concurrency, auto-upload, pause /
+                           resume / retry / cancel rule, retryPolicy, progress-mode,
+                           progress-throttle, removal teardown, server cleanup
+validation.txt           - accept, size/count caps, dedupe-mode, validateCallback,
+                           beforeFilesAddCallback, files-reject codes, min-file-count
+labels-i18n.txt          - the labels input: every key + default, placeholders,
+                           JSON attribute, resolveLabel seam
+events-callbacks.txt     - event table, on* twins, ctx/detail context, gates,
+                           file-cancel / file-delete
+satellites.txt           - picker / list / indicator / progress, for= binding,
+                           Mode A/B, status-surface callbacks, custom satellites
+form-integration.txt     - form association, File blobs, min-file-count validity,
+                           reset, fieldset disabled, upload-then-submit
+keyboard-navigation.txt  - keyboard support and accessibility as implemented
+styling-theming.txt      - --dz-* variables, --dz-rem, --base-* layer, dark mode,
+                           parts, managed satellites
+rtl-support.txt          - right-to-left layout
+logging-debugging.txt    - DROPZONE:* loggers, global API, troubleshooting
+typescript-types.txt     - element, controller, FileState, contexts, event map
+advanced-patterns.txt    - headless + frameworks, Mode B, persistence, resumable
+                           uploads, recipes, lifecycle, custom satellites
+migration-guide.txt      - rc02 -> rc03 (breaking), rc01 -> rc02, pre-rc -> rc01
 
 KEYWORD INDEX
 =============
 
 A
 -
-Accessibility → keyboard-navigation.txt
-Actions → action-buttons.txt
-addNewCallback → search-features.txt, events-callbacks.txt
-allow-add-new → search-features.txt
-allow-groups → data-handling.txt, basic-setup.txt
-API → import-patterns.txt, typescript-types.txt
-Arrays → data-handling.txt
-Async search → search-features.txt, advanced-patterns.txt
-Attributes → basic-setup.txt, import-patterns.txt
+abort / AbortSignal (ctx.signal) -> upload-pipeline.txt
+accept -> validation.txt, basic-setup.txt
+Accessibility / aria-label -> keyboard-navigation.txt, labels-i18n.txt
+addFiles() -> basic-setup.txt, validation.txt, satellites.txt (opts)
+AddFilesOptions -> typescript-types.txt, satellites.txt
+aggregate / getOverallProgress() -> upload-pipeline.txt, typescript-types.txt
+auto-upload / autoUpload -> upload-pipeline.txt, form-integration.txt
 
 B
 -
-Badges → display-modes.txt, custom-rendering.txt
-badges-display-mode → display-modes.txt
-badges-max-visible → display-modes.txt
-badges-position → display-modes.txt
-badges-threshold → display-modes.txt
-Badge tooltips → display-modes.txt
-beforeSearchCallback → search-features.txt, events-callbacks.txt
-Browser support → basic-setup.txt, import-patterns.txt
-Buffer → virtual-scrolling.txt
-Bundlers → import-patterns.txt
-Buttons → action-buttons.txt
+badges (list-appearance) -> display-modes.txt
+batch() / setAttributes() -> basic-setup.txt
+beforeFileCancelCallback -> events-callbacks.txt, upload-pipeline.txt
+beforeFilesAddCallback -> validation.txt, events-callbacks.txt
+beforeFilesRemoveCallback -> events-callbacks.txt
+bindToStore() -> satellites.txt
+bulk mode -> display-modes.txt
+button / minimal / native selector -> display-modes.txt
 
 C
 -
-Callbacks → events-callbacks.txt, custom-rendering.txt, data-handling.txt
-changeCallback → events-callbacks.txt
-Checkboxes → styling-theming.txt, basic-setup.txt
-close-on-select → selection-modes.txt
-Compact mode → display-modes.txt
-Components → basic-setup.txt
-Count mode → display-modes.txt
-CSS → styling-theming.txt
-CSS Variables → styling-theming.txt
-CSV format → form-integration.txt
-Custom objects → data-handling.txt
-Custom rendering → custom-rendering.txt
-customStylesCallback → styling-theming.txt, custom-rendering.txt
+cancel rule / cancelFile() / cancelAll() -> upload-pipeline.txt
+cancel-icon / remove-icon -> display-modes.txt, custom-rendering.txt
+cancel-timeout / cancel-timeout-behavior -> upload-pipeline.txt
+cancelling / cancelled status -> upload-pipeline.txt, typescript-types.txt
+card-size -> display-modes.txt
+change event -> events-callbacks.txt, form-integration.txt
+clear() -> basic-setup.txt, form-integration.txt (reset)
+compact / popover -> display-modes.txt
+concurrency -> upload-pipeline.txt
+controller (el.controller, DropzoneController) -> typescript-types.txt, events-callbacks.txt
+controls / item-controls -> display-modes.txt, advanced-patterns.txt
+createDropzoneSpinner -> satellites.txt, custom-rendering.txt
+CSS variables (--dz-*) -> styling-theming.txt
 
 D
 -
-Data → data-handling.txt
-Data formats → data-handling.txt
-Declarative → basic-setup.txt
-deselectCallback → events-callbacks.txt
-destroy() → basic-setup.txt, typescript-types.txt
-Disabled options → data-handling.txt
-Display → display-modes.txt
-displayValueMember → data-handling.txt
-Dropdown → basic-setup.txt, styling-theming.txt
+dark mode / data-theme / data-context-theme -> styling-theming.txt
+data-dz-action -> custom-rendering.txt
+data-ready -> basic-setup.txt, styling-theming.txt
+dedupe-mode -> validation.txt
+DEFAULT_LABELS -> labels-i18n.txt
+destroy() -> upload-pipeline.txt, advanced-patterns.txt
+display-mode -> display-modes.txt
+DropzoneEngine (headless core) -> import-patterns.txt, advanced-patterns.txt
+drag overlay / overlay-target -> display-modes.txt, advanced-patterns.txt
 
 E
 -
-enable-search → search-features.txt
-enable-virtual-scroll → virtual-scrolling.txt
-enableLogging() → logging-debugging.txt
-ESM → import-patterns.txt
-Events → events-callbacks.txt
-Examples → basic-setup.txt
+empty-message -> display-modes.txt, labels-i18n.txt
+events (table) -> events-callbacks.txt
 
 F
 -
-Filter mode → search-features.txt
-Floating UI → basic-setup.txt
-Focus → keyboard-navigation.txt
-Form → form-integration.txt
-FormData → form-integration.txt
-Format → form-integration.txt
+file-cancel -> events-callbacks.txt, upload-pipeline.txt
+file-delete -> events-callbacks.txt, upload-pipeline.txt
+file-row-update -> custom-rendering.txt
+fileIcons / getFileIconCallback -> custom-rendering.txt
+files-change -> events-callbacks.txt, advanced-patterns.txt
+files-inside -> display-modes.txt, satellites.txt (inside / nested)
+files-reject / validation codes -> validation.txt
+FileState -> basic-setup.txt, typescript-types.txt
+form / ElementInternals / name -> form-integration.txt
 
 G
 -
-getBadgeClassCallback → custom-rendering.txt, styling-theming.txt
-getBadgeDisplayCallback → data-handling.txt, custom-rendering.txt
-getBadgeTooltipCallback → display-modes.txt, events-callbacks.txt
-getCounterCallback → display-modes.txt, events-callbacks.txt
-getDisabledCallback → data-handling.txt, events-callbacks.txt
-getDisplayValueCallback → data-handling.txt, events-callbacks.txt
-getGroupCallback → data-handling.txt, events-callbacks.txt
-getIconCallback → data-handling.txt, events-callbacks.txt
-getSearchValueCallback → data-handling.txt, search-features.txt
-getSelected() → selection-modes.txt, typescript-types.txt
-getSelectedItemClassCallback → custom-rendering.txt, styling-theming.txt
-getSubtitleCallback → data-handling.txt, events-callbacks.txt
-getValue() → form-integration.txt, selection-modes.txt
-getValueCallback → data-handling.txt, events-callbacks.txt
-getValueFormatCallback → form-integration.txt, events-callbacks.txt
-Global API → import-patterns.txt
-Groups → data-handling.txt, basic-setup.txt
+getCustomStylesCallback -> custom-rendering.txt, styling-theming.txt
+grid-layout / grid-status -> display-modes.txt
+glossary (cancel/abort/remove/delete/clear/destroy) -> upload-pipeline.txt
 
 H
 -
-Hidden input → form-integration.txt
-Hierarchical → data-handling.txt
-HTML → basic-setup.txt, custom-rendering.txt
-HTMLElement → custom-rendering.txt
-Hybrid search → search-features.txt, advanced-patterns.txt
+headless mode -> display-modes.txt, advanced-patterns.txt, satellites.txt
 
 I
 -
-Icons → data-handling.txt, styling-theming.txt
-Import → import-patterns.txt
-initial-values → form-integration.txt, selection-modes.txt
-input-size → styling-theming.txt
-inputSize → styling-theming.txt
-Installation → basic-setup.txt
-Internationalization → display-modes.txt, events-callbacks.txt
-
-J
--
-JSON → data-handling.txt, form-integration.txt
+icon / overlay-icon -> custom-rendering.txt
+indicator (<web-dropzone-indicator>) -> satellites.txt
 
 K
 -
-keep-options-on-search → search-features.txt, advanced-patterns.txt
-Keyboard → keyboard-navigation.txt
+Keyboard -> keyboard-navigation.txt
 
 L
 -
-Large datasets → virtual-scrolling.txt
-Loading → search-features.txt
-Logging → logging-debugging.txt
-loglevel → logging-debugging.txt
+labels -> labels-i18n.txt
+list (<web-dropzone-list>) -> satellites.txt
+logging -> logging-debugging.txt
 
 M
 -
-max-height → basic-setup.txt, styling-theming.txt
-Member properties → data-handling.txt
-Memory → virtual-scrolling.txt
-min-search-length → search-features.txt
-MultiSelectElement → import-patterns.txt, typescript-types.txt
-MultiSelectOption → typescript-types.txt, data-handling.txt
-multiple → selection-modes.txt
-
-N
--
-name → form-integration.txt
-Navigate mode → search-features.txt, keyboard-navigation.txt
-Navigation → keyboard-navigation.txt
+max-file-count / max-file-size / max-total-size / min-* -> validation.txt
+max-visible-files -> display-modes.txt
+metadata / setMetadata -> upload-pipeline.txt, events-callbacks.txt
+min-file-count (validity) -> form-integration.txt, validation.txt
+mode (bulk/structural/headless) -> display-modes.txt
+Mode A / Mode B -> satellites.txt, advanced-patterns.txt
+multiple -> validation.txt
 
 O
 -
-Objects → data-handling.txt
-<option> → basic-setup.txt, data-handling.txt
-<optgroup> → basic-setup.txt, data-handling.txt
-option-height → virtual-scrolling.txt
-Options → data-handling.txt, basic-setup.txt
+on* twins (onFileAdd ...) -> events-callbacks.txt
+overlay-enter / overlay-leave -> display-modes.txt, events-callbacks.txt
 
 P
 -
-Partial mode → display-modes.txt
-Performance → virtual-scrolling.txt, advanced-patterns.txt
-Pills → display-modes.txt
-Placeholder → search-features.txt, basic-setup.txt
-Popover → display-modes.txt, custom-rendering.txt
-Positioning → display-modes.txt
-Priority → data-handling.txt, advanced-patterns.txt
-Programmatic → basic-setup.txt, data-handling.txt
-Props → basic-setup.txt, typescript-types.txt
+pause / resume -> upload-pipeline.txt
+persistStateCallback / loadStateCallback / storage-key -> advanced-patterns.txt
+picker (<web-dropzone-picker>) -> satellites.txt
+popover-placement -> display-modes.txt, rtl-support.txt
+progress (<web-dropzone-progress>) -> satellites.txt
+progress-mode / progress-throttle -> upload-pipeline.txt
 
 R
 -
-renderBadgeContentCallback → custom-rendering.txt
-renderOptionContentCallback → custom-rendering.txt
-renderSelectedContentCallback → custom-rendering.txt, selection-modes.txt
-renderSelectedItemContentCallback → custom-rendering.txt
-Right-to-left → rtl-support.txt
-RTL → rtl-support.txt
+ready event -> basic-setup.txt, events-callbacks.txt
+removeFile() / removeFiles() -> basic-setup.txt, events-callbacks.txt
+removal from page / should-keep-alive-when-removed -> upload-pipeline.txt, advanced-patterns.txt
+render*Callback -> custom-rendering.txt
+renderBody/FileInfo/ProgressCallback (indicator) -> satellites.txt
+resolveLabel -> labels-i18n.txt
+resumable uploads / tus -> upload-pipeline.txt, advanced-patterns.txt
+retryPolicy / retryFile / retryAll -> upload-pipeline.txt
+rolling / rolling-rotation -> display-modes.txt
+RTL -> rtl-support.txt
 
 S
 -
-SCSS → styling-theming.txt, import-patterns.txt
-Search → search-features.txt
-searchCallback → search-features.txt, events-callbacks.txt
-search-input-mode → search-features.txt
-search-mode → search-features.txt
-search-placeholder → search-features.txt
-searchValueMember → data-handling.txt, search-features.txt
-selectCallback → events-callbacks.txt
-select-all → action-buttons.txt
-Selection → selection-modes.txt
-setLogLevel() → logging-debugging.txt
-setCategoryLevel() → logging-debugging.txt
-setSelected() → selection-modes.txt
-Shadow DOM → styling-theming.txt, custom-rendering.txt
-show-checkboxes → basic-setup.txt, styling-theming.txt
-Single-select → selection-modes.txt
-Size (input) → styling-theming.txt
-SSR → advanced-patterns.txt, basic-setup.txt
-sticky-actions → action-buttons.txt
-Styles → styling-theming.txt
-Subtitle → data-handling.txt
+should-sink-completed / reorder-completed-delay -> display-modes.txt
+show-thumbnails -> display-modes.txt
+StatusSurfaceArgs -> satellites.txt, typescript-types.txt
+structural mode -> custom-rendering.txt
+summary-template -> display-modes.txt
 
 T
 -
-Templates → custom-rendering.txt
-Theming → styling-theming.txt
-Threshold → display-modes.txt, virtual-scrolling.txt
-Tooltips → display-modes.txt
-Tuples → data-handling.txt
-TypeScript → typescript-types.txt, import-patterns.txt
-Types → typescript-types.txt
+TypeScript -> typescript-types.txt
+Troubleshooting -> logging-debugging.txt
 
 U
 -
-UMD → import-patterns.txt
+uploaded-deletable -> display-modes.txt
+uploadFileCallback -> upload-pipeline.txt
+uploadMetadata -> satellites.txt
 
 V
 -
-Validation → form-integration.txt
-value-format → form-integration.txt
-valueMember → data-handling.txt
-Values → selection-modes.txt, form-integration.txt
-Variables → styling-theming.txt
-Virtual scrolling → virtual-scrolling.txt
-virtual-scroll-buffer → virtual-scrolling.txt
-virtual-scroll-threshold → virtual-scrolling.txt
-Vite → import-patterns.txt, basic-setup.txt
+validateCallback -> validation.txt
+value-format (inert) -> form-integration.txt
 
 W
 -
-Web Component → basic-setup.txt, import-patterns.txt
-WebMultiSelect → import-patterns.txt, typescript-types.txt
-Wildcards → data-handling.txt
-
-COMMON QUESTIONS
-================
-
-Q: How do I get started?
-A: → basic-setup.txt
-
-Q: How do I import the component?
-A: → import-patterns.txt
-
-Q: How do I work with my custom data objects?
-A: → data-handling.txt
-
-Q: How do I make it single-select instead of multi-select?
-A: → selection-modes.txt
-
-Q: How do I add search functionality?
-A: → search-features.txt
-
-Q: How do I change how selected items are displayed?
-A: → display-modes.txt
-
-Q: My component is slow with thousands of items
-A: → virtual-scrolling.txt
-
-Q: How do I customize the appearance of options?
-A: → custom-rendering.txt
-
-Q: How do I add custom buttons?
-A: → action-buttons.txt
-
-Q: How do I integrate with forms?
-A: → form-integration.txt
-
-Q: How do I listen to selection changes?
-A: → events-callbacks.txt
-
-Q: What keyboard shortcuts are available?
-A: → keyboard-navigation.txt
-
-Q: How do I change colors and styles?
-A: → styling-theming.txt
-
-Q: How do I support Arabic/Hebrew?
-A: → rtl-support.txt
-
-Q: How do I debug issues?
-A: → logging-debugging.txt
-
-Q: Where are the TypeScript types?
-A: → typescript-types.txt
-
-Q: How do I implement async search with initial options?
-A: → advanced-patterns.txt (hybrid search)
-
-Q: I'm migrating from another multiselect library
-A: → migration-guide.txt
-
-FEATURES BY CATEGORY
-====================
-
-GETTING STARTED
-- Installation and setup → basic-setup.txt
-- Import methods → import-patterns.txt
-- First component → basic-setup.txt
-
-DATA & OPTIONS
-- Custom objects → data-handling.txt
-- Arrays and tuples → data-handling.txt
-- Member properties → data-handling.txt
-- Callbacks → data-handling.txt, events-callbacks.txt
-- Groups → data-handling.txt
-
-SELECTION & DISPLAY
-- Single vs multi-select → selection-modes.txt
-- Badge modes (pills, count, etc.) → display-modes.txt
-- Badge positioning → display-modes.txt
-- Custom rendering → custom-rendering.txt
-
-SEARCH & FILTERING
-- Filter mode → search-features.txt
-- Navigate mode → search-features.txt
-- Async search → search-features.txt
-- Hybrid search → advanced-patterns.txt
-
-PERFORMANCE
-- Virtual scrolling → virtual-scrolling.txt
-- Large datasets → virtual-scrolling.txt
-
-CUSTOMIZATION
-- CSS variables → styling-theming.txt
-- SCSS → styling-theming.txt
-- Custom rendering → custom-rendering.txt
-- Action buttons → action-buttons.txt
-
-INTEGRATION
-- Forms → form-integration.txt
-- Events → events-callbacks.txt
-- TypeScript → typescript-types.txt
-
-ACCESSIBILITY & I18N
-- Keyboard navigation → keyboard-navigation.txt
-- RTL support → rtl-support.txt
-- Internationalization → display-modes.txt, events-callbacks.txt
-
-DEVELOPMENT
-- Debugging → logging-debugging.txt
-- TypeScript types → typescript-types.txt
-- Advanced patterns → advanced-patterns.txt
-- Migration → migration-guide.txt
+whenSettled() / flush -> basic-setup.txt, advanced-patterns.txt
+window.components['web-dropzone'] -> import-patterns.txt, logging-debugging.txt

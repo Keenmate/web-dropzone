@@ -1,527 +1,209 @@
 ADVANCED PATTERNS
 =================
 
-CRITICAL: Complex use cases and advanced techniques
-- Hybrid search (popular items + async)
-- Conditional rendering based on state
-- Priority-based badge styling
-- SSR compatibility
-- Performance optimizations
-- Complex data transformations
+1. HEADLESS STORE + FRAMEWORK-RENDERED UI
+-----------------------------------------
+<web-dropzone id="store" mode="headless" multiple max-file-count="6"></web-dropzone>
+<web-dropzone-picker for="store"></web-dropzone-picker>     <!-- optional -->
 
-HYBRID SEARCH PATTERN
----------------------
-Show popular items initially, load more on search:
-
-// Initial popular options
-const popularLanguages = [
-  { value: 'js', label: 'JavaScript' },
-  { value: 'ts', label: 'TypeScript' },
-  { value: 'py', label: 'Python' },
-  { value: 'java', label: 'Java' }
-];
-
-select.options = popularLanguages;
-select.keepOptionsOnSearch = true;
-select.minSearchLength = 3;
-
-select.searchCallback = async (searchTerm) => {
-  if (searchTerm.length < 3) return [];
-
-  // Load from API
-  const response = await fetch(`/api/languages?q=${searchTerm}`);
-  const results = await response.json();
-
-  // Return additional results
-  return results;
-};
-
-Behavior:
-- Dropdown opens: Shows popular items
-- User searches: Popular + search results
-- Best of both worlds
-
-CONDITIONAL RENDERING
----------------------
-Render based on item state and context:
-
-select.renderOptionContentCallback = (option, context) => {
-  const user = getCurrentUser();
-
-  // Different rendering for selected items
-  if (context.isSelected) {
-    return `
-      <div class="option-selected">
-        ✓ <strong>${option.label}</strong>
-        ${option.addedBy === user.id ? '<span class="badge-you">You</span>' : ''}
-      </div>
-    `;
-  }
-
-  // Highlight matches in search
-  if (context.isMatched) {
-    const highlighted = highlightSearchTerm(option.label, searchTerm);
-    return `<div class="option-matched">${highlighted}</div>`;
-  }
-
-  // Show different info for disabled
-  if (context.isDisabled) {
-    return `
-      <div class="option-disabled">
-        ${option.label}
-        <span class="reason">${option.disabledReason}</span>
-      </div>
-    `;
-  }
-
-  // Default rendering
-  return `
-    <div class="option">
-      ${option.icon || ''} ${option.label}
-    </div>
-  `;
-};
-
-PRIORITY-BASED STYLING
-----------------------
-Style badges based on priority:
-
-interface PriorityOption extends MultiSelectOption {
-  priority: 'low' | 'medium' | 'high' | 'urgent';
+React:
+function Uploads() {
+  const ref = useRef(null);
+  const [files, setFiles] = useState([]);
+  useEffect(() => {
+    const dz = ref.current;
+    const onTick = (e) => setFiles(e.detail.files);       // rAF-coalesced snapshot
+    dz.addEventListener('files-change', onTick);
+    dz.uploadFileCallback = upload;
+    return () => dz.removeEventListener('files-change', onTick);
+  }, []);
+  return (<>
+    <web-dropzone ref={ref} mode="headless" />
+    {files.map(f => (
+      <div key={f.id}>{f.name} {Math.round(f.progress)}% {f.status}
+        <button onClick={() => ref.current.cancelFile(f.id)}>Cancel</button>
+        <button onClick={() => ref.current.removeFile(f.id, { confirm: true })}>Remove</button>
+      </div>))}
+  </>);
 }
 
-select.getBadgeClassCallback = (option: PriorityOption) => {
-  return [`badge-priority`, `badge-${option.priority}`];
-};
+- files-change gives { changedIds, files } at most once per frame - diff by id.
+- getFiles() / detail.files are copies of the list; FileState objects are
+  live store objects - treat them as read-only.
+- Feed files in with controller.addFiles(fileList) from your own <input> /
+  drop handler; validation and gates still apply.
 
-select.customStylesCallback = () => {
-  return `
-    .badge-low {
-      --ml-badge-text-bg: #f3f4f6;
-      --ml-badge-text-color: #6b7280;
-    }
-    .badge-medium {
-      --ml-badge-text-bg: #dbeafe;
-      --ml-badge-text-color: #2563eb;
-    }
-    .badge-high {
-      --ml-badge-text-bg: #fef3c7;
-      --ml-badge-text-color: #d97706;
-    }
-    .badge-urgent {
-      --ml-badge-text-bg: #fee2e2;
-      --ml-badge-text-color: #dc2626;
-      font-weight: 600;
-    }
-  `;
-};
+Without any custom element (pure JS):
+import { DropzoneEngine } from '@keenmate/web-dropzone-core';
+const engine = new DropzoneEngine(hostDiv, { maxFileCount: 6, uploadFileCallback: upload });
+hostDiv.addEventListener('files-change', (e) => render(e.detail.files));
+engine.controller.addFiles(input.files);
+engine.destroy();                         // when done
 
-CACHED ASYNC SEARCH
--------------------
-Implement search caching:
+2. MODE B - ONE QUEUE, PER-PICKER ENDPOINTS
+-------------------------------------------
+<web-dropzone id="cloud"></web-dropzone>
+<web-dropzone-picker id="pub"  for="cloud" selector-appearance="button" label="Public"></web-dropzone-picker>
+<web-dropzone-picker id="priv" for="cloud" selector-appearance="button" label="Private"></web-dropzone-picker>
+<web-dropzone-list for="cloud" list-appearance="detailed"></web-dropzone-list>
 
-const searchCache = new Map<string, MultiSelectOption[]>();
-const pendingSearches = new Map<string, Promise<MultiSelectOption[]>>();
+pub.uploadFileCallback  = (ctx) => putTo('/public', ctx);
+priv.uploadFileCallback = (ctx) => putTo('/private', ctx);
+priv.uploadMetadata = { acl: 'private' };
 
-select.searchCallback = async (searchTerm: string) => {
-  // Check cache
-  if (searchCache.has(searchTerm)) {
-    return searchCache.get(searchTerm)!;
-  }
-
-  // Check if search in progress
-  if (pendingSearches.has(searchTerm)) {
-    return await pendingSearches.get(searchTerm)!;
-  }
-
-  // Create new search promise
-  const searchPromise = fetch(`/api/search?q=${searchTerm}`)
-    .then(res => res.json())
-    .finally(() => {
-      pendingSearches.delete(searchTerm);
-    });
-
-  pendingSearches.set(searchTerm, searchPromise);
-
-  const results = await searchPromise;
-
-  // Cache results
-  searchCache.set(searchTerm, results);
-
-  return results;
-};
-
-DEBOUNCED SEARCH
-----------------
-Reduce API calls with debouncing:
-
-let debounceTimer: ReturnType<typeof setTimeout>;
-
-select.searchCallback = async (searchTerm: string) => {
-  return new Promise((resolve) => {
-    clearTimeout(debounceTimer);
-
-    debounceTimer = setTimeout(async () => {
-      const response = await fetch(`/api/search?q=${searchTerm}`);
-      const results = await response.json();
-      resolve(results);
-    }, 300);
-  });
-};
-
-PROGRESSIVE LOADING
--------------------
-Load options in batches:
-
-let currentPage = 0;
-const pageSize = 50;
-let allOptions: MultiSelectOption[] = [];
-
-async function loadMore() {
-  const response = await fetch(`/api/options?page=${currentPage}&size=${pageSize}`);
-  const batch = await response.json();
-
-  allOptions = [...allOptions, ...batch];
-  select.options = allOptions;
-
-  currentPage++;
-
-  return batch.length === pageSize; // Has more
+async function putTo(url, { file, signal, setProgress, uploadMetadata }) {
+  const body = new FormData();
+  body.append('file', file);
+  if (uploadMetadata) body.append('meta', JSON.stringify(uploadMetadata));
+  const res = await fetch(url, { method: 'POST', body, signal });
+  if (!res.ok) throw new Error(res.statusText);
+  setProgress(100);
 }
 
-// Initial load
-await loadMore();
+Per-file handler wins: file.uploadFileCallback ?? store.uploadFileCallback.
+Programmatic: cloud.controller.addFiles(files, { uploadFileCallback, uploadMetadata }).
+The progress strip's Pause/Resume/Cancel all need a store-level handler.
 
-// Load more on scroll (if implemented)
-select.addEventListener('scroll-near-bottom', async () => {
-  const hasMore = await loadMore();
-  if (!hasMore) {
-    // All loaded
-  }
-});
+3. PERSISTED UI STATE (storage-key)
+-----------------------------------
+<web-dropzone display-mode="compact" storage-key="mail-attachments"></web-dropzone>
 
-DYNAMIC VALIDATION
-------------------
-Validate selections dynamically:
+What is persisted: DropzoneState = { popoverWidth?, popoverHeight? } - the
+user's last popover resize (debounced). Restored when the popover opens.
+Default sink: localStorage key `dz-state:<storage-key>`. Unset / empty
+storage-key disables persistence. Use distinct keys per dropzone.
+FILES ARE NOT PERSISTED.
 
-select.changeCallback = (selectedOptions) => {
-  // Max selections
-  if (selectedOptions.length > 5) {
-    alert('Maximum 5 selections allowed');
-    const limited = selectedOptions.slice(0, 5);
-    select.setSelected(limited.map(o => o.value));
-    return;
-  }
-
-  // Required combinations
-  const categories = selectedOptions.map(o => o.category);
-  if (!categories.includes('required-category')) {
-    alert('Must include at least one from required category');
-    return;
-  }
-
-  // Mutual exclusivity
-  const hasA = selectedOptions.some(o => o.group === 'A');
-  const hasB = selectedOptions.some(o => o.group === 'B');
-  if (hasA && hasB) {
-    alert('Cannot select from both groups A and B');
-    // Remove last selected
-    const newValues = selectedOptions.slice(0, -1).map(o => o.value);
-    select.setSelected(newValues);
-  }
+Custom sink (e.g. server-side user prefs):
+dz.persistStateCallback = async ({ key, state }) => {
+  await fetch(`/api/prefs/${key}`, { method: 'PUT', body: JSON.stringify(state) });
 };
-
-DEPENDENT MULTISELECTS
-----------------------
-Link multiple multiselects:
-
-const categorySelect = document.querySelector('#categories');
-const itemSelect = document.querySelector('#items');
-
-categorySelect.addEventListener('change', async (e) => {
-  const selected = e.detail.selectedValues;
-
-  // Load items for selected categories
-  const response = await fetch('/api/items', {
-    method: 'POST',
-    body: JSON.stringify({ categories: selected })
-  });
-
-  const items = await response.json();
-  itemSelect.options = items;
-
-  // Clear item selection
-  itemSelect.setSelected([]);
-});
-
-HIERARCHICAL DATA
------------------
-Handle parent-child relationships:
-
-interface TreeOption extends MultiSelectOption {
-  parentId?: number;
-  children?: TreeOption[];
-}
-
-select.changeCallback = (selectedOptions: TreeOption[]) => {
-  // Auto-select children when parent selected
-  const withChildren = selectedOptions.flatMap(option => {
-    if (option.children) {
-      return [option, ...option.children];
-    }
-    return [option];
-  });
-
-  // Remove duplicates
-  const unique = Array.from(new Map(
-    withChildren.map(o => [o.value, o])
-  ).values());
-
-  select.setSelected(unique.map(o => o.value));
+dz.loadStateCallback = async ({ key }) => {
+  const r = await fetch(`/api/prefs/${key}`);
+  return r.ok ? r.json() : null;
 };
+persistStateCallback receives the FULL merged state each time. Errors are
+swallowed (logged on DROPZONE:UI); the component keeps in-memory state.
 
-CUSTOM SORTING
---------------
-Sort options dynamically:
-
-interface SortableOption extends MultiSelectOption {
-  popularity: number;
-  createdAt: Date;
-}
-
-function updateSorting(sortBy: 'popularity' | 'alphabetical' | 'recent') {
-  const sorted = [...select.options].sort((a: SortableOption, b: SortableOption) => {
-    switch (sortBy) {
-      case 'popularity':
-        return b.popularity - a.popularity;
-      case 'alphabetical':
-        return a.label.localeCompare(b.label);
-      case 'recent':
-        return b.createdAt.getTime() - a.createdAt.getTime();
-    }
-  });
-
-  select.options = sorted;
-}
-
-REAL-TIME UPDATES
------------------
-Update options from WebSocket:
-
-const ws = new WebSocket('wss://api.example.com/options');
-
-ws.addEventListener('message', (event) => {
-  const update = JSON.parse(event.data);
-
-  switch (update.type) {
-    case 'add':
-      select.options = [...select.options, update.option];
-      break;
-
-    case 'remove':
-      select.options = select.options.filter(o => o.value !== update.optionId);
-      break;
-
-    case 'update':
-      select.options = select.options.map(o =>
-        o.value === update.option.value ? update.option : o
-      );
-      break;
-  }
-});
-
-OPTIMISTIC UPDATES
-------------------
-Update UI before server confirms:
-
-select.changeCallback = async (selectedOptions) => {
-  const values = selectedOptions.map(o => o.value);
-
-  try {
-    // Optimistically update (already done by component)
-
-    // Save to server
-    const response = await fetch('/api/save', {
-      method: 'POST',
-      body: JSON.stringify({ selections: values })
-    });
-
-    if (!response.ok) {
-      throw new Error('Save failed');
-    }
-  } catch (error) {
-    // Revert on error
-    console.error('Save failed, reverting');
-    const previousValues = getPreviousValues(); // Store previous state
-    select.setSelected(previousValues);
-
-    alert('Failed to save selections');
-  }
-};
-
-SSR COMPATIBILITY
------------------
-Safe server-side rendering:
-
-// Next.js / Nuxt / SvelteKit
-import type { MultiSelectOption } from '@keenmate/web-multiselect';
-
-// Safe to import (won't crash during SSR)
-import '@keenmate/web-multiselect';
-
-// Component only renders client-side
-useEffect(() => {
-  // Or onMounted, or $: in Svelte
-  if (typeof window !== 'undefined') {
-    const select = document.querySelector('web-multiselect');
-    if (select) {
-      select.options = options;
-    }
-  }
-}, []);
-
-Or dynamic import:
-const MultiSelect = dynamic(
-  () => import('./MultiSelectWrapper'),
-  { ssr: false }
-);
-
-PERFORMANCE MONITORING
-----------------------
-Track performance metrics:
-
-let renderCount = 0;
-let lastRenderTime = performance.now();
-
-select.renderOptionContentCallback = (option, context) => {
-  renderCount++;
-
-  if (renderCount % 100 === 0) {
-    const now = performance.now();
-    const timePer100 = now - lastRenderTime;
-    console.log(`100 renders: ${timePer100.toFixed(2)}ms`);
-    lastRenderTime = now;
-  }
-
-  return `<div>${option.label}</div>`;
-};
-
-ACCESSIBILITY ENHANCEMENTS
---------------------------
-Enhanced ARIA support:
-
-select.renderOptionContentCallback = (option, context) => {
-  const ariaLabel = `${option.label}, ${option.subtitle || ''}, ${context.isSelected ? 'selected' : 'not selected'}`;
-
-  return `
-    <div
-      role="option"
-      aria-label="${ariaLabel}"
-      aria-selected="${context.isSelected}"
-      aria-disabled="${context.isDisabled}">
-      ${option.label}
-    </div>
-  `;
-};
-
-KEYBOARD SHORTCUTS
-------------------
-Custom keyboard handlers:
-
-document.addEventListener('keydown', (e) => {
-  const select = document.querySelector('web-multiselect');
-  if (!select) return;
-
-  // Ctrl+A: Select all
-  if (e.ctrlKey && e.key === 'a' && document.activeElement === select) {
-    e.preventDefault();
-    const allValues = select.options.map(o => o.value);
-    select.setSelected(allValues);
-  }
-
-  // Ctrl+Shift+A: Clear all
-  if (e.ctrlKey && e.shiftKey && e.key === 'A') {
-    e.preventDefault();
-    select.setSelected([]);
-  }
-
-  // Escape: Clear and close
-  if (e.key === 'Escape' && select.dropdownOpen) {
-    select.setSelected([]);
-  }
-});
-
-BULK OPERATIONS
----------------
-Efficient bulk updates:
-
-// Instead of multiple updates
-❌ values.forEach(v => {
-  select.setSelected([...select.getValue(), v]);
-});
-
-// Do single update
-✅ select.setSelected([...select.getValue(), ...values]);
-
-LAZY LOADING OPTIONS
+4. RESUMABLE UPLOADS
 --------------------
-Load options on first interaction:
+Contract: ctx.startBytes / startPercent = last reported progress;
+ctx.setMetadata({...}) stashes server state that survives pause / retry;
+ctx.metadata returns it. See the full tus-style handler in upload-pipeline.txt.
 
-let optionsLoaded = false;
+Rules to remember:
+- pause -> resume and retry-after-error keep progress (startBytes > 0).
+- retry / resume of a CANCELLED file restarts at 0 but metadata is kept:
+  create a new server upload when startBytes === 0.
+- progress-mode="pessimistic" when you only report acknowledged bytes.
+- Chunk with file.slice(offset, offset + size) and pass ctx.signal to fetch.
+- Clean partial uploads in onFileCancel / onFileDelete (events-callbacks.txt).
 
-select.addEventListener('focus', async () => {
-  if (optionsLoaded) return;
+5. PRE-UPLOAD DECISIONS (STAGE, ASK, THEN UPLOAD)
+-------------------------------------------------
+SharePoint-style name collisions (see examples-sharepoint-collisions.html):
 
-  const response = await fetch('/api/options');
-  const options = await response.json();
+<web-dropzone id="dz" mode="structural" display-mode="list" auto-upload="false"></web-dropzone>
 
-  select.options = options;
-  optionsLoaded = true;
-}, { once: true });
+- auto-upload="false": files stay 'pending'.
+- files-change: batch-ask the server which names exist.
+- renderFileItemCallback returning an HTMLElement: each row owns its
+  Overwrite / Rename / Skip controls; state survives ticks via file-row-update.
+- Skip -> dz.removeFile(id); Rename -> remove + addFiles(new File([f.file], newName));
+  then dz.uploadFile(id) per decided row or dz.uploadAll().
 
-INFINITE SCROLL
----------------
-Implement infinite scrolling (requires custom implementation):
+Simpler gate for "ask before anything enters the list":
+dz.beforeFilesAddCallback = async ({ files }) => (await ask(files)) ? undefined : false;
 
-let page = 0;
-let loading = false;
+6. RECIPES OVER controls / item-controls + change
+-------------------------------------------------
+Show the overall progress strip only for 3+ files:
+dz.onChange = ({ files, element }) => {
+  element.controls = files.length >= 3 ? null : ['picker', 'list'];   // null = everything
+};
 
-async function loadPage() {
-  if (loading) return;
-  loading = true;
+Hide per-row progress once everything is done:
+dz.onFileStatusChange = ({ controller, element }) => {
+  const p = controller.getOverallProgress();
+  element.itemControls = p.completedCount === controller.getFiles().length
+    ? ['icon', 'name', 'size', 'remove'] : null;
+};
 
-  const response = await fetch(`/api/options?page=${page}`);
-  const newOptions = await response.json();
+Config changes do not fire `change` (no feedback loop).
 
-  select.options = [...select.options, ...newOptions];
-  page++;
-  loading = false;
+7. MULTIPLE INDEPENDENT DROPZONES / SPLIT OVERLAY
+-------------------------------------------------
+Each <web-dropzone> is its own store. Two hidden stores can target two halves
+of one editor for "attach as file" vs "share as link":
+
+<div class="editor-shell" style="position:relative">
+  <div contenteditable="true" class="wysiwyg"></div>
+  <!-- invisible split grid over the editor; pointer-events:none keeps typing working -->
+  <div style="position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr;pointer-events:none">
+    <div id="half-left"></div><div id="half-right"></div>
+  </div>
+</div>
+<web-dropzone-list for="attach" list-appearance="badges"></web-dropzone-list>
+<web-dropzone-list for="share"  list-appearance="badges"></web-dropzone-list>
+
+<!-- hidden stores (no display attrs -> headless); only their overlays render -->
+<web-dropzone id="attach" style="display:none; --dz-overlay-bg: rgba(0,120,212,.92)"
+  overlay-target="half-left" max-file-count="5" labels='{"overlay":"Attach as file"}'></web-dropzone>
+<web-dropzone id="share" style="display:none; --dz-overlay-bg: rgba(20,184,166,.92)"
+  overlay-target="half-right" labels='{"overlay":"Share as link"}'></web-dropzone>
+
+The drag overlay works in headless mode too. Use overlay-enter /
+overlay-leave to update overlay text per zone (e.g. remaining quota). When one
+overlay ends (drop / Escape), its siblings tear down too.
+(Full version: examples-split-overlay.html.)
+
+8. IMPERATIVE CODE AFTER PROPERTY WRITES
+----------------------------------------
+dz.maxFileCount = 1;
+dz.addFiles(files);              // OK: element methods flush pending writes
+dz.controller.addFiles(files);   // OK: el.controller flushes too
+const cfg = dz.controller.getConfig();  // OK
+// reading derived DOM / satellites right after a write: await dz.whenSettled()
+
+9. LIFECYCLE: MOVE vs REMOVE
+----------------------------
+- Moving the element (appendChild elsewhere, reorder): store kept, uploads
+  continue, open popover kept, no new `ready`.
+- Removing it (still detached one frame later): uploads cancelled by the cancel
+  rule (file-cancel fires, no gate), then the store is destroyed. Re-adding
+  later builds an empty store and fires `ready`.
+- should-keep-alive-when-removed: nothing is torn down while detached - e.g. a
+  dropzone inside a tab panel that is detached when hidden. Call destroy()
+  yourself when the view is really gone.
+
+SPA route change that should keep uploading in the background:
+<web-dropzone id="bg" mode="headless" should-keep-alive-when-removed></web-dropzone>
+plus a <web-dropzone-indicator for="bg"> in the app shell (keep the store in
+the shell so the indicator can resolve it).
+
+10. CUSTOM SATELLITE (VANILLA)
+------------------------------
+class UploadCounter extends HTMLElement {
+  connectedCallback() {
+    this.store = document.getElementById(this.getAttribute('for'));
+    this.onTick = () => {
+      const p = this.store.controller.getOverallProgress();
+      this.textContent = p.totalBytes ? `${Math.round(p.percent)}%` : '';
+    };
+    for (const n of ['ready', 'files-change', 'change']) this.store.addEventListener(n, this.onTick);
+    if (this.store.controller?.isReady) this.onTick();
+  }
+  disconnectedCallback() {
+    for (const n of ['ready', 'files-change', 'change']) this.store.removeEventListener(n, this.onTick);
+  }
 }
+customElements.define('upload-counter', UploadCounter);
 
-// Trigger on scroll near bottom
-// (Requires detecting scroll position)
-
-BEST PRACTICES
---------------
-✅ Cache search results
-✅ Debounce async operations
-✅ Validate selections dynamically
-✅ Handle errors gracefully
-✅ Optimize render callbacks
-✅ Test with large datasets
-✅ Monitor performance
-✅ Use TypeScript for complex patterns
-
-❌ Don't make excessive API calls
-❌ Don't block UI with synchronous operations
-❌ Don't forget error handling
-❌ Don't skip performance testing
-❌ Don't ignore accessibility
-
-EXAMPLES
---------
-See examples files for:
-- Hybrid search implementation
-- Advanced rendering patterns
-- Performance optimizations
-- Real-world use cases
+11. RESTRICTING ACTIONS
+-----------------------
+- Lock completed files: uploaded-deletable="false".
+- Confirm destructive removes only for uploaded files:
+  dz.beforeFilesRemoveCallback = ({ files }) =>
+    files.some(f => f.status === 'complete') && !confirm('Delete uploaded files?') ? false : undefined;
+- Prevent cancelling near completion:
+  dz.beforeFileCancelCallback = ({ files }) => files.every(f => f.progress < 95) ? undefined : false;

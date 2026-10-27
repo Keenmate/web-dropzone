@@ -1,531 +1,202 @@
 CUSTOM RENDERING
 ================
 
-CRITICAL: Full control over HTML rendering
-- renderOptionContentCallback: Dropdown options
-- renderBadgeContentCallback: Selected badges
-- renderSelectedItemContentCallback: Popover items
-- renderSelectedContentCallback: Single-select input text
-- Returns HTML string or HTMLElement
-- Context provides rendering state
+Three levels of customization, from least to most work:
+1. bulk mode + CSS variables / ::part        (styling-theming.txt)
+2. structural mode + render callbacks        (this file)
+3. headless mode + your own DOM / satellites (advanced-patterns.txt, satellites.txt)
 
-RENDER OPTION CONTENT
----------------------
-Customize dropdown option appearance:
+Plus mode-independent hooks: file icons (fileIcons / getFileIconCallback),
+row button glyphs (cancel-icon / remove-icon), prompt icon (icon),
+overlay icon (overlay-icon), and getCustomStylesCallback.
 
-select.renderOptionContentCallback = (option, context) => {
-  return `
-    <div class="custom-option">
-      ${option.icon || ''} ${option.label}
-      ${context.isSelected ? '✓' : ''}
-    </div>
-  `;
-};
-
-Context object:
-{
-  index: number,          // Option index in list
-  isSelected: boolean,    // Currently selected
-  isFocused: boolean,     // Keyboard focused
-  isMatched: boolean,     // Matches search (navigate mode)
-  isDisabled: boolean     // Option disabled
-}
-
-RETURN TYPES
-------------
-Return HTML string:
-
-✅ select.renderOptionContentCallback = (option) => {
-  return `<span>${option.label}</span>`;
-};
-
-Return HTMLElement:
-
-✅ select.renderOptionContentCallback = (option) => {
-  const div = document.createElement('div');
-  div.textContent = option.label;
-  div.className = 'custom-option';
-  return div;
-};
-
-IMPORTANT: HTMLElement more secure (no XSS), string more flexible
-
-RENDER BADGE CONTENT
---------------------
-Customize selected badge appearance:
-
-select.renderBadgeContentCallback = (option, context) => {
-  if (context.displayMode === 'compact') {
-    return `${option.label} +${context.remainingCount}`;
-  }
-  return option.label;
-};
-
-Context object:
-{
-  displayMode: string,    // 'pills' | 'count' | 'compact' | 'partial' | 'none'
-  isInPopover: boolean,   // Rendering in popover vs main area
-  remainingCount?: number // Count of remaining items (compact mode)
-}
-
-RENDER SELECTED ITEM
---------------------
-Customize popover list item appearance:
-
-select.renderSelectedItemContentCallback = (option) => {
-  return `
-    <div class="selected-item">
-      <img src="${option.avatar}" class="avatar" />
-      <div>
-        <div class="name">${option.label}</div>
-        <div class="subtitle">${option.email}</div>
-      </div>
-    </div>
-  `;
-};
-
-Used in:
-- Popover when clicking "+X more" badge
-- Popover when clicking compact badge
-- Full selected list view
-
-RENDER SELECTED CONTENT
------------------------
-Customize single-select input text:
-
-select.renderSelectedContentCallback = (option) => {
-  return `${option.icon || ''} ${option.label}`;
-};
-
-IMPORTANT: Returns plain text, not HTML
-- Only for single-select mode (multiple="false")
-- Displayed in main input field
-- No HTML allowed (security)
-
-CONTEXT-AWARE RENDERING
------------------------
-Render differently based on context:
-
-select.renderOptionContentCallback = (option, context) => {
-  if (context.isFocused) {
-    return `
-      <div class="option-focused">
-        <strong>${option.label}</strong>
-        ${option.description}
-      </div>
-    `;
-  }
-
-  if (context.isSelected) {
-    return `
-      <div class="option-selected">
-        ✓ ${option.label}
-      </div>
-    `;
-  }
-
-  return `<div>${option.label}</div>`;
-};
-
-CONDITIONAL RENDERING
----------------------
-Show/hide elements based on data:
-
-select.renderOptionContentCallback = (option, context) => {
-  const badge = option.isNew ? '<span class="badge-new">NEW</span>' : '';
-  const icon = option.icon ? `<img src="${option.icon}" />` : '';
-  const subtitle = option.subtitle ? `<div class="subtitle">${option.subtitle}</div>` : '';
-
-  return `
-    <div class="option">
-      ${icon}
-      <div class="content">
-        <div class="label">${option.label} ${badge}</div>
-        ${subtitle}
-      </div>
-      ${context.isSelected ? '<span class="check">✓</span>' : ''}
-    </div>
-  `;
-};
-
-COMPLEX LAYOUTS
----------------
-Multi-column or advanced layouts:
-
-select.renderOptionContentCallback = (option, context) => {
-  return `
-    <div class="option-grid">
-      <div class="col-1">
-        <img src="${option.avatar}" class="avatar" />
-      </div>
-      <div class="col-2">
-        <div class="name">${option.name}</div>
-        <div class="role">${option.role}</div>
-      </div>
-      <div class="col-3">
-        <span class="status ${option.status}">${option.status}</span>
-      </div>
-    </div>
-  `;
-};
-
-STYLING CUSTOM CONTENT
-----------------------
-Inject CSS into Shadow DOM:
-
-select.customStylesCallback = () => {
-  return `
-    .custom-option {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .option-focused {
-      background: #f3f4f6;
-    }
-
-    .option-selected {
-      color: #3b82f6;
-      font-weight: 600;
-    }
-
-    .badge-new {
-      background: #10b981;
-      color: white;
-      padding: 0.125rem 0.5rem;
-      border-radius: 0.25rem;
-      font-size: 0.75rem;
-    }
-  `;
-};
-
-IMPORTANT: Styles injected into Shadow DOM, scoped to component
-
-HTMLELEMENT RENDERING
----------------------
-Use DOM API instead of HTML strings:
-
-select.renderOptionContentCallback = (option, context) => {
-  const div = document.createElement('div');
-  div.className = 'custom-option';
-
-  const icon = document.createElement('span');
-  icon.textContent = option.icon || '';
-  div.appendChild(icon);
-
-  const label = document.createElement('span');
-  label.textContent = option.label;
-  div.appendChild(label);
-
-  if (context.isSelected) {
-    const check = document.createElement('span');
-    check.textContent = '✓';
-    check.className = 'check';
-    div.appendChild(check);
-  }
-
-  return div;
-};
-
-Benefits:
-✅ Prevents XSS attacks
-✅ Better performance for complex DOM
-✅ Type safety
-
-Drawbacks:
-❌ More verbose
-❌ Harder to read
-
-ESCAPING USER CONTENT
----------------------
-Prevent XSS when using HTML strings:
-
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
-
-select.renderOptionContentCallback = (option) => {
-  const safeLabel = escapeHtml(option.label);
-  const safeDescription = escapeHtml(option.description);
-
-  return `
-    <div>
-      <div>${safeLabel}</div>
-      <div>${safeDescription}</div>
-    </div>
-  `;
-};
-
-Or use HTMLElement (automatic escaping):
-select.renderOptionContentCallback = (option) => {
-  const div = document.createElement('div');
-  div.textContent = option.label;  // Automatically escaped
-  return div;
-};
-
-ICONS AND IMAGES
-----------------
-Render custom icons/images:
-
-select.renderOptionContentCallback = (option) => {
-  return `
-    <div class="option-with-icon">
-      <img src="${option.avatar}" alt="" class="avatar" />
-      <span>${option.label}</span>
-    </div>
-  `;
-};
-
-With fallback:
-select.renderOptionContentCallback = (option) => {
-  const avatar = option.avatar
-    ? `<img src="${option.avatar}" />`
-    : `<div class="avatar-placeholder">${option.label[0]}</div>`;
-
-  return `
-    <div class="option">
-      ${avatar}
-      <span>${option.label}</span>
-    </div>
-  `;
-};
-
-HIGHLIGHTING SEARCH MATCHES
+STRUCTURAL MODE IS REQUIRED
 ---------------------------
-Highlight matching text:
+Render callbacks are honored ONLY with an explicit mode="structural".
+In bulk mode they are ignored even if set; mode is never inferred as structural.
 
-select.renderOptionContentCallback = (option, context) => {
-  if (!context.isMatched || !select.searchTerm) {
-    return option.label;
-  }
+<web-dropzone id="dz" mode="structural" display-mode="detailed"></web-dropzone>
 
-  const term = select.searchTerm.toLowerCase();
-  const label = option.label;
-  const index = label.toLowerCase().indexOf(term);
+Every callback takes ONE ctx object. ctx also carries `controller`
+(DropzoneController) and `element` (the <web-dropzone>), non-enumerable -
+destructure them when needed.
 
-  if (index === -1) return label;
+CALLBACK OVERVIEW
+-----------------
+renderFileItemCallback({ file, index, displayMode, isInPopover })  -> string | HTMLElement
+renderListWrapperCallback({ rowsHtml, files })                      -> string | HTMLElement
+renderPromptCallback(ctx)                                           -> string | HTMLElement
+renderSummaryCallback({ files })                                    -> string | HTMLElement
+renderRollingBodyCallback(args)        StatusSurfaceArgs -> string | HTMLElement | false | null
+renderRollingFileInfoCallback(args)    (rolling list appearance only)
+renderRollingProgressCallback(args)
 
-  const before = label.substring(0, index);
-  const match = label.substring(index, index + term.length);
-  const after = label.substring(index + term.length);
+All are property-only (no attribute). Return values are inserted as HTML and
+are NOT sanitized - escape file names yourself.
 
-  return `${before}<mark>${match}</mark>${after}`;
+CUSTOM FILE ROW (STRING)
+------------------------
+const esc = (s) => s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+dz.renderFileItemCallback = ({ file }) => `
+  <div class="receipt-row" data-file-id="${file.id}">
+    <span class="name">${esc(file.name)}</span>
+    <span class="size">${(file.size / 1024).toFixed(1)} KB</span>
+    <span class="status">${file.status} ${Math.round(file.progress)}%</span>
+    <button data-dz-action="cancel" data-file-id="${file.id}">Cancel</button>
+    <button data-dz-action="remove" data-file-id="${file.id}">&times;</button>
+  </div>`;
+
+Required hooks:
+- data-file-id="${file.id}" on the row root, so the component can find and
+  replace the row on state changes.
+- Built-in actions are auto-wired by attribute (needs data-file-id too):
+    data-dz-action="remove"      Remove (runs beforeFilesRemoveCallback)
+    data-dz-action="cancel"      Cancel (runs beforeFileCancelCallback)
+    data-dz-action="row-action"  pause / resume / retry, chosen by status
+- String rows are re-rendered (replaceWith) on every status/progress change,
+  so listeners added by hand are lost each tick; use data-dz-action or the
+  element-return model below. Consider progress-throttle="120".
+
+NOTE: data-action (without "dz") is reserved for core action items and is not
+auto-wired here.
+
+CUSTOM FILE ROW (ELEMENT, EVENT-DRIVEN)
+---------------------------------------
+Return an HTMLElement and the component keeps it across state changes,
+dispatching `file-row-update` on it instead of re-rendering. Listeners you
+attach survive pause / resume / retry / reorder.
+
+dz.renderFileItemCallback = ({ file }) => {
+  const row = document.createElement('div');
+  row.dataset.fileId = file.id;
+  row.innerHTML = `
+    <span class="star">&#9734;</span>
+    <span class="name"></span>
+    <progress max="100" value="0"></progress>
+    <span class="pct">0%</span>`;
+  row.querySelector('.name').textContent = file.name;
+  row.querySelector('.star').addEventListener('click', (e) => {
+    e.currentTarget.classList.toggle('on');
+  });
+  row.addEventListener('file-row-update', (e) => {
+    const { file } = e.detail;               // fresh FileState (+ controller, element)
+    row.querySelector('progress').value = file.progress;
+    row.querySelector('.pct').textContent = Math.round(file.progress) + '%';
+  });
+  return row;
 };
 
-BADGE RENDERING
----------------
-Different rendering for badges:
+file-row-update bubbles, is not composed, and is dispatched on the row element
+(inside the shadow root) - listen on the row itself.
 
-select.renderBadgeContentCallback = (option, context) => {
-  // Compact mode: Show first + count
-  if (context.displayMode === 'compact') {
-    return `${option.label} +${context.remainingCount || 0}`;
-  }
+Caveat: if renderListWrapperCallback is also set, rows go through the string
+path (outerHTML) and element identity is NOT preserved.
 
-  // Popover: Show full details
-  if (context.isInPopover) {
-    return `
-      <div class="badge-popover">
-        ${option.icon} ${option.label}
-      </div>
-    `;
-  }
+LIST WRAPPER (TABLES)
+---------------------
+dz.renderListWrapperCallback = ({ rowsHtml, files }) => `
+  <table class="files">
+    <thead><tr><th>Name</th><th>Size</th><th></th></tr></thead>
+    <tbody>${rowsHtml}</tbody>
+  </table>`;
 
-  // Regular pills: Short form
-  return option.code || option.label.substring(0, 3).toUpperCase();
-};
+dz.renderFileItemCallback = ({ file }) => `
+  <tr data-file-id="${file.id}">
+    <td>${esc(file.name)}</td><td>${file.size}</td>
+    <td><button data-dz-action="remove" data-file-id="${file.id}">&times;</button></td>
+  </tr>`;
 
-DYNAMIC CONTENT
----------------
-Render based on runtime state:
+Bare <tr>/<td>/<th>/<tbody>/<thead>/<tfoot> fragments are parsed in a table
+context, so row callbacks may return table rows directly.
 
-select.renderOptionContentCallback = (option, context) => {
-  const user = getCurrentUser();
-  const isOwner = option.ownerId === user.id;
-  const canEdit = user.permissions.includes('edit');
-
-  return `
-    <div class="option">
-      ${option.label}
-      ${isOwner ? '<span class="badge-owner">Owner</span>' : ''}
-      ${canEdit ? '<span class="icon-edit">✏️</span>' : ''}
-    </div>
-  `;
-};
-
-PERFORMANCE
------------
-Optimize rendering for large lists:
-
-// ❌ Slow: Complex rendering for every option
-select.renderOptionContentCallback = (option, context) => {
-  const data = expensiveCalculation(option);
-  return `<div>${data}</div>`;
-};
-
-// ✅ Fast: Pre-calculate or cache
-const cache = new Map();
-select.renderOptionContentCallback = (option, context) => {
-  if (!cache.has(option.value)) {
-    cache.set(option.value, expensiveCalculation(option));
-  }
-  return `<div>${cache.get(option.value)}</div>`;
-};
-
-ACCESSIBILITY
--------------
-Include ARIA attributes:
-
-select.renderOptionContentCallback = (option, context) => {
-  return `
-    <div role="option"
-         aria-selected="${context.isSelected}"
-         aria-disabled="${context.isDisabled}">
-      ${option.label}
-    </div>
-  `;
-};
-
-COMBINING CALLBACKS
--------------------
-Use multiple rendering callbacks together:
-
-// Option in dropdown
-select.renderOptionContentCallback = (option, context) => {
-  return `
-    <div class="dropdown-option">
-      ${option.icon} ${option.label}
-    </div>
-  `;
-};
-
-// Badge in main area
-select.renderBadgeContentCallback = (option, context) => {
-  return option.code;  // Short form
-};
-
-// Item in popover
-select.renderSelectedItemContentCallback = (option) => {
-  return `
-    <div class="popover-item">
-      ${option.icon} ${option.label} - ${option.description}
-    </div>
-  `;
-};
-
-// Single-select input
-select.renderSelectedContentCallback = (option) => {
-  return `${option.icon} ${option.label}`;
-};
-
-UPDATING RENDERING
+PROMPT AND SUMMARY
 ------------------
-Change rendering at runtime:
+dz.renderPromptCallback = ({ controller }) => `
+  <div class="my-prompt">Drop invoices (${controller.getFiles().length} so far)</div>`;
 
-function setCompactMode() {
-  select.renderOptionContentCallback = (option) => {
-    return option.label.substring(0, 20);
-  };
-}
+dz.renderSummaryCallback = ({ files }) => `
+  <div class="dz__summary__line" tabindex="0" role="button">
+    ${files.length} attachment(s)
+  </div>`;
 
-function setDetailedMode() {
-  select.renderOptionContentCallback = (option) => {
-    return `
-      <div>
-        <div>${option.label}</div>
-        <div>${option.description}</div>
-      </div>
-    `;
-  };
-}
+renderSummaryCallback (compact / popover): keep an element with class
+dz__summary__line - the popover's click/keyboard handler binds to it.
 
-// Trigger re-render
-select.options = [...select.options];
+ROLLING LIST PARTS
+------------------
+Same contract as <web-dropzone-indicator>'s render callbacks
+(StatusSurfaceArgs, see satellites.txt):
 
-DEBUGGING RENDERING
--------------------
-Log rendering calls:
+dz.renderRollingProgressCallback = ({ currentFile, overallPercent, aggregate }) =>
+  currentFile
+    ? `${Math.round(currentFile.progress)}% - ${aggregate.complete}/${aggregate.total} done`
+    : null;                                   // null -> library default
 
-select.renderOptionContentCallback = (option, context) => {
-  console.log('Rendering:', option.label, context);
+dz.renderRollingBodyCallback = ({ aggregate }) =>
+  aggregate.total === 0 ? false : null;       // false hides the rolling block
 
-  return `<div>${option.label}</div>`;
+Return rules: null/undefined = default part; false = hide; string = innerHTML
+(skipped if identical to the previous string); HTMLElement = mounted (skipped if
+it is already the slot's only child - cache elements/spinners outside the
+callback to keep animations running). createDropzoneSpinner() gives a
+library-grade spinner for custom parts.
+
+FILE ICONS (ANY MODE)
+---------------------
+Each row's icon comes from the file's category: image, video, audio, pdf, doc,
+spreadsheet, archive, code, text, default (Lucide SVGs).
+
+dz.fileIcons = {
+  psd: '<svg viewBox="0 0 24 24">...</svg>',   // by extension (dot optional, case-insensitive)
+  '.fig': '<img src="/icons/figma.svg" alt="">',
+  archive: '&#128230;'                          // whole category
 };
 
-Check context values:
-select.renderOptionContentCallback = (option, context) => {
-  return `
-    <div>
-      ${option.label}
-      <small>
-        S:${context.isSelected}
-        F:${context.isFocused}
-        M:${context.isMatched}
-      </small>
-    </div>
-  `;
-};
+dz.getFileIconCallback = ({ file }) =>
+  file.name.endsWith('.sketch') ? '<svg>...</svg>' : null;   // null -> fall through
 
-BEST PRACTICES
---------------
-✅ Return HTML string for simple rendering
-✅ Return HTMLElement for complex DOM or security
-✅ Use context for conditional rendering
-✅ Escape user content to prevent XSS
-✅ Cache expensive calculations
-✅ Keep rendering fast (<1ms per option)
-✅ Use customStylesCallback for CSS
-✅ Test with large datasets
+Resolution order: getFileIconCallback -> fileIcons[extension] ->
+fileIcons[category] -> built-in category icon. Both are property-only,
+raw HTML, NOT sanitized. FILE_TYPE_ICONS / UI_ICONS export the built-ins.
 
-❌ Don't do heavy computation in render callback
-❌ Don't forget to escape user content
-❌ Don't manipulate Shadow DOM directly
-❌ Don't use external CSS (won't apply)
-❌ Don't return null/undefined
+OTHER RAW-HTML INPUTS
+---------------------
+icon           prompt icon (card / minimal)       default UI_ICONS.cloudUpload
+overlay-icon   drag overlay icon                  default UI_ICONS.upload
+cancel-icon    row Cancel button glyph            default CANCEL_ICON
+remove-icon    row Remove button glyph            default CSS-masked x (--dz-icon-remove)
 
-COMMON PATTERNS
----------------
-Simple with icon:
-select.renderOptionContentCallback = (option) => {
-  return `${option.icon || ''} ${option.label}`;
-};
+XSS: icon, overlay-icon, cancel-icon, remove-icon, fileIcons,
+getFileIconCallback and every render*Callback are inserted via innerHTML
+without sanitizing. Sanitize anything user-derived (e.g. DOMPurify).
 
-With selection indicator:
-select.renderOptionContentCallback = (option, context) => {
-  return `
-    <div>
-      ${context.isSelected ? '✓ ' : ''}${option.label}
-    </div>
-  `;
-};
+CUSTOM STYLES INTO THE SHADOW ROOT
+----------------------------------
+dz.getCustomStylesCallback = () => `
+  @import url('https://fonts.example.com/inter.css');
+  .dz__file-item { border-style: dotted; }
+`;
 
-With subtitle:
-select.renderOptionContentCallback = (option) => {
-  return `
-    <div>
-      <div class="label">${option.label}</div>
-      <div class="subtitle">${option.subtitle}</div>
-    </div>
-  `;
-};
+- Called with ctx (controller / element); return a CSS string or null.
+- Injected as <style id="dz-custom-styles"> PREPENDED to the shadow root, so
+  @import / @font-face work. Re-assigning the property replaces it.
+- Applies to <web-dropzone>'s own shadow root. In bulk mode the picker / list /
+  progress are satellite elements with their OWN shadow roots, so rules for
+  their internals won't reach them - prefer --dz-* variables (they inherit
+  into managed satellites), or use structural mode.
 
-Badge with initials:
-select.renderBadgeContentCallback = (option) => {
-  return option.label
-    .split(' ')
-    .map(w => w[0])
-    .join('')
-    .toUpperCase();
-};
+LIMITS OF STRUCTURAL MODE
+-------------------------
+- Structural mode uses the in-element renderer, not the satellite elements.
+- There is no render callback for the progress strip or the popover table:
+  popover rows always use the built-in compact row, so in practice
+  renderFileItemCallback is only called with isInPopover === false.
+  Use CSS variables or go headless.
+- Popover header/footer text ("Add more", "Clear all", limits line) is not
+  replaceable.
 
-EXAMPLES
+SEE ALSO
 --------
-See examples-structural.html for:
-- Complex layouts
-- Conditional rendering
-- Custom styling
-- HTMLElement vs string
-- All callback combinations
+examples-structural.html, examples-sharepoint-collisions.html (element rows +
+per-row decisions), display-modes.txt, satellites.txt

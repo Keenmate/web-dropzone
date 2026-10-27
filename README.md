@@ -5,6 +5,17 @@
 
 A lightweight, accessible file upload web component with drag-drop support, file previews, validation, and multiple display modes.
 
+## What's New in v1.0.0-rc03 (unreleased)
+
+Breaking — see [CHANGELOG.md](CHANGELOG.md) for the migration tables.
+
+- **One cancel rule** — `cancelFile(id)` now returns a promise and gives a running upload handler its `AbortSignal` plus up to `cancel-timeout` ms (default 2000) to settle; the row shows "Cancelling…". Settles in time → `cancelled`; otherwise `cancel-timeout-behavior` (`error`, retryable — or `remove`). Late results are ignored and the concurrency slot is freed either way. `beforeFileCancelCallback` can veto, `file-cancel` reports how it ended (`{ file, result, uploadedBytes, metadata }`), and `cancelAll()` + a **Cancel all** button cover the whole queue.
+- **Row buttons split** — **⊘ Cancel** stops the upload and keeps the row (Retry available); **✕ Remove** always removes (a running upload is cancelled first). Both glyphs are configurable (`cancel-icon` / `remove-icon`).
+- **`labels`** — every UI string in one input (property or JSON attribute, merged per key over English, `{name}` placeholders, live). Replaces `prompt-text`, `hint-text`, `drag-active-text`, `no-file-chosen-text`, `overlay-text`, `select-files-text` and the `STATUS_LABELS` / `ACTION_LABELS` exports.
+- **Removal vs move** — removing `<web-dropzone>` from the page cancels its uploads and destroys the store (a DOM move doesn't); opt out with `should-keep-alive-when-removed`.
+- **Naming** — `removeFiles(ids)`, the `rejected` add-veto code, `should-sink-completed` (was `reorder-completed`).
+- **Fixes** — cancel during the auto-retry backoff, `destroy()` stopping the queue, no events after teardown / removal, mode-flip rebuild reporting dropped files.
+
 ## What's New in v1.0.0-rc02
 
 - **Theming — `--dz-*` custom properties now cascade into the internal renderers** — In the default (bulk) render mode, `<web-dropzone>` mounts its list/picker/progress as satellite custom elements, each with its own shadow root that re-injects `variables.css`. That stylesheet declared every token in a `:host` block, and a `:host` declaration outranks a value inherited from an outer ancestor — so a `--dz-preview-grid-gap` (or any token) set on `<web-dropzone>` silently never reached the grid inside the satellite. The `:host` block is now split: host-layout properties stay unconditional, but the token defaults move to `:host(:not([managed]))`, and the auto-mounted satellites are tagged `managed` so they inherit straight from the store host. Standalone satellites keep self-theming. Net effect: setting `--dz-*` on `<web-dropzone>` works for grid, badges, and detailed as the docs always implied.
@@ -13,18 +24,6 @@ A lightweight, accessible file upload web component with drag-drop support, file
 - **Composition — Plyr-style `controls` / `item-controls` allowlists** — Two comma-separated attributes that pick which surfaces and row parts render. `controls` chooses top-level surfaces (picker, list, overall-progress); `item-controls` chooses per-row parts (icon, name, size, type, progress, status, action, remove). Absent means render everything. This replaces a set of narrower single-purpose flags with a composable primitive — count- or state-based progress rules become external recipes over these tokens plus the `change` event, rather than dedicated attributes.
 - **Badges & detailed — image thumbnails via `show-thumbnails`** — `show-thumbnails` now works for the badges and detailed list appearances, not just grid: the icon slot shows the real image preview instead of a file-type glyph. The preview URL arrives asynchronously (FileReader → data URL), so the row repaints on a `file-update` store event once the thumbnail is ready.
 - **Internals — vendored logger, no more `loglevel`** — `@keenmate/web-components-core` bumped to `^1.0.0-rc04`, which vendors its logging engine. This drops the transitive `loglevel` dependency and the CJS/ESM interop crash it caused under Node's native ESM loader, which had been breaking the unit-test run.
-
-## What's New in v1.0.0-rc01
-
-First public release candidate. `<web-dropzone>` ships as **two packages** from a workspaces monorepo — `@keenmate/web-dropzone` (the element + four satellite renderers + CSS) and `@keenmate/web-dropzone-core` (the headless store: file pipeline, validation, upload worker pool, events).
-
-- **Built on [`@keenmate/web-components-core`](https://www.npmjs.com/package/@keenmate/web-components-core) (`BlissElement`).** Shared, tested custom-element plumbing — attribute parsing, reactivity, reflection, form association (`el.form`), floating-panel positioning, and categorized logging — so `<web-dropzone>` behaves consistently with `web-multiselect` / `web-daterangepicker`.
-- **Display modes + orthogonal appearance axes** — list / detailed / grid (image previews) / compact popover, with independent `selector-appearance` and `list-appearance`, a rolling list, and a full-viewport drag overlay.
-- **Upload pipeline** — set `uploadFileCallback` and files run through a concurrency-capped worker pool with progress, pause / resume / cancel / retry, and optimistic or pessimistic progress reporting.
-- **Validation** — per-file and aggregate size caps, file-count bounds, type filtering, dedupe modes, and a custom `validateCallback`.
-- **Form-associated** — participates in `<form>` (submits real `FormData` file blobs), exposes `el.form` / `event.target.form`, and reflects `min-file-count` into native form validity.
-- **Themeable** — `--dz-*` variables, dark mode, `--base-*` Theme Designer integration, RTL, and a `getCustomStylesCallback`.
-- **Satellite renderers** — `<web-dropzone-picker>` / `<web-dropzone-list>` / `<web-dropzone-indicator>` / `<web-dropzone-progress>` bind to a store via `for="<id>"` for decoupled layouts.
 
 See [CHANGELOG.md](CHANGELOG.md) for the full list.
 
@@ -110,10 +109,15 @@ dropzone.controller.clear();
 | `disabled` | `boolean` | `false` | Disable the dropzone |
 | `name` | `string` | - | Form field name for form integration |
 | `value-format` | `'json' \| 'csv' \| 'array'` | `'json'` | Format for form value serialization |
-| `drop-text` | `string` | `'Drop files here'` | Text shown in drop zone |
-| `drop-hint` | `string` | `'or click to browse'` | Hint text below drop text |
+| `labels` | JSON object | English | UI strings, merged per key — see [Labels (i18n)](#labels-i18n) |
 | `overlay-target` | `string` | - | Element ID (or CSS selector, e.g. `#my-form`) for drag overlay (ultra-compact mode) |
-| `overlay-text` | `string` | `'Drop files here'` | Text shown in drag overlay |
+| `concurrency` | `number` | `1` | Parallel uploads (with `uploadFileCallback`) |
+| `auto-upload` | `boolean` | `true` | Upload files as soon as they are added |
+| `cancel-timeout` | `number` (ms) | `2000` | How long a cancel waits for the aborted upload handler to settle |
+| `cancel-timeout-behavior` | `'error' \| 'remove'` | `'error'` | What a timed-out cancel does — `error` (retryable) or remove the file |
+| `cancel-icon` / `remove-icon` | `string` (raw HTML) | built-in | Row ⊘ Cancel / ✕ Remove glyphs — see the [XSS notice](#html-injection-xss-notice) |
+| `should-sink-completed` | `boolean` | `false` | Auto-move completed files to the end of the list (after `reorder-completed-delay`) |
+| `should-keep-alive-when-removed` | `boolean` | `false` | Keep the store and its uploads when the element is removed from the page |
 | `overlay-icon` | `string` (raw HTML) | Lucide `upload` | Icon shown in drag overlay. Accepts any HTML (SVG / `<img>` / emoji) — see the [XSS notice](#html-injection-xss-notice) |
 
 ## Display Modes
@@ -161,7 +165,7 @@ For minimal form integration, use compact mode with `overlay-target` to enable a
   <web-dropzone
     display-mode="compact"
     overlay-target="my-form"
-    overlay-text="Drop files here"
+    labels='{"overlay": "Drop files here"}'
     overlay-icon="📎">
   </web-dropzone>
 
@@ -195,6 +199,7 @@ Every event bubbles and is **not composed**, fires on `<web-dropzone>`, and has 
 | `file-retry` | `onFileRetry` | `{ file }` | A failed / cancelled file was re-queued |
 | `file-upload-complete` | `onFileUploadComplete` | `{ file }` | `uploadFileCallback` resolved for a file |
 | `file-delete` | `onFileDelete` | `{ file }` | A removed file had server-side state — wire your server DELETE here |
+| `file-cancel` | `onFileCancel` | `{ file, result, uploadedBytes, metadata }` | A cancel finished — `result`: `cancelled` \| `timeout-error` \| `timeout-remove` |
 | `overlay-enter` / `overlay-leave` | `onOverlayEnter` / `onOverlayLeave` | `{ overlayElement }` | A drag entered / left the drag overlay |
 | `ready` | `onReady` | — (context only) | The store was built (again after a rebuild); `data-ready` follows on the next frame |
 
@@ -212,7 +217,7 @@ dropzone.addEventListener('file-add', (e) => {
   console.log(`Total files: ${controller.getFiles().length}`);
 });
 
-// Files rejected (validation failed or the add was cancelled)
+// Files rejected (validation failed, or beforeFilesAddCallback vetoed the add → code 'rejected')
 dropzone.addEventListener('files-reject', (e) => {
   for (const { file, validation } of e.detail.rejectedFiles) {
     console.log(`${file.name}: ${validation.error} (${validation.code})`);
@@ -225,13 +230,14 @@ dropzone.onChange = ({ files }) => updateUI(files);
 
 ## Callbacks
 
-Every callback takes **one** `ctx` object that also carries `controller` / `element`. `before*Callback`s may be async; returning `false` cancels.
+Every callback takes **one** `ctx` object that also carries `controller` / `element`. `before*Callback`s may be async; returning `false` vetoes.
 
 | Callback | `ctx` | Returns |
 |----------|-------|---------|
 | `validateCallback` | `{ file, existingFiles }` | `ValidationResult` (sync) |
 | `beforeFilesAddCallback` | `{ files, existingFiles }` | `false` vetoes (→ `files-reject`, code `rejected`); a `File[]` replaces the batch (validated again) |
-| `beforeFilesRemoveCallback` | `{ files, allFiles }` | `false` cancels |
+| `beforeFilesRemoveCallback` | `{ files, allFiles }` | `false` vetoes (row ✕, Clear all, `removeFile(s)` / `clear` with `{ confirm: true }`) |
+| `beforeFileCancelCallback` | `{ files, allFiles }` | `false` vetoes (`cancelFile`, row ⊘; `cancelAll` / Cancel all ask once) |
 | `uploadFileCallback` | `{ file, signal, setProgress, startBytes, startPercent, metadata, setMetadata, uploadMetadata }` | `Promise<void \| { metadata, downloadUrl, previewUrl, name }>` |
 | `getFileIconCallback` | `{ file }` | icon HTML, or `null` to fall through |
 | `renderFileItemCallback` | `{ file, index, displayMode, isInPopover }` | `string \| HTMLElement` (structural mode) |
@@ -316,6 +322,7 @@ The following properties / callbacks accept **raw HTML** and are intentionally *
 | `getFileIconCallback` | File-row icon slot (innerHTML) | HTML injection |
 | `icon` attr / property | Drop-zone + minimal prompt (innerHTML) | HTML injection |
 | `overlay-icon` attr / property | Drag overlay (innerHTML) | HTML injection |
+| `cancel-icon` / `remove-icon` attr / property | Row Cancel / Remove buttons (innerHTML) | HTML injection |
 | `renderFileItemCallback` | File rows (innerHTML) | HTML injection |
 | `renderListWrapperCallback` | List wrapper (innerHTML) | HTML injection |
 | `renderPromptCallback` | Drop-area prompt (innerHTML) | HTML injection |
@@ -330,9 +337,14 @@ The same methods (plus `getFiles()`, `getConfig()`, `getOverallProgress()` and `
 
 | Method | Description |
 |--------|-------------|
-| `clear()` | Remove all files |
 | `addFiles(files: FileList \| File[])` | Add files programmatically |
-| `removeFile(id: string)` | Remove a specific file by ID |
+| `removeFile(id, opts?)` / `removeFiles(ids, opts?)` | Remove files (a running upload is cancelled first); `{ confirm: true }` asks `beforeFilesRemoveCallback` (once per batch) |
+| `clear(opts?)` | Remove all files |
+| `cancelFile(id)` / `cancelAll()` | Cancel uploads (see [Cancelling uploads](#cancelling-uploads)); resolve when finished |
+| `pauseFile(id)` / `resumeFile(id)` / `pauseAll()` / `resumeAll()` | Pause / resume (progress kept) |
+| `retryFile(id)` / `retryAll()` | Re-queue failed / cancelled files (a cancelled file restarts from 0) |
+| `uploadAll()` / `uploadFile(id)` | Drain the queue / upload one file now |
+| `destroy()` | Tear the store down |
 | `getFile(id: string)` | Get a file by ID |
 | `updateFileProgress(id: string, progress: number)` | Update upload progress (0-100) |
 | `setFileStatus(id: string, status, error?)` | Set file status (pending/uploading/complete/error) |
@@ -363,6 +375,75 @@ dropzone.files.forEach(file => {
 dropzone.setFileStatus(file.id, 'error', 'Upload failed');
 ```
 
+## Cancelling uploads
+
+Verbs: **cancel** stops a running upload, **remove** takes a file out of the list, **delete** is
+your server-side cleanup, **destroy** tears the element's store down.
+
+- `cancelFile(id)` (and the row **⊘**) applies to `uploading` / `pending` / `paused` files.
+  Nothing running → `cancelled` at once. A running handler gets `ctx.signal` aborted, the file
+  shows `cancelling` ("Cancelling…", buttons disabled), and the cancel waits up to
+  `cancel-timeout` ms. The handler settles in time (rejects **or** resolves) → `cancelled`.
+  It doesn't → `cancel-timeout-behavior`: `error` (`file.error = 'cancel-timeout'`, retryable)
+  or `remove`. Anything it reports after the timeout is ignored; the concurrency slot frees as
+  soon as it settles or the timeout fires.
+- `cancelAll()` / **Cancel all** cancels every uploading / queued / paused file
+  (`beforeFileCancelCallback` is asked once with all of them).
+- The row **✕** (and `removeFile`) on a running file cancels it first, then removes it.
+- Removing `<web-dropzone>` from the page cancels everything the same way, then destroys the
+  store (a DOM move keeps it). `should-keep-alive-when-removed` opts out.
+
+**Server-side cleanup is the app's job.** A cancelled upload may have left a partial file or an
+open session on the server; `file-cancel` tells you what the handler knew:
+
+```javascript
+dropzone.uploadFileCallback = async ({ file, signal, setProgress, setMetadata }) => {
+  const { uploadUrl } = await (await fetch('/api/uploads', { method: 'POST', signal })).json();
+  setMetadata({ uploadUrl });                    // remembered on the file
+  await putWithProgress(uploadUrl, file, { signal, onProgress: setProgress });
+};
+
+dropzone.addEventListener('file-cancel', ({ detail }) => {
+  const { file, result, uploadedBytes, metadata } = detail;
+  if (metadata?.uploadUrl) {
+    // the partial upload is yours to discard
+    fetch(metadata.uploadUrl, { method: 'DELETE' });
+  }
+  console.log(`${file.name}: ${result} after ${uploadedBytes} bytes`);
+});
+
+// Ask first (row ⊘, cancelFile, cancelAll — once for the whole batch)
+dropzone.beforeFileCancelCallback = async ({ files }) =>
+  (await myConfirm(`Cancel ${files.length} upload(s)?`)) ? undefined : false;
+```
+
+## Labels (i18n)
+
+All UI strings come from one `labels` input — a partial object merged **per key** over the
+built-in English defaults (`DEFAULT_LABELS`). `{name}`, `{count}` and `{status}` placeholders are
+filled in. Set it as a property or a JSON attribute; changes re-render live (satellites too).
+
+```html
+<web-dropzone labels='{"prompt": "Přetáhněte soubory sem", "selectFiles": "Vybrat soubory"}'></web-dropzone>
+```
+
+```javascript
+dropzone.labels = {
+  cancelFile: 'Zrušit {name}',
+  removeFile: 'Odebrat {name}',
+  cancelAll: 'Zrušit vše',
+  statusUploading: 'Nahrávám',
+  statusAria: 'Stav: {status}',
+};
+```
+
+Keys: `prompt`, `hint`, `dragActive`, `selectFiles`, `noFileChosen`, `overlay`;
+`statusPending` / `statusUploading` / `statusPaused` / `statusCancelling` / `statusComplete` /
+`statusError` / `statusCancelled`, `statusAria`, `cancelTimeout`, `cancelling`;
+`pauseFile` / `resumeFile` / `retryFile` / `cancelFile` / `removeFile`;
+`pauseAll` / `resumeAll` / `retryAll` / `cancelAll`. Every lookup goes through
+`resolveLabel(overrides, key, vars)` (exported) — page-wide localisation will plug in there.
+
 ## File State
 
 Each file in the `files` array has the following structure:
@@ -374,10 +455,11 @@ interface FileState {
   name: string;         // File name
   size: number;         // File size in bytes
   type: string;         // MIME type
-  status: 'pending' | 'uploading' | 'complete' | 'error';
+  status: 'pending' | 'uploading' | 'paused' | 'cancelling' | 'cancelled' | 'complete' | 'error';
   progress: number;     // Upload progress (0-100)
-  error?: string;       // Error message if status is 'error'
-  preview?: string;     // Data URL for image preview
+  error?: string;       // Error message if status is 'error' ('cancel-timeout' after a timed-out cancel)
+  previewUrl?: string;  // Data URL for image preview
+  metadata?: Record<string, unknown>; // What the upload handler stashed (ctx.setMetadata)
 }
 ```
 

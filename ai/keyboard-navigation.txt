@@ -1,410 +1,111 @@
-KEYBOARD NAVIGATION
-===================
+KEYBOARD NAVIGATION & ACCESSIBILITY
+===================================
 
-CRITICAL: Full keyboard accessibility
-- Arrow keys for navigation
-- Enter to select
-- Escape to close
-- PageUp/PageDown for quick jumps
-- Home/End for first/last
-- Type to search/filter
-- Works with screen readers
+This describes what is implemented today. The dropzone relies on native
+controls (<input type="file">, <button>) rather than custom key handling; there
+are only a few explicit key bindings.
 
-BASIC NAVIGATION
-----------------
-Arrow keys:
+KEY BINDINGS
+------------
+| Where                          | Key            | Action                          |
+|--------------------------------|----------------|---------------------------------|
+| Card selector (focused input)  | Enter / Space  | open the file dialog (native)   |
+| Button / minimal / native      | Enter / Space  | open the file dialog (<button>) |
+| Any row button                 | Enter / Space  | Cancel / Remove / Pause /       |
+|                                |                | Resume / Retry (native button)  |
+| Compact summary line           | Enter / Space  | toggle the popover              |
+| Popover (open)                 | Escape         | close the popover               |
+| Drag overlay (in-page drag)    | Escape         | remove the overlay              |
+| <web-dropzone-list> summary    | Enter / Space  | fire `summary-activate`         |
+| Indicator chip (drawer="auto") | Enter / Space  | toggle the drawer (<button>)    |
+| Tab / Shift+Tab                |                | move between the controls above |
 
-↑ (Up Arrow): Previous option
-- Moves focus up one option
-- Wraps to last option at top
-- Works in open dropdown
+Not implemented: arrow-key navigation between rows, roving tabindex, Delete
+key to remove, Escape for the indicator drawer, focus trap / focus return for
+the popover or drawer. External file drags cannot be cancelled by Escape
+(the OS swallows the key); the overlay closes ~350 ms after the drag stops.
 
-↓ (Down Arrow): Next option
-- Moves focus down one option
-- Wraps to first option at bottom
-- Opens dropdown if closed
-
-SELECTION
+TAB ORDER
 ---------
-Enter: Select focused option
-- Selects currently focused option
-- In multi-select: Toggles selection
-- In single-select: Selects and closes
-- If dropdown closed: Opens dropdown
+One tab stop per selector:
+- card: the visually hidden <input type="file"> is the keyboard control; it is
+  named after the prompt (aria-label = labels.prompt, or the picker's `label`).
+  The card shows a focus ring via :focus-within.
+- button / minimal / native: the visible <button> is the tab stop; the hidden
+  input has tabindex="-1" aria-hidden="true".
+Then each row's buttons in DOM order. Buttons that are not offered for the
+current state (e.g. Cancel on a completed file, Remove on a completed file with
+uploaded-deletable="false") stay in the layout but get tabindex="-1"
+aria-hidden="true".
 
-Space: Toggle selection (multi-select)
-- Toggles focused option
-- Keeps dropdown open
-- Only in multi-select mode
+ACCESSIBLE NAMES (from labels; see labels-i18n.txt)
+---------------------------------------------------
+Card / minimal selector     labels.prompt
+Button / native selector    labels.selectFiles (visible text)
+Row Cancel                  labels.cancelFile  'Cancel {name}'
+Row Remove                  labels.removeFile  'Remove {name}'
+Row action                  labels.pauseFile / resumeFile / retryFile
+Status pill                 labels.statusAria  'Status: {status}'
+                            ({status} = labels.status*; timed-out cancel ->
+                            labels.cancelTimeout)
+Bulk buttons                labels.pauseAll / resumeAll / cancelAll / retryAll
 
-CLOSING DROPDOWN
-----------------
-Escape: Close dropdown
-- Closes dropdown without selecting
-- Returns focus to input
-- Preserves current selections
-- Clears search if any
+Fixed English names (not in labels): summary line "Click to view files"
+(role="button", tabindex="0"), rolling queue button "Show full queue (N files)",
+badges "+N" pill "Show N more" / "Show fewer", indicator chip "Upload status",
+drawer "Upload queue" (role="dialog"), drawer close "Close", spinner "Uploading".
 
-Tab: Close and move focus
-- Closes dropdown
-- Moves to next focusable element
-- Preserves selections
+ROLES & STATES
+--------------
+- Overall progress bar: role="progressbar" aria-valuemin="0"
+  aria-valuemax="100" aria-valuenow (updated per tick).
+- Indicator with drawer="off": <div role="status"> (polite live region semantics).
+- Cancelling rows: buttons get `disabled` while the cancel waits.
+- Disabled dropzone (disabled attribute or disabled <fieldset>): inputs and
+  buttons are disabled; drops are ignored.
+- There is no aria-live announcement for adds / rejects / completion. Announce
+  from events if you need it:
 
-QUICK JUMPS
------------
-PageDown: Jump 10 options down
-- Moves focus 10 options at once
-- Fast navigation in long lists
-- Wraps to top if at end
+  const live = document.getElementById('sr-status');   // <div aria-live="polite" class="sr-only">
+  dz.onFilesReject = ({ rejectedFiles }) =>
+    live.textContent = rejectedFiles.map(r => `${r.file.name}: ${r.validation.error}`).join('. ');
+  dz.onFileUploadComplete = ({ file }) => live.textContent = `${file.name} uploaded`;
 
-PageUp: Jump 10 options up
-- Moves focus 10 options at once
-- Fast navigation in long lists
-- Wraps to bottom if at start
-
-Home: First option
-- Jumps to first option
-- Quick way to reach top
-
-End: Last option
-- Jumps to last option
-- Quick way to reach bottom
-
-SEARCH MODE NAVIGATION
-----------------------
-Filter mode:
-
-Type: Filter options
-- Filters options as you type
-- ↑↓: Navigate filtered results
-- Enter: Select focused option
-- Esc: Clear search and close
-
-Navigate mode:
-
-Type: Highlight matches
-- Highlights first matching option
-- All options remain visible
-- ↑↓: Normal navigation
-- Ctrl+↓: Jump to next match
-- Ctrl+↑: Jump to previous match
-
-CTRL COMBINATIONS
------------------
-Ctrl+↓: Next match (navigate mode)
-- Jumps to next search match
-- Cycles through matches
-- Only in navigate mode
-
-Ctrl+↑: Previous match (navigate mode)
-- Jumps to previous search match
-- Cycles through matches
-- Only in navigate mode
-
-Ctrl+A: Select all (custom implementation)
-- Not built-in
-- Can be added via custom handler
-
-FOCUS MANAGEMENT
-----------------
-Focus states:
-
-Closed dropdown:
-- Focus on input field
-- ↓ or Enter: Opens dropdown
-
-Open dropdown:
-- Focus on search input
-- ↑↓: Navigate options
-- Enter: Select
-- Esc: Close
-
-Focus indicators:
-- Visual highlight on focused option
-- CSS variable: --ml-option-focus-bg
-
-ACCESSIBILITY
+DRAG AND DROP
 -------------
-Screen reader support:
+Drag-and-drop is a pointer enhancement; every selector also opens the native
+file dialog, so keyboard and screen-reader users can always add files.
+Drop targets: the card, button, minimal and native selectors, and the
+overlay-target overlay.
 
-ARIA attributes:
-- role="combobox" on input
-- role="listbox" on dropdown
-- role="option" on options
-- aria-selected for selections
-- aria-disabled for disabled options
-
-Announcements:
-- Selection changes announced
-- Focus changes announced
-- Search results announced
-
-BADGE REMOVAL
+FOCUS STYLING
 -------------
-Remove badge via keyboard:
+Focus rings are `outline: 2px solid var(--dz-accent-color); outline-offset: 2px`
+on: buttons (:focus-visible), the card (:focus-within), the summary line and
+the indicator chip. There is no dedicated focus variable - the ring follows
+--dz-accent-color. To restyle it, inject CSS with getCustomStylesCallback
+(reaches <web-dropzone>'s own shadow root only; see custom-rendering.txt).
 
-In main area:
-- Tab to badge
-- Press Delete or Backspace
-- Badge removed
-- Focus returns to input
-
-Note: Badge keyboard navigation depends on implementation
-
-WITH GROUPS
------------
-Navigate grouped options:
-
-↑↓: Skip over group headers
-- Moves to next/previous option
-- Group headers not selectable
-- Visual indication of group
-
-Enter on group:
-- May collapse/expand (if implemented)
-- Or moves to first option in group
-
-DISABLED OPTIONS
-----------------
-Navigate disabled options:
-
-↑↓: Moves through disabled options
-- Disabled options can receive focus
-- Visual indication (grayed out)
-
-Enter on disabled:
-- No action
-- Visual/audio feedback
-- Screen reader announces disabled
-
-VIRTUAL SCROLLING
------------------
-Keyboard navigation with virtual scroll:
-
-↑↓: Scroll to show focused item
-- Automatically scrolls into view
-- Smooth scrolling
-- Maintains buffer
-
-PageUp/PageDown: Works normally
-- Calculates correct jump
-- Scrolls to show focus
-
-Home/End: Instant jump
-- Scrolls to top/bottom
-- Shows first/last item
-
-CUSTOM KEYBOARD HANDLERS
-------------------------
-Add custom keyboard shortcuts:
-
-select.addEventListener('keydown', (e) => {
-  // Ctrl+A: Select all
-  if (e.ctrlKey && e.key === 'a') {
-    e.preventDefault();
-    const allValues = select.options.map(o => o.value);
-    select.setSelected(allValues);
-  }
-
-  // Ctrl+D: Deselect all
-  if (e.ctrlKey && e.key === 'd') {
-    e.preventDefault();
-    select.setSelected([]);
-  }
-
-  // Delete: Remove focused badge
-  if (e.key === 'Delete') {
-    // Custom implementation
-  }
-});
-
-PREVENTING DEFAULT
+PROGRAMMATIC FOCUS
 ------------------
-Prevent default behavior:
+The interactive elements live in shadow roots. To move focus to the selector
+from outside, focus the element (if your layout makes it focusable) or open
+the dialog directly:
 
-select.addEventListener('keydown', (e) => {
-  // Prevent form submission on Enter
-  if (e.key === 'Enter' && !select.dropdownOpen) {
-    e.preventDefault();
-    select.openDropdown();
-  }
+document.querySelector('web-dropzone-picker').openFileDialog();
 
-  // Prevent Tab closing if needed
-  if (e.key === 'Tab') {
-    // Custom logic
-  }
-});
-
-FOCUS TRAPPING
+REDUCED MOTION
 --------------
-Keep focus within dropdown:
+Rolling rotation and spinners are animation-based; set
+--dz-rolling-animation-duration: 0s for reduced motion if needed:
 
-Useful for modal contexts:
+@media (prefers-reduced-motion: reduce) {
+  web-dropzone { --dz-rolling-animation-duration: 0s; }
+}
 
-select.addEventListener('keydown', (e) => {
-  if (e.key === 'Tab' && select.dropdownOpen) {
-    e.preventDefault();
-    // Keep focus in dropdown
-    // Cycle through options
-  }
-});
-
-KEYBOARD SHORTCUTS REFERENCE
-----------------------------
-Navigation:
-↑           Previous option
-↓           Next option
-PageUp      Jump 10 up
-PageDown    Jump 10 down
-Home        First option
-End         Last option
-
-Selection:
-Enter       Select/toggle focused option
-Space       Toggle (multi-select)
-
-Search (filter mode):
-Type        Filter options
-Esc         Clear and close
-
-Search (navigate mode):
-Type        Highlight first match
-Ctrl+↓      Next match
-Ctrl+↑      Previous match
-
-Control:
-Esc         Close dropdown
-Tab         Close and next focus
-
-MOBILE KEYBOARD
----------------
-Touch keyboard support:
-
-Enter: Select option
-- On-screen keyboard
-- Works on mobile devices
-
-Arrow navigation:
-- May not be available
-- Touch scrolling preferred
-- Search still works
-
-BROWSER DIFFERENCES
--------------------
-Key handling varies:
-
-Chrome/Edge:
-- All keys work as expected
-- Smooth scrolling
-
-Firefox:
-- All keys work
-- May need preventDefault in some cases
-
-Safari:
-- Most keys work
-- Some quirks with Meta key
-
-BEST PRACTICES
---------------
-✅ Test all keyboard shortcuts
-✅ Provide visual focus indicators
-✅ Support screen readers
-✅ Handle disabled options properly
-✅ Test with virtual scrolling
-✅ Document custom shortcuts
-✅ Test on mobile
-✅ Support ARIA attributes
-
-❌ Don't trap focus unintentionally
-❌ Don't prevent essential keys
-❌ Don't forget focus indicators
-❌ Don't ignore accessibility
-❌ Don't assume mouse usage
-
-COMMON PATTERNS
----------------
-Quick search and select:
-1. Click dropdown or press ↓
-2. Type to filter
-3. ↑↓ to navigate
-4. Enter to select
-5. Esc to close
-
-Jump to section:
-1. PageDown to skip ahead
-2. Or type first letter
-3. Enter to select
-
-Select multiple:
-1. Open dropdown
-2. ↓ to navigate
-3. Space to toggle each
-4. Tab to close
-
-DEBUGGING
----------
-Log keyboard events:
-
-select.addEventListener('keydown', (e) => {
-  console.log('Key:', e.key);
-  console.log('Ctrl:', e.ctrlKey);
-  console.log('Dropdown open:', select.dropdownOpen);
-  console.log('Focused option:', select.focusedOption);
-});
-
-Check focus:
-console.log('Active element:', document.activeElement);
-console.log('Focus within select:', select.contains(document.activeElement));
-
-ACCESSIBILITY TESTING
----------------------
-Test with screen readers:
-
-NVDA (Windows):
-- Tab to component
-- Arrow keys navigate
-- Enter selects
-- Announces selections
-
-JAWS (Windows):
-- Similar to NVDA
-- Announces roles and states
-
-VoiceOver (Mac/iOS):
-- Tab or VO+→ to navigate
-- VO+Space to select
-- Announces all changes
-
-Test keyboard only:
-- Unplug mouse
-- Navigate entire interface
-- Verify all actions possible
-
-EXAMPLES
---------
-Common keyboard workflows:
-
-Quick selection:
-1. Tab to multiselect
-2. ↓ to open
-3. Type "java"
-4. Enter to select JavaScript
-5. Esc to close
-
-Multiple selections:
-1. Tab to multiselect
-2. ↓ to open
-3. ↓ to "JavaScript"
-4. Space to toggle
-5. ↓ to "TypeScript"
-6. Space to toggle
-7. Tab to close
-
-Search and select:
-1. Click or ↓ to open
-2. Type search term
-3. ↓ to navigate results
-4. Enter to select
-5. Clear search with Backspace
-6. Esc to close
+TESTING CHECKLIST
+-----------------
+- Tab reaches the selector; Enter opens the dialog.
+- Each row's Cancel / Remove buttons are reachable and named "<verb> <file>".
+- Compact mode: Enter on the summary opens the popover; Escape closes it.
+- min-file-count: submitting a short form shows the native validation message.

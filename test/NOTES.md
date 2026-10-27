@@ -283,6 +283,30 @@ attribute on the file input.
 
 **Test status:** `structural.spec.ts` › selector markup — structural and bulk (picker) paths, green.
 
+## 16. Upload-lifecycle bugs (cancel / teardown review) — FIXED
+
+**Where:** `packages/web-dropzone-core/src/dropzone-engine.ts` (upload pipeline,
+`destroy`, `cancelFile`, `retryFile`), `packages/web-dropzone/src/web-component.ts`
+(`#rebuildStore`).
+
+**Symptoms → fixes (2026-10-27):**
+- (a) Cancel during the auto-retry backoff was ignored — the wake-up checked only
+  pause / removal and the finished attempt's controller lingered in the map. The
+  backoff is now interruptible; cancel (and pause) wake it and the file ends `cancelled`.
+- (b) `destroy()` kept uploading queued files (workers looped on `files`) — the queue
+  stops, sleeping retries wake and bail.
+- (c) Late events after `destroy()` / mode-flip rebuild / a removed file — stale
+  attempts are ignored and a destroyed engine emits nothing.
+- (d) `destroy()` didn't clear the reorder timers.
+- (f) `cancelFile` left the progress-throttle timer — a `file-progress` landed after the cancel.
+- (g) `retryFile` kept the progress of a cancelled file while `resumeFile` reset it — both
+  restart from 0 now.
+- (i) Stale comments (`row-templates.ts` action button, the row-action click handler).
+- The mode-flip rebuild dropped every file silently — it now emits `file-remove` per
+  file + `change` (files can't move to the new store: in-flight handlers are bound to the old one).
+
+**Test status:** `cancel.spec.ts` › "lifecycle bug fixes" — green.
+
 ---
 
 ## Observations (not bugs)

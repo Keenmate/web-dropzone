@@ -1,0 +1,158 @@
+VALIDATION
+==========
+
+Every add (drop, picker, overlay, addFiles) runs one pipeline:
+
+  1. per file, in order:
+       a. count cap (max-file-count)              code 'count'
+       b. max-file-size / min-file-size           code 'size'
+       c. accept                                  code 'type'
+       d. validateCallback (sync)                 code from result, default 'custom'
+       e. dedupe (dedupe-mode)                    code 'duplicate'
+       f. total size cap (max-total-size)         code 'size'
+  2. beforeFilesAddCallback (once per batch, may be async)
+                                                  veto -> code 'rejected'
+  3. commit: file-add per file, change, files-reject (if any), auto-upload
+
+Rejected files never enter the list. They are reported together in ONE
+files-reject event per batch.
+
+INPUTS
+------
+| Attribute       | Property      | Default | Meaning                                  |
+|-----------------|---------------|---------|------------------------------------------|
+| accept          | accept        | ''      | MIME types / extensions, comma-separated |
+| multiple        | multiple      | true    | false = single file (replaces selection) |
+| max-file-size   | maxFileSize   | 0       | bytes per file, 0 = unlimited            |
+| min-file-size   | minFileSize   | 0       | bytes per file, 0 = none                 |
+| max-total-size  | maxTotalSize  | 0       | bytes across the whole selection         |
+| max-file-count  | maxFileCount  | 0       | files, 0 = unlimited                     |
+| min-file-count  | minFileCount  | 0       | form validity only (never rejects)       |
+| dedupe-mode     | dedupeMode    | 'name'  | name | name-size | none                  |
+
+Byte sizes accept "5242880", "5MB", "5 mb", "300kB", "1.5GB", "5M", "1024B"
+(units B, K/KB, M/MB, G/GB, T/TB; 1024-based). Invalid -> warning, previous
+value kept.
+
+<web-dropzone display-mode="detailed"
+  accept="image/*,.pdf"
+  max-file-size="10MB"
+  min-file-size="1"
+  max-total-size="50MB"
+  max-file-count="5"
+  dedupe-mode="name-size"></web-dropzone>
+
+ACCEPT MATCHING
+---------------
+Tokens are trimmed and lower-cased:
+  .pdf          file name ends with ".pdf"
+  image/*       MIME starts with "image/"
+  image/png     exact MIME
+  * or */*      anything
+Empty accept = everything. accept is also passed to the native file dialog
+as a filter, but the dialog filter is advisory - drops are always validated.
+
+COUNT AND TOTAL CAPS
+--------------------
+- The count cap is checked first and counts files already in the list: an
+  over-cap drop accepts the files that still fit and rejects the overflow
+  ("Maximum N files allowed").
+- The total cap uses a running total seeded from the current selection, so two
+  files that each fit can't both squeeze past it. Removing files frees room.
+- With multiple="false" an accepted file REPLACES the current selection.
+
+DEDUPE
+------
+name       reject if a file with the same name exists (or appears earlier in
+           the same batch) - default
+name-size  reject only if name AND size match
+none       never dedupe (native <input type="file"> behaviour)
+
+validateCallback
+----------------
+Synchronous, runs per file after the built-in size / type checks:
+
+dz.validateCallback = ({ file, existingFiles }) => {
+  if (file.name.length > 100) return { valid: false, error: 'File name too long' };
+  if (existingFiles.some(f => f.type === 'application/pdf') && file.type === 'application/pdf')
+    return { valid: false, error: 'Only one PDF', code: 'count' };
+  return { valid: true };
+};
+
+Return ValidationResult { valid, error?, code? }. A missing code on a failure
+becomes 'custom'. It cannot override a built-in rejection (those short-circuit
+first). Must return synchronously - use beforeFilesAddCallback for async checks.
+
+beforeFilesAddCallback
+----------------------
+Once per batch, after validation, with the files that passed:
+
+dz.beforeFilesAddCallback = async ({ files, existingFiles }) => {
+  const res = await fetch('/api/check-names', { method: 'POST',
+    body: JSON.stringify(files.map(f => f.name)) });
+  const { conflicts } = await res.json();
+  if (conflicts.length && !(await confirmDialog(`Overwrite ${conflicts.join(', ')}?`))) return false;
+  // return a File[] to replace the batch (it is validated again; the hook is not re-run)
+};
+
+- false         -> all files rejected, code 'rejected'
+                   (error 'Add rejected by beforeFilesAddCallback')
+- File[]        -> replaces the batch; non-File entries are ignored
+- undefined     -> continue
+- throw         -> treated as a veto (logged)
+While pending, the files are not in the list and no file-add fires.
+
+files-reject
+------------
+dz.addEventListener('files-reject', (e) => {
+  for (const { file, validation } of e.detail.rejectedFiles) {
+    // file: native File
+    // validation: { valid: false, error: string, code }
+    showToast(`${file.name}: ${validation.error}`);
+  }
+});
+
+Codes:
+  size       too large, too small, or total size exceeded
+  type       not matching accept
+  count      max-file-count reached
+  duplicate  dedupe-mode match
+  custom     validateCallback failure without its own code
+  rejected   beforeFilesAddCallback returned false (or threw)
+
+Built-in messages (English, not part of `labels`):
+  "File is too large. Maximum size is 5.0 MB"
+  "File is too small. Minimum size is 1 B"
+  "File type not accepted"
+  "Maximum 5 files allowed"
+  "Duplicate file: report.pdf"
+  "Total size would exceed 50.0 MB"
+Map validation.code to your own text for i18n.
+
+MIN FILE COUNT / FORM VALIDITY
+------------------------------
+min-file-count never rejects files. With a name set and inside a <form>, when
+fewer files are selected the element reports
+ElementInternals validity { valueMissing: true } with the message
+"At least N file(s) required", so native form submission is blocked.
+See form-integration.txt.
+
+LIMITS HINT
+-----------
+In the compact popover, when labels.hint is empty, a limits line is derived
+from accept / sizes / counts (including "X left" once files exist). Set
+labels.hint to replace it.
+
+PROGRAMMATIC ADDS
+-----------------
+await dz.addFiles([new File(['hello'], 'hello.txt', { type: 'text/plain' })]);
+
+addFiles goes through exactly the same pipeline (validation, gate, events).
+It resolves after the gate and commit.
+
+CHANGING RULES AT RUNTIME
+-------------------------
+dz.maxFileCount = 3;      // applies to the NEXT add; existing files are kept
+dz.accept = '.pdf';
+
+Validation runs only on add - files already in the list are never re-validated.

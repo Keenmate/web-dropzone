@@ -1,0 +1,159 @@
+LABELS & I18N
+=============
+
+All UI strings the dropzone itself renders for prompts, statuses and row /
+bulk buttons come from ONE input: `labels`. It is a PARTIAL object merged per
+key over the built-in English DEFAULT_LABELS. Placeholders in {braces} are
+filled at render time.
+
+SETTING LABELS
+--------------
+Property (object):
+dz.labels = { cancelFile: 'Zrusit {name}', prompt: 'Pretahnete soubory sem' };
+
+Attribute (JSON object of strings):
+<web-dropzone display-mode="list"
+  labels='{"prompt":"Drop invoices here","hint":"PDF up to 10 MB","selectFiles":"Browse"}'>
+</web-dropzone>
+
+- Per-key merge: keys you omit keep their English default.
+- Live: changing labels re-renders the element and its satellites.
+- A malformed attribute (not JSON, or any non-string value) warns and keeps
+  the previous value. Absent / empty attribute -> built-in English.
+- Assigning a new object replaces the previous overrides (no deep merge with
+  the previous object) - spread it yourself:
+    dz.labels = { ...dz.labels, retryFile: 'Znovu {name}' };
+
+ALL KEYS AND DEFAULTS
+---------------------
+Prompt / selector:
+  prompt         'Drop files here or click to browse'
+                 card prompt; also the accessible name of the card / minimal selectors
+  hint           ''   secondary line under the prompt. Empty = none on the card;
+                      the compact popover then derives a limits line
+  dragActive     'Drop files here'      card text while a drag is over it
+  selectFiles    'Select files'         button / native selector, big-card browse button
+  noFileChosen   'No file chosen'       native selector when empty
+  overlay        'Drop files here'      drag-overlay text (overlay-target)
+
+Status names (status pill tooltip / accessible name):
+  statusPending     'Pending'
+  statusUploading   'Uploading'
+  statusPaused      'Paused'
+  statusCancelling  'Cancelling…'
+  statusComplete    'Complete'
+  statusError       'Error'
+  statusCancelled   'Cancelled'
+  statusAria        'Status: {status}'   pill aria-label; {status} = one of the above
+  cancelTimeout     'Cancel timed out'   status name of an error file whose cancel
+                                          timed out (file.error === 'cancel-timeout')
+  cancelling        'Cancelling…'        text next to the bar while a cancel waits
+
+Row buttons ({name} = file name; used as aria-label + tooltip):
+  pauseFile    'Pause {name}'
+  resumeFile   'Resume {name}'
+  retryFile    'Retry {name}'
+  cancelFile   'Cancel {name}'
+  removeFile   'Remove {name}'
+
+Bulk actions (overall-progress strip / <web-dropzone-progress>):
+  pauseAll     'Pause all'
+  resumeAll    'Resume all'
+  retryAll     'Retry all'
+  cancelAll    'Cancel all'
+
+PLACEHOLDERS
+------------
+{name}    file name (row buttons)
+{status}  a status name (statusAria)
+{count}   documented as a supported placeholder, but no current key is
+          rendered with a count - it stays literal if you use it today
+Unknown placeholders are left as written. Only the keys above are looked up.
+
+COMPLETE CZECH EXAMPLE
+----------------------
+dz.labels = {
+  prompt: 'Přetáhněte soubory sem nebo klikněte',
+  hint: 'PDF, max. 10 MB',
+  dragActive: 'Pusťte soubory',
+  selectFiles: 'Vybrat soubory',
+  noFileChosen: 'Nevybrán žádný soubor',
+  overlay: 'Pusťte soubory sem',
+  statusPending: 'Čeká', statusUploading: 'Nahrává se', statusPaused: 'Pozastaveno',
+  statusCancelling: 'Ruší se…', statusComplete: 'Hotovo', statusError: 'Chyba',
+  statusCancelled: 'Zrušeno', statusAria: 'Stav: {status}',
+  cancelTimeout: 'Zrušení vypršelo', cancelling: 'Ruší se…',
+  pauseFile: 'Pozastavit {name}', resumeFile: 'Pokračovat {name}',
+  retryFile: 'Zkusit znovu {name}', cancelFile: 'Zrušit {name}', removeFile: 'Odebrat {name}',
+  pauseAll: 'Pozastavit vše', resumeAll: 'Pokračovat vše',
+  retryAll: 'Zkusit vše znovu', cancelAll: 'Zrušit vše'
+};
+
+THE resolveLabel SEAM
+---------------------
+Every lookup goes through one function:
+
+import { resolveLabel, DEFAULT_LABELS, createLabelFn } from '@keenmate/web-dropzone';
+
+resolveLabel(overrides, key, vars?)
+  overrides[key] (the element's labels) -> DEFAULT_LABELS[key],
+  then {placeholders} filled from vars.
+
+resolveLabel({ cancelFile: 'Stop {name}' }, 'cancelFile', { name: 'a.pdf' })  // 'Stop a.pdf'
+resolveLabel(null, 'statusAria', { status: 'Paused' })                          // 'Status: Paused'
+
+const label = createLabelFn(() => dz.labels);    // bound lookup, reads live
+label('retryAll');
+
+Use these in custom satellites / render callbacks so your UI matches the
+element's language. Page-wide localisation (a future web-components-core
+/locale layer) is designed to slot in between the element overrides and the
+defaults inside resolveLabel - callers will not change.
+
+Also exported from @keenmate/web-dropzone-core: defaultLabel, statusLabel(label,
+status), fileStatusLabel(label, file) (returns cancelTimeout for timed-out
+cancels), isLabelsValue(value), types DropzoneLabels, DropzoneLabelKey,
+LabelFn, LabelVars.
+
+SATELLITES
+----------
+Satellites read the BOUND STORE's labels. The picker's own attributes win
+over them:
+  <web-dropzone-picker label="...">               overrides prompt (card) / selectFiles (button)
+  <web-dropzone-picker hint="...">                overrides hint
+  <web-dropzone-picker no-file-chosen-text="..."> overrides noFileChosen
+<web-dropzone-indicator label="..."> is the drawer title (default 'Uploads') and
+the idle chip text (default 'No uploads').
+
+STRINGS NOT COVERED BY labels
+-----------------------------
+These are separate inputs:
+  empty-message      'No files selected'          (list empty state)
+  summary-template   '{count} file(s), {size}'    (compact summary line)
+
+These are currently hard-coded English (not overridable through labels):
+  native selector "N files chosen"; "Show N more" / "Show less" / "Show fewer";
+  popover "Add more", "Clear all", limits line ("max 5.0 MB each", "N left"...);
+  summary aria-label "Click to view files"; rolling "Show full queue (N files)";
+  progress strip counts ("3 of 5 · ... · 1 paused · 2 failed");
+  indicator chip ("N failed / uploading / paused / queued / done",
+  aria-label "Upload status", drawer "Upload queue", "Close");
+  validation error messages (map files-reject `validation.code` instead).
+For full control of those, use structural / headless rendering.
+
+REMOVED IN 1.0.0-rc03
+---------------------
+| Removed                                  | Use                              |
+|------------------------------------------|----------------------------------|
+| prompt-text / promptText                 | labels.prompt                    |
+| hint-text / hintText                     | labels.hint                      |
+| drag-active-text / dragActiveText        | labels.dragActive                |
+| no-file-chosen-text / noFileChosenText   | labels.noFileChosen              |
+|   (on <web-dropzone>; the picker keeps its own attribute)                   |
+| overlay-text / overlayText               | labels.overlay                   |
+| select-files-text / selectFilesText      | labels.selectFiles               |
+| STATUS_LABELS export                     | labels.status* (+ statusCancelling, statusAria) |
+| ACTION_LABELS export                     | labels.pauseFile / resumeFile / retryFile |
+
+New keys in rc03: cancelFile, removeFile, cancelAll, pauseAll, resumeAll,
+retryAll, cancelling, cancelTimeout.
