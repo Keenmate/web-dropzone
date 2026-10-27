@@ -1361,14 +1361,29 @@ export class DropzoneEngine {
 
     /** Commit an accepted batch: state, previews, events, re-render, auto-upload. */
     protected commitFiles(acceptedFiles: FileState[], rejectedFiles: RejectedFile[]): void {
+        // Single mode (`multiple="false"`): only the first accepted file is
+        // taken (the rest are rejected with code `count`), and it REPLACES the
+        // current file(s) — which leave like a removal: the cancel rule for a
+        // running upload (signal + `cancel-timeout`; the old row shows
+        // "Cancelling…" until it settles), then `file-remove` (+ `file-delete`)
+        // and `change`. Nothing running → that happens synchronously, before
+        // the new file's `file-add`.
+        if (!this.config.isMultiple && acceptedFiles.length > 0) {
+            const [first, ...extra] = acceptedFiles;
+            for (const file of extra) {
+                rejectedFiles.push({
+                    file: file.file,
+                    validation: { valid: false, error: countLabel(this.label, 'errorMaxFileCount', 1), code: 'count' }
+                });
+            }
+            acceptedFiles = [first];
+            const replaced = this.files.map(f => f.id);
+            if (replaced.length > 0) void this.removeFiles(replaced);
+        }
+
         // Add accepted files
         if (acceptedFiles.length > 0) {
-            // In single mode, replace existing files
-            if (!this.config.isMultiple) {
-                this.files = [acceptedFiles[0]];
-            } else {
-                this.files.push(...acceptedFiles);
-            }
+            this.files.push(...acceptedFiles);
 
             fileLogger.debug('Files added', { count: acceptedFiles.length });
 

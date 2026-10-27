@@ -391,3 +391,41 @@ test.describe('element removal (removedCallback) vs DOM move', () => {
         expect(log.indexOf('file-cancel:f.txt:cancelled')).toBeLessThan(log.indexOf('file-remove:f.txt'));
     });
 });
+
+test.describe('multiple="false": a new file replaces the current one', () => {
+    const names = (page: Page, id: string) => dz(page, id).evaluate((el: any) => el.files.map((f: any) => f.name));
+
+    test('a running upload is cancelled (signal + file-cancel) and reported as removed', async ({ page }) => {
+        await addNamed(page, 'single', ['one.txt']);
+        await expect.poll(() => pendingNames(page)).toContain('one.txt');
+        await clearLog(page, 'single');
+        await addNamed(page, 'single', ['two.txt']);
+        await expect.poll(() => names(page, 'single')).toEqual(['two.txt']);
+        expect(await page.evaluate(() => (window as any).__aborted['one.txt'])).toBe(true);
+        const log = await logOf(page, 'single');
+        expect(log).toContain('file-add:two.txt');
+        expect(log).toContain('file-cancel:one.txt:cancelled');
+        expect(log).toContain('file-remove:one.txt');
+        expect(log.indexOf('file-cancel:one.txt:cancelled')).toBeLessThan(log.indexOf('file-remove:one.txt'));
+    });
+
+    test('an idle file leaves synchronously: file-remove + change, then file-add + change', async ({ page }) => {
+        await addNamed(page, 'single-idle', ['one.txt']);
+        await clearLog(page, 'single-idle');
+        await addNamed(page, 'single-idle', ['two.txt']);
+        expect(await logOf(page, 'single-idle')).toEqual(['file-remove:one.txt', 'change:', 'file-add:two.txt', 'change:']);
+        expect(await names(page, 'single-idle')).toEqual(['two.txt']);
+    });
+
+    test('a batch keeps only its first file (the rest are rejected, no file-add)', async ({ page }) => {
+        const rejected = await dz(page, 'single-idle').evaluate(async (el: any) => {
+            const out: string[] = [];
+            el.addEventListener('file-reject', (e: any) => e.detail.rejectedFiles.forEach((r: any) => out.push(`${r.file.name}:${r.validation.code}`)));
+            await el.addFiles([new File(['a'], 'a.txt'), new File(['b'], 'b.txt')]);
+            return out;
+        });
+        expect(rejected).toEqual(['b.txt:count']);
+        expect(await names(page, 'single-idle')).toEqual(['a.txt']);
+        expect(await logOf(page, 'single-idle')).not.toContain('file-add:b.txt');
+    });
+});
