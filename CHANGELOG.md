@@ -28,6 +28,22 @@ server-side command, *clear* empties a set, *destroy* is the only teardown verb.
   `addFiles`. With `{ confirm: true }` the `beforeFilesRemoveCallback` gate runs **once** for the
   batch. `removeFile(id)` and `clear()` are now thin wrappers over it (one `change` per batch).
 
+### Changed — BREAKING (cancel rule)
+
+- **`cancelFile(id)` returns `Promise<void>`** (element + `DropzoneController`) and follows one
+  rule: `uploading` / `pending` / `paused` files only (a `cancelling` one joins the running
+  cancel). Nothing running (pending, paused, between retry attempts) → `cancelled` at once. A
+  running handler → new status **`cancelling`** (`FileStatus` gains it), its `signal` aborts and
+  the cancel waits up to **`cancel-timeout`** ms (new input, default 2000) for the handler to
+  settle. Settles in time — reject **or resolve** — → `cancelled` (the user asked to cancel). Times
+  out → **`cancel-timeout-behavior`** (new input): `error` (default — status `error`,
+  `file.error = 'cancel-timeout'`, retryable) or `remove` (the file is removed). Results that
+  arrive after the timeout are ignored; the concurrency slot frees when the handler settles or the
+  timeout fires. The row shows "Cancelling…" with its buttons disabled.
+- **Removing a running file cancels it first** (same rule, no cancel gate), then removes it —
+  `removeFile` / `removeFiles` / `clear` resolve after that.
+- `OverallProgress` gains `pendingCount` and `cancellingCount`.
+
 ### Fixed — upload lifecycle
 
 - **Cancel during the auto-retry backoff** was ignored (the wake-up only checked pause /

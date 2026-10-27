@@ -234,6 +234,8 @@ const INPUTS: readonly InputDef[] = [
 
     // ── Upload pipeline (meaningful once uploadFileCallback is set) ────────────
     { configKey: 'concurrency',             attribute: 'concurrency',         converter: toInt({ default: 1 }),                                                        shouldReflect: true, on: 'update', description: 'Maximum concurrent uploads through the worker pool.' },
+    { configKey: 'cancelTimeout',           attribute: 'cancel-timeout',      converter: toInt({ min: 0, default: 2000 }),                                             shouldReflect: true, on: 'update', description: 'How long (ms) a cancel waits for the aborted upload handler to settle (the row shows "Cancelling…"). Settles in time → `cancelled`; otherwise `cancel-timeout-behavior` applies and later results are ignored.' },
+    { configKey: 'cancelTimeoutBehavior',   attribute: 'cancel-timeout-behavior', converter: toEnum(['error', 'remove'] as const, { default: 'error' }),               shouldReflect: true, on: 'update', description: 'What a timed-out cancel does: `error` (status error, reason `cancel-timeout`, retryable) or `remove` (the file is removed from the list).' },
     { configKey: 'isAutoUploadEnabled',     attribute: 'auto-upload',         converter: toBool('default-true'),                                                       on: 'update', type: 'boolean', description: 'Auto-upload newly added files. Public property: `el.autoUpload`.' },
     { configKey: 'isUploadedFileDeletable',  attribute: 'uploaded-deletable',  converter: toBool('default-true'),                                                       on: 'update', type: 'boolean', description: 'Whether already-uploaded files can be removed. Public property: `el.uploadedDeletable`.' },
     { configKey: 'shouldSinkCompleted',     attribute: 'should-sink-completed', converter: toBool('default-false'),                                                  on: 'update', type: 'boolean', description: 'Auto-move completed files to the end of the list (after `reorder-completed-delay`).' },
@@ -772,8 +774,15 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
         return this.#dropzone?.resumeFile(id) ?? Promise.resolve();
     }
 
-    /** Cancel an in-flight upload. */
-    cancelFile(id: string): void { this.flush(); this.#dropzone?.cancelFile(id); }
+    /**
+     * Cancel a file's upload (uploading / pending / paused). Resolves when the
+     * cancel finished — at once when nothing runs, else when the handler
+     * settles or `cancel-timeout` fires.
+     */
+    cancelFile(id: string): Promise<void> {
+        this.flush();
+        return this.#dropzone?.cancelFile(id) ?? Promise.resolve();
+    }
 
     /** Pause every uploading / pending file. */
     pauseAll(): void { this.flush(); this.#dropzone?.pauseAll(); }

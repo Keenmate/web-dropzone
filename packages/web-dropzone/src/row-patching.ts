@@ -27,6 +27,7 @@ import {
     actionForStatus
 } from '@keenmate/web-dropzone-core';
 import type { FileState, FileStatus } from '@keenmate/web-dropzone-core';
+import { progressLabel } from './row-templates';
 
 /**
  * Set the progress-bar fill's width. Idempotent — assigning the same
@@ -42,17 +43,18 @@ export function patchProgressFill(
 }
 
 /**
- * Set the progress-text node's content to the rounded percent. Used by
- * list / detailed / popover where a numeric label sits next to the bar;
- * grid omits the text and only patches the fill.
+ * Set the progress-text node's content — the rounded percent, or
+ * "Cancelling…" while a cancel is pending (`progressLabel`). Used by
+ * list / detailed / popover where a label sits next to the bar; grid omits
+ * the text and only patches the fill.
  */
 export function patchProgressText(
     row: HTMLElement,
     textClass: string,
-    percent: number
+    file: FileState
 ): void {
     const el = row.querySelector(`.${textClass}`);
-    if (el) el.textContent = `${percent.toFixed(1)}%`;
+    if (el) el.textContent = progressLabel(file);
 }
 
 /**
@@ -83,9 +85,11 @@ export function patchStatusIcon(
 export function patchRemoveButton(
     btn: HTMLElement | null,
     removable: boolean,
-    baseClass: string
+    baseClass: string,
+    isCancelling = false
 ): void {
     if (!btn) return;
+    (btn as HTMLButtonElement).disabled = isCancelling;
     btn.classList.toggle(`${baseClass}--hidden`, !removable);
     if (removable) {
         btn.removeAttribute('tabindex');

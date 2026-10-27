@@ -361,3 +361,9 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Mode-flip rebuild reports dropped files (`file-remove` + `change`) | ✓ | `cancel.spec.ts` | `cancel.html` |
 | No `file-progress` after a cancel (held throttle tick dropped) | ✓     | `cancel.spec.ts` | `cancel.html` |
 | `retryFile` / `resumeFile` on a cancelled file restart from 0  | ✓      | `cancel.spec.ts` | `cancel.html` |
+| Cancel a queued (pending) / paused file → `cancelled` at once  | ✓      | `cancel.spec.ts` | `cancel.html` |
+| Cancel the running file → slot handed to the next queued file  | ✓      | `cancel.spec.ts` | `cancel.html` |
+| Handler ignores the signal: `cancelling` + "Cancelling…" + disabled buttons; timeout → `error` (`cancel-timeout`), slot freed, late result ignored | ✓ | `cancel.spec.ts` | `cancel.html` |
+| `cancel-timeout-behavior="remove"` removes a timed-out file    | ✓      | `cancel.spec.ts` | `cancel.html` |
+| Handler resolving while `cancelling` → `cancelled`             | ✓      | `cancel.spec.ts` | `cancel.html` |
+| `cancel-timeout` / `cancel-timeout-behavior` reactive          | ✓      | `cancel.spec.ts` | `cancel.html` |

@@ -40,7 +40,9 @@ import type {
     RejectedFile,
     AddFilesOptions,
     DropzoneState,
-    OverallProgress
+    OverallProgress,
+    FileCancelResult,
+    FileUploadResult
 } from './types';
 // Module-level pure helpers + DEFAULT_CONFIG live in `./dropzone-shared`
 // so both core and renderer can import them without circular dependencies.
@@ -51,6 +53,9 @@ import {
     generateFileId,
     DEFAULT_CONFIG
 } from './dropzone-shared';
+
+/** Sentinel: an upload attempt was detached by a cancel that timed out. */
+const DETACHED: unique symbol = Symbol('detached');
 
 /**
  * The host an engine reports to — `<web-dropzone>` passes itself, its
@@ -96,6 +101,15 @@ export class DropzoneEngine {
     protected activeIds = new Set<string>();
     /** Wake-ups for files sleeping in an auto-retry backoff (see `sleepBackoff`). */
     protected backoffWakers = new Map<string, () => void>();
+    /**
+     * The handler attempt in flight per file: its AbortController, a promise
+     * settling when the handler settles (either way), and `detach()` — which
+     * ends the attempt's run at once (a cancel that timed out), freeing the
+     * concurrency slot and making any later result stale.
+     */
+    protected attempts = new Map<string, { ctrl: AbortController; settled: Promise<void>; detach: () => void }>();
+    /** Cancels in progress per file — repeated `cancelFile` calls join them. */
+    protected cancels = new Map<string, Promise<FileCancelResult | null>>();
     /** Set by `destroy()`: the queue stops, late handler results and timers
      *  are ignored, and no further events are emitted. */
     protected isDestroyed = false;
@@ -321,7 +335,14 @@ export class DropzoneEngine {
             if (gate.isCancelled) return;
         }
 
-        // The async gate may have run while other code paths mutated
+        // Remove on a running file = cancel, then remove: its handler gets
+        // the signal and up to `cancelTimeout` to settle (the row shows
+        // `cancelling`). Nothing running → no wait, the removal is synchronous.
+        const running = this.files.filter(f =>
+            wanted.has(f.id) && (f.status === 'uploading' || f.status === 'cancelling'));
+        if (running.length > 0) await Promise.all(running.map(f => this.runCancel(f.id)));
+
+        // The async steps may have run while other code paths mutated
         // `this.files` — dropFiles re-resolves the ids.
         this.dropFiles(ids);
     }
@@ -375,6 +396,8 @@ export class DropzoneEngine {
         this.pausedIds.delete(id);
         this.controllers.get(id)?.abort();
         this.controllers.delete(id);
+        this.attempts.get(id)?.detach();
+        this.attempts.delete(id);
         this.activeIds.delete(id);
         this.wakeBackoff(id);
         const pendingReorder = this.reorderTimers.get(id);
@@ -468,6 +491,8 @@ export class DropzoneEngine {
         this.activeIds.clear();
         for (const wake of [...this.backoffWakers.values()]) wake();
         this.backoffWakers.clear();
+        for (const attempt of this.attempts.values()) attempt.detach();
+        this.attempts.clear();
         this.clearAllReorderTimers();
 
         // Cancel coalesced rAF; clear all per-file throttle timers.
@@ -650,7 +675,7 @@ export class DropzoneEngine {
      */
     retryFile(id: string): void {
         const file = this.files.find(f => f.id === id);
-        if (!file || this.isDestroyed) return;
+        if (!file || this.isDestroyed || file.status === 'cancelling') return;
         const wasCancelled = file.status === 'cancelled';
         this.pausedIds.delete(id);
         // Cancel any pending reorder + release the "complete" bucket
@@ -825,21 +850,94 @@ export class DropzoneEngine {
         await this.uploadAll();
     }
 
-    /** Cancel an upload. Unlike pauseFile(), the file ends in the
-     *  'cancelled' status and won't auto-resume — the user has to retry. */
-    cancelFile(id: string): void {
+    /**
+     * Cancel a file's upload. Applies to `uploading` / `pending` / `paused`
+     * files (a `cancelling` one joins the cancel already running); anything
+     * else is a no-op. Resolves when the cancel has finished.
+     *
+     * - Nothing running (pending, paused, between retry attempts, or an
+     *   app-driven upload) → `cancelled` at once.
+     * - A handler running → status `cancelling`, its `signal` aborts, and the
+     *   cancel waits up to `cancelTimeout` ms for it to settle. Settles in
+     *   time (reject OR resolve) → `cancelled`. Times out →
+     *   `cancelTimeoutBehavior`: `error` (status `error`, `file.error =
+     *   'cancel-timeout'`, retryable) or `remove` (the file is removed).
+     *   The concurrency slot frees when the handler settles or the timeout
+     *   fires; anything it reports after the timeout is ignored.
+     *
+     * Unlike pauseFile(), a cancelled file won't auto-resume — the user has
+     * to retry (which restarts from 0).
+     */
+    cancelFile(id: string): Promise<void> {
+        return this.runCancel(id).then(() => undefined);
+    }
+
+    /** The cancel rule (no gate): join a running cancel or start one. */
+    protected runCancel(id: string): Promise<FileCancelResult | null> {
+        const running = this.cancels.get(id);
+        if (running) return running;
         const file = this.files.find(f => f.id === id);
-        if (!file || (file.status !== 'pending' && file.status !== 'uploading')) return;
+        if (!file || this.isDestroyed) return Promise.resolve(null);
+        if (file.status !== 'uploading' && file.status !== 'pending' && file.status !== 'paused') {
+            return Promise.resolve(null);
+        }
+        const cancel = this.performCancel(file).finally(() => {
+            if (this.cancels.get(id) === cancel) this.cancels.delete(id);
+        });
+        this.cancels.set(id, cancel);
+        return cancel;
+    }
+
+    protected async performCancel(file: FileState): Promise<FileCancelResult | null> {
+        const id = file.id;
         // Distinguish cancel from pause, and drop any held progress tick so
         // no `file-progress` lands after the cancel.
         this.pausedIds.delete(id);
         this.clearThrottlePending(id);
-        this.controllers.get(id)?.abort();
-        this.controllers.delete(id);
-        // Cancelled during an auto-retry backoff: wake the sleeper (it sees
-        // the status and bails) so the slot frees immediately.
-        this.wakeBackoff(id);
-        this.mutateFileState(file, { status: 'cancelled' });
+
+        const attempt = this.attempts.get(id);
+        if (!attempt) {
+            // No handler running: pending / paused / between retry attempts
+            // (wake the sleeper — it sees the status and bails, freeing the
+            // slot) / an app-driven upload.
+            this.controllers.get(id)?.abort();
+            this.controllers.delete(id);
+            this.wakeBackoff(id);
+            this.mutateFileState(file, { status: 'cancelled' });
+            return 'cancelled';
+        }
+
+        this.mutateFileState(file, { status: 'cancelling' });
+        attempt.ctrl.abort();
+        const timeoutMs = Math.max(0, this.config.cancelTimeout ?? DEFAULT_CONFIG.cancelTimeout ?? 2000);
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        const outcome = await Promise.race([
+            attempt.settled.then(() => 'settled' as const),
+            new Promise<'timeout'>(resolve => { timer = setTimeout(() => resolve('timeout'), timeoutMs); })
+        ]);
+        clearTimeout(timer);
+        // End the attempt: frees the slot now (timeout) and makes any later
+        // result from the handler stale.
+        if (this.controllers.get(id) === attempt.ctrl) this.controllers.delete(id);
+        if (this.attempts.get(id) === attempt) this.attempts.delete(id);
+        attempt.detach();
+        this.clearThrottlePending(id);
+        if (this.isDestroyed || !this.files.includes(file)) return null;
+
+        if (outcome === 'settled') {
+            this.mutateFileState(file, { status: 'cancelled' });
+            return 'cancelled';
+        }
+        fileLogger.warn('Cancel timed out — the upload handler ignored its AbortSignal', {
+            id, name: file.name, timeoutMs
+        });
+        if ((this.config.cancelTimeoutBehavior ?? 'error') === 'remove') {
+            this.dropFiles([id]);
+            return 'timeout-remove';
+        }
+        file.error = 'cancel-timeout';
+        this.mutateFileState(file, { status: 'error' });
+        return 'timeout-error';
     }
 
     /** Pause every uploading / pending file. */
@@ -959,9 +1057,26 @@ export class DropzoneEngine {
             uploadMetadata: file.uploadMetadata
         });
 
+        // Call the handler synchronously (a sync throw is a failure), then race
+        // it against `detach` — a cancel that timed out ends this run (frees
+        // the slot) without waiting for a handler that ignores its signal.
+        let handlerPromise: Promise<void | FileUploadResult>;
         try {
-            const result = await handler(ctx);
-            if (!isCurrent()) return null; // stale — ignore the late result
+            handlerPromise = Promise.resolve(handler(ctx));
+        } catch (syncError) {
+            handlerPromise = Promise.reject(syncError);
+        }
+        let detach!: () => void;
+        const detached = new Promise<typeof DETACHED>(resolve => { detach = () => resolve(DETACHED); });
+        const settled = handlerPromise.then(() => undefined, () => undefined);
+        this.attempts.set(id, { ctrl, settled, detach });
+
+        try {
+            const result = await Promise.race([handlerPromise, detached]);
+            if (result === DETACHED || !isCurrent()) return null; // stale — ignore the late result
+            // Settled while cancelling: the cancel owns the outcome (`cancelled`
+            // even on success — the user asked to cancel).
+            if (this.cancels.has(id)) return null;
             // Success — patch + emit. Merge any FileUploadResult fields the
             // handler returned (metadata, downloadUrl, etc.) into the file
             // state atomically with the complete flip. Restricted shape (only
@@ -986,8 +1101,9 @@ export class DropzoneEngine {
             return null;
         } catch (err) {
             if (!isCurrent()) return null; // stale — ignore the late failure
-            if (ctrl.signal.aborted) {
-                // Aborted by pause — pauseFile already flipped the status.
+            if (ctrl.signal.aborted || this.cancels.has(id)) {
+                // Aborted by pause (pauseFile already flipped the status) or
+                // by a cancel (which owns the outcome).
                 return null;
             }
             const msg = err instanceof Error ? err.message : 'Upload failed';
@@ -1031,6 +1147,7 @@ export class DropzoneEngine {
             return null;
         } finally {
             if (this.controllers.get(id) === ctrl) this.controllers.delete(id);
+            if (this.attempts.get(id)?.ctrl === ctrl) this.attempts.delete(id);
         }
     }
 
@@ -1365,6 +1482,8 @@ export class DropzoneEngine {
         let failedCount = 0;
         let uploadingCount = 0;
         let pausedCount = 0;
+        let pendingCount = 0;
+        let cancellingCount = 0;
 
         for (const f of this.files) {
             totalBytes += f.size;
@@ -1381,6 +1500,8 @@ export class DropzoneEngine {
                 uploadedBytes += Math.floor(f.size * (f.progress / 100));
                 if (f.status === 'uploading') uploadingCount++;
                 else if (f.status === 'paused') pausedCount++;
+                else if (f.status === 'pending') pendingCount++;
+                else if (f.status === 'cancelling') cancellingCount++;
                 else if (f.status === 'error' || f.status === 'cancelled') {
                     // Cancelled rolls into "failed" for the overall readout —
                     // both need user intervention (retry) to ever finish.
@@ -1395,7 +1516,7 @@ export class DropzoneEngine {
             ? 0
             : Math.min(100, (uploadedBytes / totalBytes) * 100);
         const hasActivity =
-            uploadingCount > 0 || completedCount > 0 || failedCount > 0 || pausedCount > 0;
+            uploadingCount > 0 || completedCount > 0 || failedCount > 0 || pausedCount > 0 || cancellingCount > 0;
 
         // Aggregate-state priority (drives the overall bar's color):
         //   error > uploading > paused > complete
@@ -1413,7 +1534,7 @@ export class DropzoneEngine {
           : completedCount === this.files.length && this.files.length > 0 ? 'complete'
           : 'uploading';
 
-        return { uploadedBytes, totalBytes, completedCount, failedCount, uploadingCount, pausedCount, percent, hasActivity, aggregateStatus };
+        return { uploadedBytes, totalBytes, completedCount, failedCount, uploadingCount, pausedCount, pendingCount, cancellingCount, percent, hasActivity, aggregateStatus };
     }
 
     // ========================================================================

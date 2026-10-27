@@ -122,13 +122,23 @@ export function renderRowActionButton(file: FileState, baseClass: string): strin
 }
 
 /**
+ * Text next to a row's progress bar: the percent, or "Cancelling…" while a
+ * cancel waits for the upload handler to settle.
+ */
+export function progressLabel(file: FileState): string {
+    return file.status === 'cancelling' ? STATUS_LABELS.cancelling : `${file.progress.toFixed(1)}%`;
+}
+
+/**
  * Attribute block for the always-rendered remove button. Hidden buttons
  * stay in the DOM (layout reserved) but are inert.
  */
 export function removeButtonAttrs(file: FileState, baseClass: string, removable = true): string {
     const cls = removable ? baseClass : `${baseClass} ${baseClass}--hidden`;
     const inert = removable ? '' : ' tabindex="-1" aria-hidden="true"';
-    return `class="${cls}" data-dz-action="remove" data-file-id="${file.id}" aria-label="Remove ${escapeHtml(file.name)}"${inert}`;
+    // Disabled while a cancel is waiting for the handler to settle.
+    const disabled = file.status === 'cancelling' ? ' disabled' : '';
+    return `class="${cls}" data-dz-action="remove" data-file-id="${file.id}" aria-label="Remove ${escapeHtml(file.name)}"${inert}${disabled}`;
 }
 
 export function renderListItem(file: FileState, opts: RowTemplateOptions = {}): string {
@@ -143,7 +153,7 @@ export function renderListItem(file: FileState, opts: RowTemplateOptions = {}): 
                 <div class="dz__file-item__progress-bar">
                     <div class="dz__file-item__progress-fill" style="width: ${file.progress}%"></div>
                 </div>
-                <span class="dz__file-item__progress-text">${file.progress.toFixed(1)}%</span>
+                <span class="dz__file-item__progress-text">${progressLabel(file)}</span>
             </div>` : ''}
             ${showPart(p, 'status') ? `<span class="dz__file-item__status dz__file-item__status--${file.status}" title="${STATUS_LABELS[file.status]}" aria-label="Status: ${STATUS_LABELS[file.status]}" data-status="${file.status}">${STATUS_ICONS[file.status]}</span>` : ''}
             ${showPart(p, 'remove') ? `<button type="button" ${removeButtonAttrs(file, 'dz__file-item__remove', removable)}></button>` : ''}
@@ -174,7 +184,7 @@ export function renderDetailedItem(file: FileState, opts: RowTemplateOptions = {
                     <div class="dz__file-item__progress-bar">
                         <div class="dz__file-item__progress-fill" style="width: ${file.progress}%"></div>
                     </div>
-                    <span class="dz__file-item__progress-text">${file.progress.toFixed(1)}%</span>
+                    <span class="dz__file-item__progress-text">${progressLabel(file)}</span>
                 </div>` : ''}
             </div>
             ${showPart(p, 'action') ? renderRowActionButton(file, 'dz__file-item__action') : ''}

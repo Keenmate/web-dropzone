@@ -122,7 +122,7 @@ export function computeOverallPercent(files: ReadonlyArray<FileState>): number {
  */
 export function pickCurrentFile(files: ReadonlyArray<FileState>): FileState | undefined {
     if (files.length === 0) return undefined;
-    const uploading = files.find(f => f.status === 'uploading');
+    const uploading = files.find(f => f.status === 'uploading' || f.status === 'cancelling');
     if (uploading) return uploading;
     const pending = files.find(f => f.status === 'pending');
     if (pending) return pending;

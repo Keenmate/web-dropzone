@@ -431,7 +431,7 @@ export class DropzoneListElement extends SatelliteElement {
      */
     private getFrontFile(files: FileState[]): FileState | null {
         if (files.length === 0) return null;
-        const uploading = files.find(f => f.status === 'uploading');
+        const uploading = files.find(f => f.status === 'uploading' || f.status === 'cancelling');
         if (uploading) return uploading;
         const pending = files.find(f => f.status === 'pending');
         if (pending) return pending;
@@ -656,8 +656,9 @@ export class DropzoneListElement extends SatelliteElement {
             if (!id) return;
             const file = this.store.getFile(id);
             if (!file) return;
+            if (file.status === 'cancelling') return; // already on its way out
             if (file.status === 'uploading') {
-                this.store.cancelFile(id);
+                void this.store.cancelFile(id);
             } else {
                 void this.store.removeFile(id, { confirm: true });
             }
@@ -729,7 +730,8 @@ export class DropzoneListElement extends SatelliteElement {
             patchRemoveButton(
                 row.querySelector<HTMLElement>('[data-dz-action="remove"]'),
                 this.isFileUserRemovable(file),
-                'dz__badge-remove'
+                'dz__badge-remove',
+                file.status === 'cancelling'
             );
             return;
         }
@@ -742,7 +744,7 @@ export class DropzoneListElement extends SatelliteElement {
         const prefix = appearance === 'grid' ? 'dz__preview-item' : 'dz__file-item';
         patchProgressFill(row, `${prefix}__progress-fill`, file.progress);
         if (appearance !== 'grid') {
-            patchProgressText(row, `${prefix}__progress-text`, file.progress);
+            patchProgressText(row, `${prefix}__progress-text`, file);
         }
         patchStatusIcon(row, `${prefix}__status`, file.status);
         patchActionButton(
@@ -753,7 +755,8 @@ export class DropzoneListElement extends SatelliteElement {
         patchRemoveButton(
             row.querySelector<HTMLElement>('[data-dz-action="remove"]'),
             this.isFileUserRemovable(file),
-            `${prefix}__remove`
+            `${prefix}__remove`,
+            file.status === 'cancelling'
         );
     }
 

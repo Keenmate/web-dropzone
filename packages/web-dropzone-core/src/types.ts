@@ -167,9 +167,26 @@ export type GridStatus = 'badge' | 'overlay';
  * - `complete`  — handler resolved successfully
  * - `error`     — handler rejected (after exhausting retries)
  * - `paused`    — handler aborted, will resume on `resumeFile` / `resumeAll`
- * - `cancelled` — handler aborted; will not auto-resume (manual retry needed)
+ * - `cancelling` — `cancelFile` aborted the handler and waits (up to
+ *   `cancelTimeout`) for it to settle
+ * - `cancelled` — cancel finished; will not auto-resume (manual retry needed)
  */
-export type FileStatus = 'pending' | 'uploading' | 'complete' | 'error' | 'paused' | 'cancelled';
+export type FileStatus = 'pending' | 'uploading' | 'complete' | 'error' | 'paused' | 'cancelling' | 'cancelled';
+
+/**
+ * What a cancel whose handler did not settle within `cancelTimeout` does:
+ * `error` — the file goes to `error` (reason `cancel-timeout`, retryable);
+ * `remove` — the file is removed from the list.
+ */
+export type CancelTimeoutBehavior = 'error' | 'remove';
+
+/**
+ * How a cancel finished (`file-cancel` → `detail.result`):
+ * `cancelled` — the handler settled in time (or nothing was running);
+ * `timeout-error` / `timeout-remove` — it didn't, and `cancelTimeoutBehavior`
+ * applied.
+ */
+export type FileCancelResult = 'cancelled' | 'timeout-error' | 'timeout-remove';
 
 /**
  * Contract between the handler and the component about what
@@ -225,6 +242,10 @@ export interface OverallProgress {
     failedCount: number;
     uploadingCount: number;
     pausedCount: number;
+    /** Files queued for upload (status `pending`). */
+    pendingCount: number;
+    /** Files whose cancel is waiting for the handler to settle. */
+    cancellingCount: number;
     /** 0–100, byte-weighted across the queue. */
     percent: number;
     /** True when any non-complete activity exists (uploading / paused / queued). */
@@ -644,6 +665,16 @@ export interface DropzoneConfig {
      * single attempt (no retries). See {@link RetryPolicy}.
      */
     retryPolicy?: RetryPolicy;
+    /**
+     * How long (ms) `cancelFile` waits for an aborted upload handler to
+     * settle before giving up. The file shows `cancelling` meanwhile; its
+     * concurrency slot frees when the handler settles or the timeout fires,
+     * and anything the handler reports after the timeout is ignored.
+     * Default 2000.
+     */
+    cancelTimeout?: number;
+    /** What a cancel that timed out does — see {@link CancelTimeoutBehavior}. Default `'error'`. */
+    cancelTimeoutBehavior?: CancelTimeoutBehavior;
     /**
      * Whether the user can remove files that have already finished uploading
      * (`status === 'complete'`). When `false`, the remove button is hidden

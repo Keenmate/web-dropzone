@@ -113,3 +113,83 @@ test.describe('lifecycle bug fixes', () => {
         });
     }
 });
+
+test.describe('cancel rule', () => {
+    test('a queued (pending) file cancels at once and is never started', async ({ page }) => {
+        await addNamed(page, 'q', ['1.txt', '2.txt']);
+        await expect.poll(() => pendingNames(page)).toEqual(['1.txt']);
+        await dz(page, 'q').evaluate((el: any) => el.cancelFile(el.files[1].id));
+        expect(await statusOf(page, 'q', '2.txt')).toBe('cancelled');
+        await resolveUpload(page, '1.txt', 'ok');
+        await expect.poll(() => statusOf(page, 'q', '1.txt')).toBe('complete');
+        await page.waitForTimeout(50);
+        expect(await callsOf(page, '2.txt')).toBe(0);
+    });
+
+    test('a paused file cancels at once', async ({ page }) => {
+        await addNamed(page, 'q', ['p.txt']);
+        await expect.poll(() => pendingNames(page)).toContain('p.txt');
+        await dz(page, 'q').evaluate((el: any) => el.pauseFile(el.files[0].id));
+        await expect.poll(() => statusOf(page, 'q', 'p.txt')).toBe('paused');
+        await dz(page, 'q').evaluate((el: any) => el.cancelFile(el.files[0].id));
+        expect(await statusOf(page, 'q', 'p.txt')).toBe('cancelled');
+    });
+
+    test('cancelling the running file hands its slot to the next queued file', async ({ page }) => {
+        await addNamed(page, 'q', ['1.txt', '2.txt']);
+        await expect.poll(() => pendingNames(page)).toEqual(['1.txt']);
+        await dz(page, 'q').evaluate((el: any) => el.cancelFile(el.files[0].id));
+        expect(await statusOf(page, 'q', '1.txt')).toBe('cancelled');
+        expect(await page.evaluate(() => (window as any).__aborted['1.txt'])).toBe(true);
+        await expect.poll(() => pendingNames(page)).toEqual(['2.txt']);
+    });
+
+    test('handler ignoring the signal: "Cancelling…" + disabled buttons, then timeout → error (cancel-timeout), slot freed, late result ignored', async ({ page }) => {
+        await addNamed(page, 'stubborn', ['s.txt', 'next.txt']);
+        await expect.poll(() => pendingNames(page)).toEqual(['s.txt']);
+        const done = dz(page, 'stubborn').evaluate((el: any) => el.cancelFile(el.files[0].id).then(() => 'done'));
+        await expect.poll(() => statusOf(page, 'stubborn', 's.txt')).toBe('cancelling');
+        const row = dz(page, 'stubborn').locator('.dz__file-item[data-status="cancelling"]');
+        await expect(row.locator('.dz__file-item__progress-text')).toHaveText('Cancelling…');
+        await expect(row.locator('[data-dz-action="remove"]')).toBeDisabled();
+        expect(await callsOf(page, 'next.txt')).toBe(0); // slot still held
+        expect(await done).toBe('done');
+        expect(await statusOf(page, 'stubborn', 's.txt')).toBe('error');
+        expect(await dz(page, 'stubborn').evaluate((el: any) => el.files[0].error)).toBe('cancel-timeout');
+        await expect.poll(() => callsOf(page, 'next.txt')).toBe(1); // slot handed off on timeout
+        await resolveUpload(page, 's.txt', 'ok'); // late — ignored
+        await page.waitForTimeout(50);
+        expect(await statusOf(page, 'stubborn', 's.txt')).toBe('error');
+        expect(await logOf(page, 'stubborn')).not.toContain('file-upload-complete:s.txt');
+    });
+
+    test('cancel-timeout-behavior="remove": a timed-out cancel removes the file', async ({ page }) => {
+        await addNamed(page, 'stubborn-remove', ['r.txt']);
+        await expect.poll(() => pendingNames(page)).toContain('r.txt');
+        await dz(page, 'stubborn-remove').evaluate((el: any) => el.cancelFile(el.files[0].id));
+        expect(await dz(page, 'stubborn-remove').evaluate((el: any) => el.files.length)).toBe(0);
+        expect(await logOf(page, 'stubborn-remove')).toContain('file-remove:r.txt');
+    });
+
+    test('a handler RESOLVING while cancelling still ends cancelled', async ({ page }) => {
+        await addNamed(page, 'stubborn', ['ok.txt']);
+        await expect.poll(() => pendingNames(page)).toContain('ok.txt');
+        const done = dz(page, 'stubborn').evaluate((el: any) => el.cancelFile(el.files[0].id));
+        await expect.poll(() => statusOf(page, 'stubborn', 'ok.txt')).toBe('cancelling');
+        await resolveUpload(page, 'ok.txt', 'ok');
+        await done;
+        expect(await statusOf(page, 'stubborn', 'ok.txt')).toBe('cancelled');
+        expect(await logOf(page, 'stubborn')).not.toContain('file-upload-complete:ok.txt');
+    });
+
+    test('cancel-timeout / cancel-timeout-behavior are reactive inputs', async ({ page }) => {
+        const cfg = await dz(page, 'q').evaluate(async (el: any) => {
+            el.setAttribute('cancel-timeout', '50');
+            el.cancelTimeoutBehavior = 'remove';
+            await el.whenSettled();
+            const c = el.controller.getConfig();
+            return { t: c.cancelTimeout, b: c.cancelTimeoutBehavior, attr: el.getAttribute('cancel-timeout-behavior') };
+        });
+        expect(cfg).toEqual({ t: 50, b: 'remove', attr: 'remove' });
+    });
+});

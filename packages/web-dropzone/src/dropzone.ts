@@ -827,8 +827,9 @@ export class WebDropzone extends DropzoneEngine {
     private handleUserRemoveClick(id: string): void {
         const file = this.files.find(f => f.id === id);
         if (!file) return;
+        if (file.status === 'cancelling') return; // already on its way out
         if (file.status === 'uploading') {
-            this.cancelFile(id);
+            void this.cancelFile(id);
         } else {
             // User-initiated remove runs the confirm gate (if set). Programmatic
             // `removeFile(id)` callers stay un-gated unless they opt in.
@@ -946,7 +947,7 @@ export class WebDropzone extends DropzoneEngine {
         row.classList.toggle('dz__popover__row--uploading', file.status === 'uploading');
 
         patchProgressFill(row, 'dz__popover__progress-fill', file.progress);
-        patchProgressText(row, 'dz__popover__progress-text', file.progress);
+        patchProgressText(row, 'dz__popover__progress-text', file);
         patchStatusIcon(row, 'dz__popover__status', file.status);
         patchRowActionButton(
             row.querySelector('.dz__popover__row-action'),
@@ -1032,7 +1033,7 @@ export class WebDropzone extends DropzoneEngine {
         // pill, action button.
         if (appearance === 'list' || appearance === 'detailed' || appearance === 'rolling') {
             patchProgressFill(row, 'dz__file-item__progress-fill', file.progress);
-            patchProgressText(row, 'dz__file-item__progress-text', file.progress);
+            patchProgressText(row, 'dz__file-item__progress-text', file);
             patchStatusIcon(row, 'dz__file-item__status', file.status);
             patchRowActionButton(
                 row.querySelector('.dz__file-item__action'),
@@ -1092,6 +1093,8 @@ export class WebDropzone extends DropzoneEngine {
         hiddenClass: string
     ): void {
         if (!btn) return;
+        // Disabled while a cancel waits for the upload handler to settle.
+        (btn as HTMLButtonElement).disabled = file.status === 'cancelling';
         const hidden = !this.isFileUserRemovable(file);
         btn.classList.toggle(hiddenClass, hidden);
         if (hidden) {
@@ -1232,7 +1235,7 @@ export class WebDropzone extends DropzoneEngine {
     private getFrontFile(): FileState | null {
         if (this.files.length === 0) return null;
         // Active first — what's literally in flight RIGHT NOW.
-        const uploading = this.files.find(f => f.status === 'uploading');
+        const uploading = this.files.find(f => f.status === 'uploading' || f.status === 'cancelling');
         if (uploading) return uploading;
         // Queued next — what the worker pool will pick up.
         const pending = this.files.find(f => f.status === 'pending');
@@ -1608,7 +1611,7 @@ export class WebDropzone extends DropzoneEngine {
                     <div class="dz__popover__progress-bar">
                         <div class="dz__popover__progress-fill" style="width: ${file.progress}%"></div>
                     </div>
-                    <span class="dz__popover__progress-text">${file.progress.toFixed(1)}%</span>
+                    <span class="dz__popover__progress-text">${RowTemplate.progressLabel(file)}</span>
                 </td>
                 <td class="dz__popover__cell dz__popover__cell--action">
                     ${RowTemplate.renderRowActionButton(file, 'dz__popover__row-action')}

@@ -56,6 +56,8 @@ export const DEFAULT_CONFIG: Required<Omit<DropzoneConfig, 'fileIcons' | 'getFil
     name: '',
     valueFormat: 'json',
     concurrency: 1,
+    cancelTimeout: 2000,
+    cancelTimeoutBehavior: 'error',
     isAutoUploadEnabled: true,
     isUploadedFileDeletable: true,
     shouldSinkCompleted: false,
