@@ -85,7 +85,7 @@
                     mode="structural"
                     display-mode="list"
                     accept=".pdf,image/*"
-                    prompt-text="Drop receipts">
+                    labels='{"prompt": "Drop receipts"}'>
                 </web-dropzone>
             </div>
 
@@ -122,7 +122,7 @@
                     mode="structural"
                     display-mode="list"
                     accept="*/*"
-                    prompt-text="Drop files (click row to preview in new tab)">
+                    labels='{"prompt": "Drop files (click row to preview in new tab)"}'>
                 </web-dropzone>
             </div>
 
@@ -165,7 +165,7 @@
                     mode="structural"
                     display-mode="compact"
                     accept="*/*"
-                    prompt-text="Drop files">
+                    labels='{"prompt": "Drop files"}'>
                 </web-dropzone>
                 <small class="form-text">Click the summary to open the file popover.</small>
             </div>
@@ -209,7 +209,7 @@ el.getCustomStylesCallback = () =&gt; `
                     auto-upload
                     should-sink-completed
                     reorder-completed-delay="1200"
-                    prompt-text="Drop files into the table">
+                    labels='{"prompt": "Drop files into the table"}'>
                 </web-dropzone>
                 <small class="form-text">~20% of files randomly fail mid-upload — click 🔄 to retry from where they left off, not from 0.</small>
             </div>
@@ -259,7 +259,7 @@ el.renderFileItemCallback = ({ file }) =&gt; `
                     should-sink-completed
                     reorder-completed-delay="1200"
                     progress-throttle="120"
-                    prompt-text="Drop files (click a row to toggle ⭐)">
+                    labels='{"prompt": "Drop files (click a row to toggle ⭐)"}'>
                 </web-dropzone>
                 <small class="form-text">Simulated upload runs on selection. ⏸ pause / ▶ resume / 🔄 retry buttons appear based on each file's status; the framework's <code>data-dz-action="row-action"</code> convention auto-wires them.</small>
             </div>

@@ -72,7 +72,7 @@ export {
 
 // Status / action icons live in `../core/icons` so the satellite renderers
 // and any user-provided callbacks can share the same Lucide SVG family.
-import { STATUS_ICONS, STATUS_LABELS, actionForStatus, UI_ICONS } from '@keenmate/web-dropzone-core';
+import { STATUS_ICONS, actionForStatus, UI_ICONS, statusLabel } from '@keenmate/web-dropzone-core';
 // Row templates (list / detailed / grid / badges) are shared with the
 // `<web-dropzone-list>` satellite via `./row-templates` — single source of
 // truth so the polished styling in `_file-item.css` applies identically
@@ -550,7 +550,7 @@ export class WebDropzone extends DropzoneEngine {
         // prompt. Button / minimal / native have their own <button>, so the
         // input leaves the tab order (one tab stop per selector).
         const inputA11yAttrs = appearance === 'card'
-            ? `aria-label="${escapeHtml(this.config.promptText || DEFAULT_CONFIG.promptText)}"`
+            ? `aria-label="${escapeHtml(this.label('prompt'))}"`
             : 'tabindex="-1" aria-hidden="true"';
         const input = `
             <input type="file"
@@ -563,7 +563,7 @@ export class WebDropzone extends DropzoneEngine {
         `;
 
         if (appearance === 'button') {
-            const label = escapeHtml(this.config.selectFilesText || DEFAULT_CONFIG.selectFilesText);
+            const label = escapeHtml(this.label('selectFiles'));
             const count = this.files.length;
             return `
                 <div class="dz__dropzone dz__dropzone--button ${disabled}">
@@ -579,7 +579,7 @@ export class WebDropzone extends DropzoneEngine {
         if (appearance === 'minimal') {
             const icon = this.config.icon || DEFAULT_CONFIG.icon;
             const count = this.files.length;
-            const ariaLabel = escapeHtml(this.config.promptText || DEFAULT_CONFIG.promptText);
+            const ariaLabel = escapeHtml(this.label('prompt'));
             return `
                 <div class="dz__dropzone dz__dropzone--minimal ${disabled}">
                     ${input}
@@ -592,10 +592,10 @@ export class WebDropzone extends DropzoneEngine {
         }
 
         if (appearance === 'native') {
-            const label = escapeHtml(this.config.selectFilesText || DEFAULT_CONFIG.selectFilesText);
+            const label = escapeHtml(this.label('selectFiles'));
             const count = this.files.length;
             const labelText = count === 0
-                ? (this.config.noFileChosenText || DEFAULT_CONFIG.noFileChosenText)
+                ? this.label('noFileChosen')
                 : count === 1
                     ? this.files[0].name
                     : `${count} files chosen`;
@@ -632,19 +632,20 @@ export class WebDropzone extends DropzoneEngine {
         }
 
         const text = this.dragActive
-            ? (this.config.dragActiveText || DEFAULT_CONFIG.dragActiveText)
-            : (this.config.promptText || DEFAULT_CONFIG.promptText);
+            ? this.label('dragActive')
+            : this.label('prompt');
 
         const icon = this.config.icon || DEFAULT_CONFIG.icon;
-        const hint = this.config.hintText
-            ? `<div class="dz__dropzone__hint">${escapeHtml(this.config.hintText)}</div>`
+        const hintText = this.label('hint');
+        const hint = hintText
+            ? `<div class="dz__dropzone__hint">${escapeHtml(hintText)}</div>`
             : '';
 
         // Big card optionally exposes a dedicated Browse button. For minimal/
         // compact, the whole card is the click target — so no explicit button
         // is needed (avoids visual noise on dense layouts).
         const browseBtn = cardSize === 'big'
-            ? `<button type="button" class="dz__card__action">${escapeHtml(this.config.selectFilesText || DEFAULT_CONFIG.selectFilesText)}</button>`
+            ? `<button type="button" class="dz__card__action">${escapeHtml(this.label('selectFiles'))}</button>`
             : '';
 
         return `
@@ -960,12 +961,13 @@ export class WebDropzone extends DropzoneEngine {
         row.classList.toggle('dz__popover__row--uploading', file.status === 'uploading');
 
         patchProgressFill(row, 'dz__popover__progress-fill', file.progress);
-        patchProgressText(row, 'dz__popover__progress-text', file);
-        patchStatusIcon(row, 'dz__popover__status', file.status);
+        patchProgressText(row, 'dz__popover__progress-text', file, this.label);
+        patchStatusIcon(row, 'dz__popover__status', file, this.label);
         patchRowActionButton(
             row.querySelector('.dz__popover__row-action[data-dz-action="row-action"]'),
             file,
-            'dz__popover__row-action'
+            'dz__popover__row-action',
+                this.label
         );
         patchCancelButton(
             row.querySelector('[data-dz-action="cancel"]'),
@@ -1034,11 +1036,12 @@ export class WebDropzone extends DropzoneEngine {
             row.className = file.status !== 'pending'
                 ? `dz__badge dz__badge--${file.status}`
                 : 'dz__badge';
-            patchStatusIcon(row, 'dz__badge-status', file.status);
+            patchStatusIcon(row, 'dz__badge-status', file, this.label);
             patchRowActionButton(
                 row.querySelector('.dz__badge-action[data-dz-action="row-action"]'),
                 file,
-                'dz__badge-action'
+                'dz__badge-action',
+                this.label
             );
             // One-shot icon → <img> swap when previewUrl lands (show-thumbnails).
             if (this.shouldShowThumbnails('badges')) {
@@ -1052,12 +1055,13 @@ export class WebDropzone extends DropzoneEngine {
         // pill, action button.
         if (appearance === 'list' || appearance === 'detailed' || appearance === 'rolling') {
             patchProgressFill(row, 'dz__file-item__progress-fill', file.progress);
-            patchProgressText(row, 'dz__file-item__progress-text', file);
-            patchStatusIcon(row, 'dz__file-item__status', file.status);
+            patchProgressText(row, 'dz__file-item__progress-text', file, this.label);
+            patchStatusIcon(row, 'dz__file-item__status', file, this.label);
             patchRowActionButton(
                 row.querySelector('.dz__file-item__action[data-dz-action="row-action"]'),
                 file,
-                'dz__file-item__action'
+                'dz__file-item__action',
+                this.label
             );
             // Detailed is the only file-item shape that honors thumbnails
             // (list / rolling templates are icon-only). Swap on previewUrl.
@@ -1069,11 +1073,12 @@ export class WebDropzone extends DropzoneEngine {
         if (appearance === 'grid') {
             // Grid tiles get a bottom-edge progress bar and a corner status pill.
             patchProgressFill(row, 'dz__preview-item__progress-fill', file.progress);
-            patchStatusIcon(row, 'dz__preview-item__status', file.status);
+            patchStatusIcon(row, 'dz__preview-item__status', file, this.label);
             patchRowActionButton(
                 row.querySelector('.dz__preview-item__action[data-dz-action="row-action"]'),
                 file,
-                'dz__preview-item__action'
+                'dz__preview-item__action',
+                this.label
             );
 
             // One-shot placeholder → <img> swap when previewUrl arrives.
@@ -1595,6 +1600,7 @@ export class WebDropzone extends DropzoneEngine {
             // the context base gives the per-row ctx its controller / element.
             iconOverrides: this.config,
             iconContext: this.contextBase,
+            label: this.label,
             hasUploadHandler: this.hasUploadHandler(file),
             cancelIcon: this.config.cancelIcon,
             removeIcon: this.config.removeIcon
@@ -1640,17 +1646,17 @@ export class WebDropzone extends DropzoneEngine {
                     <div class="dz__popover__progress-bar">
                         <div class="dz__popover__progress-fill" style="width: ${file.progress}%"></div>
                     </div>
-                    <span class="dz__popover__progress-text">${RowTemplate.progressLabel(file)}</span>
+                    <span class="dz__popover__progress-text">${RowTemplate.progressLabel(file, this.label)}</span>
                 </td>
                 <td class="dz__popover__cell dz__popover__cell--action">
-                    ${RowTemplate.renderRowActionButton(file, 'dz__popover__row-action')}
+                    ${RowTemplate.renderRowActionButton(file, 'dz__popover__row-action', this.label)}
                     ${RowTemplate.renderCancelButton(file, 'dz__popover__row-action', this.rowOpts(file, 'popover'))}
                 </td>
                 <td class="dz__popover__cell dz__popover__cell--status">
-                    <span class="dz__popover__status ${statusClass}" title="${STATUS_LABELS[file.status]}" aria-label="Status: ${STATUS_LABELS[file.status]}" data-status="${file.status}">${STATUS_ICONS[file.status]}</span>
+                    ${RowTemplate.renderStatusPill(file, 'dz__popover__status', this.label)}
                 </td>
                 <td class="dz__popover__cell dz__popover__cell--actions">
-                    ${RowTemplate.renderRemoveButton(file, 'dz__popover__remove', removable, this.config.removeIcon)}
+                    ${RowTemplate.renderRemoveButton(file, 'dz__popover__remove', removable, this.config.removeIcon, this.label)}
                 </td>
             </tr>
         `;
@@ -1669,7 +1675,8 @@ export class WebDropzone extends DropzoneEngine {
             return `<span class="dz__summary__icon" data-status="pending">${UI_ICONS.paperclip}</span>`;
         }
         const s = overall.aggregateStatus;
-        return `<span class="dz__summary__icon dz__summary__icon--${s}" data-status="${s}" aria-label="Status: ${STATUS_LABELS[s]}">${STATUS_ICONS[s]}</span>`;
+        const aria = escapeHtml(this.label('statusAria', { status: statusLabel(this.label, s) }));
+        return `<span class="dz__summary__icon dz__summary__icon--${s}" data-status="${s}" aria-label="${aria}">${STATUS_ICONS[s]}</span>`;
     }
 
     /**
@@ -1936,11 +1943,12 @@ export class WebDropzone extends DropzoneEngine {
     /**
      * Compose a one-liner restating accept / max-size / max-files. Shown under
      * the header in the popover where the card's hint isn't visible. Falls back
-     * to the caller-configured hintText when set; otherwise auto-derived from
+     * to the caller-configured `labels.hint` when set; otherwise auto-derived from
      * validation config.
      */
     private getLimitsHint(): string {
-        if (this.config.hintText) return this.config.hintText;
+        const hint = this.label('hint');
+        if (hint) return hint;
 
         const parts: string[] = [];
         if (this.config.accept) parts.push(this.config.accept);
@@ -2092,16 +2100,16 @@ export class WebDropzone extends DropzoneEngine {
         const pipelineActive = !!this.config.uploadFileCallback;
         const out: string[] = [];
         if (pipelineActive && o.uploadingCount > 0) {
-            out.push(`<button type="button" class="dz__overall-progress__action" data-dz-action="pause-all">Pause all</button>`);
+            out.push(`<button type="button" class="dz__overall-progress__action" data-dz-action="pause-all">${escapeHtml(this.label('pauseAll'))}</button>`);
         }
         if (pipelineActive && o.pausedCount > 0) {
-            out.push(`<button type="button" class="dz__overall-progress__action" data-dz-action="resume-all">Resume all</button>`);
+            out.push(`<button type="button" class="dz__overall-progress__action" data-dz-action="resume-all">${escapeHtml(this.label('resumeAll'))}</button>`);
         }
         if (pipelineActive && o.uploadingCount + o.pendingCount + o.pausedCount > 0) {
-            out.push(`<button type="button" class="dz__overall-progress__action" data-dz-action="cancel-all">Cancel all</button>`);
+            out.push(`<button type="button" class="dz__overall-progress__action" data-dz-action="cancel-all">${escapeHtml(this.label('cancelAll'))}</button>`);
         }
         if (o.failedCount > 0) {
-            out.push(`<button type="button" class="dz__overall-progress__action" data-dz-action="retry-all">Retry all</button>`);
+            out.push(`<button type="button" class="dz__overall-progress__action" data-dz-action="retry-all">${escapeHtml(this.label('retryAll'))}</button>`);
         }
         return out.join('');
     }
@@ -2662,7 +2670,7 @@ export class WebDropzone extends DropzoneEngine {
 
         const rect = this.overlayTarget.getBoundingClientRect();
         const icon = this.config.overlayIcon || DEFAULT_CONFIG.overlayIcon;
-        const text = this.config.overlayText || DEFAULT_CONFIG.overlayText;
+        const text = this.label('overlay');
 
         // The overlay lives in light DOM (document.body) so it can cover any
         // target on the page, but the `.dz__overlay*` rules in _modifiers.css

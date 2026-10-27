@@ -111,10 +111,10 @@
                 id="overlay-compact"
                 style="display:none"
                 overlay-target="overlay-form-target"
-                overlay-text="Drop attachments onto the form"
                 overlay-icon="📨"
                 max-file-count="5"
-                accept="*/*">
+                accept="*/*"
+                labels='{"overlay": "Drop attachments onto the form"}'>
             </web-dropzone>
 
             <div id="overlay-form-target" class="mock-form">
@@ -158,8 +158,8 @@
                     multiple
                     accept=".pdf,.xlsx,.csv"
                     overlay-target="reports-card"
-                    overlay-text="Drop reports here"
-                    overlay-icon="📊">
+                    overlay-icon="📊"
+                    labels='{"overlay": "Drop reports here"}'>
                 </web-dropzone>
                 <small class="form-text" style="margin:0;">Click to browse, or drag onto the card. PDF / XLSX / CSV only.</small>
             </div>
@@ -190,9 +190,9 @@
                 <web-dropzone
                     id="overlay-fullpage"
                     display-mode="compact"
-                    overlay-text="Drop files anywhere on the page"
                     overlay-icon="⚡"
-                    accept="*/*">
+                    accept="*/*"
+                    labels='{"overlay": "Drop files anywhere on the page"}'>
                 </web-dropzone>
                 <div class="picked-files" id="fullpage-output">(none picked yet)</div>
             </div>

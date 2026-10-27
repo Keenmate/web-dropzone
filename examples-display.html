@@ -207,19 +207,19 @@ startBtn.addEventListener('click', () =&gt; dz.uploadAll())
 
                 <div class="form-group">
                     <label>native — button + text label, like &lt;input type="file"&gt;</label>
-                    <web-dropzone selector-appearance="native" list-appearance="none" accept="*/*" max-file-count="5" select-files-text="Choose Files"></web-dropzone>
-                    <small class="form-text">Mirrors the modern browser look. Empty: "No file chosen" · 1 file: filename · multiple: "N files chosen". Customize via <code>select-files-text</code> and <code>no-file-chosen-text</code>.</small>
+                    <web-dropzone selector-appearance="native" list-appearance="none" accept="*/*" max-file-count="5" labels='{"selectFiles": "Choose Files"}'></web-dropzone>
+                    <small class="form-text">Mirrors the modern browser look. Empty: "No file chosen" · 1 file: filename · multiple: "N files chosen". Customize via <code>labels</code> (<code>selectFiles</code>, <code>noFileChosen</code>).</small>
                 </div>
 
                 <div class="form-group">
                     <label>native + list below (combines with any list-appearance)</label>
-                    <web-dropzone selector-appearance="native" list-appearance="detailed" accept="*/*" max-file-count="5" select-files-text="Choose Files"></web-dropzone>
+                    <web-dropzone selector-appearance="native" list-appearance="detailed" accept="*/*" max-file-count="5" labels='{"selectFiles": "Choose Files"}'></web-dropzone>
                     <small class="form-text">The native label shows a summary; the full list still renders below per <code>list-appearance</code>.</small>
                 </div>
 
                 <div class="form-group">
                     <label>native + localized labels</label>
-                    <web-dropzone selector-appearance="native" list-appearance="none" accept="*/*" max-file-count="5" select-files-text="Vybrat soubory" no-file-chosen-text="Žádný soubor"></web-dropzone>
+                    <web-dropzone selector-appearance="native" list-appearance="none" accept="*/*" max-file-count="5" labels='{"selectFiles": "Vybrat soubory", "noFileChosen": "Žádný soubor"}'></web-dropzone>
                     <small class="form-text">Both labels are i18n-friendly.</small>
                 </div>
             </div>
@@ -243,18 +243,18 @@ startBtn.addEventListener('click', () =&gt; dz.uploadAll())
 
                 <div class="form-group">
                     <label>grid — image preview thumbnails</label>
-                    <web-dropzone list-appearance="grid" accept="image/*" max-file-count="6" prompt-text="Drop images"></web-dropzone>
+                    <web-dropzone list-appearance="grid" accept="image/*" max-file-count="6" labels='{"prompt": "Drop images"}'></web-dropzone>
                 </div>
 
                 <div class="form-group">
                     <label>badges — inline composite pills</label>
-                    <web-dropzone list-appearance="badges" accept="*/*" max-file-count="6" prompt-text="Drop files (badges appear inline)"></web-dropzone>
+                    <web-dropzone list-appearance="badges" accept="*/*" max-file-count="6" labels='{"prompt": "Drop files (badges appear inline)"}'></web-dropzone>
                     <small class="form-text">Same surface as <code>web-multiselect</code> badges. Default: file-type icons in the pill. Set <code>show-thumbnails</code> for image previews, or override <code>--dz-badge-icon-size: 0</code> to hide the slot entirely.</small>
                 </div>
 
                 <div class="form-group">
                     <label>badges with thumbnails — <code>show-thumbnails</code></label>
-                    <web-dropzone list-appearance="badges" show-thumbnails accept="image/*" max-file-count="6" prompt-text="Drop images for badge thumbnails"></web-dropzone>
+                    <web-dropzone list-appearance="badges" show-thumbnails accept="image/*" max-file-count="6" labels='{"prompt": "Drop images for badge thumbnails"}'></web-dropzone>
                 </div>
 
                 <div class="form-group">
@@ -314,7 +314,7 @@ startBtn.addEventListener('click', () =&gt; dz.uploadAll())
                         multiple
                         max-file-count="24"
                         max-visible-files="24"
-                        prompt-text="Drop images to tune the grid"></web-dropzone>
+                        labels='{"prompt": "Drop images to tune the grid"}'></web-dropzone>
                     <small class="form-text">No images handy? Any file works — non-images fall back to a type icon tile, the geometry still reshapes.</small>
                 </div>
 
@@ -440,9 +440,7 @@ startBtn.addEventListener('click', () =&gt; dz.uploadAll())
                         list-appearance="list"
                         accept="*/*"
                         max-file-count="5"
-                        prompt-text="Drop your files here"
-                        hint-text="PNG, JPG, PDF — up to 5 MB each"
-                        select-files-text="Browse files">
+                        labels='{"prompt": "Drop your files here", "hint": "PNG, JPG, PDF — up to 5 MB each", "selectFiles": "Browse files"}'>
                     </web-dropzone>
                 </div>
             </div>
@@ -456,17 +454,17 @@ startBtn.addEventListener('click', () =&gt; dz.uploadAll())
             <div class="grid">
                 <div class="form-group">
                     <label>files-inside + list</label>
-                    <web-dropzone files-inside list-appearance="list" accept="*/*" max-file-count="5" prompt-text="Drop files"></web-dropzone>
+                    <web-dropzone files-inside list-appearance="list" accept="*/*" max-file-count="5" labels='{"prompt": "Drop files"}'></web-dropzone>
                 </div>
 
                 <div class="form-group">
                     <label>files-inside + detailed</label>
-                    <web-dropzone files-inside list-appearance="detailed" accept="*/*" max-file-count="5" prompt-text="Drop files"></web-dropzone>
+                    <web-dropzone files-inside list-appearance="detailed" accept="*/*" max-file-count="5" labels='{"prompt": "Drop files"}'></web-dropzone>
                 </div>
 
                 <div class="form-group">
                     <label>files-inside + grid</label>
-                    <web-dropzone files-inside list-appearance="grid" accept="image/*" max-file-count="6" prompt-text="Drop images"></web-dropzone>
+                    <web-dropzone files-inside list-appearance="grid" accept="image/*" max-file-count="6" labels='{"prompt": "Drop images"}'></web-dropzone>
                 </div>
             </div>
         </div>
@@ -479,7 +477,7 @@ startBtn.addEventListener('click', () =&gt; dz.uploadAll())
             <div class="grid">
                 <div class="form-group">
                     <label>Inline attachments — button + badges</label>
-                    <web-dropzone selector-appearance="button" list-appearance="badges" accept="*/*" max-file-count="5" select-files-text="📎 Attach"></web-dropzone>
+                    <web-dropzone selector-appearance="button" list-appearance="badges" accept="*/*" max-file-count="5" labels='{"selectFiles": "📎 Attach"}'></web-dropzone>
                     <small class="form-text">Slack/Gmail-style attachment pattern.</small>
                 </div>
 
@@ -498,9 +496,7 @@ startBtn.addEventListener('click', () =&gt; dz.uploadAll())
                         accept="*/*"
                         max-file-count="3"
                         icon="☁️"
-                        prompt-text="Upload your portfolio"
-                        hint-text="Drag & drop or click below"
-                        select-files-text="Choose files">
+                        labels='{"prompt": "Upload your portfolio", "hint": "Drag & drop or click below", "selectFiles": "Choose files"}'>
                     </web-dropzone>
                 </div>
             </div>
@@ -595,12 +591,12 @@ startBtn.addEventListener('click', () =&gt; dz.uploadAll())
             <div class="grid">
                 <div class="form-group">
                     <label>Multiple (default)</label>
-                    <web-dropzone display-mode="detailed" prompt-text="Drop one or more files"></web-dropzone>
+                    <web-dropzone display-mode="detailed" labels='{"prompt": "Drop one or more files"}'></web-dropzone>
                 </div>
 
                 <div class="form-group">
                     <label>Single only</label>
-                    <web-dropzone multiple="false" display-mode="detailed" prompt-text="Drop a single file" hint-text="Replaces any existing selection"></web-dropzone>
+                    <web-dropzone multiple="false" display-mode="detailed" labels='{"prompt": "Drop a single file", "hint": "Replaces any existing selection"}'></web-dropzone>
                 </div>
             </div>
         </div>
@@ -613,17 +609,17 @@ startBtn.addEventListener('click', () =&gt; dz.uploadAll())
             <div class="grid">
                 <div class="form-group">
                     <label>Images only (<code>image/*</code>)</label>
-                    <web-dropzone accept="image/*" display-mode="grid" prompt-text="Drop images"></web-dropzone>
+                    <web-dropzone accept="image/*" display-mode="grid" labels='{"prompt": "Drop images"}'></web-dropzone>
                 </div>
 
                 <div class="form-group">
                     <label>PDF or Word (<code>.pdf,.doc,.docx</code>)</label>
-                    <web-dropzone accept=".pdf,.doc,.docx" display-mode="detailed" prompt-text="Drop documents"></web-dropzone>
+                    <web-dropzone accept=".pdf,.doc,.docx" display-mode="detailed" labels='{"prompt": "Drop documents"}'></web-dropzone>
                 </div>
 
                 <div class="form-group">
                     <label>Mixed (<code>image/*,.pdf,video/*</code>)</label>
-                    <web-dropzone accept="image/*,.pdf,video/*" display-mode="detailed" prompt-text="Drop images, PDFs, or videos"></web-dropzone>
+                    <web-dropzone accept="image/*,.pdf,video/*" display-mode="detailed" labels='{"prompt": "Drop images, PDFs, or videos"}'></web-dropzone>
                 </div>
             </div>
 
@@ -641,7 +637,7 @@ startBtn.addEventListener('click', () =&gt; dz.uploadAll())
             <div class="grid">
                 <div class="form-group">
                     <label>Disabled dropzone</label>
-                    <web-dropzone disabled display-mode="detailed" prompt-text="This dropzone is disabled"></web-dropzone>
+                    <web-dropzone disabled display-mode="detailed" labels='{"prompt": "This dropzone is disabled"}'></web-dropzone>
                 </div>
 
                 <div class="form-group">

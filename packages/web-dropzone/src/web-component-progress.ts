@@ -28,7 +28,7 @@ import {
     subscribeStoreEvents,
     createMicrotaskScheduler
 } from './satellite-base';
-import { escapeHtml, formatFileSize } from '@keenmate/web-dropzone-core';
+import { escapeHtml, formatFileSize, createLabelFn } from '@keenmate/web-dropzone-core';
 import type { DropzoneElement } from './web-component';
 import type { OverallProgress } from '@keenmate/web-dropzone-core';
 
@@ -42,6 +42,8 @@ export class DropzoneProgressElement extends SatelliteElement {
      * otherwise re-aggregate 400×/sec — overkill for a single bar.
      */
     private scheduleRefresh = createMicrotaskScheduler(() => this.refresh());
+    /** UI strings from the bound store's `labels`. */
+    private readonly label = createLabelFn(() => this.store?.getConfig().labels);
 
     constructor() {
         super();
@@ -74,7 +76,8 @@ export class DropzoneProgressElement extends SatelliteElement {
             'file-add':          () => this.scheduleRefresh(),
             'file-remove':        () => this.scheduleRefresh(),
             'change':              () => this.scheduleRefresh(),
-            'dz-config-changed':   () => this.scheduleRefresh(),
+            // Config change (e.g. `labels`): rebuild the action buttons too.
+            'dz-config-changed':   () => { delete this.container.dataset.dzButtonsSig; this.scheduleRefresh(); },
             'file-progress':       () => this.scheduleRefresh(),
             'file-status-change': () => this.scheduleRefresh()
         });
@@ -182,17 +185,17 @@ export class DropzoneProgressElement extends SatelliteElement {
     private renderActions(o: OverallProgress, pipelineActive: boolean): string {
         const out: string[] = [];
         if (pipelineActive && o.uploadingCount > 0) {
-            out.push(`<button type="button" class="dz__overall-progress__action" data-dz-action="pause-all">Pause all</button>`);
+            out.push(`<button type="button" class="dz__overall-progress__action" data-dz-action="pause-all">${escapeHtml(this.label('pauseAll'))}</button>`);
         }
         if (pipelineActive && o.pausedCount > 0) {
-            out.push(`<button type="button" class="dz__overall-progress__action" data-dz-action="resume-all">Resume all</button>`);
+            out.push(`<button type="button" class="dz__overall-progress__action" data-dz-action="resume-all">${escapeHtml(this.label('resumeAll'))}</button>`);
         }
         // Cancel all — only while something is uploading / queued / paused.
         if (pipelineActive && o.uploadingCount + o.pendingCount + o.pausedCount > 0) {
-            out.push(`<button type="button" class="dz__overall-progress__action" data-dz-action="cancel-all">Cancel all</button>`);
+            out.push(`<button type="button" class="dz__overall-progress__action" data-dz-action="cancel-all">${escapeHtml(this.label('cancelAll'))}</button>`);
         }
         if (o.failedCount > 0) {
-            out.push(`<button type="button" class="dz__overall-progress__action" data-dz-action="retry-all">Retry all</button>`);
+            out.push(`<button type="button" class="dz__overall-progress__action" data-dz-action="retry-all">${escapeHtml(this.label('retryAll'))}</button>`);
         }
         return out.join('');
     }

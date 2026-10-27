@@ -32,7 +32,7 @@ test.describe('drag feedback', () => {
         await expect(c).not.toHaveClass(/dz__dropzone--active/);
     });
 
-    test('drag-active-text replaces the prompt while a drag is over the card', async ({ page }) => {
+    test('labels.dragActive replaces the prompt while a drag is over the card', async ({ page }) => {
         const c = page.locator(card('drop'));
         await expect(c.locator('.dz__dropzone__text')).toHaveText('Drop here');
         await dragFiles(c, 'dragenter');

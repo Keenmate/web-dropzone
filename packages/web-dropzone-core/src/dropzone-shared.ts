@@ -24,7 +24,7 @@ import { FILE_TYPE_ICONS, UI_ICONS } from './icons';
  * is either a callback (no default) or a runtime-resolved reference
  * (`container`, `hostElement`, `overlayTarget`).
  */
-export const DEFAULT_CONFIG: Required<Omit<DropzoneConfig, 'fileIcons' | 'getFileIconCallback' | 'validateCallback' | 'beforeFilesAddCallback' | 'beforeFilesRemoveCallback' | 'beforeFileCancelCallback' | 'cancelIcon' | 'removeIcon' | 'uploadFileCallback' | 'renderFileItemCallback' | 'renderListWrapperCallback' | 'renderPromptCallback' | 'renderSummaryCallback' | 'getCustomStylesCallback' | 'persistStateCallback' | 'loadStateCallback' | 'storageKey' | 'container' | 'hostElement' | 'overlayTarget' | 'selectorAppearance' | 'listAppearance' | 'gridLayout' | 'gridStatus' | 'controls' | 'itemControls' | 'cardSize' | 'isShowThumbnailsEnabled' | 'retryPolicy' | 'rollingRotation' | 'isHeadless' | 'renderRollingBodyCallback' | 'renderRollingFileInfoCallback' | 'renderRollingProgressCallback'>> = {
+export const DEFAULT_CONFIG: Required<Omit<DropzoneConfig, 'fileIcons' | 'getFileIconCallback' | 'validateCallback' | 'beforeFilesAddCallback' | 'beforeFilesRemoveCallback' | 'beforeFileCancelCallback' | 'labels' | 'cancelIcon' | 'removeIcon' | 'uploadFileCallback' | 'renderFileItemCallback' | 'renderListWrapperCallback' | 'renderPromptCallback' | 'renderSummaryCallback' | 'getCustomStylesCallback' | 'persistStateCallback' | 'loadStateCallback' | 'storageKey' | 'container' | 'hostElement' | 'overlayTarget' | 'selectorAppearance' | 'listAppearance' | 'gridLayout' | 'gridStatus' | 'controls' | 'itemControls' | 'cardSize' | 'isShowThumbnailsEnabled' | 'retryPolicy' | 'rollingRotation' | 'isHeadless' | 'renderRollingBodyCallback' | 'renderRollingFileInfoCallback' | 'renderRollingProgressCallback'>> = {
     isMultipleEnabled: true,
     accept: '',
     maxFileSize: 0,
@@ -43,15 +43,9 @@ export const DEFAULT_CONFIG: Required<Omit<DropzoneConfig, 'fileIcons' | 'getFil
     displayMode: 'list',
     isFilesInsideEnabled: false,
     icon: UI_ICONS.cloudUpload,
-    promptText: 'Drop files here or click to browse',
-    selectFilesText: 'Select files',
-    noFileChosenText: 'No file chosen',
-    hintText: '',
-    dragActiveText: 'Drop files here',
     emptyMessage: 'No files selected',
     summaryTemplate: '{count} file(s), {size}',
     popoverPlacement: 'bottom-start',
-    overlayText: 'Drop files here',
     overlayIcon: UI_ICONS.upload,
     name: '',
     valueFormat: 'json',

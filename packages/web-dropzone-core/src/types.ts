@@ -23,6 +23,7 @@ import type {
     CustomStylesContext
 } from './interaction';
 import type { StatusSurfaceCallback } from './store-api';
+import type { DropzoneLabels } from './labels';
 
 /**
  * Display mode — single-axis legacy shorthand for the orthogonal
@@ -538,16 +539,14 @@ export interface DropzoneConfig {
     isFilesInsideEnabled?: boolean;
     /** Icon or emoji for the dropzone prompt */
     icon?: string;
-    /** Main text for the dropzone prompt */
-    promptText?: string;
-    /** Label text for the button selector (selectorAppearance='button' and 'native') */
-    selectFilesText?: string;
-    /** Empty-state label for the native selector (selectorAppearance='native'). Default: 'No file chosen' */
-    noFileChosenText?: string;
-    /** Hint text shown below the prompt (e.g., 'PNG, JPG up to 5MB') */
-    hintText?: string;
-    /** Text shown when dragging over the dropzone */
-    dragActiveText?: string;
+    /**
+     * UI strings (`labels` input) — a partial {@link DropzoneLabels} object
+     * merged per key over the built-in English defaults; `{name}` /
+     * `{count}` / `{status}` placeholders. Prompt, hint, drag-active,
+     * select-files, no-file-chosen, overlay text, status names, row and
+     * bulk-action buttons. Resolved through `resolveLabel`.
+     */
+    labels?: Partial<DropzoneLabels> | null;
     /** Message shown when no files are selected (in file list) */
     emptyMessage?: string;
 
@@ -566,8 +565,6 @@ export interface DropzoneConfig {
 
     /** Element or element ID that triggers a drag overlay (ultra-compact form integration) */
     overlayTarget?: HTMLElement | string | null;
-    /** Text shown in the drag overlay */
-    overlayText?: string;
     /** Icon for the drag overlay */
     overlayIcon?: string;
 

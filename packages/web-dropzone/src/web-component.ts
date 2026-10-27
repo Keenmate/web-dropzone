@@ -45,7 +45,7 @@ import {
 } from '@keenmate/web-components-core';
 import { WebDropzone } from './dropzone';
 import { linkStoreController, linkStoreReorder } from './store-link';
-import { initLogger, createDropzoneController } from '@keenmate/web-dropzone-core';
+import { initLogger, createDropzoneController, isLabelsValue } from '@keenmate/web-dropzone-core';
 import type {
     DropzoneController,
     DropzoneEngineHost,
@@ -76,7 +76,8 @@ import type {
     RollingRotation,
     CardSize,
     ValueFormat,
-    FileState
+    FileState,
+    DropzoneLabels
 } from '@keenmate/web-dropzone-core';
 
 // Import CSS as inline string for Shadow DOM injection
@@ -165,6 +166,25 @@ const list = <T extends string>(valid: readonly T[]): Converter<T[] | null> =>
         },
     );
 
+/**
+ * `labels` input: a partial `DropzoneLabels` object (property), or the same as
+ * a JSON attribute (`labels='{"cancelFile":"Zrušit {name}"}'`). Absent → null
+ * (built-in English). A malformed attribute is reported and the previous value
+ * kept (core's invalid-attribute rule). Merged per key at lookup time.
+ */
+const labelsConverter: Converter<Partial<DropzoneLabels> | null> = toCustom<Partial<DropzoneLabels> | null>(
+    (raw, reportInvalid) => {
+        if (raw == null || raw.trim() === '') return null;
+        try {
+            const parsed: unknown = JSON.parse(raw);
+            if (isLabelsValue(parsed)) return parsed;
+        } catch { /* reported below */ }
+        reportInvalid?.('expected a JSON object of strings');
+        return null;
+    },
+    { validate: (v): v is Partial<DropzoneLabels> | null => v == null || isLabelsValue(v) },
+);
+
 const CONTROL_TOKENS = ['picker', 'list', 'overall-progress'] as const;
 const ITEM_PART_TOKENS = ['icon', 'name', 'size', 'type', 'progress', 'status', 'action', 'cancel', 'remove'] as const;
 
@@ -206,11 +226,7 @@ const INPUTS: readonly InputDef[] = [
     { configKey: 'cancelIcon',              attribute: 'cancel-icon',         converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'HTML for the row Cancel (⊘) button glyph (raw HTML — NOT sanitized). Unset = built-in icon.' },
     { configKey: 'removeIcon',              attribute: 'remove-icon',         converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'HTML for the row Remove (✕) button glyph (raw HTML — NOT sanitized). Unset = built-in icon.' },
     { configKey: 'icon',                    attribute: 'icon',                converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'Prompt icon (emoji or markup).' },
-    { configKey: 'promptText',              attribute: 'prompt-text',         converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'Primary prompt text shown in the drop area.' },
-    { configKey: 'selectFilesText',         attribute: 'select-files-text',   converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'Label for the browse/select-files action.' },
-    { configKey: 'noFileChosenText',        attribute: 'no-file-chosen-text', converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'Text shown when no file has been chosen.' },
-    { configKey: 'hintText',                attribute: 'hint-text',           converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'Secondary hint text under the prompt.' },
-    { configKey: 'dragActiveText',          attribute: 'drag-active-text',    converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'Text shown while a drag is over the drop area.' },
+    { configKey: 'labels',                  attribute: 'labels',              converter: labelsConverter,                                                              on: 'update', type: 'Partial<DropzoneLabels>', description: 'UI strings, merged per key over the built-in English (`{name}` / `{count}` / `{status}` placeholders): prompt, hint, dragActive, selectFiles, noFileChosen, overlay, status names, row + bulk buttons. Property (object) or JSON attribute. Live.' },
     { configKey: 'emptyMessage',            attribute: 'empty-message',       converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'Message shown when the file list is empty.' },
 
     // ── Compact mode ──────────────────────────────────────────────────────────
@@ -228,7 +244,6 @@ const INPUTS: readonly InputDef[] = [
             toAttribute: (v) => (typeof v === 'string' && v !== '' ? v : null),
         },
     ), shouldReflect: true, on: 'update', type: 'HTMLElement | string', description: 'Element (or selector string) that acts as the full-viewport drag-overlay target. Assign an HTMLElement via the property; a selector string via the `overlay-target` attribute.' },
-    { configKey: 'overlayText',             attribute: 'overlay-text',        converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'Text shown in the drag overlay.' },
     { configKey: 'overlayIcon',             attribute: 'overlay-icon',        converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'Icon shown in the drag overlay.' },
 
     // ── Form integration ──────────────────────────────────────────────────────
@@ -706,6 +721,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
     declare cardSize: CardSize | null;
     declare valueFormat: ValueFormat;
     declare overlayTarget: HTMLElement | string | null;
+    declare labels: Partial<DropzoneLabels> | null;
 
     // ── public API ────────────────────────────────────────────────────────────
 

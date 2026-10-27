@@ -51,8 +51,7 @@
                         id="size-1mb"
                         max-file-size="1048576"
                         display-mode="detailed"
-                        prompt-text="Drop files ≤ 1 MB"
-                        hint-text="Larger files will be rejected">
+                        labels='{"prompt": "Drop files ≤ 1 MB", "hint": "Larger files will be rejected"}'>
                     </web-dropzone>
                     <div class="rejected-log" data-log-for="size-1mb"></div>
                 </div>
@@ -63,7 +62,7 @@
                         id="size-100k"
                         max-file-size="102400"
                         display-mode="detailed"
-                        prompt-text="Drop files ≤ 100 KB">
+                        labels='{"prompt": "Drop files ≤ 100 KB"}'>
                     </web-dropzone>
                     <div class="rejected-log" data-log-for="size-100k"></div>
                 </div>
@@ -82,7 +81,7 @@
                         id="count-3"
                         max-file-count="3"
                         display-mode="detailed"
-                        prompt-text="Drop up to 3 files">
+                        labels='{"prompt": "Drop up to 3 files"}'>
                     </web-dropzone>
                     <div class="rejected-log" data-log-for="count-3"></div>
                 </div>
@@ -93,7 +92,7 @@
                         id="count-1-single"
                         multiple="false"
                         display-mode="detailed"
-                        prompt-text="Drop a single file (replaces existing)">
+                        labels='{"prompt": "Drop a single file (replaces existing)"}'>
                     </web-dropzone>
                     <small class="form-text">Single mode replaces rather than rejects — no rejection event fires.</small>
                 </div>
@@ -111,8 +110,7 @@
                     id="type-images"
                     accept="image/*"
                     display-mode="detailed"
-                    prompt-text="Drop image files"
-                    hint-text="Non-image files will be rejected">
+                    labels='{"prompt": "Drop image files", "hint": "Non-image files will be rejected"}'>
                 </web-dropzone>
                 <div class="rejected-log" data-log-for="type-images"></div>
             </div>
@@ -128,7 +126,7 @@
                 <web-dropzone
                     id="custom-validate"
                     display-mode="detailed"
-                    prompt-text="Drop files (no spaces in names)">
+                    labels='{"prompt": "Drop files (no spaces in names)"}'>
                 </web-dropzone>
                 <div class="rejected-log" data-log-for="custom-validate"></div>
             </div>
@@ -156,8 +154,7 @@ el.validateCallback = ({ file, existingFiles }) => {
                     id="confirm-gate"
                     display-mode="detailed"
                     auto-upload="false"
-                    prompt-text="Drop a file (you'll get a confirm dialog)"
-                    hint-text="auto-upload is off so X always tests the remove gate (during upload the X cancels instead)">
+                    labels='{"prompt": "Drop a file (you&#39;ll get a confirm dialog)", "hint": "auto-upload is off so X always tests the remove gate (during upload the X cancels instead)"}'>
                 </web-dropzone>
                 <div class="rejected-log" data-log-for="confirm-gate"></div>
             </div>
@@ -193,8 +190,7 @@ el.beforeFilesRemoveCallback = async ({ files, allFiles }) =&gt; {
                     max-file-size="2097152"
                     max-file-count="3"
                     display-mode="grid"
-                    prompt-text="Drop images"
-                    hint-text="JPG/PNG, ≤ 2 MB, up to 3 files">
+                    labels='{"prompt": "Drop images", "hint": "JPG/PNG, ≤ 2 MB, up to 3 files"}'>
                 </web-dropzone>
                 <div class="rejected-log" data-log-for="combined"></div>
             </div>

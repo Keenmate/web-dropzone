@@ -219,21 +219,21 @@
             id="split-attach"
             style="display:none; --dz-overlay-bg: rgba(0, 120, 212, 0.92);"
             overlay-target="split-half-left"
-            overlay-text="Attach as file"
             overlay-icon="📎"
             multiple
             max-file-count="5"
-            accept="*/*">
+            accept="*/*"
+            labels='{"overlay": "Attach as file"}'>
         </web-dropzone>
 
         <web-dropzone
             id="split-onedrive"
             style="display:none; --dz-overlay-bg: rgba(20, 184, 166, 0.92);"
             overlay-target="split-half-right"
-            overlay-text="Share as OneDrive link"
             overlay-icon="☁️"
             multiple
-            accept="*/*">
+            accept="*/*"
+            labels='{"overlay": "Share as OneDrive link"}'>
         </web-dropzone>
 
         <script type="module">
@@ -380,37 +380,37 @@
             id="split-attach-2"
             style="display:none; --dz-overlay-bg: rgba(0, 120, 212, 0.92);"
             overlay-target="split-half-left-2"
-            overlay-text="A · Attach as file"
             overlay-icon="📎"
             multiple
-            accept="*/*">
+            accept="*/*"
+            labels='{"overlay": "A · Attach as file"}'>
         </web-dropzone>
         <web-dropzone
             id="split-onedrive-2"
             style="display:none; --dz-overlay-bg: rgba(20, 184, 166, 0.92);"
             overlay-target="split-half-right-2"
-            overlay-text="A · Share as link"
             overlay-icon="☁️"
             multiple
-            accept="*/*">
+            accept="*/*"
+            labels='{"overlay": "A · Share as link"}'>
         </web-dropzone>
         <web-dropzone
             id="split-attach-3"
             style="display:none; --dz-overlay-bg: rgba(99, 102, 241, 0.92);"
             overlay-target="split-half-left-3"
-            overlay-text="B · Attach as file"
             overlay-icon="📎"
             multiple
-            accept="*/*">
+            accept="*/*"
+            labels='{"overlay": "B · Attach as file"}'>
         </web-dropzone>
         <web-dropzone
             id="split-onedrive-3"
             style="display:none; --dz-overlay-bg: rgba(245, 158, 11, 0.92);"
             overlay-target="split-half-right-3"
-            overlay-text="B · Share as link"
             overlay-icon="☁️"
             multiple
-            accept="*/*">
+            accept="*/*"
+            labels='{"overlay": "B · Share as link"}'>
         </web-dropzone>
 
         <div class="card">
@@ -439,12 +439,12 @@
 &lt;!-- Hidden dropzones, each targeting one half --&gt;
 &lt;web-dropzone style="display:none; --dz-overlay-bg: rgba(0,120,212,0.92)"
               overlay-target="left-half"
-              overlay-text="Attach as file"
+              labels='{"overlay": "Attach as file"}'
               overlay-icon="📎"&gt;&lt;/web-dropzone&gt;
 
 &lt;web-dropzone style="display:none; --dz-overlay-bg: rgba(20,184,166,0.92)"
               overlay-target="right-half"
-              overlay-text="Share as OneDrive link"
+              labels='{"overlay": "Share as OneDrive link"}'
               overlay-icon="☁️"&gt;&lt;/web-dropzone&gt;</code></pre>
             </div>
         </div>

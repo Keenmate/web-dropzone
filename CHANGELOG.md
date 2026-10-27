@@ -65,6 +65,31 @@ server-side command, *clear* empties a set, *destroy* is the only teardown verb.
   second ✕ removed it. New `item-controls` token `cancel`; the glyphs are configurable as HTML via
   **`cancel-icon`** / **`remove-icon`** (`CANCEL_ICON` exported).
 
+### Changed — BREAKING (`labels`: one UI-string input)
+
+UI strings follow the cross-component i18n model: one **`labels`** input — a partial object merged
+**per key** over built-in English defaults, with `{name}` / `{count}` / `{status}` placeholders.
+Set it as a property (`el.labels = { cancelFile: 'Zrušit {name}' }`) or a JSON attribute
+(`labels='{"prompt":"Přetáhněte soubory"}'`); changes re-render live (satellites included). A
+malformed attribute warns and keeps the previous value. Every lookup goes through
+`resolveLabel(overrides, key, vars)` (exported with `DEFAULT_LABELS`, `createLabelFn`,
+`DropzoneLabels`) — the seam where page-wide localisation (core `/locale`) will slot in.
+
+| Removed | Use |
+|---|---|
+| `prompt-text` / `promptText` | `labels.prompt` |
+| `hint-text` / `hintText` | `labels.hint` |
+| `drag-active-text` / `dragActiveText` | `labels.dragActive` |
+| `no-file-chosen-text` / `noFileChosenText` | `labels.noFileChosen` |
+| `overlay-text` / `overlayText` | `labels.overlay` |
+| `select-files-text` / `selectFilesText` | `labels.selectFiles` |
+| `STATUS_LABELS` (export) | `labels.statusPending` … `statusCancelled` (+ `statusCancelling`, `statusAria: 'Status: {status}'`) |
+| `ACTION_LABELS` (export) | `labels.pauseFile` / `resumeFile` / `retryFile` (`'Pause {name}'` …) |
+
+New keys: `cancelFile`, `removeFile`, `cancelAll`, `pauseAll`, `resumeAll`, `retryAll`,
+`cancelling`, `cancelTimeout`. (`empty-message` / `summary-template` and the picker satellite's
+own `label` / `hint` / `no-file-chosen-text` attributes are unchanged.)
+
 ### Fixed — upload lifecycle
 
 - **Cancel during the auto-retry backoff** was ignored (the wake-up only checked pause /

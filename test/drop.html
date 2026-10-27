@@ -11,9 +11,9 @@
     <p>Targeted by <code>e2e/drop.spec.ts</code>.</p>
 
     <div class="fixture">
-        <div class="fixture-label">card — accept=".txt", max-file-count="3", drag-active-text</div>
+        <div class="fixture-label">card — accept=".txt", max-file-count="3", labels.dragActive</div>
         <web-dropzone id="drop" accept=".txt" max-file-count="3" display-mode="list"
-            prompt-text="Drop here" drag-active-text="Release to add"></web-dropzone>
+            labels='{"prompt": "Drop here", "dragActive": "Release to add"}'></web-dropzone>
         <pre class="event-log" data-testid="drop-log"></pre>
     </div>
 

@@ -80,9 +80,7 @@ export type { ValidationConfig } from './file-pipeline';
 // ---- Icons (shared SVG family + spinner factory) -----------------------
 export {
     STATUS_ICONS,
-    STATUS_LABELS,
     ACTION_ICONS,
-    ACTION_LABELS,
     actionForStatus,
     CANCEL_ICON,
     createDropzoneSpinner,
@@ -90,6 +88,18 @@ export {
     UI_ICONS
 } from './icons';
 export type { RowAction } from './icons';
+
+// ---- UI strings (`labels`) ----------------------------------------------
+export {
+    DEFAULT_LABELS,
+    resolveLabel,
+    createLabelFn,
+    defaultLabel,
+    statusLabel,
+    fileStatusLabel,
+    isLabelsValue
+} from './labels';
+export type { DropzoneLabels, DropzoneLabelKey, LabelFn, LabelVars } from './labels';
 
 // ---- Status-surface types ----------------------------------------------
 export type {

@@ -21,13 +21,13 @@
 
 import {
     STATUS_ICONS,
-    STATUS_LABELS,
     ACTION_ICONS,
-    ACTION_LABELS,
-    actionForStatus
+    actionForStatus,
+    defaultLabel,
+    fileStatusLabel
 } from '@keenmate/web-dropzone-core';
-import type { FileState, FileStatus } from '@keenmate/web-dropzone-core';
-import { progressLabel, isCancelOffered } from './row-templates';
+import type { FileState, LabelFn } from '@keenmate/web-dropzone-core';
+import { progressLabel, isCancelOffered, ACTION_LABEL_KEYS } from './row-templates';
 
 /**
  * Set the progress-bar fill's width. Idempotent — assigning the same
@@ -51,10 +51,11 @@ export function patchProgressFill(
 export function patchProgressText(
     row: HTMLElement,
     textClass: string,
-    file: FileState
+    file: FileState,
+    label: LabelFn = defaultLabel
 ): void {
     const el = row.querySelector(`.${textClass}`);
-    if (el) el.textContent = progressLabel(file);
+    if (el) el.textContent = progressLabel(file, label);
 }
 
 /**
@@ -66,14 +67,17 @@ export function patchProgressText(
 export function patchStatusIcon(
     row: HTMLElement,
     statusClass: string,
-    status: FileStatus
+    file: FileState,
+    label: LabelFn = defaultLabel
 ): void {
+    const status = file.status;
     const el = row.querySelector<HTMLElement>(`.${statusClass}`);
     if (!el || el.dataset.status === status) return;
     el.dataset.status = status;
     el.className = `${statusClass} ${statusClass}--${status}`;
-    el.title = STATUS_LABELS[status];
-    el.setAttribute('aria-label', `Status: ${STATUS_LABELS[status]}`);
+    const name = fileStatusLabel(label, file);
+    el.title = name;
+    el.setAttribute('aria-label', label('statusAria', { status: name }));
     el.innerHTML = STATUS_ICONS[status];
 }
 
@@ -134,7 +138,8 @@ export function patchCancelButton(
 export function patchActionButton(
     btn: HTMLElement | null,
     file: FileState,
-    baseClass: string
+    baseClass: string,
+    label: LabelFn = defaultLabel
 ): void {
     if (!btn) return;
     const action = actionForStatus(file.status);
@@ -148,8 +153,9 @@ export function patchActionButton(
     btn.innerHTML = action ? ACTION_ICONS[action] : '';
 
     if (action) {
-        btn.setAttribute('aria-label', `${ACTION_LABELS[action]} ${file.name}`);
-        btn.title = ACTION_LABELS[action];
+        const text = label(ACTION_LABEL_KEYS[action], { name: file.name });
+        btn.setAttribute('aria-label', text);
+        btn.title = text;
         btn.removeAttribute('tabindex');
         btn.removeAttribute('aria-hidden');
     } else {

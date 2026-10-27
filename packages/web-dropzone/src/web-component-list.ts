@@ -34,9 +34,11 @@ import {
     createImagePreview,
     formatFileSize,
     STATUS_ICONS,
-    STATUS_LABELS,
-    UI_ICONS
+    UI_ICONS,
+    statusLabel,
+    createLabelFn
 } from '@keenmate/web-dropzone-core';
+import type { FileStatus, LabelFn } from '@keenmate/web-dropzone-core';
 import {
     patchProgressFill,
     patchProgressText,
@@ -313,7 +315,7 @@ export class DropzoneListElement extends SatelliteElement {
         const iconClass = status === 'pending'
             ? 'dz__summary__icon'
             : `dz__summary__icon dz__summary__icon--${status}`;
-        const statusLabel = STATUS_LABELS[status as keyof typeof STATUS_LABELS] ?? '';
+        const statusName = statusLabel(this.label, status as FileStatus);
 
         const totalSize = files.reduce((sum, f) => sum + f.size, 0);
         const template = cfg.summaryTemplate || DEFAULT_SUMMARY_TEMPLATE;
@@ -324,7 +326,7 @@ export class DropzoneListElement extends SatelliteElement {
         this.container.innerHTML = `
             <div class="dz__summary">
                 <div class="dz__summary__line" tabindex="0" role="button" aria-label="Click to view files">
-                    <span class="${iconClass}" data-status="${status}" aria-label="Status: ${escapeHtml(statusLabel)}">${icon}</span>
+                    <span class="${iconClass}" data-status="${status}" aria-label="${escapeHtml(this.label('statusAria', { status: statusName }))}">${icon}</span>
                     <span class="dz__summary__text">${escapeHtml(text)}</span>
                 </div>
             </div>
@@ -362,6 +364,7 @@ export class DropzoneListElement extends SatelliteElement {
             removable: this.isFileUserRemovable(file),
             reorderEligible: this.isReorderEligible(file),
             hasUploadHandler: this.hasUploadHandler(file),
+            label: this.label,
             cancelIcon: cfg?.cancelIcon,
             removeIcon: cfg?.removeIcon
         };
@@ -371,6 +374,9 @@ export class DropzoneListElement extends SatelliteElement {
         // 'rolling' uses the list-item template for the front-file row.
         return renderListItem(file, opts);
     }
+
+    /** UI strings from the bound store's `labels` (built-in English before binding). */
+    private readonly label: LabelFn = createLabelFn(() => this.store?.getConfig().labels);
 
     /** The file has an upload handler (store-level or per-file, Mode B). */
     private hasUploadHandler(file: FileState): boolean {
@@ -730,11 +736,12 @@ export class DropzoneListElement extends SatelliteElement {
                 row.dataset.status = file.status;
                 row.className = `dz__badge dz__badge--${file.status}`;
             }
-            patchStatusIcon(row, 'dz__badge-status', file.status);
+            patchStatusIcon(row, 'dz__badge-status', file, this.label);
             patchActionButton(
                 row.querySelector<HTMLElement>('[data-dz-action="row-action"]'),
                 file,
-                'dz__badge-action'
+                'dz__badge-action',
+            this.label
             );
             patchRemoveButton(
                 row.querySelector<HTMLElement>('[data-dz-action="remove"]'),
@@ -754,13 +761,14 @@ export class DropzoneListElement extends SatelliteElement {
         const prefix = appearance === 'grid' ? 'dz__preview-item' : 'dz__file-item';
         patchProgressFill(row, `${prefix}__progress-fill`, file.progress);
         if (appearance !== 'grid') {
-            patchProgressText(row, `${prefix}__progress-text`, file);
+            patchProgressText(row, `${prefix}__progress-text`, file, this.label);
         }
-        patchStatusIcon(row, `${prefix}__status`, file.status);
+        patchStatusIcon(row, `${prefix}__status`, file, this.label);
         patchActionButton(
             row.querySelector<HTMLElement>('[data-dz-action="row-action"]'),
             file,
-            `${prefix}__action`
+            `${prefix}__action`,
+            this.label
         );
         patchRemoveButton(
             row.querySelector<HTMLElement>('[data-dz-action="remove"]'),

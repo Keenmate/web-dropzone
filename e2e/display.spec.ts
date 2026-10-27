@@ -4,7 +4,7 @@ import { test, expect, dz, dragFiles } from './fixtures';
  * Section 1 — selector-appearance.
  *
  * Fixture: test/display.html. Five dropzones, one per appearance variant
- * (plus a localized native to verify no-file-chosen-text + select-files-text).
+ * (plus a localized native to verify labels.noFileChosen + labels.selectFiles).
  */
 
 const PAGE = '/test/display.html';
@@ -26,7 +26,7 @@ test.describe('selector-appearance="card" (default)', () => {
 });
 
 test.describe('selector-appearance="button"', () => {
-    test('renders the accent button with the select-files-text label', async ({ page }) => {
+    test('renders the accent button with the labels.selectFiles label', async ({ page }) => {
         const btn = dz(page, 'button');
         await expect(btn.locator('.dz__button')).toBeVisible();
         await expect(btn.locator('.dz__button__label')).toHaveText('Pick files');
@@ -80,7 +80,7 @@ test.describe('selector-appearance="native"', () => {
     });
 });
 
-test.describe('native + custom no-file-chosen-text', () => {
+test.describe('native + labels.noFileChosen', () => {
     test('renders the localized empty-state label', async ({ page }) => {
         const i18n = dz(page, 'native-i18n');
         await expect(i18n.locator('.dz__native__button')).toHaveText('Vybrat soubory');
@@ -117,11 +117,10 @@ test.describe('text inputs', () => {
     const setAttr = (page: import('@playwright/test').Page, id: string, name: string, value: string) =>
         dz(page, id).evaluate(async (el: any, { name, value }) => { el.setAttribute(name, value); await el.whenSettled(); }, { name, value });
 
-    test('prompt-text and hint-text render in the card; live changes re-render', async ({ page }) => {
+    test('labels.prompt / labels.hint render in the card; live changes re-render', async ({ page }) => {
         await expect(card(page).locator('.dz__dropzone__text')).toHaveText('Drag reports here');
         await expect(card(page).locator('.dz__dropzone__hint')).toHaveText('Max 10 MB');
-        await setAttr(page, 'texts', 'prompt-text', 'Drop invoices');
-        await setAttr(page, 'texts', 'hint-text', 'PDF only');
+        await setAttr(page, 'texts', 'labels', JSON.stringify({ prompt: 'Drop invoices', hint: 'PDF only' }));
         await expect(card(page).locator('.dz__dropzone__text')).toHaveText('Drop invoices');
         await expect(card(page).locator('.dz__dropzone__hint')).toHaveText('PDF only');
     });
@@ -132,14 +131,14 @@ test.describe('text inputs', () => {
         await expect(dz(page, 'texts').locator('.dz__empty')).toHaveText('Still empty');
     });
 
-    test('overlay-text / overlay-icon render in the overlay; live changes apply to the next drag', async ({ page }) => {
+    test('labels.overlay / overlay-icon render in the overlay; live changes apply to the next drag', async ({ page }) => {
         await dragFiles(page.locator('body'), 'dragenter');
         await expect(page.locator('.dz__overlay__text')).toHaveText('Drop to attach');
         await expect(page.locator('.dz__overlay__icon')).toHaveText('📥');
         await page.keyboard.press('Escape');
         await expect(page.locator('.dz__overlay')).toHaveCount(0);
 
-        await setAttr(page, 'ov', 'overlay-text', 'Release!');
+        await dz(page, 'ov').evaluate(async (el: any) => { el.labels = { overlay: 'Release!' }; await el.whenSettled(); });
         await dragFiles(page.locator('body'), 'dragenter');
         await expect(page.locator('.dz__overlay__text')).toHaveText('Release!');
     });

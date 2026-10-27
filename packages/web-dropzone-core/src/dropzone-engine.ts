@@ -22,6 +22,7 @@
 import { fileLogger, initLogger, uiLogger } from './logger';
 import { dispatch, runBeforeCallback, withComponentContext } from '@keenmate/web-components-core';
 import { createDropzoneController, type DropzoneController } from './controller';
+import { createLabelFn, type LabelFn } from './labels';
 import type {
     DropzoneContext,
     DropzoneEngineEventName,
@@ -172,6 +173,13 @@ export class DropzoneEngine {
      * allocation per ctx).
      */
     readonly contextBase: DropzoneContext;
+
+    /**
+     * UI-string lookup over `config.labels` (per-key overrides → built-in
+     * English) — `label('cancelFile', { name })`. Reads the live config, so a
+     * `labels` change applies on the next render.
+     */
+    readonly label: LabelFn = createLabelFn(() => this.config.labels);
 
     constructor(element: HTMLElement, config: DropzoneConfig = {}, host?: DropzoneEngineHost) {
         this.element = element;

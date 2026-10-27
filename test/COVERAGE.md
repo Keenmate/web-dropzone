@@ -21,14 +21,14 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `selector-appearance="button"`                                | ✓      | `display.spec.ts` | `display.html` |
 | `selector-appearance="minimal"`                               | ✓      | `display.spec.ts` | `display.html` |
 | `selector-appearance="native"`                                | ✓      | `display.spec.ts` | `display.html` |
-| `no-file-chosen-text` empty-state label                       | ✓      | `display.spec.ts` | `display.html` |
-| `select-files-text` button label across variants              | ✓      | `appearance.spec.ts` | `appearance.html` |
+| `labels.noFileChosen` empty-state label                       | ✓      | `display.spec.ts` | `display.html` |
+| `labels.selectFiles` button label across variants             | ✓      | `appearance.spec.ts` | `appearance.html` |
 | `card-size="minimal" \| "compact" \| "big"`                   | ✓      | `appearance.spec.ts` | `appearance.html` |
 | `icon` attribute on minimal selector                          | ✓      | `display.spec.ts` | `display.html` |
 | Count badge on button when files exist                        | ✓      | `appearance.spec.ts` | `appearance.html` |
 | Count badge on minimal when files exist (follows remove / clear) | ✓   | `appearance.spec.ts` | `appearance.html` |
-| `prompt-text` / `hint-text` / `empty-message` + live update   | ✓      | `display.spec.ts` | `display.html` |
-| `overlay-text` / `overlay-icon` + live update                 | ✓      | `display.spec.ts` | `display.html` |
+| `labels.prompt` / `labels.hint` / `empty-message` + live update | ✓      | `display.spec.ts` | `display.html` |
+| `labels.overlay` / `overlay-icon` + live update               | ✓      | `display.spec.ts` | `display.html` |
 | `multiple` default / `multiple="false"` / `el.multiple` live on the native input + dialog | ✓ | `display.spec.ts` | `display.html` |
 
 ## 2. List appearance
@@ -152,7 +152,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `renderListWrapperCallback` (table layout)                    | ✓      | `structural.spec.ts` | `structural.html` |
 | `renderSummaryCallback` (popover summary)                     | ✓      | `events-extra.spec.ts` | `events-extra.html` |
 | Callbacks ignored when `mode!="structural"` (hard switch)     | ✓      | `structural.spec.ts` | `structural.html` |
-| A `"` in `accept` / `prompt-text` is escaped (structural + picker) | ✓ | `structural.spec.ts` (NOTES #15) | dynamic |
+| A `"` in `accept` / `labels.prompt` is escaped (structural + picker) | ✓ | `structural.spec.ts` (NOTES #15) | dynamic |
 
 ## 7. Architecture (satellites + headless)
 
@@ -258,7 +258,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Feature                                                       | Status | Spec          | Fixture     |
 | ------------------------------------------------------------- | :----: | ------------- | ----------- |
 | dragenter → `dz__dropzone--active`; dragover accepted; dragleave clears | ✓ | `drop.spec.ts` | `drop.html` |
-| `drag-active-text` replaces the prompt during a drag          | ✓      | `drop.spec.ts` | `drop.html` |
+| `labels.dragActive` replaces the prompt during a drag         | ✓      | `drop.spec.ts` | `drop.html` |
 | Drop adds files (`file-add` per file, one `change`)           | ✓      | `drop.spec.ts` | `drop.html` |
 | Dropped files run validation (type + count rejects)           | ✓      | `drop.spec.ts` | `drop.html` |
 | Button appearance is a drop target                            | ✓      | `drop.spec.ts` | `drop.html` |
@@ -378,3 +378,13 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `cancelAll()` — uploading / pending / paused cancelled, complete untouched, gate once, resolves after all | ✓ | `cancel.spec.ts` | `cancel.html` |
 | `cancelAll()` veto keeps everything running                    | ✓      | `cancel.spec.ts` | `cancel.html` |
 | "Cancel all" in `<web-dropzone-progress>` (next to Pause all; only while active) + in-element strip | ✓ | `cancel.spec.ts` | `cancel.html` |
+
+## 24. UI strings (`labels`)
+
+| Feature                                                       | Status | Spec              | Fixture       |
+| ------------------------------------------------------------- | :----: | ----------------- | ------------- |
+| Built-in English defaults (prompt, row buttons, status, bulk) | ✓      | `labels.spec.ts` | `cancel.html` |
+| Property: per-key merge, `{name}` / `{status}` placeholders, live re-render, `null` resets | ✓ | `labels.spec.ts` | `cancel.html` |
+| JSON attribute; malformed JSON warns + keeps the previous value | ✓    | `labels.spec.ts` | `cancel.html` |
+| `cancelling` / `cancelTimeout` strings                         | ✓      | `labels.spec.ts` | `cancel.html` |
+| List + progress satellites follow the store labels (live)      | ✓      | `labels.spec.ts` | `cancel.html` |

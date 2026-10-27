@@ -19,7 +19,7 @@
 
     <div class="fixture">
         <div class="fixture-label">button</div>
-        <web-dropzone id="button" selector-appearance="button" list-appearance="list" accept="*/*" select-files-text="Pick files"></web-dropzone>
+        <web-dropzone id="button" selector-appearance="button" list-appearance="list" accept="*/*" labels='{"selectFiles": "Pick files"}'></web-dropzone>
     </div>
 
     <div class="fixture">
@@ -29,12 +29,12 @@
 
     <div class="fixture">
         <div class="fixture-label">native (button + plain label, like &lt;input type="file"&gt;)</div>
-        <web-dropzone id="native" selector-appearance="native" list-appearance="none" accept="*/*" select-files-text="Choose Files"></web-dropzone>
+        <web-dropzone id="native" selector-appearance="native" list-appearance="none" accept="*/*" labels='{"selectFiles": "Choose Files"}'></web-dropzone>
     </div>
 
     <div class="fixture">
-        <div class="fixture-label">native + custom no-file-chosen-text</div>
-        <web-dropzone id="native-i18n" selector-appearance="native" list-appearance="none" accept="*/*" select-files-text="Vybrat soubory" no-file-chosen-text="Žádný soubor"></web-dropzone>
+        <div class="fixture-label">native + labels (selectFiles / noFileChosen)</div>
+        <web-dropzone id="native-i18n" selector-appearance="native" list-appearance="none" accept="*/*" labels='{"selectFiles": "Vybrat soubory", "noFileChosen": "Žádný soubor"}'></web-dropzone>
     </div>
 
     <div class="fixture">
@@ -44,15 +44,15 @@
     </div>
 
     <div class="fixture">
-        <div class="fixture-label">prompt-text / hint-text / empty-message</div>
+        <div class="fixture-label">labels (prompt / hint) / empty-message</div>
         <web-dropzone id="texts" selector-appearance="card" list-appearance="list" accept="*/*"
-            prompt-text="Drag reports here" hint-text="Max 10 MB" empty-message="Nothing uploaded yet"></web-dropzone>
+            labels='{"prompt": "Drag reports here", "hint": "Max 10 MB"}' empty-message="Nothing uploaded yet"></web-dropzone>
     </div>
 
     <div class="fixture">
-        <div class="fixture-label">overlay-text / overlay-icon</div>
+        <div class="fixture-label">labels.overlay / overlay-icon</div>
         <div id="ov-target" style="min-height: 60px; border: 1px dashed #cbd5e0;">overlay target</div>
-        <web-dropzone id="ov" overlay-target="ov-target" overlay-text="Drop to attach" overlay-icon="📥" accept="*/*" style="display:none"></web-dropzone>
+        <web-dropzone id="ov" overlay-target="ov-target" labels='{"overlay": "Drop to attach"}' overlay-icon="📥" accept="*/*" style="display:none"></web-dropzone>
     </div>
 
     <script type="module">

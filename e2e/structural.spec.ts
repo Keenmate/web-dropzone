@@ -107,14 +107,14 @@ test.describe('selector markup', () => {
         expect(result).toEqual({ accept, isInjected: false });
     });
 
-    test('the picker satellite (bulk mode) escapes a quote in `accept` and `prompt-text` too', async ({ page }) => {
+    test('the picker satellite (bulk mode) escapes a quote in `accept` and `labels.prompt` too', async ({ page }) => {
         const value = 'x" data-injected="1';
         const result = await page.evaluate(async (value) => {
             const el = document.createElement('web-dropzone') as any;
             el.id = 'accept-quote-bulk';
             el.setAttribute('display-mode', 'list');
             el.setAttribute('accept', value);
-            el.setAttribute('prompt-text', value);
+            el.labels = { prompt: value };
             document.body.append(el);
             await el.whenSettled();
             await new Promise((r) => requestAnimationFrame(r));

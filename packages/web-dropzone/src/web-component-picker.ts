@@ -20,7 +20,7 @@ import {
     subscribeStoreEvents,
     resolveEnumAttribute
 } from './satellite-base';
-import { escapeHtml, UI_ICONS } from '@keenmate/web-dropzone-core';
+import { escapeHtml, UI_ICONS, createLabelFn } from '@keenmate/web-dropzone-core';
 import type { DropzoneElement } from './web-component';
 import type {
     SelectorAppearance,
@@ -32,10 +32,6 @@ const SELECTOR_APPEARANCES = ['card', 'button', 'minimal', 'native'] as const;
 const CARD_SIZES = ['minimal', 'compact', 'big'] as const;
 
 const DEFAULT_ICON = UI_ICONS.cloudUpload;
-const DEFAULT_PROMPT = 'Drop files here or click to browse';
-const DEFAULT_DRAG_ACTIVE = 'Drop files here';
-const DEFAULT_SELECT_TEXT = 'Select files';
-const DEFAULT_NO_FILE_TEXT = 'No file chosen';
 
 export class DropzonePickerElement extends SatelliteElement {
     protected readonly satelliteTagName = 'web-dropzone-picker';
@@ -44,6 +40,8 @@ export class DropzonePickerElement extends SatelliteElement {
     private inputEl: HTMLInputElement | null = null;
     private dragActive = false;
     private dragCounter = 0;
+    /** UI strings from the bound store's `labels` (the picker's own attributes win). */
+    private readonly label = createLabelFn(() => this.store?.getConfig().labels);
 
     // Mode B per-picker upload binding (see ARCHITECTURE.md). These are
     // JS-only properties — there's no HTML attribute equivalent because the
@@ -154,17 +152,15 @@ export class DropzonePickerElement extends SatelliteElement {
 
         const acceptAttr = this.getAttribute('accept') ?? storeCfg.accept ?? '';
         const multipleAttr = this.resolveMultiple(storeCfg.isMultipleEnabled);
-        const label = this.getAttribute('label')
-            ?? storeCfg.selectFilesText
-            ?? DEFAULT_SELECT_TEXT;
+        const label = this.getAttribute('label') ?? this.label('selectFiles');
         const icon = this.getAttribute('icon') ?? storeCfg.icon ?? DEFAULT_ICON;
-        const hint = this.getAttribute('hint') ?? storeCfg.hintText ?? '';
+        const hint = this.getAttribute('hint') ?? this.label('hint');
 
         // Card: the hidden input IS the keyboard control — name it after the
         // prompt (not the transient drag text). Button / minimal / native
         // render their own <button>, so the input leaves the tab order (one
         // tab stop per selector).
-        const promptText = this.getAttribute('label') ?? storeCfg.promptText ?? DEFAULT_PROMPT;
+        const promptText = this.getAttribute('label') ?? this.label('prompt');
         const inputA11yAttrs = appearance === 'card'
             ? `aria-label="${escapeHtml(promptText)}"`
             : 'tabindex="-1" aria-hidden="true"';
@@ -213,9 +209,7 @@ export class DropzonePickerElement extends SatelliteElement {
                 </div>
             `;
         } else if (appearance === 'native') {
-            const noFileText = this.getAttribute('no-file-chosen-text')
-                ?? storeCfg.noFileChosenText
-                ?? DEFAULT_NO_FILE_TEXT;
+            const noFileText = this.getAttribute('no-file-chosen-text') ?? this.label('noFileChosen');
             const files = this.store.getFiles();
             const labelText = files.length === 0
                 ? noFileText
@@ -232,7 +226,7 @@ export class DropzonePickerElement extends SatelliteElement {
         } else {
             // card
             const text = this.dragActive
-                ? (storeCfg.dragActiveText ?? DEFAULT_DRAG_ACTIVE)
+                ? this.label('dragActive')
                 : promptText;
             const hintHtml = hint
                 ? `<div class="dz__dropzone__hint">${escapeHtml(hint)}</div>`
@@ -410,10 +404,9 @@ export class DropzonePickerElement extends SatelliteElement {
         dz.classList.toggle('dz__dropzone--active', active);
         const textEl = dz.querySelector('.dz__dropzone__text');
         if (textEl) {
-            const storeCfg = this.store?.getConfig() ?? {};
             textEl.textContent = active
-                ? (storeCfg.dragActiveText ?? DEFAULT_DRAG_ACTIVE)
-                : (this.getAttribute('label') ?? storeCfg.promptText ?? DEFAULT_PROMPT);
+                ? this.label('dragActive')
+                : (this.getAttribute('label') ?? this.label('prompt'));
         }
     }
 

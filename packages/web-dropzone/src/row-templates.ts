@@ -24,13 +24,23 @@ import {
     isImageFile,
     escapeHtml,
     STATUS_ICONS,
-    STATUS_LABELS,
     ACTION_ICONS,
-    ACTION_LABELS,
     CANCEL_ICON,
-    actionForStatus
+    actionForStatus,
+    defaultLabel,
+    fileStatusLabel
 } from '@keenmate/web-dropzone-core';
-import type { FileState, FileItemPart, FileIconOverrides } from '@keenmate/web-dropzone-core';
+import type { FileState, FileItemPart, FileIconOverrides, LabelFn, RowAction } from '@keenmate/web-dropzone-core';
+
+/** The label key of a row action button (aria-label / tooltip, `{name}` = file). */
+export const ACTION_LABEL_KEYS = { pause: 'pauseFile', resume: 'resumeFile', retry: 'retryFile' } as const satisfies Record<RowAction, string>;
+
+/** Status pill — glyph + the status name as tooltip / accessible name (`labels`). */
+export function renderStatusPill(file: FileState, cls: string, label: LabelFn = defaultLabel): string {
+    const name = escapeHtml(fileStatusLabel(label, file));
+    const aria = escapeHtml(label('statusAria', { status: fileStatusLabel(label, file) }));
+    return `<span class="${cls} ${cls}--${file.status}" title="${name}" aria-label="${aria}" data-status="${file.status}">${STATUS_ICONS[file.status]}</span>`;
+}
 
 export { escapeHtml };
 
@@ -100,6 +110,8 @@ export interface RowTemplateOptions {
     cancelIcon?: string;
     /** `remove-icon` — HTML for the Remove glyph (default: the CSS-masked ✕). */
     removeIcon?: string;
+    /** UI-string lookup (the store's `labels`); default: built-in English. */
+    label?: LabelFn;
 }
 
 /**
@@ -122,7 +134,8 @@ export function renderCancelButton(file: FileState, baseClass: string, opts: Row
     const cls = offered ? `${baseClass} dz__cancel` : `${baseClass} dz__cancel ${baseClass}--hidden`;
     const inert = offered ? '' : ' tabindex="-1" aria-hidden="true"';
     const disabled = file.status === 'cancelling' ? ' disabled' : '';
-    return `<button type="button" class="${cls}" data-dz-action="cancel" data-file-id="${file.id}" aria-label="Cancel ${escapeHtml(file.name)}" title="Cancel"${inert}${disabled}>${opts.cancelIcon || CANCEL_ICON}</button>`;
+    const text = escapeHtml((opts.label ?? defaultLabel)('cancelFile', { name: file.name }));
+    return `<button type="button" class="${cls}" data-dz-action="cancel" data-file-id="${file.id}" aria-label="${text}" title="${text}"${inert}${disabled}>${opts.cancelIcon || CANCEL_ICON}</button>`;
 }
 
 /**
@@ -130,9 +143,9 @@ export function renderCancelButton(file: FileState, baseClass: string, opts: Row
  * the file isn't user-removable, disabled while `cancelling`. A `remove-icon`
  * replaces the CSS-masked glyph (`data-custom-icon` switches the mask off).
  */
-export function renderRemoveButton(file: FileState, baseClass: string, removable = true, icon?: string): string {
+export function renderRemoveButton(file: FileState, baseClass: string, removable = true, icon?: string, label: LabelFn = defaultLabel): string {
     const custom = icon ? ' data-custom-icon' : '';
-    return `<button type="button" ${removeButtonAttrs(file, baseClass, removable)}${custom}>${icon ?? ''}</button>`;
+    return `<button type="button" ${removeButtonAttrs(file, baseClass, removable, label)}${custom}>${icon ?? ''}</button>`;
 }
 
 /**
@@ -153,13 +166,13 @@ export function renderPlaceholderInner(file: FileState, useThumbnail: boolean, i
  * `--hidden` modifier hides the button visually and drops it from the tab
  * order.
  */
-export function renderRowActionButton(file: FileState, baseClass: string): string {
+export function renderRowActionButton(file: FileState, baseClass: string, labelFn: LabelFn = defaultLabel): string {
     const action = actionForStatus(file.status);
     const hidden = !action;
     const cls = hidden ? `${baseClass} ${baseClass}--hidden` : baseClass;
     const inert = hidden ? ' tabindex="-1" aria-hidden="true"' : '';
-    const label = action ? `${ACTION_LABELS[action]} ${escapeHtml(file.name)}` : '';
-    const title = action ? ACTION_LABELS[action] : '';
+    const label = action ? escapeHtml(labelFn(ACTION_LABEL_KEYS[action], { name: file.name })) : '';
+    const title = label;
     const dataAction = action ?? '';
     const icon = action ? ACTION_ICONS[action] : '';
     return `<button type="button" class="${cls}" data-dz-action="row-action" data-row-action="${dataAction}" data-file-id="${file.id}" aria-label="${label}" title="${title}"${inert}>${icon}</button>`;
@@ -169,39 +182,40 @@ export function renderRowActionButton(file: FileState, baseClass: string): strin
  * Text next to a row's progress bar: the percent, or "Cancelling…" while a
  * cancel waits for the upload handler to settle.
  */
-export function progressLabel(file: FileState): string {
-    return file.status === 'cancelling' ? STATUS_LABELS.cancelling : `${file.progress.toFixed(1)}%`;
+export function progressLabel(file: FileState, label: LabelFn = defaultLabel): string {
+    return file.status === 'cancelling' ? label('cancelling') : `${file.progress.toFixed(1)}%`;
 }
 
 /**
  * Attribute block for the always-rendered remove button. Hidden buttons
  * stay in the DOM (layout reserved) but are inert.
  */
-export function removeButtonAttrs(file: FileState, baseClass: string, removable = true): string {
+export function removeButtonAttrs(file: FileState, baseClass: string, removable = true, label: LabelFn = defaultLabel): string {
     const cls = removable ? baseClass : `${baseClass} ${baseClass}--hidden`;
     const inert = removable ? '' : ' tabindex="-1" aria-hidden="true"';
     // Disabled while a cancel is waiting for the handler to settle.
     const disabled = file.status === 'cancelling' ? ' disabled' : '';
-    return `class="${cls}" data-dz-action="remove" data-file-id="${file.id}" aria-label="Remove ${escapeHtml(file.name)}"${inert}${disabled}`;
+    return `class="${cls}" data-dz-action="remove" data-file-id="${file.id}" aria-label="${escapeHtml(label('removeFile', { name: file.name }))}"${inert}${disabled}`;
 }
 
 export function renderListItem(file: FileState, opts: RowTemplateOptions = {}): string {
     const reorderAttr = opts.reorderEligible ? ' data-reorder-bucket="complete"' : '';
     const removable = opts.removable !== false;
     const p = opts.parts;
+    const label = opts.label ?? defaultLabel;
     return `
         <div class="dz__file-item dz__file-item--list" data-file-id="${file.id}" data-status="${file.status}"${reorderAttr}>
             ${showPart(p, 'name') ? `<span class="dz__file-item__name">${escapeHtml(file.name)}</span>` : ''}
-            ${showPart(p, 'action') ? renderRowActionButton(file, 'dz__file-item__action') : ''}
+            ${showPart(p, 'action') ? renderRowActionButton(file, 'dz__file-item__action', label) : ''}
             ${showPart(p, 'cancel') ? renderCancelButton(file, 'dz__file-item__action', opts) : ''}
             ${showPart(p, 'progress') ? `<div class="dz__file-item__progress">
                 <div class="dz__file-item__progress-bar">
                     <div class="dz__file-item__progress-fill" style="width: ${file.progress}%"></div>
                 </div>
-                <span class="dz__file-item__progress-text">${progressLabel(file)}</span>
+                <span class="dz__file-item__progress-text">${progressLabel(file, label)}</span>
             </div>` : ''}
-            ${showPart(p, 'status') ? `<span class="dz__file-item__status dz__file-item__status--${file.status}" title="${STATUS_LABELS[file.status]}" aria-label="Status: ${STATUS_LABELS[file.status]}" data-status="${file.status}">${STATUS_ICONS[file.status]}</span>` : ''}
-            ${showPart(p, 'remove') ? renderRemoveButton(file, 'dz__file-item__remove', removable, opts.removeIcon) : ''}
+            ${showPart(p, 'status') ? renderStatusPill(file, 'dz__file-item__status', label) : ''}
+            ${showPart(p, 'remove') ? renderRemoveButton(file, 'dz__file-item__remove', removable, opts.removeIcon, label) : ''}
         </div>
     `;
 }
@@ -213,6 +227,7 @@ export function renderDetailedItem(file: FileState, opts: RowTemplateOptions = {
     const reorderAttr = opts.reorderEligible ? ' data-reorder-bucket="complete"' : '';
     const removable = opts.removable !== false;
     const p = opts.parts;
+    const label = opts.label ?? defaultLabel;
     const showSize = showPart(p, 'size');
     const showType = showPart(p, 'type');
     const meta = (showSize || showType) ? `<div class="dz__file-item__meta">
@@ -229,13 +244,13 @@ export function renderDetailedItem(file: FileState, opts: RowTemplateOptions = {
                     <div class="dz__file-item__progress-bar">
                         <div class="dz__file-item__progress-fill" style="width: ${file.progress}%"></div>
                     </div>
-                    <span class="dz__file-item__progress-text">${progressLabel(file)}</span>
+                    <span class="dz__file-item__progress-text">${progressLabel(file, label)}</span>
                 </div>` : ''}
             </div>
-            ${showPart(p, 'action') ? renderRowActionButton(file, 'dz__file-item__action') : ''}
+            ${showPart(p, 'action') ? renderRowActionButton(file, 'dz__file-item__action', label) : ''}
             ${showPart(p, 'cancel') ? renderCancelButton(file, 'dz__file-item__action', opts) : ''}
-            ${showPart(p, 'status') ? `<span class="dz__file-item__status dz__file-item__status--${file.status}" title="${STATUS_LABELS[file.status]}" aria-label="Status: ${STATUS_LABELS[file.status]}" data-status="${file.status}">${STATUS_ICONS[file.status]}</span>` : ''}
-            ${showPart(p, 'remove') ? renderRemoveButton(file, 'dz__file-item__remove', removable, opts.removeIcon) : ''}
+            ${showPart(p, 'status') ? renderStatusPill(file, 'dz__file-item__status', label) : ''}
+            ${showPart(p, 'remove') ? renderRemoveButton(file, 'dz__file-item__remove', removable, opts.removeIcon, label) : ''}
         </div>
     `;
 }
@@ -246,6 +261,7 @@ export function renderGridItem(file: FileState, opts: RowTemplateOptions = {}): 
     const reorderAttr = opts.reorderEligible ? ' data-reorder-bucket="complete"' : '';
     const removable = opts.removable !== false;
     const p = opts.parts;
+    const label = opts.label ?? defaultLabel;
     const inner = !showPart(p, 'icon')
         ? ''
         : isImage && useThumbnail && file.previewUrl
@@ -262,14 +278,14 @@ export function renderGridItem(file: FileState, opts: RowTemplateOptions = {}): 
             ${showName ? `<div class="dz__preview-item__overlay">
                 <span class="dz__preview-item__name">${escapeHtml(file.name)}</span>
             </div>` : ''}
-            ${showPart(p, 'status') ? `<span class="dz__preview-item__status dz__preview-item__status--${file.status}" title="${STATUS_LABELS[file.status]}" aria-label="Status: ${STATUS_LABELS[file.status]}" data-status="${file.status}">${STATUS_ICONS[file.status]}</span>` : ''}
+            ${showPart(p, 'status') ? renderStatusPill(file, 'dz__preview-item__status', label) : ''}
             ${showPart(p, 'progress') ? `<div class="dz__preview-item__progress-bar">
                 <div class="dz__preview-item__progress-fill" style="width: ${file.progress}%"></div>
             </div>` : ''}
             ${(showAction || showCancel || showRemove) ? `<div class="dz__preview-item__hover-actions">
-                ${showAction ? renderRowActionButton(file, 'dz__preview-item__action') : ''}
+                ${showAction ? renderRowActionButton(file, 'dz__preview-item__action', label) : ''}
                 ${showCancel ? renderCancelButton(file, 'dz__preview-item__action', opts) : ''}
-                ${showRemove ? renderRemoveButton(file, 'dz__preview-item__remove', removable, opts.removeIcon) : ''}
+                ${showRemove ? renderRemoveButton(file, 'dz__preview-item__remove', removable, opts.removeIcon, label) : ''}
             </div>` : ''}
         </div>
     `;
@@ -282,16 +298,17 @@ export function renderBadgeItem(file: FileState, opts: RowTemplateOptions = {}):
     const reorderAttr = opts.reorderEligible ? ' data-reorder-bucket="complete"' : '';
     const removable = opts.removable !== false;
     const p = opts.parts;
+    const label = opts.label ?? defaultLabel;
     return `
         <span class="dz__badge ${statusClass}" data-file-id="${file.id}" data-status="${file.status}"${reorderAttr}>
             <span class="dz__badge-text" title="${escapeHtml(file.name)}">
                 ${showPart(p, 'icon') ? `<span class="dz__badge-icon">${inner}</span>` : ''}
                 ${showPart(p, 'name') ? `<span class="dz__badge-name">${escapeHtml(file.name)}</span>` : ''}
-                ${showPart(p, 'action') ? renderRowActionButton(file, 'dz__badge-action') : ''}
+                ${showPart(p, 'action') ? renderRowActionButton(file, 'dz__badge-action', label) : ''}
                 ${showPart(p, 'cancel') ? renderCancelButton(file, 'dz__badge-action', opts) : ''}
-                ${showPart(p, 'status') ? `<span class="dz__badge-status dz__badge-status--${file.status}" title="${STATUS_LABELS[file.status]}" aria-label="Status: ${STATUS_LABELS[file.status]}" data-status="${file.status}">${STATUS_ICONS[file.status]}</span>` : ''}
+                ${showPart(p, 'status') ? renderStatusPill(file, 'dz__badge-status', label) : ''}
             </span>
-            ${showPart(p, 'remove') ? renderRemoveButton(file, 'dz__badge-remove', removable, opts.removeIcon) : ''}
+            ${showPart(p, 'remove') ? renderRemoveButton(file, 'dz__badge-remove', removable, opts.removeIcon, label) : ''}
         </span>
     `;
 }

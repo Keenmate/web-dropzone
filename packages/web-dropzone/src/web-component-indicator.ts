@@ -41,9 +41,10 @@ import {
 import {
     escapeHtml,
     STATUS_ICONS,
-    STATUS_LABELS,
     createDropzoneSpinner,
-    formatFileSize
+    formatFileSize,
+    fileStatusLabel,
+    createLabelFn
 } from '@keenmate/web-dropzone-core';
 import {
     buildStatusSurfaceArgs,
@@ -493,7 +494,7 @@ export class DropzoneIndicatorElement extends SatelliteElement {
         const status = args.currentFile.status as FileStatus;
         // Static glyph for non-uploading focal states (paused / error /
         // complete). Returned as a string so it memoizes by equality.
-        return `<span class="dz__indicator__file-info__icon" data-status="${status}" title="${STATUS_LABELS[status]}">${STATUS_ICONS[status]}</span>`;
+        return `<span class="dz__indicator__file-info__icon" data-status="${status}" title="${escapeHtml(fileStatusLabel(createLabelFn(() => this.store?.getConfig().labels), args.currentFile))}">${STATUS_ICONS[status]}</span>`;
     }
 
     /**
@@ -547,8 +548,7 @@ if (typeof customElements !== 'undefined' && !customElements.get('web-dropzone-i
 export {
     formatFileSize,
     createDropzoneSpinner,
-    STATUS_ICONS,
-    STATUS_LABELS
+    STATUS_ICONS
 } from '@keenmate/web-dropzone-core';
 export type {
     StatusSurfaceArgs,

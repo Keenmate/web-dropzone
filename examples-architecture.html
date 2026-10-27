@@ -713,7 +713,7 @@ store.addEventListener('files-change', (e) =&gt; {
         // satellite uses for per-row actions — reused here for the
         // floating indicator's control buttons so the visual language is
         // consistent across surfaces.
-        import { createDropzoneSpinner, ACTION_ICONS, ACTION_LABELS } from '/src/index.ts';
+        import { createDropzoneSpinner, ACTION_ICONS, resolveLabel } from '/src/index.ts';
         import { simulateUpload, wireQueueControlButton } from '/examples-shared.js';
 
         // ============================================================
@@ -1074,7 +1074,7 @@ store.addEventListener('files-change', (e) =&gt; {
                     btn.removeAttribute('tabindex');
                     btn.innerHTML = ACTION_ICONS[next];
                     sizeSvgIn(btn);
-                    const lbl = ACTION_LABELS[next];
+                    const lbl = resolveLabel(null, `${next}All`);
                     btn.setAttribute('aria-label', lbl);
                     btn.title = lbl;
                 }

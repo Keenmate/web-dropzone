@@ -12,20 +12,20 @@
 
     <button id="start" type="button">start</button>
     <div class="fixture">
-        <div class="fixture-label">card, prompt-text="Drop reports"</div>
-        <web-dropzone id="card" accept="*/*" display-mode="list" prompt-text="Drop reports"></web-dropzone>
+        <div class="fixture-label">card, labels.prompt="Drop reports"</div>
+        <web-dropzone id="card" accept="*/*" display-mode="list" labels='{"prompt": "Drop reports"}'></web-dropzone>
     </div>
     <button id="after-card" type="button">after card</button>
 
     <div class="fixture">
-        <div class="fixture-label">button, select-files-text="Browse files"</div>
-        <web-dropzone id="btn" accept="*/*" selector-appearance="button" list-appearance="list" select-files-text="Browse files"></web-dropzone>
+        <div class="fixture-label">button, labels.selectFiles="Browse files"</div>
+        <web-dropzone id="btn" accept="*/*" selector-appearance="button" list-appearance="list" labels='{"selectFiles": "Browse files"}'></web-dropzone>
     </div>
     <button id="after-btn" type="button">after button</button>
 
     <div class="fixture">
-        <div class="fixture-label">minimal, prompt-text="Attach files"</div>
-        <web-dropzone id="min" accept="*/*" selector-appearance="minimal" list-appearance="list" prompt-text="Attach files"></web-dropzone>
+        <div class="fixture-label">minimal, labels.prompt="Attach files"</div>
+        <web-dropzone id="min" accept="*/*" selector-appearance="minimal" list-appearance="list" labels='{"prompt": "Attach files"}'></web-dropzone>
     </div>
 
     <div class="fixture">
