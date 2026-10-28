@@ -15,6 +15,8 @@ import { DEFAULT_CONFIG } from './dropzone-shared';
 export interface DropzoneController {
     /** `true` once the store is built (the `ready` event fired) and until it is torn down. */
     readonly isReady: boolean;
+    /** `true` while any file is pending / uploading / paused / cancelling (`false` with no store). */
+    readonly hasActiveUploads: boolean;
 
     // ---- add / remove -------------------------------------------------------
     /** Add files programmatically (validation + `beforeFilesAddCallback` apply). */
@@ -95,7 +97,7 @@ const METHODS = {
     cancelAll: () => Promise.resolve(),
     resumeAll: () => Promise.resolve(),
     retryAll: () => undefined
-} satisfies Record<Exclude<keyof DropzoneController, 'isReady'>, () => unknown>;
+} satisfies Record<Exclude<keyof DropzoneController, 'isReady' | 'hasActiveUploads'>, () => unknown>;
 
 /**
  * Build a controller that delegates to `getTarget()` on every call. The
@@ -113,6 +115,10 @@ export function createDropzoneController(getTarget: () => DropzoneEngine | undef
     Object.defineProperty(controller, 'isReady', {
         enumerable: true,
         get: () => !!getTarget()
+    });
+    Object.defineProperty(controller, 'hasActiveUploads', {
+        enumerable: true,
+        get: () => !!getTarget()?.hasActiveUploads
     });
     return controller as unknown as DropzoneController;
 }

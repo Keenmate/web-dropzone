@@ -19,6 +19,15 @@ callback and store-access API below is breaking.
 - **BREAKING** `getFile(id)` → `getFileById(id)`, returning `FileState | null` (was `undefined` when
   missing) — element, `controller`, headless `DropzoneEngine`.
 
+### Added (round 2)
+
+- `hasActiveUploads` (element getter + `controller` + headless engine): `true` while any file is pending /
+  uploading / paused / cancelling.
+- `warn-before-unload` / `shouldWarnBeforeUnload` (default off): the browser's `beforeunload` prompt while
+  `hasActiveUploads` (only while connected).
+- README "Leaving the page / the view": graceful exit (`await cancelAll(); destroy()`), an SPA router guard,
+  removal without keep-alive.
+
 ### Fixed (round 2)
 
 - The row / popover progress text ("Cancelling…") is inserted escaped like every other label.

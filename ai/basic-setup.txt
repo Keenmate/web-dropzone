@@ -124,6 +124,7 @@ addFiles(files)                    Promise<void>
 removeFile(id, { confirm? })       Promise<void>
 removeFiles(ids, { confirm? })     Promise<void>
 clear({ confirm? })                Promise<void>
+hasActiveUploads (getter)          boolean: pending / uploading / paused / cancelling
 getFileById(id)                    FileState | null
 updateFileProgress(id, percent)    void   (app-driven uploads)
 setFileStatus(id, status, error?)  void   (app-driven uploads)
@@ -136,7 +137,7 @@ destroy()                          final teardown (core): aborts uploads, elemen
 release() / whenReady()            core: build a `defer`-held element / await 1st build
 
 el.controller (DropzoneController) has the same methods plus getFiles(),
-getConfig(), getOverallProgress(), and isReady. See typescript-types.txt.
+getConfig(), getOverallProgress(), isReady and hasActiveUploads. See typescript-types.txt.
 
 PROPERTIES
 ----------
@@ -154,6 +155,7 @@ dz.shouldAutoUpload              <-> auto-upload
 dz.isUploadedFileRemovalAllowed  <-> allow-uploaded-file-removal
 dz.shouldSinkCompleted           <-> sink-completed
 dz.shouldKeepAliveWhenRemoved    <-> keep-alive-when-removed
+dz.shouldWarnBeforeUnload        <-> warn-before-unload  (beforeunload prompt while dz.hasActiveUploads)
 dz.renderMode                    <-> render-mode   (bulk | structural | headless)
 
 PROPERTY WRITES ARE COALESCED

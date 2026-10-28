@@ -97,6 +97,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `el.target.files` snapshot in sync at dispatch                | ✓      | `events.spec.ts` | `events.html` |
 | Public methods: `addFiles`, `removeFile`, `removeFiles` (batch, gate once), `clear` | ✓      | `api.spec.ts`    | `api.html`    |
 | Public method: `getFileById(id)` / `(missing)` → null           | ✓      | `api.spec.ts`    | `api.html`    |
+| `hasActiveUploads` (element + controller) / `warn-before-unload` prompt | ✓      | `api.spec.ts`    | `api.html`    |
 | Public methods: `pauseFile` / `cancelFile`                    | ✓      | `api.spec.ts`    | `api.html`    |
 | Public methods: `resumeFile`, `retryFile`                     | ✓      | `upload-edge.spec.ts` | `upload-edge.html` |
 | Public methods: `pauseAll`, `resumeAll`, `retryAll`           | ✓      | `upload-edge.spec.ts` | `upload-edge.html` |

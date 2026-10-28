@@ -126,6 +126,7 @@ dropzone.controller.clear();
 | `cancel-icon` / `remove-icon` | `string` (raw HTML) | built-in | Row ⊘ Cancel / ✕ Remove glyphs — see the [XSS notice](#html-injection-xss-notice) |
 | `sink-completed` | `boolean` | `false` | Auto-move completed files to the end of the list (after `sink-completed-delay`) |
 | `keep-alive-when-removed` | `boolean` | `false` | Keep the store and its uploads when the element is removed from the page |
+| `warn-before-unload` | `boolean` | `false` | Browser leave-page prompt (`beforeunload`) while `hasActiveUploads` |
 | `overlay-icon` | `string` (raw HTML) | Lucide `upload` | Icon shown in drag overlay. Accepts any HTML (SVG / `<img>` / emoji) — see the [XSS notice](#html-injection-xss-notice) |
 
 ## Display Modes
@@ -341,7 +342,7 @@ The following properties / callbacks accept **raw HTML** and are intentionally *
 
 ## Methods
 
-The same methods (plus `getFiles()`, `getConfig()`, `getOverallProgress()` and `isReady`) are on `dropzone.controller` — the `DropzoneController` facade every event detail and callback ctx carries.
+The same methods (plus `getFiles()`, `getConfig()`, `getOverallProgress()`, `isReady` and `hasActiveUploads`) are on `dropzone.controller` — the `DropzoneController` facade every event detail and callback ctx carries.
 
 | Method | Description |
 |--------|-------------|
@@ -355,6 +356,7 @@ The same methods (plus `getFiles()`, `getConfig()`, `getOverallProgress()` and `
 | `destroy()` | Final teardown (core): aborts running uploads at once, clears the form value; the element stays inert |
 | `release()` / `whenReady()` | Core: build a `defer`-held element / await the first build |
 | `getFileById(id: string)` | The file with this id, or `null` |
+| `hasActiveUploads` (getter) | `true` while any file is `pending` / `uploading` / `paused` / `cancelling` |
 | `updateFileProgress(id: string, progress: number)` | Update upload progress (0-100) |
 | `setFileStatus(id: string, status, error?)` | Set file status (pending/uploading/complete/error) |
 
@@ -399,8 +401,9 @@ your server-side cleanup, **destroy** is the final teardown (`el.destroy()`).
 - `cancelAll()` / **Cancel all** cancels every uploading / queued / paused file
   (`beforeFilesCancelCallback` is asked once with all of them).
 - The row **✕** (and `removeFile`) on a running file cancels it first, then removes it.
-- Removing `<web-dropzone>` from the page cancels everything the same way, then destroys the
-  store (a DOM move keeps it). `keep-alive-when-removed` opts out.
+- Removing `<web-dropzone>` from the page cancels everything the same way (graceful: handlers
+  get their signal + `cancel-timeout`), then destroys the store (a DOM move keeps it). The element
+  stays reusable — re-adding it builds a fresh, empty store. `keep-alive-when-removed` opts out.
 
 **Server-side cleanup is the app's job.** A cancelled upload may have left a partial file or an
 open session on the server; `file-cancel` tells you what the handler knew:
@@ -425,6 +428,28 @@ dropzone.addEventListener('file-cancel', ({ detail }) => {
 dropzone.beforeFilesCancelCallback = async ({ files }) =>
   (await myConfirm(`Cancel ${files.length} upload(s)?`)) ? undefined : false;
 ```
+
+### Leaving the page / the view
+
+`hasActiveUploads` is `true` while any file is pending, uploading, paused or cancelling.
+
+- **Reload / close the tab:** `warn-before-unload` shows the browser's leave-page prompt while
+  uploads are active (off by default; only while the element is connected).
+- **Graceful exit** (finish with the cancel rule, then tear down for good):
+  `await dropzone.cancelAll(); dropzone.destroy();` — `destroy()` alone aborts at once.
+- **SPA navigation** — guard the route yourself:
+
+```javascript
+router.beforeEach(async () => {
+  if (!dropzone.hasActiveUploads) return true;
+  if (!confirm('Uploads are still running. Leave and cancel them?')) return false;
+  await dropzone.cancelAll(); // handlers get their signal; resolves when settled
+  return true;
+});
+```
+
+- **Just removing the element** (no `keep-alive-when-removed`) already cancels gracefully and
+  leaves an empty, reusable element — no extra code needed.
 
 ## Labels (i18n)
 
