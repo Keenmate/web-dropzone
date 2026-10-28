@@ -207,7 +207,7 @@ Font sizes use unitless multipliers that get multiplied by `--dz-rem`:
 This enables integration with theme-designer's `--base-*` variables:
 - `--base-font-family` - Font family
 - `--base-font-size-xs`, `--base-font-size-sm`, etc. - Unitless multipliers
-- `--base-accent-color`, `--base-border-color`, etc. - Color variables
+- `--base-primary-color`, `--base-border-color`, etc. - Color variables
 
 ### Consistency with web-multiselect / web-daterangepicker
 

@@ -36,5 +36,14 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 # needed (unlike the raw-HTML sibling components).
 COPY --from=build /app/dist-examples /usr/share/nginx/html
 
+# Inject the Plausible analytics snippet into every served page, right after the
+# opening <head>. The snippet lives in plausible-snippet.html (gitignored + kept
+# out of the examples build, so `make dev` serves untracked, analytics-free
+# HTML); sed's `r` reads it in and appends it after the matched line.
+COPY --from=build /app/plausible-snippet.html /tmp/plausible-snippet.html
+RUN for f in /usr/share/nginx/html/*.html; do \
+        [ -f "$f" ] && sed -i '/<head>/r /tmp/plausible-snippet.html' "$f"; \
+    done; rm /tmp/plausible-snippet.html
+
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

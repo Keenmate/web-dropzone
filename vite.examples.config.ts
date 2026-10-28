@@ -40,10 +40,13 @@ const corePkg = JSON.parse(
   readFileSync('./packages/web-dropzone-core/package.json', 'utf-8')
 );
 
-// Every root *.html file is its own entry point (multi-page build).
+// Every root *.html file is its own entry point (multi-page build), except
+// plausible-snippet.html — it's an injected <head> fragment, not a page. The
+// Dockerfile seds it into every served page's <head>; building it as an entry
+// would emit a broken standalone page (and it's gitignored/analytics-only).
 const htmlInputs = Object.fromEntries(
   readdirSync('.')
-    .filter((f) => f.endsWith('.html'))
+    .filter((f) => f.endsWith('.html') && f !== 'plausible-snippet.html')
     .map((f) => [f.replace(/\.html$/, ''), resolve(__dirname, f)])
 );
 

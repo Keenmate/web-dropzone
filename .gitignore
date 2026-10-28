@@ -50,3 +50,7 @@ dist-examples/
 
 # Per-developer Make overrides (container runner, image name, port)
 .makefile.env
+
+# Plausible analytics fragment — injected into served pages by the Docker
+# build only, so `make dev` serves untracked, analytics-free HTML.
+plausible-snippet.html

@@ -52,7 +52,10 @@
       "Bash(podman run *)",
       "Bash(podman logs *)",
       "Bash(npm i *)",
-      "Bash(podman images *)"
+      "Bash(podman images *)",
+      "Bash(cd /tmp/wcc-check)",
+      "Bash(grep -rn \"from ['\\\\\"]loglevel\\\\|require\\(['\\\\\"]loglevel\" package/dist)",
+      "Read(//c/Git/KM/web-multiselect/**)"
     ],
     "deny": [],
     "ask": []
