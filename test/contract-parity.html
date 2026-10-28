@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — contract parity</title>
+    <style>
+        web-dropzone { display: block; max-width: 360px; }
+    </style>
+</head>
+<body>
+    <h1>contract parity</h1>
+    <p>Targeted by <code>e2e/contract-parity.spec.ts</code>: one plain dropzone, no theme of its own.
+       The spec renders it with and without <code>@keenmate/base-css-variables</code>.</p>
+
+    <web-dropzone id="parity" accept="*/*" display-mode="list"></web-dropzone>
+
+    <script type="module">
+        import '/src/index.ts';
+    </script>
+</body>
+</html>

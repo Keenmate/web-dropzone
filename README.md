@@ -545,16 +545,22 @@ Use `--dz-rem` for global scaling:
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `--dz-accent-color` | `#3b82f6` | Primary accent color |
-| `--dz-text-color-1` | `#111827` | Primary text color |
-| `--dz-text-color-2` | `#6b7280` | Secondary text color |
-| `--dz-border-color` | `#e5e7eb` | Border color |
-| `--dz-dropzone-bg` | `#ffffff` | Dropzone background |
-| `--dz-dropzone-bg-active` | `#eff6ff` | Background when dragging over |
-| `--dz-dropzone-border` | `2px dashed #e5e7eb` | Border style |
-| `--dz-dropzone-border-active` | `2px dashed #3b82f6` | Border when dragging over |
+| `--dz-text-color-1` | `#334155` / `#f1f5f9` | Primary text color |
+| `--dz-text-color-2` | text 1, 75% into `--dz-main-bg` | Secondary text color |
+| `--dz-main-bg` | `#ffffff` / `#1e293b` | Surface the derived colors start from |
+| `--dz-border-color` | `--dz-main-bg`, OKLCH step | Border color |
+| `--dz-dropzone-bg` | `--dz-main-bg` | Dropzone background |
+| `--dz-dropzone-bg-active` | accent 5% | Background when dragging over |
+| `--dz-dropzone-border` | `2px dashed` border color | Border style |
+| `--dz-dropzone-border-active` | `2px solid` accent | Border when dragging over |
 | `--dz-dropzone-border-radius` | `0.8rem` | Border radius |
 | `--dz-success-color` | `#10b981` | Success state color |
-| `--dz-error-color` | `#ef4444` | Error state color |
+| `--dz-error-color` | `#dc2626` | Error state color |
+
+Light / dark values follow `color-scheme`. The defaults are those of
+[`@keenmate/base-css-variables`](https://www.npmjs.com/package/@keenmate/base-css-variables): derived
+colors use the contract's formulas on the `--dz-*` inputs, so the dropzone looks the same with or
+without the contract on the page.
 
 For the complete list of CSS variables, see [_variables.css](./src/css/_variables.css).
 

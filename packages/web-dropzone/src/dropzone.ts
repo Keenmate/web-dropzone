@@ -2748,7 +2748,7 @@ export class WebDropzone extends DropzoneEngine {
             Object.assign(this.dragOverlay.style, {
                 filter: themeVar('--dz-overlay-hover-filter', 'brightness(1.12) saturate(1.05)'),
                 border: themeVar('--dz-overlay-hover-border', '3px solid #ffffff'),
-                boxShadow: themeVar('--dz-overlay-hover-shadow', '0 10px 36px var(--base-shadow-color, rgba(0, 0, 0, 0.25))'),
+                boxShadow: themeVar('--dz-overlay-hover-shadow', `0 10px 36px ${themeVar('--dz-shadow-color', 'rgba(0, 0, 0, 0.15)')}`),
                 transition: 'filter 140ms ease, border-color 140ms ease, box-shadow 140ms ease',
             });
             this.dragOverlay.classList.add('dz__overlay--hover');

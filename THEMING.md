@@ -25,7 +25,7 @@ web-dropzone {
 
 ## Shared theme layer (`--base-*`)
 
-The `--dz-*` tokens fall back to the KeenMate theme taxonomy, so a page theme (Theme Designer / pure-admin) themes the dropzone without any `--dz-*` override.
+The `--dz-*` tokens read [`@keenmate/base-css-variables`](https://www.npmjs.com/package/@keenmate/base-css-variables), so a page theme (Theme Designer / pure-admin) themes the dropzone without any `--dz-*` override. Without the contract on the page the fallbacks give the same colors: inputs fall back to the contract defaults (accent `#3b82f6`), derived tokens (hover, tints, text levels, borders, text on the accent) to the contract's formula on the `--dz-*` input — so `--dz-accent-color` alone re-colors its hover, tint and text. `npm run check:contract` and `e2e/contract-parity.spec.ts` keep it that way.
 
 | Variable | Usage |
 |---|---|
@@ -33,18 +33,20 @@ The `--dz-*` tokens fall back to the KeenMate theme taxonomy, so a page theme (T
 | `--base-primary-color-hover` | Hover state for accent surfaces. |
 | `--base-primary-color-active` | Pressed state for accent surfaces. |
 | `--base-primary-bg-subtle` | Light tint of accent — selected-row backgrounds, range highlights. |
+| `--base-primary-bg-subtle-hover` | Hover on the accent tint. |
 | `--base-text-color-1` | Primary body text — file names, dropzone prompt. |
 | `--base-text-color-2` | Secondary text — file metadata, summary line. |
 | `--base-shadow-color` | Shadow colour for the popover, drag indicator and overlay hover (one tone with pure-admin) |
 | `--base-text-color-3` | Muted text — hints, empty state, file-size labels. |
+| `--base-text-color-4` | Faint text — decorative, disabled. |
 | `--base-on-primary-text-color` | Text laid over accent surfaces — progress fill labels. |
 | `--base-main-bg` | Primary surface — dropzone card, popover body, file-item background. |
 | `--base-elevated-bg` | Elevated surface — popover header/footer, secondary buttons. |
-| `--base-hover-bg` | Adaptive hover background (chains through color-mix of text into main-bg at 8%). |
+| `--base-hover-bg` | Hover overlay — preview-tile and button hover (standalone: the contract formula on --dz-main-bg). |
 | `--base-border-color` | Default border / separator color — dropzone dashed border, item separator. |
 | `--base-danger-color` | Validation errors, error-state borders, remove-button hover. |
-| `--base-success-color` | Completed-upload borders + status icon. Component-local extension to the canonical taxonomy. |
-| `--base-warning-color` | Warning-state borders + status icon. Component-local extension to the canonical taxonomy. |
+| `--base-success-color` | Completed-upload borders + status icon. |
+| `--base-warning-color` | Warning-state borders + status icon. |
 | `--base-font-family` | Font family for all component text. |
 | `--base-font-size-xs` | Smallest text — hints, badge font, popover limits. |
 | `--base-font-size-sm` | Standard text — prompts, item names, buttons. |
@@ -100,8 +102,10 @@ The `--dz-*` tokens fall back to the KeenMate theme taxonomy, so a page theme (T
 | `--dz-background` | background |
 | `--dz-border-color` | border color |
 | `--dz-hover-bg` | hover bg |
+| `--dz-main-bg` | main bg — the contract input surfaces, text levels and borders derive from |
 | `--dz-primary-bg` | primary bg |
 | `--dz-primary-bg-hover` | primary bg hover |
+| `--dz-shadow-color` | shadow color — popover, drag indicator, overlay hover |
 | `--dz-surface-color` | surface color |
 
 ### badges

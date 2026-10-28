@@ -89,6 +89,31 @@ completed, or metadata stashed) — wire the server DELETE there.
   keeps only its first file; the rest are rejected (code `count`) instead of firing `file-add` for
   files that were never added.
 
+### Changed — standalone colors follow `@keenmate/base-css-variables`
+
+Without the contract on the page the fallbacks had drifted from it (a `light-dark()` accent with a
+lighter `#60a5fa` dark branch, fixed `#2563eb` / `#1d4ed8` hover / pressed, gray-scale text and a
+`#1a1a1a` dark surface, `#ef4444` danger, four different shadow alphas). Inputs now fall back to
+the contract defaults and derived colors to the contract's formula on the `--dz-*` input, so the
+dropzone looks the same with and without the contract, and `--dz-accent-color` alone re-colors its
+hover, pressed, tint and text.
+
+- **Accent:** `--dz-accent-color` `#3b82f6` in both modes; hover / active = 15% / 30% toward black
+  (light) or white (dark); tint `--dz-accent-color-light(-hover)` 10% / 15% light, 20% / 30% dark
+  (was 15% / 22%); `--dz-text-on-accent` black or white by APCA (was always white).
+- **Surfaces and text:** new `--dz-main-bg` (`#ffffff` / `#1e293b`); `--dz-background` reads it.
+  Text levels 2–4 are mixes of `--dz-text-color-1` (`#334155` / `#f1f5f9`) into it;
+  `--dz-text-color-4` now reads `--base-text-color-4`. Elevated surface, hover overlay and border
+  are the contract's OKLCH steps from `--dz-main-bg`.
+- **Status:** `--dz-error-color` `#dc2626`, success / warning single values (the contract's), no
+  separate dark branch.
+- **Shadows:** new `--dz-shadow-color` (`rgba(0, 0, 0, 0.15)` / `0.4`) for the popover, drag
+  indicator and the overlay hover (resolved from the host, the overlay lives on `<body>`).
+- **Tooling:** `check:contract` (`base-contract-check`) runs in the package build
+  (`packages/web-dropzone/contract-check.json` allows the inherited font); `e2e/contract-parity.spec.ts`
+  compares every color token standalone vs. with the contract (light, dark, custom accent).
+  devDependency `@keenmate/base-css-variables` `^2.0.0-rc05`.
+
 ### Changed — BREAKING (naming glossary)
 
 Verbs follow the shared glossary: *cancel* stops a running operation, *abort* is only the

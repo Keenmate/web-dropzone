@@ -32,7 +32,8 @@
     "component-variables.manifest.json"
   ],
   "scripts": {
-    "build": "npm run clean && vite build && tsc -b",
+    "build": "npm run clean && npm run check:contract && vite build && tsc -b",
+    "check:contract": "base-contract-check src",
     "build:types": "tsc -b",
     "clean": "rimraf dist tsconfig.tsbuildinfo",
     "test:unit": "vitest run",
@@ -66,6 +67,7 @@
     "@keenmate/web-dropzone-core": "1.0.0-rc03"
   },
   "devDependencies": {
+    "@keenmate/base-css-variables": "^2.0.0-rc05",
     "happy-dom": "^15.11.7",
     "vitest": "^2.1.9"
   }

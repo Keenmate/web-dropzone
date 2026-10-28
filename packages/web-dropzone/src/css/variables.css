@@ -74,39 +74,47 @@
      COLORS & THEME
      ==========================================================================
      Two-layer pattern per guidelines/web-components/base-variables.md:
-     `--dz-*` is declared here against the canonical `--base-*` taxonomy.
+     `--dz-*` is declared here against the canonical `--base-*` taxonomy
+     (@keenmate/base-css-variables). Without the contract on the page the
+     fallbacks give the same colors: inputs fall back to the contract defaults,
+     derived tokens to the contract's FORMULA on the --dz-* input — so
+     overriding --dz-accent-color standalone brings its hover, tint and text
+     along. Checked by `npm run check:contract` and e2e/contract-parity.spec.ts.
      Fallbacks use `light-dark(<light>, <dark>)` so a consumer who declares
      `color-scheme` once at :root gets OS-aware dark mode for free; explicit
      framework-class and per-instance overrides live in dark-mode.css. */
 
   /* Accent Colors */
-  --dz-accent-color: var(--base-primary-color, light-dark(#3b82f6, #60a5fa));
-  --dz-accent-color-hover: var(--base-primary-color-hover, light-dark(#2563eb, #3b82f6));
-  --dz-accent-color-active: var(--base-primary-color-active, light-dark(#1d4ed8, #2563eb));
+  --dz-accent-color: var(--base-primary-color, #3b82f6);
+  --dz-accent-color-hover: var(--base-primary-color-hover, light-dark(color-mix(in srgb, black 15%, var(--dz-accent-color)), color-mix(in srgb, white 15%, var(--dz-accent-color))));
+  --dz-accent-color-active: var(--base-primary-color-active, light-dark(color-mix(in srgb, black 30%, var(--dz-accent-color)), color-mix(in srgb, white 30%, var(--dz-accent-color))));
+
+  /* Contract inputs the formulas below derive from */
+  --dz-main-bg: var(--base-main-bg, light-dark(#ffffff, #1e293b));
+  --dz-shadow-color: var(--base-shadow-color, light-dark(rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.4)));
 
   /* Accent Light Tints (selected-row backgrounds, range highlights) */
-  --dz-accent-color-light: var(--base-primary-bg-subtle,
-    color-mix(in srgb, var(--dz-accent-color) 15%, transparent));
-  --dz-accent-color-light-hover: color-mix(in srgb, var(--dz-accent-color) 22%, transparent);
+  --dz-accent-color-light: var(--base-primary-bg-subtle, light-dark(color-mix(in srgb, var(--dz-accent-color) 10%, transparent), color-mix(in srgb, var(--dz-accent-color) 20%, transparent)));
+  --dz-accent-color-light-hover: var(--base-primary-bg-subtle-hover, light-dark(color-mix(in srgb, var(--dz-accent-color) 15%, transparent), color-mix(in srgb, var(--dz-accent-color) 30%, transparent)));
 
   /* Text Color Levels (FluentUI-style hierarchy) */
-  --dz-text-color-1: var(--base-text-color-1, light-dark(#111827, #f3f4f6));
-  --dz-text-color-2: var(--base-text-color-2, light-dark(#353b47, #d4d4d4));
-  --dz-text-color-3: var(--base-text-color-3, light-dark(#6b7280, #a3a3a3));
-  --dz-text-color-4: light-dark(#a0a3a9, #6b7280);  /* Component-local; no canonical 4th tier. */
-  --dz-text-on-accent: var(--base-on-primary-text-color, #ffffff);
+  --dz-text-color-1: var(--base-text-color-1, light-dark(#334155, #f1f5f9));
+  --dz-text-color-2: var(--base-text-color-2, color-mix(in srgb, var(--dz-text-color-1) 75%, var(--dz-main-bg)));
+  --dz-text-color-3: var(--base-text-color-3, color-mix(in srgb, var(--dz-text-color-1) 55%, var(--dz-main-bg)));
+  --dz-text-color-4: var(--base-text-color-4, color-mix(in srgb, var(--dz-text-color-1) 40%, var(--dz-main-bg)));
+  /* Black or white, whichever reads better on the accent (APCA, the contract's rule) */
+  --dz-text-on-accent: var(--base-on-primary-text-color, color(from color(from var(--dz-accent-color) srgb calc(0.21 * r * r * (0.4 + r * (0.82 - 0.22 * r)) + 0.72 * g * g * (0.4 + g * (0.82 - 0.22 * g)) + 0.07 * b * b * (0.4 + b * (0.82 - 0.22 * b))) 0 0) srgb clamp(0, (0.34 - r) * 1e9, 1) clamp(0, (0.34 - r) * 1e9, 1) clamp(0, (0.34 - r) * 1e9, 1)));
 
   /* Surfaces */
-  --dz-background: var(--base-main-bg, light-dark(#ffffff, #1a1a1a));
-  --dz-primary-bg: var(--base-elevated-bg, light-dark(#f3f4f6, #2b2b2b));
-  --dz-primary-bg-hover: var(--base-hover-bg,
-    color-mix(in srgb, var(--dz-text-color-1) 8%, var(--dz-background)));
-  --dz-border-color: var(--base-border-color, light-dark(#e5e7eb, #3d3d3d));
+  --dz-background: var(--dz-main-bg);
+  --dz-primary-bg: var(--base-elevated-bg, light-dark(oklch(from var(--dz-main-bg) calc(l - 0.03) c h), oklch(from var(--dz-main-bg) calc(l + 0.06) c h)));
+  --dz-primary-bg-hover: var(--base-hover-bg, light-dark(color-mix(in oklch, oklch(from var(--dz-main-bg) calc(l - 0.45) c h) 14%, transparent), color-mix(in oklch, oklch(from var(--dz-main-bg) calc(l + 0.45) c h) 28%, transparent)));
+  --dz-border-color: var(--base-border-color, light-dark(oklch(from var(--dz-main-bg) calc(l - 0.096) c h), oklch(from var(--dz-main-bg) calc(l + 0.192) c h)));
 
   /* Semantic Colors */
-  --dz-success-color: var(--base-success-color, light-dark(#10b981, #34d399));
-  --dz-error-color: var(--base-danger-color, light-dark(#ef4444, #f87c86));
-  --dz-warning-color: var(--base-warning-color, light-dark(#f59e0b, #fbbf24));
+  --dz-success-color: var(--base-success-color, #10b981);
+  --dz-error-color: var(--base-danger-color, #dc2626);
+  --dz-warning-color: var(--base-warning-color, #f59e0b);
 
   /* Semantic-color tinted backgrounds — derived 10%-mix variants used by
      status surfaces (e.g. the indicator chip's data-status palette). One
@@ -428,7 +436,7 @@
   --dz-popover-bg: var(--dz-background);
   --dz-popover-border: 1px solid var(--dz-border-color);
   --dz-popover-border-radius: calc(var(--base-border-radius-lg, 0.8) * var(--dz-rem, 10px));
-  --dz-popover-box-shadow: 0 20px 25px -5px var(--base-shadow-color, rgba(0, 0, 0, 0.1)), 0 8px 10px -6px var(--base-shadow-color, rgba(0, 0, 0, 0.1));
+  --dz-popover-box-shadow: 0 20px 25px -5px var(--dz-shadow-color), 0 8px 10px -6px var(--dz-shadow-color);
   --dz-popover-z-index: 10000;
 
   /* Popover Header */
