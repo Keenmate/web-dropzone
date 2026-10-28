@@ -155,7 +155,6 @@ dz.shouldAutoUpload              <-> auto-upload
 dz.isUploadedFileRemovalAllowed  <-> allow-uploaded-file-removal
 dz.shouldSinkCompleted           <-> sink-completed
 dz.shouldKeepAliveWhenRemoved    <-> keep-alive-when-removed
-dz.shouldWarnBeforeUnload        <-> warn-before-unload  (beforeunload prompt while dz.hasActiveUploads)
 dz.renderMode                    <-> render-mode   (bulk | structural | headless)
 
 PROPERTY WRITES ARE COALESCED

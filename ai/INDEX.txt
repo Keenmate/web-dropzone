@@ -160,7 +160,7 @@ R
 ready event -> basic-setup.txt, events-callbacks.txt
 removeFile() / removeFiles() -> basic-setup.txt, events-callbacks.txt
 removal from page / keep-alive-when-removed -> upload-pipeline.txt, advanced-patterns.txt
-hasActiveUploads / warn-before-unload / router guard / graceful exit -> upload-pipeline.txt
+hasActiveUploads / beforeunload / router guard / graceful exit -> upload-pipeline.txt
 render*Callback -> custom-rendering.txt
 renderBody/FileInfo/ProgressCallback (indicator) -> satellites.txt
 resolveLabel -> labels-i18n.txt

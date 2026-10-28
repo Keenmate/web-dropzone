@@ -368,14 +368,17 @@ test.describe('element removal (removedCallback) vs DOM move', () => {
         expect(out).toEqual({ ready: 0, isReady: true, files: 0 });
     });
 
-    test('keep-alive-when-removed: removal keeps uploads running', async ({ page }) => {
+    test('keep-alive-when-removed: removal keeps uploads running (hasActiveUploads still accurate)', async ({ page }) => {
         await addNamed(page, 'keep', ['alive.txt']);
         await expect.poll(() => pendingNames(page)).toContain('alive.txt');
         await page.evaluate(() => { (window as any).__el = document.getElementById('keep'); (window as any).__el.remove(); });
         await page.waitForTimeout(150);
         expect(await page.evaluate(() => (window as any).__aborted['alive.txt'])).toBeUndefined();
+        // hasActiveUploads stays accurate while the kept-alive store is detached
+        expect(await page.evaluate(() => (window as any).__el.hasActiveUploads)).toBe(true);
         await resolveUpload(page, 'alive.txt', 'ok');
         await expect.poll(() => page.evaluate(() => (window as any).__el.files[0]?.status)).toBe('complete');
+        expect(await page.evaluate(() => (window as any).__el.hasActiveUploads)).toBe(false);
         await page.evaluate(() => document.getElementById('keep-host')!.append((window as any).__el));
         expect(await page.evaluate(() => (document.getElementById('keep') as any).files.length)).toBe(1);
     });

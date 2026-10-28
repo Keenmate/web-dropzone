@@ -67,7 +67,6 @@ cancel-timeout="2000"           ms a cancel waits for the handler to settle (min
 cancel-timeout-behavior="error" error | remove
 retryPolicy (property)          { attempts, delayMs, backoff }
 keep-alive-when-removed  keep uploads alive when the element is removed
-warn-before-unload       browser leave-page prompt while hasActiveUploads (default off)
 
 STATUS MACHINE
 --------------
@@ -212,9 +211,14 @@ retries, clears timers; late results are ignored. No file-cancel events.
 LEAVING THE PAGE / VIEW
 -----------------------
 dz.hasActiveUploads (also controller.hasActiveUploads): true while any file
-is pending / uploading / paused / cancelling.
-- reload / close tab: <web-dropzone warn-before-unload> -> beforeunload prompt
-  while hasActiveUploads (only while connected).
+is pending / uploading / paused / cancelling. The component never blocks
+navigation - the APP decides. Stays accurate while a keep-alive-when-removed
+element is detached (its store keeps uploading).
+- reload / close tab (app-level listener):
+    window.addEventListener('beforeunload', (e) => {
+      if (!dz.hasActiveUploads) return;
+      e.preventDefault(); e.returnValue = '';   // browser's leave-page prompt
+    });
 - graceful exit:  await dz.cancelAll(); dz.destroy();   (destroy() alone aborts at once)
 - SPA router guard:
     router.beforeEach(async () => {

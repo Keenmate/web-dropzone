@@ -126,7 +126,6 @@ dropzone.controller.clear();
 | `cancel-icon` / `remove-icon` | `string` (raw HTML) | built-in | Row ⊘ Cancel / ✕ Remove glyphs — see the [XSS notice](#html-injection-xss-notice) |
 | `sink-completed` | `boolean` | `false` | Auto-move completed files to the end of the list (after `sink-completed-delay`) |
 | `keep-alive-when-removed` | `boolean` | `false` | Keep the store and its uploads when the element is removed from the page |
-| `warn-before-unload` | `boolean` | `false` | Browser leave-page prompt (`beforeunload`) while `hasActiveUploads` |
 | `overlay-icon` | `string` (raw HTML) | Lucide `upload` | Icon shown in drag overlay. Accepts any HTML (SVG / `<img>` / emoji) — see the [XSS notice](#html-injection-xss-notice) |
 
 ## Display Modes
@@ -431,10 +430,20 @@ dropzone.beforeFilesCancelCallback = async ({ files }) =>
 
 ### Leaving the page / the view
 
-`hasActiveUploads` is `true` while any file is pending, uploading, paused or cancelling.
+`hasActiveUploads` is `true` while any file is pending, uploading, paused or cancelling. The
+component never blocks navigation itself — **the app decides** whether and how to ask. The flag
+stays accurate while a `keep-alive-when-removed` element is detached (its store keeps uploading).
 
-- **Reload / close the tab:** `warn-before-unload` shows the browser's leave-page prompt while
-  uploads are active (off by default; only while the element is connected).
+- **Reload / close the tab** — an app-level `beforeunload` listener:
+
+```javascript
+window.addEventListener('beforeunload', (e) => {
+  if (!dropzone.hasActiveUploads) return;
+  e.preventDefault();      // the browser shows its own leave-page prompt
+  e.returnValue = '';      // legacy browsers
+});
+```
+
 - **Graceful exit** (finish with the cancel rule, then tear down for good):
   `await dropzone.cancelAll(); dropzone.destroy();` — `destroy()` alone aborts at once.
 - **SPA navigation** — guard the route yourself:

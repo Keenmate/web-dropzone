@@ -22,11 +22,10 @@ callback and store-access API below is breaking.
 ### Added (round 2)
 
 - `hasActiveUploads` (element getter + `controller` + headless engine): `true` while any file is pending /
-  uploading / paused / cancelling.
-- `warn-before-unload` / `shouldWarnBeforeUnload` (default off): the browser's `beforeunload` prompt while
-  `hasActiveUploads` (only while connected).
-- README "Leaving the page / the view": graceful exit (`await cancelAll(); destroy()`), an SPA router guard,
-  removal without keep-alive.
+  uploading / paused / cancelling — the app decides about leaving (no built-in prompt); stays accurate while a
+  `keep-alive-when-removed` element is detached.
+- README "Leaving the page / the view": an app-level `beforeunload` listener, graceful exit
+  (`await cancelAll(); destroy()`), an SPA router guard, removal without keep-alive.
 
 ### Fixed (round 2)
 

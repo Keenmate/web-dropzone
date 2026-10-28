@@ -244,13 +244,7 @@ test.describe('uploadFile(id) / destroy()', () => {
     });
 });
 
-test.describe('hasActiveUploads / warn-before-unload', () => {
-    const beforeUnloadPrevented = (page: any) => page.evaluate(() => {
-        const e = new Event('beforeunload', { cancelable: true });
-        window.dispatchEvent(e);
-        return e.defaultPrevented;
-    });
-
+test.describe('hasActiveUploads', () => {
     test('true while a file is pending; false once none is active (element + controller)', async ({ page }) => {
         const read = () => dz(page, 'upload').evaluate((el: any) => [el.hasActiveUploads, el.controller.hasActiveUploads]);
         expect(await read()).toEqual([false, false]);
@@ -258,21 +252,5 @@ test.describe('hasActiveUploads / warn-before-unload', () => {
         expect(await read()).toEqual([true, true]);
         await dz(page, 'upload').evaluate((el: any) => el.setFileStatus(el.files[0].id, 'complete'));
         expect(await read()).toEqual([false, false]);
-    });
-
-    test('warn-before-unload prompts only while uploads are active; off by default', async ({ page }) => {
-        await addNamed(page, 'upload', ['x.txt']);
-        expect(await beforeUnloadPrevented(page)).toBe(false);
-        await dz(page, 'upload').evaluate((el: any) => el.setAttribute('warn-before-unload', ''));
-        expect(await dz(page, 'upload').evaluate((el: any) => el.shouldWarnBeforeUnload)).toBe(true);
-        expect(await beforeUnloadPrevented(page)).toBe(true);
-        await dz(page, 'upload').evaluate((el: any) => el.setFileStatus(el.files[0].id, 'complete'));
-        expect(await beforeUnloadPrevented(page)).toBe(false);
-    });
-
-    test('a detached / destroyed element no longer prompts', async ({ page }) => {
-        await addNamed(page, 'upload', ['x.txt']);
-        await dz(page, 'upload').evaluate((el: any) => { el.shouldWarnBeforeUnload = true; el.destroy(); });
-        expect(await beforeUnloadPrevented(page)).toBe(false);
     });
 });

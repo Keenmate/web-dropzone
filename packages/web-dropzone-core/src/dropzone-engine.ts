@@ -291,7 +291,7 @@ export class DropzoneEngine {
     /**
      * `true` while any file is `pending`, `uploading`, `paused` or
      * `cancelling` — work that leaving the page would lose. Guard
-     * navigation with it (`warn-before-unload`, an SPA router guard).
+     * navigation with it (an app `beforeunload` listener, an SPA router guard).
      */
     get hasActiveUploads(): boolean {
         return this.files.some(f =>

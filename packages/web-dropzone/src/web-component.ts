@@ -262,7 +262,6 @@ const INPUTS: readonly InputDef[] = [
     // ── Lifecycle ─────────────────────────────────────────────────────────────
     { configKey: 'shouldKeepAliveWhenRemoved', attribute: 'keep-alive-when-removed', converter: toBool('default-false'),                                    on: 'none', type: 'boolean', description: 'Keep the store (files, running uploads) when the element is removed from the page. Default: a removal cancels every upload (handlers get their signal + cancel-timeout) and then destroys the store. A DOM move never tears anything down.' },
 
-    { configKey: 'shouldWarnBeforeUnload', attribute: 'warn-before-unload', converter: toBool('default-false'),                                         on: 'none', type: 'boolean', description: 'Ask the browser to confirm leaving / reloading the page (`beforeunload`) while `hasActiveUploads` is true. Only while the element is connected.' },
 
     // ── Persistence ───────────────────────────────────────────────────────────
     { configKey: 'storageKey',              attribute: 'storage-key',         converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'Opaque key scoping persisted UI state. Unset disables persistence.' },
@@ -476,7 +475,6 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
      */
     protected override connect(): void {
         instances.add(this);
-        window.addEventListener('beforeunload', this.#onBeforeUnload);
         if (this.#dropzone) this.#dropzone.activate();
         else this.#buildStore();
 
@@ -490,7 +488,6 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
      */
     protected override disconnect(): void {
         instances.delete(this);
-        window.removeEventListener('beforeunload', this.#onBeforeUnload);
         this.#dropzone?.deactivate();
         initLogger.debug('DropzoneElement disconnected');
     }
@@ -527,13 +524,6 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
         instances.delete(this);
         if (this.#dropzone) this.#teardownStore(this.#dropzone);
     }
-
-    /** `warn-before-unload`: the browser's leave-page prompt while uploads are active. */
-    #onBeforeUnload = (e: BeforeUnloadEvent): void => {
-        if (!this.config.shouldWarnBeforeUnload || !this.#dropzone?.hasActiveUploads) return;
-        e.preventDefault();
-        e.returnValue = ''; // legacy browsers need it set
-    };
 
     /** Destroy `engine` (if it is still the live store) and clear the form value. */
     #teardownStore(engine: WebDropzone): void {
