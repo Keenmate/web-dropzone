@@ -297,11 +297,9 @@ export class DropzoneEngine {
         return this.config;
     }
 
-    /**
-     * Get a file by ID
-     */
-    getFile(id: string): FileState | undefined {
-        return this.files.find(f => f.id === id);
+    /** The file with this id, or `null`. */
+    getFileById(id: string): FileState | null {
+        return this.files.find(f => f.id === id) ?? null;
     }
 
     /**

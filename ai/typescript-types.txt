@@ -35,7 +35,7 @@ class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneController>
   removeFile(id: string, opts?: { confirm?: boolean }): Promise<void>
   removeFiles(ids: readonly string[], opts?: { confirm?: boolean }): Promise<void>
   clear(opts?: { confirm?: boolean }): Promise<void>
-  getFile(id: string): FileState | undefined
+  getFileById(id: string): FileState | null
   updateFileProgress(id: string, progress: number): void
   setFileStatus(id: string, status: FileStatus, error?: string): void
   uploadAll(): Promise<void>; uploadFile(id: string): Promise<void>
@@ -72,7 +72,7 @@ interface DropzoneController {
   removeFiles(ids: readonly string[], opts?: { confirm?: boolean }): Promise<void>;
   clear(opts?: { confirm?: boolean }): Promise<void>;
   getFiles(): FileState[];                    // a copy
-  getFile(id: string): FileState | undefined;
+  getFileById(id: string): FileState | null;
   getConfig(): Readonly<DropzoneConfig>;
   getOverallProgress(): OverallProgress;
   updateFileProgress(id: string, progress: number): void;

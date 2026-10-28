@@ -122,7 +122,7 @@ test.describe('el.controller (replaces getStore)', () => {
         const r = await page.evaluate(async () => {
             const el = document.getElementById('events') as any;
             const c1 = el.controller;
-            const methods = ['addFiles', 'removeFile', 'clear', 'getFiles', 'getFile', 'getConfig', 'getOverallProgress',
+            const methods = ['addFiles', 'removeFile', 'clear', 'getFiles', 'getFileById', 'getConfig', 'getOverallProgress',
                 'updateFileProgress', 'setFileStatus', 'uploadAll', 'uploadFile', 'pauseFile', 'resumeFile',
                 'cancelFile', 'retryFile', 'pauseAll', 'resumeAll', 'retryAll'].every(m => typeof c1[m] === 'function');
             // A mode flip rebuilds the store; the same controller reaches the new one.

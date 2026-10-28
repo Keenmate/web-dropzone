@@ -667,7 +667,7 @@ export class DropzoneListElement extends SatelliteElement {
         if (removeBtn) {
             const id = removeBtn.getAttribute('data-file-id');
             if (!id) return;
-            const file = this.store.getFile(id);
+            const file = this.store.getFileById(id);
             if (!file || file.status === 'cancelling') return;
             void this.store.removeFile(id, { confirm: true });
         }
@@ -686,7 +686,7 @@ export class DropzoneListElement extends SatelliteElement {
      */
     private patchPreview(id: string): void {
         if (!this.store) return;
-        const file = this.store.getFile(id);
+        const file = this.store.getFileById(id);
         if (!file || !file.previewUrl) return;
         const appearance = this.resolveAppearance();
         if (appearance !== 'badges' && appearance !== 'detailed' && appearance !== 'grid') return;
@@ -718,7 +718,7 @@ export class DropzoneListElement extends SatelliteElement {
 
     private patchRow(id: string): void {
         if (!this.store) return;
-        const file = this.store.getFile(id);
+        const file = this.store.getFileById(id);
         if (!file) return;
         const row = this.container.querySelector<HTMLElement>(`[data-file-id="${id}"]`);
         if (!row) return;

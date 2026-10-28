@@ -354,7 +354,7 @@ The same methods (plus `getFiles()`, `getConfig()`, `getOverallProgress()` and `
 | `uploadAll()` / `uploadFile(id)` | Drain the queue / upload one file now |
 | `destroy()` | Final teardown (core): aborts running uploads at once, clears the form value; the element stays inert |
 | `release()` / `whenReady()` | Core: build a `defer`-held element / await the first build |
-| `getFile(id: string)` | Get a file by ID |
+| `getFileById(id: string)` | The file with this id, or `null` |
 | `updateFileProgress(id: string, progress: number)` | Update upload progress (0-100) |
 | `setFileStatus(id: string, status, error?)` | Set file status (pending/uploading/complete/error) |
 

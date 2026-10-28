@@ -733,10 +733,10 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
         this.#dropzone?.setFileStatus(id, status, error);
     }
 
-    /** Get a file by ID. */
-    getFile(id: string): FileState | undefined {
+    /** The file with this id, or `null`. */
+    getFileById(id: string): FileState | null {
         this.flush();
-        return this.#dropzone?.getFile(id);
+        return this.#dropzone?.getFileById(id) ?? null;
     }
 
     // ── upload pipeline — only meaningful when uploadFileCallback is set ───────

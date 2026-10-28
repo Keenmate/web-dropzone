@@ -130,7 +130,7 @@ test.describe('file-delete (server-side state) + setMetadata / uploadMetadata', 
         await del(page).evaluate((el: any, id) => { void el.uploadFile(id); }, id);
         await expect.poll(() => pendingNames(page)).toContain('done.txt');
         await resolveUpload(page, 'done.txt');
-        await expect.poll(() => del(page).evaluate((el: any, id) => el.getFile(id).status, id)).toBe('complete');
+        await expect.poll(() => del(page).evaluate((el: any, id) => el.getFileById(id).status, id)).toBe('complete');
         await del(page).evaluate((el: any) => el.clear());
         await expect.poll(() => logLines(page, 'del')).toEqual(
             expect.arrayContaining(['file-remove:done.txt', 'file-remove:fresh.txt', 'file-delete:done.txt']));

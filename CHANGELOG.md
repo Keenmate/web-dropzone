@@ -16,6 +16,8 @@ callback and store-access API below is breaking.
 - **BREAKING** label key `empty` → `noData` (default "No files selected"; `<web-dropzone>` and
   `<web-dropzone-list>`). `labels.noData: ''` now renders no empty-state element at all — `''` = deliberately
   empty, a missing key = English default (every label).
+- **BREAKING** `getFile(id)` → `getFileById(id)`, returning `FileState | null` (was `undefined` when
+  missing) — element, `controller`, headless `DropzoneEngine`.
 
 ### Fixed (round 2)
 

@@ -29,7 +29,8 @@ export interface DropzoneController {
     // ---- reads --------------------------------------------------------------
     /** A copy of the file list (mutating it does not change the dropzone). */
     getFiles(): FileState[];
-    getFile(id: string): FileState | undefined;
+    /** The file with this id, or `null`. */
+    getFileById(id: string): FileState | null;
     /** The merged config (defaults + inputs). */
     getConfig(): Readonly<DropzoneConfig>;
     /** Byte-weighted aggregate progress + per-status counts. */
@@ -79,7 +80,7 @@ const METHODS = {
     removeFiles: () => Promise.resolve(),
     clear: () => Promise.resolve(),
     getFiles: () => [],
-    getFile: () => undefined,
+    getFileById: () => null,
     getConfig: () => DEFAULT_CONFIG,
     getOverallProgress: () => EMPTY_PROGRESS,
     updateFileProgress: () => undefined,

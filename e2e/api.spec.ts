@@ -6,7 +6,7 @@ import { test, expect, dz, addNamed } from './fixtures';
  * Fixture: test/api.html. Two dropzones:
  *
  *   - `#api` — vanilla. No upload callback. Covers the pure-state methods:
- *     addFiles, removeFile, clear, getFiles, getFile, getConfig.
+ *     addFiles, removeFile, clear, getFiles, getFileById, getConfig.
  *
  *   - `#upload` — wired to a synthetic upload handler controlled by
  *     window.__pending pumps. auto-upload="false" so the spec drives the
@@ -27,7 +27,7 @@ test.beforeEach(async ({ page }) => {
     await page.waitForFunction(() => typeof (window as any).__addNamed === 'function');
 });
 
-test.describe('addFiles / files getter / getFile', () => {
+test.describe('addFiles / files getter / getFileById', () => {
     test('addFiles populates the queue; controller.getFiles() returns a snapshot copy', async ({ page }) => {
         await addNamed(page, 'api', ['a.txt', 'b.txt']);
         const result = await dz(page, 'api').evaluate((el: any) => {
@@ -51,19 +51,20 @@ test.describe('addFiles / files getter / getFile', () => {
         expect(names).toEqual(['a.txt', 'b.txt']);
     });
 
-    test('getFile(id) returns the matching FileState', async ({ page }) => {
+    test('getFileById(id) returns the matching FileState', async ({ page }) => {
         await addNamed(page, 'api', ['only.txt']);
         const found = await dz(page, 'api').evaluate((el: any) => {
             const f = el.files[0];
-            const looked = el.getFile(f.id);
+            const looked = el.getFileById(f.id);
             return looked?.name;
         });
         expect(found).toBe('only.txt');
     });
 
-    test('getFile(missing) returns undefined', async ({ page }) => {
-        const result = await dz(page, 'api').evaluate((el: any) => el.getFile('does-not-exist'));
-        expect(result).toBeUndefined();
+    test('getFileById(missing) returns null (element + controller)', async ({ page }) => {
+        const result = await dz(page, 'api').evaluate((el: any) =>
+            [el.getFileById('does-not-exist'), el.controller.getFileById('does-not-exist')]);
+        expect(result).toEqual([null, null]);
     });
 });
 

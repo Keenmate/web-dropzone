@@ -67,7 +67,7 @@ READING FILES
 const dz = document.querySelector('web-dropzone');
 
 dz.files                 // FileState[] snapshot
-dz.getFile(id)           // FileState | undefined
+dz.getFileById(id)       // FileState | null
 dz.controller.getFiles() // same, via the public facade
 
 FileState (key fields):
@@ -124,7 +124,7 @@ addFiles(files)                    Promise<void>
 removeFile(id, { confirm? })       Promise<void>
 removeFiles(ids, { confirm? })     Promise<void>
 clear({ confirm? })                Promise<void>
-getFile(id)                        FileState | undefined
+getFileById(id)                    FileState | null
 updateFileProgress(id, percent)    void   (app-driven uploads)
 setFileStatus(id, status, error?)  void   (app-driven uploads)
 uploadAll() / uploadFile(id)       Promise<void>
