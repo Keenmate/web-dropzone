@@ -107,8 +107,13 @@ Overall strip         --dz-overall-progress-gap, -padding, -bar-height,
 Empty state           --dz-empty-padding, -font-size, -color
 Typography / radius   --dz-font-size-xs/sm/base/lg, --dz-font-weight-*,
                       --dz-line-height-*, --dz-border-radius-sm/md/lg
-Motion                --dz-transition-fast, --dz-transition-normal, --dz-easing-snappy
-Disabled              --dz-disabled-opacity
+Motion                --dz-transition-fast/normal/medium/slow (-> --base-duration-*,
+                      0.1/0.15/0.25/0.3s), --dz-easing-snappy / --dz-easing-out
+                      (-> --base-ease-*), --dz-uploading-pulse-duration.
+                      Motion off = CSS only: these 0s, or --base-duration-*: 0s
+                      page-wide; prefers-reduced-motion does it automatically
+                      (status spinners keep turning).
+Disabled              --dz-disabled-opacity (-> --base-disabled-opacity, 0.65)
 Drag overlay          --dz-overlay-bg, -border, -border-radius, -color,
                       -icon-size, -text-font-size, -text-font-weight, -gap, -z-index
 Remove glyph          --dz-icon-remove (SVG data URL used as a CSS mask)

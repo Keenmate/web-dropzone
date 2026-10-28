@@ -39,7 +39,8 @@
     font: inherit;
     font-size: calc(1.3 * var(--dz-rem, 10px));
     box-shadow: 0 calc(0.4 * var(--dz-rem, 10px)) calc(1.6 * var(--dz-rem, 10px)) var(--dz-shadow-color);
-    transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease, opacity 160ms ease;
+    transition: transform var(--dz-transition-normal) var(--dz-easing-snappy), box-shadow var(--dz-transition-normal) var(--dz-easing-snappy),
+        background var(--dz-transition-normal) var(--dz-easing-snappy), opacity var(--dz-transition-normal) var(--dz-easing-snappy);
 }
 /* Explicit override for the `hidden` attribute. The chip's class rule
  * sets `display: inline-flex`, which has the same specificity as the
@@ -168,7 +169,7 @@
     box-shadow: 0 calc(0.8 * var(--dz-rem, 10px)) calc(3 * var(--dz-rem, 10px)) var(--dz-shadow-color);
     display: flex;
     flex-direction: column;
-    transition: transform 240ms ease, opacity 200ms ease;
+    transition: transform var(--dz-transition-normal) var(--dz-easing-snappy), opacity var(--dz-transition-normal) var(--dz-easing-snappy);
     visibility: hidden;
     opacity: 0;
 }
@@ -243,8 +244,8 @@
     cursor: pointer;
     color: var(--dz-text-color-1);
     border-radius: calc(0.4 * var(--dz-rem, 10px));
-    transition: background-color var(--dz-transition-fast) var(--dz-easing-snappy),
-                color var(--dz-transition-fast) var(--dz-easing-snappy);
+    transition: background-color var(--dz-transition-normal) var(--dz-easing-snappy),
+                color var(--dz-transition-normal) var(--dz-easing-snappy);
 }
 .dz__indicator__drawer-close::before {
     content: "";

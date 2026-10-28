@@ -14,7 +14,7 @@
   border: var(--dz-item-border);
   border-radius: var(--dz-item-border-radius);
   background: var(--dz-item-bg);
-  transition: background-color var(--dz-transition-fast) var(--dz-easing-snappy);
+  transition: background-color var(--dz-transition-normal) var(--dz-easing-snappy);
 }
 
 .dz__file-item--list:hover {
@@ -54,7 +54,7 @@
   height: 100%;
   background: var(--dz-progress-fill-bg);
   border-radius: var(--dz-progress-border-radius);
-  transition: width 0.2s ease-out;
+  transition: width var(--dz-transition-normal) var(--dz-easing-out);
 }
 
 /* State-coloured progress bars — picked up via the row-level
@@ -138,7 +138,7 @@
   border: var(--dz-item-border);
   border-radius: var(--dz-item-border-radius);
   background: var(--dz-item-bg);
-  transition: background-color var(--dz-transition-fast) var(--dz-easing-snappy);
+  transition: background-color var(--dz-transition-normal) var(--dz-easing-snappy);
 }
 
 .dz__file-item--detailed:hover {
@@ -223,8 +223,8 @@
   border-radius: var(--dz-border-radius-sm);
   background: var(--dz-item-remove-bg);
   color: var(--dz-item-remove-color);
-  transition: background-color var(--dz-transition-fast) var(--dz-easing-snappy),
-              color var(--dz-transition-fast) var(--dz-easing-snappy);
+  transition: background-color var(--dz-transition-normal) var(--dz-easing-snappy),
+              color var(--dz-transition-normal) var(--dz-easing-snappy);
 }
 
 .dz__file-item__remove::before {
@@ -259,8 +259,8 @@
   border-radius: var(--dz-border-radius-sm);
   background: var(--dz-item-action-bg);
   color: var(--dz-item-action-color);
-  transition: background-color var(--dz-transition-fast) var(--dz-easing-snappy),
-              color var(--dz-transition-fast) var(--dz-easing-snappy);
+  transition: background-color var(--dz-transition-normal) var(--dz-easing-snappy),
+              color var(--dz-transition-normal) var(--dz-easing-snappy);
   cursor: pointer;
 }
 
@@ -313,8 +313,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  transition: background-color var(--dz-transition-fast) var(--dz-easing-snappy),
-              color var(--dz-transition-fast) var(--dz-easing-snappy);
+  transition: background-color var(--dz-transition-normal) var(--dz-easing-snappy),
+              color var(--dz-transition-normal) var(--dz-easing-snappy);
 }
 
 .dz__badge:hover .dz__badge-text {
@@ -379,7 +379,7 @@
   border-radius: var(--dz-border-radius-sm);
   cursor: pointer;
   font: inherit;
-  transition: background-color var(--dz-transition-fast) var(--dz-easing-snappy);
+  transition: background-color var(--dz-transition-normal) var(--dz-easing-snappy);
 }
 
 .dz__badge-action > svg {
@@ -438,7 +438,7 @@
   border-left: none;
   border-radius: 0 var(--dz-badge-border-radius) var(--dz-badge-border-radius) 0;
   cursor: pointer;
-  transition: background-color var(--dz-transition-fast) var(--dz-easing-snappy);
+  transition: background-color var(--dz-transition-normal) var(--dz-easing-snappy);
 }
 
 .dz__badge-remove:hover {
@@ -512,7 +512,7 @@
   background: var(--dz-badge-more-bg);
   color: var(--dz-badge-more-color);
   cursor: pointer;
-  transition: background-color var(--dz-transition-fast) var(--dz-easing-snappy);
+  transition: background-color var(--dz-transition-normal) var(--dz-easing-snappy);
 }
 
 .dz__badge--more:hover {
@@ -564,7 +564,7 @@
   background: var(--dz-preview-scrim-bg);
   opacity: 0;
   pointer-events: none;
-  transition: opacity var(--dz-transition-fast) var(--dz-easing-snappy);
+  transition: opacity var(--dz-transition-normal) var(--dz-easing-snappy);
 }
 
 .dz__preview-item:hover .dz__preview-item__scrim {
@@ -583,7 +583,7 @@
   color: var(--dz-preview-overlay-color);
   font-size: var(--dz-preview-overlay-font-size);
   opacity: 0;
-  transition: opacity var(--dz-transition-fast) var(--dz-easing-snappy);
+  transition: opacity var(--dz-transition-normal) var(--dz-easing-snappy);
 }
 
 .dz__preview-item:hover .dz__preview-item__overlay {
@@ -610,7 +610,7 @@
   gap: var(--dz-preview-action-gap);
   opacity: 0;
   pointer-events: none;
-  transition: opacity var(--dz-transition-fast) var(--dz-easing-snappy);
+  transition: opacity var(--dz-transition-normal) var(--dz-easing-snappy);
 }
 
 .dz__preview-item:hover .dz__preview-item__hover-actions {
@@ -635,7 +635,7 @@
   background: transparent;
   color: var(--dz-preview-remove-color);
   cursor: pointer;
-  transition: background-color var(--dz-transition-fast) var(--dz-easing-snappy);
+  transition: background-color var(--dz-transition-normal) var(--dz-easing-snappy);
 }
 
 /* Hidden modifier — grid buttons live inside a flex-centered hover
@@ -738,7 +738,7 @@
 .dz__preview-item__progress-fill {
   height: 100%;
   background: var(--dz-progress-fill-bg);
-  transition: width 0.2s ease-out;
+  transition: width var(--dz-transition-normal) var(--dz-easing-out);
 }
 
 /* State-coloured grid progress bar — same palette as list/detailed. The

@@ -93,3 +93,36 @@ test.describe('RTL layout', () => {
         expect(dir).toBe('rtl');
     });
 });
+
+test.describe('motion + disabled dimming follow the contract', () => {
+    const cardTiming = (page: Page, id: string) =>
+        dz(page, id).locator('.dz__dropzone').first().evaluate((el) => {
+            const s = getComputedStyle(el);
+            return { duration: s.transitionDuration, easing: s.transitionTimingFunction };
+        });
+
+    test('card transitions run at the normal speed (0.15s) with the standard easing', async ({ page }) => {
+        const t = await cardTiming(page, 'scaled-default');
+        expect(t.duration.split(', ')).toEqual(['0.15s', '0.15s']);
+        expect(t.easing).toContain('cubic-bezier(0.4, 0, 0.2, 1)');
+    });
+
+    test('--base-duration-normal on the page drives it; 0s turns motion off', async ({ page }) => {
+        await page.evaluate(() => document.documentElement.style.setProperty('--base-duration-normal', '0.25s'));
+        expect((await cardTiming(page, 'scaled-default')).duration.split(', ')).toEqual(['0.25s', '0.25s']);
+        await page.evaluate(() => document.documentElement.style.setProperty('--base-duration-normal', '0s'));
+        expect((await cardTiming(page, 'scaled-default')).duration.split(', ')).toEqual(['0s', '0s']);
+    });
+
+    test('prefers-reduced-motion: reduce sets the transitions to 0s', async ({ page }) => {
+        await page.emulateMedia({ reducedMotion: 'reduce' });
+        expect((await cardTiming(page, 'scaled-default')).duration.split(', ')).toEqual(['0s', '0s']);
+        expect(await cssvar(page, 'scaled-default', '--dz-transition-slow')).toBe('0s');
+    });
+
+    test('disabled card dims once by --base-disabled-opacity (0.65 standalone)', async ({ page }) => {
+        const card = dz(page, 'disabled-dz').locator('.dz__dropzone').first();
+        expect(await card.evaluate((el) => getComputedStyle(el).opacity)).toBe('0.65');
+        expect(await card.locator('.dz__dropzone__content').first().evaluate((el) => getComputedStyle(el).opacity)).toBe('1');
+    });
+});

@@ -210,8 +210,8 @@
   font-weight: var(--dz-font-weight-semibold);
   font-family: inherit;
   cursor: pointer;
-  transition: background-color var(--dz-transition-fast) var(--dz-easing-snappy),
-              color var(--dz-transition-fast) var(--dz-easing-snappy);
+  transition: background-color var(--dz-transition-normal) var(--dz-easing-snappy),
+              color var(--dz-transition-normal) var(--dz-easing-snappy);
 }
 
 .dz__rolling__queue:hover {
@@ -261,7 +261,7 @@
   border: var(--dz-show-more-border);
   border-radius: var(--dz-show-more-border-radius);
   cursor: pointer;
-  transition: background-color var(--dz-transition-fast) var(--dz-easing-snappy);
+  transition: background-color var(--dz-transition-normal) var(--dz-easing-snappy);
 }
 
 .dz__show-more:hover {

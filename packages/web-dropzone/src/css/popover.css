@@ -20,7 +20,7 @@
   font-size: var(--dz-summary-font-size);
   color: var(--dz-summary-color);
   cursor: pointer;
-  transition: background-color var(--dz-transition-fast) var(--dz-easing-snappy);
+  transition: background-color var(--dz-transition-normal) var(--dz-easing-snappy);
 }
 
 .dz__summary__line:hover {
@@ -124,7 +124,7 @@
   border: none;
   border-radius: var(--dz-popover-action-border-radius);
   cursor: pointer;
-  transition: background-color var(--dz-transition-fast) var(--dz-easing-snappy);
+  transition: background-color var(--dz-transition-normal) var(--dz-easing-snappy);
 }
 
 .dz__popover__action:hover:not(:disabled) {
@@ -194,7 +194,7 @@
 }
 
 .dz__popover__row {
-  transition: background-color var(--dz-transition-fast) var(--dz-easing-snappy);
+  transition: background-color var(--dz-transition-normal) var(--dz-easing-snappy);
 }
 
 .dz__popover__row:hover {
@@ -293,8 +293,8 @@
   border-radius: var(--dz-border-radius-sm);
   color: var(--dz-item-action-color);
   background: var(--dz-item-action-bg);
-  transition: background-color var(--dz-transition-fast) var(--dz-easing-snappy),
-              color var(--dz-transition-fast) var(--dz-easing-snappy);
+  transition: background-color var(--dz-transition-normal) var(--dz-easing-snappy),
+              color var(--dz-transition-normal) var(--dz-easing-snappy);
 }
 
 .dz__popover__row-action:hover {
@@ -326,8 +326,8 @@
   border-radius: var(--dz-border-radius-sm);
   background: var(--dz-popover-remove-bg);
   color: var(--dz-popover-remove-color);
-  transition: background-color var(--dz-transition-fast) var(--dz-easing-snappy),
-              color var(--dz-transition-fast) var(--dz-easing-snappy);
+  transition: background-color var(--dz-transition-normal) var(--dz-easing-snappy),
+              color var(--dz-transition-normal) var(--dz-easing-snappy);
 }
 
 .dz__popover__remove::before {
@@ -374,7 +374,7 @@
   height: 100%;
   background: var(--dz-progress-fill-bg);
   border-radius: var(--dz-progress-border-radius);
-  transition: width 0.2s ease-out;
+  transition: width var(--dz-transition-normal) var(--dz-easing-out);
 }
 
 .dz__popover__progress-text {
@@ -429,7 +429,7 @@
 
 /* Uploading row animation */
 .dz__popover__row--uploading {
-  animation: dz-popover-pulse 1.5s ease-in-out infinite;
+  animation: dz-popover-pulse var(--dz-uploading-pulse-duration) var(--dz-easing-snappy) infinite;
 }
 
 @keyframes dz-popover-pulse {

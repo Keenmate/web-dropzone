@@ -16,7 +16,7 @@
   border: var(--dz-overlay-border);
   border-radius: var(--dz-overlay-border-radius);
   pointer-events: all;
-  animation: dz-overlay-fade-in 0.15s ease-out;
+  animation: dz-overlay-fade-in var(--dz-transition-normal) var(--dz-easing-out);
 }
 
 .dz__overlay__content {

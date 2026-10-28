@@ -109,6 +109,32 @@ completed, or metadata stashed) — wire the server DELETE there.
   keeps only its first file; the rest are rejected (code `count`) instead of firing `file-add` for
   files that were never added.
 
+### Changed — BREAKING (motion and disabled dimming follow `@keenmate/base-css-variables`)
+
+- **BREAKING** motion uses only the contract's four speeds and easings:
+  `--dz-transition-fast|normal|medium|slow` = `var(--base-duration-*, 0.1s|0.15s|0.25s|0.3s)`,
+  `--dz-easing-snappy` = `var(--base-ease-standard)`, new `--dz-easing-out` (`--base-ease-out`).
+  `--dz-transition-fast` is now 0.1s (was 150ms) and `--dz-transition-normal` 0.15s (was 200ms); the
+  150ms hovers / fades read `--dz-transition-normal`, so they keep their timing. If you set
+  `--dz-transition-fast` to slow the hovers, set `--dz-transition-normal` instead.
+- **Snapped to a speed (toward faster):** progress-fill width 0.2s ease-out → 0.15s (ease-out);
+  rolling rotation `--dz-rolling-animation-duration` 0.35s → 0.3s (`--dz-transition-slow`); indicator
+  chip 160ms → 0.15s; indicator drawer 240ms slide / 200ms fade → 0.15s; drag-overlay hover 140ms →
+  0.1s; overall progress 0.3s (unchanged, now `--dz-transition-slow`). `ease` → the standard easing.
+- **Drag overlay on `<body>`:** its fade-in and hover timing come from the host's
+  `--dz-transition-normal` / `-fast` and easings (was fixed 150ms / 140ms), so motion off and reduced
+  motion reach it.
+- **Reduced motion:** `prefers-reduced-motion: reduce` sets `--dz-transition-*` and the uploading-row
+  pulse (new `--dz-uploading-pulse-duration`, 1.5s) to `0s`. The status spinners
+  (`--dz-status-spin-duration`, 1s; the indicator's 1.1s spinner) keep turning — they show that an
+  upload is running. Motion off is CSS only: `--dz-transition-*: 0s`, or `--base-duration-*: 0s`
+  page-wide (THEMING.md → Motion).
+- **BREAKING** `--dz-disabled-opacity` = `var(--base-disabled-opacity, 0.65)` (was `0.5`). The
+  disabled card no longer dims its content a second time (was 0.5 × 0.5).
+- **Demo:** `examples-theming.html` used removed contract tokens (`--base-primary-bg[-hover]`,
+  `--base-input-background`) — now `--base-elevated-bg` / `--base-hover-bg` / `--base-main-bg`; the
+  playground pickers start at the contract defaults.
+
 ### Changed — standalone colors follow `@keenmate/base-css-variables`
 
 Without the contract on the page the fallbacks had drifted from it (a `light-dark()` accent with a

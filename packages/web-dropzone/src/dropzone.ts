@@ -1381,8 +1381,8 @@ export class WebDropzone extends DropzoneEngine {
             previousCurrent.classList.add('dz__rolling__current--leaving');
             targetEl.insertBefore(newCurrentEl, previousCurrent);
             const toRemove = previousCurrent;
-            // Slightly longer than the animation so we don't yank the node
-            // mid-keyframe; the spare ~150ms is invisible.
+            // Slightly longer than the animation (0.3s, --dz-transition-slow) so
+            // we don't yank the node mid-keyframe; the spare ~200ms is invisible.
             setTimeout(() => { toRemove.remove(); }, 500);
         } else if (previousCurrent) {
             // slide-in: snap-replace the old slot; the new slot's keyframe
@@ -2730,14 +2730,26 @@ export class WebDropzone extends DropzoneEngine {
 
         document.body.appendChild(this.dragOverlay);
 
-        // Fade-in via WAAPI (no global keyframes needed).
+        // Fade-in via WAAPI (no global keyframes needed). The overlay lives on
+        // <body>, so its timing comes from the host's motion variables (0s under
+        // reduced motion / motion off).
+        const toMs = (d: string): number => {
+            const n = parseFloat(d);
+            return Number.isFinite(n) ? (d.trim().endsWith('ms') ? n : n * 1000) : 0;
+        };
+        const easeStandard = themeVar('--dz-easing-snappy', 'cubic-bezier(0.4, 0, 0.2, 1)');
         this.dragOverlay.animate(
             [
                 { opacity: 0, transform: 'scale(0.98)' },
                 { opacity: 1, transform: 'scale(1)' },
             ],
-            { duration: 150, easing: 'ease-out', fill: 'both' },
+            {
+                duration: toMs(themeVar('--dz-transition-normal', '0.15s')),
+                easing: themeVar('--dz-easing-out', 'cubic-bezier(0, 0, 0.2, 1)'),
+                fill: 'both',
+            },
         );
+        const hoverSpeed = themeVar('--dz-transition-fast', '0.1s');
 
         // Hover state — closure-scoped so each overlay tracks itself.
         // Emits overlay-enter / overlay-leave on the host so consumers can
@@ -2751,7 +2763,7 @@ export class WebDropzone extends DropzoneEngine {
                 filter: themeVar('--dz-overlay-hover-filter', 'brightness(1.12) saturate(1.05)'),
                 border: themeVar('--dz-overlay-hover-border', '3px solid #ffffff'),
                 boxShadow: themeVar('--dz-overlay-hover-shadow', `0 10px 36px ${themeVar('--dz-shadow-color', 'rgba(0, 0, 0, 0.15)')}`),
-                transition: 'filter 140ms ease, border-color 140ms ease, box-shadow 140ms ease',
+                transition: ['filter', 'border-color', 'box-shadow'].map((p) => `${p} ${hoverSpeed} ${easeStandard}`).join(', '),
             });
             this.dragOverlay.classList.add('dz__overlay--hover');
             this.notify('overlay-enter', { overlayElement: this.dragOverlay });

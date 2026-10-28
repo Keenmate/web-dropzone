@@ -96,12 +96,14 @@ document.querySelector('web-dropzone-picker').openFileDialog();
 
 REDUCED MOTION
 --------------
-Rolling rotation and spinners are animation-based; set
---dz-rolling-animation-duration: 0s for reduced motion if needed:
+Built in: under prefers-reduced-motion: reduce every transition and the
+rolling rotation run at 0s (--dz-transition-* = 0s); the status spinners
+keep turning (they show an upload is running). Motion off without the media
+query is CSS only:
 
-@media (prefers-reduced-motion: reduce) {
-  web-dropzone { --dz-rolling-animation-duration: 0s; }
-}
+web-dropzone { --dz-transition-fast: 0s; --dz-transition-normal: 0s;
+               --dz-transition-medium: 0s; --dz-transition-slow: 0s; }
+/* or page-wide: --base-duration-fast|normal|medium|slow: 0s */
 
 TESTING CHECKLIST
 -----------------

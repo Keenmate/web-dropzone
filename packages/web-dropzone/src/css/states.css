@@ -14,10 +14,6 @@
   pointer-events: none;
 }
 
-.dz__dropzone--disabled .dz__dropzone__content {
-  opacity: var(--dz-disabled-opacity);
-}
-
 :host([disabled]) .dz__dropzone {
   opacity: var(--dz-disabled-opacity);
   cursor: not-allowed;

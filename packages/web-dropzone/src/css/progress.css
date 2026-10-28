@@ -157,7 +157,7 @@
   border-radius: var(--dz-overall-progress-action-border-radius);
   font-family: inherit;
   cursor: pointer;
-  transition: background-color var(--dz-transition-fast) var(--dz-easing-snappy);
+  transition: background-color var(--dz-transition-normal) var(--dz-easing-snappy);
 }
 
 .dz__overall-progress__action:hover {

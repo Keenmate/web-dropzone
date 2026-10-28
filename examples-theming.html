@@ -118,12 +118,12 @@
         .dark-theme { background: #0f172a; color: #e2e8f0; }
         .dark-theme h3, .dark-theme p, .dark-theme label { color: #e2e8f0; }
         #dark-theme, #dark-theme-compact {
-            --base-input-background: #1e293b;
+            --base-main-bg: #1e293b;
             --base-text-color-1: #e2e8f0;
             --base-text-color-3: #94a3b8;
             --base-border-color: #334155;
-            --base-primary-bg: #1e293b;
-            --base-primary-bg-hover: #2c3a52;
+            --base-elevated-bg: #1e293b;
+            --base-hover-bg: #2c3a52;
             --base-primary-color: #818cf8;
             --base-on-primary-text-color: #ffffff;
         }
@@ -133,12 +133,12 @@
         .neon-theme h3 { color: #ff00ff; text-shadow: 0 0 10px #ff00ff; }
         .neon-theme p, .neon-theme label { color: #00ffff; }
         #neon-theme {
-            --base-input-background: #0a0a0a;
+            --base-main-bg: #0a0a0a;
             --base-text-color-1: #00ffff;
             --base-text-color-3: #66ffff;
             --base-border-color: #ff00ff;
-            --base-primary-bg: #0a0a0a;
-            --base-primary-bg-hover: #1a001a;
+            --base-elevated-bg: #0a0a0a;
+            --base-hover-bg: #1a001a;
             --base-primary-color: #ff00ff;
             --base-on-primary-text-color: #ffffff;
             --base-success-color: #00ff00;
@@ -148,12 +148,12 @@
         /* CORPORATE */
         .corporate-theme { background: #f8fafc; color: #1e293b; border: 1px solid #e2e8f0; }
         #corporate-theme {
-            --base-input-background: #ffffff;
+            --base-main-bg: #ffffff;
             --base-text-color-1: #0f172a;
             --base-text-color-3: #64748b;
             --base-border-color: #cbd5e1;
-            --base-primary-bg: #f1f5f9;
-            --base-primary-bg-hover: #e2e8f0;
+            --base-elevated-bg: #f1f5f9;
+            --base-hover-bg: #e2e8f0;
             --base-primary-color: #0369a1;
             --base-primary-color-hover: #0284c7;
             --base-border-radius-sm: 0.2;
@@ -165,12 +165,12 @@
         .sunset-theme { background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%); color: #7c2d12; }
         .sunset-theme h3, .sunset-theme p, .sunset-theme label { color: #7c2d12; }
         #sunset-theme {
-            --base-input-background: #fffbeb;
+            --base-main-bg: #fffbeb;
             --base-text-color-1: #7c2d12;
             --base-text-color-3: #b45309;
             --base-border-color: #fcd34d;
-            --base-primary-bg: #fef3c7;
-            --base-primary-bg-hover: #fde68a;
+            --base-elevated-bg: #fef3c7;
+            --base-hover-bg: #fde68a;
             --base-primary-color: #ea580c;
             --base-primary-color-hover: #c2410c;
             --base-on-primary-text-color: #ffffff;
@@ -182,12 +182,12 @@
         .forest-theme { background: #064e3b; color: #d1fae5; }
         .forest-theme h3, .forest-theme p, .forest-theme label { color: #d1fae5; }
         #forest-theme {
-            --base-input-background: #065f46;
+            --base-main-bg: #065f46;
             --base-text-color-1: #d1fae5;
             --base-text-color-3: #a7f3d0;
             --base-border-color: #047857;
-            --base-primary-bg: #065f46;
-            --base-primary-bg-hover: #047857;
+            --base-elevated-bg: #065f46;
+            --base-hover-bg: #047857;
             --base-primary-color: #34d399;
             --base-primary-color-hover: #10b981;
             --base-on-primary-text-color: #064e3b;
@@ -325,7 +325,9 @@ web-dropzone { --dz-font-family: 'Inter', sans-serif; }</code></pre>
                 <div class="note-title">Contract</div>
                 <ul>
                     <li><strong>Typography:</strong> <code>--base-font-family</code>, <code>--base-font-size-xs|sm|base|lg</code> (unitless multipliers), <code>--base-font-weight-normal|medium|semibold</code></li>
-                    <li><strong>Colors:</strong> <code>--base-primary-color[-hover|-active|-light]</code>, <code>--base-text-color-1..4</code>, <code>--base-on-primary-text-color</code>, <code>--base-border-color</code>, <code>--base-primary-bg[-hover]</code>, <code>--base-input-background</code>, <code>--base-success-color</code>, <code>--base-danger-color</code>, <code>--base-warning-color</code></li>
+                    <li><strong>Colors:</strong> <code>--base-primary-color[-hover|-active]</code>, <code>--base-primary-bg-subtle[-hover]</code>, <code>--base-text-color-1..4</code>, <code>--base-on-primary-text-color</code>, <code>--base-border-color</code>, <code>--base-main-bg</code>, <code>--base-elevated-bg</code>, <code>--base-hover-bg</code>, <code>--base-shadow-color</code>, <code>--base-success-color</code>, <code>--base-danger-color</code>, <code>--base-warning-color</code></li>
+                    <li><strong>Motion:</strong> <code>--base-duration-fast|normal|medium|slow</code>, <code>--base-ease-standard|out</code> — set the durations to <code>0s</code> to turn motion off; <code>prefers-reduced-motion</code> does it automatically</li>
+                    <li><strong>Disabled:</strong> <code>--base-disabled-opacity</code></li>
                     <li><strong>Radii:</strong> <code>--base-border-radius-sm|md|lg</code> (unitless multipliers)</li>
                 </ul>
             </div>
@@ -353,14 +355,14 @@ web-dropzone { --dz-font-family: 'Inter', sans-serif; }</code></pre>
             <div class="control-section">
                 <h3>Backgrounds &amp; Borders</h3>
                 <div class="control-grid">
-                    <label>--base-input-background
-                        <input type="color" value="#ffffff" data-var="--base-input-background">
+                    <label>--base-main-bg
+                        <input type="color" value="#ffffff" data-var="--base-main-bg">
                     </label>
-                    <label>--base-primary-bg
-                        <input type="color" value="#f3f4f6" data-var="--base-primary-bg">
+                    <label>--base-elevated-bg
+                        <input type="color" value="#f5f5f5" data-var="--base-elevated-bg">
                     </label>
                     <label>--base-border-color
-                        <input type="color" value="#e5e7eb" data-var="--base-border-color">
+                        <input type="color" value="#dfdfdf" data-var="--base-border-color">
                     </label>
                 </div>
             </div>
@@ -369,10 +371,10 @@ web-dropzone { --dz-font-family: 'Inter', sans-serif; }</code></pre>
                 <h3>Text</h3>
                 <div class="control-grid">
                     <label>--base-text-color-1
-                        <input type="color" value="#111827" data-var="--base-text-color-1">
+                        <input type="color" value="#334155" data-var="--base-text-color-1">
                     </label>
                     <label>--base-text-color-3
-                        <input type="color" value="#6b7280" data-var="--base-text-color-3">
+                        <input type="color" value="#8f96a1" data-var="--base-text-color-3">
                     </label>
                 </div>
             </div>
@@ -384,7 +386,7 @@ web-dropzone { --dz-font-family: 'Inter', sans-serif; }</code></pre>
                         <input type="color" value="#10b981" data-var="--base-success-color">
                     </label>
                     <label>--base-danger-color
-                        <input type="color" value="#ef4444" data-var="--base-danger-color">
+                        <input type="color" value="#dc2626" data-var="--base-danger-color">
                     </label>
                     <label>--base-warning-color
                         <input type="color" value="#f59e0b" data-var="--base-warning-color">
@@ -524,7 +526,7 @@ web-dropzone { --dz-font-family: 'Inter', sans-serif; }</code></pre>
     --base-primary-color: #818cf8;
     --base-text-color-1: #e2e8f0;
     --base-border-color: #334155;
-    --base-input-background: #1e293b;
+    --base-main-bg: #1e293b;
     --base-font-family: 'Inter', sans-serif;
 }
 

@@ -57,6 +57,30 @@ The `--dz-*` tokens read [`@keenmate/base-css-variables`](https://www.npmjs.com/
 | `--base-border-radius-sm` | Tight corners — buttons, summary line, file items. |
 | `--base-border-radius-md` | Standard corners — preview tiles. |
 | `--base-border-radius-lg` | Large corners — dropzone card, popover. |
+| `--base-duration-fast` | Motion speed fast (0.1s) — drag-overlay hover. 0s turns it off. |
+| `--base-duration-normal` | Motion speed normal (0.15s) — hovers, fades, progress-bar width, drawer. 0s turns it off. |
+| `--base-duration-medium` | Motion speed medium (0.25s). 0s turns it off. |
+| `--base-duration-slow` | Motion speed slow (0.3s) — rolling rotation, overall progress. 0s turns it off. |
+| `--base-ease-standard` | Standard easing — every transition. |
+| `--base-ease-out` | Ease-out — fade-ins, progress-fill growth. |
+| `--base-disabled-opacity` | Disabled dimming of the dropzone and its buttons. |
+
+## Motion
+
+Every transition and animation uses the contract's four speeds (`--dz-transition-fast|normal|medium|slow`
+→ `--base-duration-*`, 0.1 / 0.15 / 0.25 / 0.3s) and easings (`--dz-easing-snappy` / `--dz-easing-out` →
+`--base-ease-*`), including the drag overlay on `<body>` (timed from the host's variables). No attribute
+gates motion — it's CSS only:
+
+```css
+web-dropzone { --dz-transition-fast: 0s; --dz-transition-normal: 0s;
+               --dz-transition-medium: 0s; --dz-transition-slow: 0s; }  /* one dropzone */
+:root { --base-duration-fast: 0s; --base-duration-normal: 0s;
+        --base-duration-medium: 0s; --base-duration-slow: 0s; }         /* the whole page */
+```
+
+`prefers-reduced-motion: reduce` sets them to `0s` (and the uploading-row pulse). The status spinners
+(`--dz-status-spin-duration`, 1s) keep turning — they show that an upload is running; `0s` stops them.
 
 ## Component variables (`--dz-*`)
 
@@ -164,7 +188,7 @@ The `--dz-*` tokens read [`@keenmate/base-css-variables`](https://www.npmjs.com/
 
 | Variable | Usage |
 |---|---|
-| `--dz-disabled-opacity` | disabled opacity |
+| `--dz-disabled-opacity` | disabled dimming (base: --base-disabled-opacity, 0.65) |
 
 ### dropzone
 
@@ -202,9 +226,13 @@ The `--dz-*` tokens read [`@keenmate/base-css-variables`](https://www.npmjs.com/
 
 | Variable | Usage |
 |---|---|
-| `--dz-easing-snappy` | easing snappy |
-| `--dz-transition-fast` | transition fast |
-| `--dz-transition-normal` | transition normal |
+| `--dz-easing-out` | ease-out (base: --base-ease-out) — fade-ins, progress fill |
+| `--dz-easing-snappy` | standard easing (base: --base-ease-standard) |
+| `--dz-transition-fast` | speed fast 0.1s (base: --base-duration-fast); 0s = motion off |
+| `--dz-transition-medium` | speed medium 0.25s (base: --base-duration-medium); 0s = motion off |
+| `--dz-transition-normal` | speed normal 0.15s (base: --base-duration-normal); 0s = motion off |
+| `--dz-transition-slow` | speed slow 0.3s (base: --base-duration-slow); 0s = motion off |
+| `--dz-uploading-pulse-duration` | uploading-row pulse loop (1.5s; 0s under reduced motion) |
 
 ### empty-state
 
@@ -252,7 +280,7 @@ The `--dz-*` tokens read [`@keenmate/base-css-variables`](https://www.npmjs.com/
 |---|---|
 | `--dz-icon-remove` | icon remove |
 | `--dz-status-icon-size` | status icon size |
-| `--dz-status-spin-duration` | status spin duration |
+| `--dz-status-spin-duration` | status spinner loop (1s; keeps turning under reduced motion; 0s stops it) |
 
 ### file-item
 
@@ -410,7 +438,7 @@ The `--dz-*` tokens read [`@keenmate/base-css-variables`](https://www.npmjs.com/
 
 | Variable | Usage |
 |---|---|
-| `--dz-rolling-animation-duration` | rolling animation duration |
+| `--dz-rolling-animation-duration` | rolling rotation duration (default --dz-transition-slow) |
 | `--dz-rolling-queue-bg` | rolling queue bg |
 | `--dz-rolling-queue-bg-hover` | rolling queue bg hover |
 | `--dz-rolling-queue-border` | rolling queue border |

@@ -195,7 +195,7 @@
      Container is the popover anchor. Queue badge is a corner overlay
      (`--dz-rolling-queue-offset` from top-right).
      ========================================================================== */
-  --dz-rolling-animation-duration: 0.35s;
+  --dz-rolling-animation-duration: var(--dz-transition-slow);
   --dz-rolling-queue-offset: calc(0.4 * var(--dz-rem, 10px));
   --dz-rolling-queue-padding: calc(0.3 * var(--dz-rem, 10px)) calc(0.6 * var(--dz-rem, 10px));
   --dz-rolling-queue-bg: var(--dz-primary-bg);
@@ -331,7 +331,10 @@
   --dz-item-progress-text-width: calc(3.6 * var(--dz-rem, 10px));
   --dz-item-status-width: calc(2 * var(--dz-rem, 10px));
   --dz-status-icon-size: calc(1.6 * var(--dz-rem, 10px));
+  /* Spinners convey state: their own loop duration, not a base speed, and they
+     keep turning under reduced motion. 0s stops them. */
   --dz-status-spin-duration: 1s;
+  --dz-uploading-pulse-duration: 1.5s;
 
   /* File Item Remove Button — empty button with × glyph painted via CSS
      mask of --dz-icon-remove on the ::before (matches .dz__badge-remove
@@ -502,7 +505,7 @@
   --dz-progress-bg: color-mix(in srgb, var(--dz-accent-color) 20%, transparent);
   --dz-progress-fill-bg: var(--dz-accent-color);
   --dz-progress-border-radius: calc(0.3 * var(--dz-rem, 10px));
-  --dz-progress-transition: width 0.3s ease;
+  --dz-progress-transition: width var(--dz-transition-slow) var(--dz-easing-snappy);
 
   /* ==========================================================================
      OVERALL PROGRESS STRIP — aggregate upload progress under the inline list
@@ -557,14 +560,19 @@
   /* ==========================================================================
      TRANSITIONS
      ========================================================================== */
-  --dz-transition-fast: 150ms;
-  --dz-transition-normal: 200ms;
-  --dz-easing-snappy: cubic-bezier(0.4, 0, 0.2, 1);
+  /* The contract's four speeds + easings. Motion off: these 0s (or
+     --base-duration-*: 0s page-wide); reduced motion does it (block below). */
+  --dz-transition-fast: var(--base-duration-fast, 0.1s);
+  --dz-transition-normal: var(--base-duration-normal, 0.15s);
+  --dz-transition-medium: var(--base-duration-medium, 0.25s);
+  --dz-transition-slow: var(--base-duration-slow, 0.3s);
+  --dz-easing-snappy: var(--base-ease-standard, cubic-bezier(0.4, 0, 0.2, 1));
+  --dz-easing-out: var(--base-ease-out, cubic-bezier(0, 0, 0.2, 1));
 
   /* ==========================================================================
      DISABLED STATE
      ========================================================================== */
-  --dz-disabled-opacity: 0.5;
+  --dz-disabled-opacity: var(--base-disabled-opacity, 0.65);
 
   /* ==========================================================================
      DRAG OVERLAY (Ultra-Compact Mode)
@@ -578,4 +586,17 @@
   --dz-overlay-text-font-weight: 500;
   --dz-overlay-gap: calc(1.2 * var(--dz-rem, 10px));
   --dz-overlay-z-index: 9999;
+}
+
+/* Reduced motion: no transitions / animations (spinners keep turning — they
+   convey state). Holds without the contract on the page. Same selector as
+   the token block (managed satellites inherit from the store host). */
+@media (prefers-reduced-motion: reduce) {
+  :host(:not([managed])) {
+    --dz-transition-fast: 0s;
+    --dz-transition-normal: 0s;
+    --dz-transition-medium: 0s;
+    --dz-transition-slow: 0s;
+    --dz-uploading-pulse-duration: 0s;
+  }
 }

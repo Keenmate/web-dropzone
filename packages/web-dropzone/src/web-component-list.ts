@@ -556,7 +556,7 @@ export class DropzoneListElement extends SatelliteElement {
             previousCurrent.classList.add('dz__rolling__current--leaving');
             wrapper.insertBefore(newCurrentEl, previousCurrent);
             const toRemove = previousCurrent;
-            // ~150ms over the typical 350ms animation; spare margin so we
+            // ~200ms over the 0.3s (--dz-transition-slow) animation; spare margin so we
             // never yank a node mid-keyframe.
             setTimeout(() => { toRemove.remove(); }, 500);
         } else if (previousCurrent) {
