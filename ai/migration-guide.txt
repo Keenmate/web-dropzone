@@ -136,7 +136,7 @@ STEP 7: LABELS REPLACE TEXT ATTRIBUTES
 <!-- after -->
 <web-dropzone labels='{"prompt":"Drop invoices","hint":"PDF only"}' display-mode="list"></web-dropzone>
 
-Also moved into labels: empty-message -> labels.empty, summary-template ->
+Also moved into labels: empty-message -> labels.noData, summary-template ->
 labels.summary; the satellites' label / hint / no-file-chosen-text / list
 empty-message / indicator label attributes -> each satellite's own `labels`
 (merged over the store's). Popover, limits line, progress strip, indicator

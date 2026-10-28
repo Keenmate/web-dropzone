@@ -125,10 +125,15 @@ test.describe('text inputs', () => {
         await expect(card(page).locator('.dz__dropzone__hint')).toHaveText('PDF only');
     });
 
-    test('labels.empty renders while empty; a live change re-renders', async ({ page }) => {
+    test('labels.noData renders while empty; a live change re-renders', async ({ page }) => {
         await expect(dz(page, 'texts').locator('.dz__empty')).toHaveText('Nothing uploaded yet');
-        await dz(page, 'texts').evaluate(async (el: any) => { el.labels = { ...el.labels, empty: 'Still empty' }; await el.whenSettled(); });
+        await dz(page, 'texts').evaluate(async (el: any) => { el.labels = { ...el.labels, noData: 'Still empty' }; await el.whenSettled(); });
         await expect(dz(page, 'texts').locator('.dz__empty')).toHaveText('Still empty');
+    });
+
+    test("labels.noData '' renders no empty-state element at all", async ({ page }) => {
+        await dz(page, 'texts').evaluate(async (el: any) => { el.labels = { ...el.labels, noData: '' }; await el.whenSettled(); });
+        await expect(dz(page, 'texts').locator('.dz__empty')).toHaveCount(0);
     });
 
     test('labels.overlay / overlay-icon render in the overlay; live changes apply to the next drag', async ({ page }) => {

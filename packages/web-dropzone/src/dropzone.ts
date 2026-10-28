@@ -1149,7 +1149,9 @@ export class WebDropzone extends DropzoneEngine {
 
         if (this.files.length === 0) {
             this.fileRowElements.clear();
-            targetEl.innerHTML = this.config.isFilesInside ? '' : `<div class="dz__empty">${escapeHtml(this.label('empty'))}</div>`;
+            // labels.noData '' = deliberately empty: render nothing.
+            const noData = this.config.isFilesInside ? '' : this.label('noData');
+            targetEl.innerHTML = noData ? `<div class="dz__empty">${escapeHtml(noData)}</div>` : '';
             return;
         }
 
@@ -1653,7 +1655,7 @@ export class WebDropzone extends DropzoneEngine {
                     <div class="dz__popover__progress-bar">
                         <div class="dz__popover__progress-fill" style="width: ${file.progress}%"></div>
                     </div>
-                    <span class="dz__popover__progress-text">${RowTemplate.progressLabel(file, this.label)}</span>
+                    <span class="dz__popover__progress-text">${escapeHtml(RowTemplate.progressLabel(file, this.label))}</span>
                 </td>
                 <td class="dz__popover__cell dz__popover__cell--action">
                     ${RowTemplate.renderRowActionButton(file, 'dz__popover__row-action', this.label)}

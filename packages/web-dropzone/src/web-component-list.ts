@@ -199,11 +199,12 @@ export class DropzoneListElement extends SatelliteElement {
                 this.container.innerHTML = '';
                 return;
             }
-            const emptyMessage = this.label('empty');
+            const emptyMessage = this.label('noData');
             // Rolling memoization snapshots are stale once the list empties
             // out — drop them so the next non-empty render starts fresh.
             if (appearance === 'rolling') this.rollingSurface.reset();
-            this.container.innerHTML = `<div class="dz__empty">${escapeHtml(emptyMessage)}</div>`;
+            // labels.noData '' = deliberately empty: render nothing.
+            this.container.innerHTML = emptyMessage ? `<div class="dz__empty">${escapeHtml(emptyMessage)}</div>` : '';
             return;
         }
 

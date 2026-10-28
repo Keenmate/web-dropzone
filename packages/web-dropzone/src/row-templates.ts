@@ -212,7 +212,7 @@ export function renderListItem(file: FileState, opts: RowTemplateOptions = {}): 
                 <div class="dz__file-item__progress-bar">
                     <div class="dz__file-item__progress-fill" style="width: ${file.progress}%"></div>
                 </div>
-                <span class="dz__file-item__progress-text">${progressLabel(file, label)}</span>
+                <span class="dz__file-item__progress-text">${escapeHtml(progressLabel(file, label))}</span>
             </div>` : ''}
             ${showPart(p, 'status') ? renderStatusPill(file, 'dz__file-item__status', label) : ''}
             ${showPart(p, 'remove') ? renderRemoveButton(file, 'dz__file-item__remove', removable, opts.removeIcon, label) : ''}
@@ -244,7 +244,7 @@ export function renderDetailedItem(file: FileState, opts: RowTemplateOptions = {
                     <div class="dz__file-item__progress-bar">
                         <div class="dz__file-item__progress-fill" style="width: ${file.progress}%"></div>
                     </div>
-                    <span class="dz__file-item__progress-text">${progressLabel(file, label)}</span>
+                    <span class="dz__file-item__progress-text">${escapeHtml(progressLabel(file, label))}</span>
                 </div>` : ''}
             </div>
             ${showPart(p, 'action') ? renderRowActionButton(file, 'dz__file-item__action', label) : ''}

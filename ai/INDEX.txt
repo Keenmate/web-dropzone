@@ -91,7 +91,7 @@ drag overlay / overlay-target -> display-modes.txt, advanced-patterns.txt
 
 E
 -
-labels.empty (was empty-message) -> display-modes.txt, labels-i18n.txt
+labels.noData (was empty-message) -> display-modes.txt, labels-i18n.txt
 events (table) -> events-callbacks.txt
 
 F

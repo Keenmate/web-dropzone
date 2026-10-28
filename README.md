@@ -453,7 +453,7 @@ Keys: `prompt`, `hint`, `dragActive`, `selectFiles`, `noFileChosen`, `overlay`;
 `statusError` / `statusCancelled`, `statusAria`, `cancelTimeout`, `cancelling`;
 `pauseFile` / `resumeFile` / `retryFile` / `cancelFile` / `removeFile`;
 `pauseAll` / `resumeAll` / `retryAll` / `cancelAll`;
-`empty`, `summary` (`{count}`, `{size}`), `viewFiles`, `filesChosen`, `fileCount` / `fileCountOne`,
+`noData`, `summary` (`{count}`, `{size}`), `viewFiles`, `filesChosen`, `fileCount` / `fileCountOne`,
 `addMore`, `clearAll`, `showMore` / `showLess`, `showQueue`, `unknownType`;
 popover limits line `limitMaxFileSize` / `limitMinFileSize` / `limitMaxTotalSize(Left)` /
 `limitMaxFileCount(Left)` / `limitMinFileCount`; progress strip `progressCounts` / `progressPaused` /
@@ -464,6 +464,10 @@ popover limits line `limitMaxFileSize` / `limitMinFileSize` / `limitMaxTotalSize
 form validity `errorMinFileCount(One)`. `…One` variants are used when the count is 1
 (`countLabel()`). Every lookup goes through `resolveLabel(sources, key, vars)` (exported) —
 page-wide localisation will plug in there.
+
+A label set to `''` is deliberately empty and renders nothing (e.g. `noData: ''` hides the empty-list
+text); a missing / `undefined` key falls back to English. Labels are **text** — always inserted escaped
+(no label is rendered as HTML), so placeholder values like `{name}` are safe.
 
 ## File State
 

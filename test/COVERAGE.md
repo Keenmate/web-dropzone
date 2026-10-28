@@ -27,7 +27,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `icon` attribute on minimal selector                          | ✓      | `display.spec.ts` | `display.html` |
 | Count badge on button when files exist                        | ✓      | `appearance.spec.ts` | `appearance.html` |
 | Count badge on minimal when files exist (follows remove / clear) | ✓   | `appearance.spec.ts` | `appearance.html` |
-| `labels.prompt` / `labels.hint` / `labels.empty` + live update | ✓      | `display.spec.ts` | `display.html` |
+| `labels.prompt` / `labels.hint` / `labels.noData` + live update | ✓      | `display.spec.ts` | `display.html` |
 | `labels.overlay` / `overlay-icon` + live update               | ✓      | `display.spec.ts` | `display.html` |
 | `multiple` default / `multiple="false"` / `el.isMultiple` live on the native input + dialog | ✓ | `display.spec.ts` | `display.html` |
 
@@ -169,7 +169,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Multiple independent stores on one page                       | ✓      | `architecture.spec.ts` | `architecture.html` |
 | Picker `label` / `hint` / `selector-appearance` / `disabled` (per picker) | ✓ | `satellites-extra.spec.ts` | `satellites-extra.html` |
 | Picker `inside="true"` + nested list (files-inside layout)    | ✓      | `satellites-extra.spec.ts` | `satellites-extra.html` |
-| List own `labels.empty`, `list-appearance` (+ live change)     | ✓      | `satellites-extra.spec.ts` | `satellites-extra.html` |
+| List own `labels.noData`, `list-appearance` (+ live change)     | ✓      | `satellites-extra.spec.ts` | `satellites-extra.html` |
 | Indicator `position` / `drawer` (auto toggles, off = status chip) / `label` | ✓ | `satellites-extra.spec.ts` | `satellites-extra.html` |
 | Progress `data-empty` / `data-status` (uploading → paused → error → complete) | ✓ | `satellites-extra.spec.ts` | `satellites-extra.html` |
 

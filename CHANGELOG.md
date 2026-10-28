@@ -11,6 +11,16 @@ No stable 1.0.0 is published, so the break ships as the next release
 candidate — but `^1.0.0-rc02` consumers will pull it: the event,
 callback and store-access API below is breaking.
 
+### Changed — BREAKING (leftover decisions, round 2)
+
+- **BREAKING** label key `empty` → `noData` (default "No files selected"; `<web-dropzone>` and
+  `<web-dropzone-list>`). `labels.noData: ''` now renders no empty-state element at all — `''` = deliberately
+  empty, a missing key = English default (every label).
+
+### Fixed (round 2)
+
+- The row / popover progress text ("Cancelling…") is inserted escaped like every other label.
+
 ### Changed — BREAKING (suite-wide naming unification, v2)
 
 The KeenMate components now share one public-API vocabulary (BlissFramework rulebook D-NC-13..27).
@@ -42,10 +52,10 @@ No compatibility aliases. Where an entry further down names an old spelling (`sh
 | `should-keep-alive-when-removed` | `keep-alive-when-removed` (`el.shouldKeepAliveWhenRemoved`) |
 | `max-visible-files` / `maxVisibleFiles` | `max-visible-file-count` / `maxVisibleFileCount` |
 | `mode` / `el.mode` / type `DropzoneMode` | `render-mode` / `el.renderMode` / `DropzoneRenderMode` (bulk / structural / headless — who renders; now also settable as a property) |
-| `empty-message` / `emptyMessage` | `labels.empty` |
+| `empty-message` / `emptyMessage` | `labels.noData` |
 | `summary-template` / `summaryTemplate` | `labels.summary` |
 | `<web-dropzone-picker label hint no-file-chosen-text>` | the picker's own `labels` (`prompt` / `selectFiles`, `hint`, `noFileChosen`) |
-| `<web-dropzone-list empty-message>` | the list's own `labels.empty` |
+| `<web-dropzone-list empty-message>` | the list's own `labels.noData` |
 | `<web-dropzone-indicator label>` | the indicator's own `labels.indicatorTitle` / `labels.indicatorIdle` |
 
 **Events / callbacks**
@@ -70,7 +80,7 @@ completed, or metadata stashed) — wire the server DELETE there.
   stay visible and ARE submitted with the form; uploads keep running. Reflected boolean attribute;
   surface modifier `dz__dropzone--readonly`.
 - **Every UI string is a `labels` key** (built-in English, `{count}` / `{name}` / `{size}` placeholders):
-  `empty`, `summary`, `viewFiles`, `filesChosen`, `fileCount` / `fileCountOne`, `addMore`, `clearAll`,
+  `noData`, `summary`, `viewFiles`, `filesChosen`, `fileCount` / `fileCountOne`, `addMore`, `clearAll`,
   `showMore`, `showLess`, `showQueue`, `unknownType`, the popover limits line (`limit*`), the progress
   strip (`progressCounts`, `progressPaused`, `progressFailed`), the indicator (`indicator*`, `close`),
   the validation messages (`errorMaxFileSize`, `errorMinFileSize`, `errorFileType`, `errorRejected`,

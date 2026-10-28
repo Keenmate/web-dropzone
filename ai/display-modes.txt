@@ -177,7 +177,7 @@ OTHER LIST KNOBS
 ----------------
 max-visible-file-count="7" rows shown before a "Show N more" / "Show less"
                            toggle (badges: "+N" pill). 0 = show all. Default 7.
-labels.empty               text when the list is empty (default "No files selected")
+labels.noData               text when the list is empty (default "No files selected")
 labels.summary             compact summary line (default "{count} file(s), {size}")
 sink-completed             completed files move to the end of the rendered list
 sink-completed-delay       ms a completed row stays put first (default 1500)

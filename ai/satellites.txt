@@ -80,7 +80,7 @@ Attributes:
   list-appearance  list (default) | detailed | grid | badges | rolling | popover
   grid-layout      uniform | natural
   grid-status      badge | overlay
-  labels           own UI strings over the store's (e.g. {"empty":"Nothing yet"})
+  labels           own UI strings over the store's (e.g. {"noData":"Nothing yet"})
   nested="true"    files-inside class family (child of a picker with inside="true")
 
 Reads from the store config: item-controls, max-visible-file-count,

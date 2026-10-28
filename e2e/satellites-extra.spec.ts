@@ -94,7 +94,7 @@ test.describe('<web-dropzone-picker> attributes', () => {
 });
 
 test.describe('<web-dropzone-list> attributes', () => {
-    test('labels.empty renders while the store is empty, rows replace it', async ({ page }) => {
+    test('labels.noData renders while the store is empty, rows replace it', async ({ page }) => {
         await expect(dz(page, 'list-empty').locator('.dz__empty')).toHaveText('Nothing yet');
         await addNamed(page, 'sat', ['a.txt']);
         await expect(dz(page, 'list-empty').locator('.dz__empty')).toHaveCount(0);
@@ -175,7 +175,7 @@ test.describe('<web-dropzone-progress> data-status', () => {
 test.describe('satellite labels', () => {
     test('a satellite inherits the store labels; its own labels win per key; live property change re-renders', async ({ page }) => {
         // Store labels → every satellite (here: the list's empty text).
-        await dz(page, 'sat').evaluate(async (el: any) => { el.labels = { empty: 'Store empty', prompt: 'Store prompt' }; await el.whenSettled(); });
+        await dz(page, 'sat').evaluate(async (el: any) => { el.labels = { noData: 'Store empty', prompt: 'Store prompt' }; await el.whenSettled(); });
         await expect(dz(page, 'list-empty').locator('.dz__empty')).toHaveText('Nothing yet'); // own key wins
         await dz(page, 'list-empty').evaluate((el) => el.removeAttribute('labels'));
         await expect(dz(page, 'list-empty').locator('.dz__empty')).toHaveText('Store empty');

@@ -174,7 +174,7 @@ Satellites read the BOUND STORE's labels. Every satellite also takes its OWN
 `labels` (property or JSON attribute), merged per key ON TOP of the store's:
   <web-dropzone-picker for="dz" labels='{"prompt":"Drop invoices","hint":"PDF only"}'>
   <web-dropzone-picker for="dz" selector-appearance="button" labels='{"selectFiles":"Browse"}'>
-  <web-dropzone-list for="dz" labels='{"empty":"Nothing yet"}'>
+  <web-dropzone-list for="dz" labels='{"noData":"Nothing yet"}'>
   <web-dropzone-indicator for="dz" labels='{"indicatorTitle":"Queue"}'>
   picker.labels = { noFileChosen: 'Nic' };   // live
 
@@ -186,10 +186,10 @@ REMOVED IN 1.0.0-rc03
 | hint-text / hintText                     | labels.hint                      |
 | drag-active-text / dragActiveText        | labels.dragActive                |
 | no-file-chosen-text / noFileChosenText   | labels.noFileChosen              |
-| empty-message / emptyMessage             | labels.empty                     |
+| empty-message / emptyMessage             | labels.noData                     |
 | summary-template / summaryTemplate       | labels.summary                   |
 | picker label / hint / no-file-chosen-text| picker labels (prompt / selectFiles, hint, noFileChosen) |
-| list empty-message                       | list labels.empty                |
+| list empty-message                       | list labels.noData                |
 | indicator label                          | indicator labels.indicatorTitle / indicatorIdle |
 | overlay-text / overlayText               | labels.overlay                   |
 | select-files-text / selectFilesText      | labels.selectFiles               |

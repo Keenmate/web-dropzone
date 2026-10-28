@@ -58,7 +58,7 @@ export interface DropzoneLabels {
     cancelAll: string;
 
     /** Empty file list. */
-    empty: string;
+    noData: string;
     /** Compact summary line (`{count}`, `{size}` = total size). */
     summary: string;
     /** Accessible name of the compact summary line (opens the popover). */
@@ -158,7 +158,7 @@ export const DEFAULT_LABELS: Readonly<DropzoneLabels> = Object.freeze({
     retryAll: 'Retry all',
     cancelAll: 'Cancel all',
 
-    empty: 'No files selected',
+    noData: 'No files selected',
     summary: '{count} file(s), {size}',
     viewFiles: 'Click to view files',
     filesChosen: '{count} files chosen',
