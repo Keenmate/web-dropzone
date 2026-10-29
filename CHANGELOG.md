@@ -35,8 +35,7 @@ callback and store-access API below is breaking.
   `.dz__indicator__spinner` class (→ `.dz__indicator__loader`). Under reduced motion the uploading-row
   pulse stops (`--dz-uploading-pulse-duration: 0s`), the loader slows (contract: 1.5s).
 - `LoaderRenderContext` / `RenderLoaderCallback` types re-exported.
-- **Dev:** `@keenmate/base-css-variables` points to `file:../../../base-css-variables` (rc06 with the
-  loader tokens is unpublished) — **switch back to `^2.0.0-rc06` before publishing**.
+- **Dependency:** requires `@keenmate/base-css-variables` `^2.0.0-rc06`.
 
 ### Changed — BREAKING (leftover decisions, round 2)
 
