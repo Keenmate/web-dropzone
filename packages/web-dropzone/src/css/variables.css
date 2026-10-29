@@ -135,11 +135,11 @@
      DROPZONE
      ========================================================================== */
   --dz-dropzone-border: 2px dashed var(--dz-border-color);
-  --dz-dropzone-border-active: 2px solid var(--dz-accent-color);
+  --dz-dropzone-border-active: 2px solid var(--base-drop-target-border-color, var(--dz-success-color)); /* drop target: the success role */
   --dz-dropzone-border-radius: calc(var(--base-border-radius-lg, 0.8) * var(--dz-rem, 10px));
   --dz-dropzone-bg: var(--dz-background);
   --dz-dropzone-bg-hover: var(--dz-primary-bg);
-  --dz-dropzone-bg-active: var(--base-primary-bg-subtle, light-dark(color-mix(in srgb, var(--dz-accent-color) 10%, transparent), color-mix(in srgb, var(--dz-accent-color) 20%, transparent))); /* drop target: the primary tint */
+  --dz-dropzone-bg-active: var(--base-drop-target-bg-active, var(--base-success-bg-subtle-hover, light-dark(color-mix(in srgb, var(--dz-success-color) 15%, transparent), color-mix(in srgb, var(--dz-success-color) 30%, transparent)))); /* drop target under the pointer */
   --dz-dropzone-padding: calc(3.2 * var(--dz-rem, 10px));
   --dz-dropzone-min-height: calc(12 * var(--dz-rem, 10px));
 

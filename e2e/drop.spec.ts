@@ -32,6 +32,21 @@ test.describe('drag feedback', () => {
         await expect(c).not.toHaveClass(/dz__dropzone--active/);
     });
 
+    test('the dragged-over card follows the page-wide --base-drop-target-* tokens', async ({ page }) => {
+        await page.evaluate(() => {
+            const r = document.documentElement.style;
+            r.setProperty('--base-drop-target-bg-active', 'rgb(1, 2, 3)');
+            r.setProperty('--base-drop-target-border-color', 'rgb(4, 5, 6)');
+        });
+        const c = page.locator(card('drop'));
+        await dragFiles(c, 'dragenter');
+        await dragFiles(c, 'dragover');
+        await expect(c).toHaveClass(/dz__dropzone--active/);
+        await expect(c).toHaveCSS('background-color', 'rgb(1, 2, 3)');
+        await expect(c).toHaveCSS('border-top-color', 'rgb(4, 5, 6)');
+        await expect(c).toHaveCSS('border-top-style', 'solid');
+    });
+
     test('labels.dragActive replaces the prompt while a drag is over the card', async ({ page }) => {
         const c = page.locator(card('drop'));
         await expect(c.locator('.dz__dropzone__text')).toHaveText('Drop here');

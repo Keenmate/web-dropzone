@@ -213,10 +213,10 @@ icon show the CSS-only `.dz-loader--inline` while uploading (the row carries `ar
 | Variable | Usage |
 |---|---|
 | `--dz-dropzone-bg` | dropzone bg |
-| `--dz-dropzone-bg-active` | Drop-target background while dragging over (`--base-primary-bg-subtle`) |
+| `--dz-dropzone-bg-active` | Drop-target background while dragging over (`--base-drop-target-bg-active`) |
 | `--dz-dropzone-bg-hover` | dropzone bg hover |
 | `--dz-dropzone-border` | dropzone border |
-| `--dz-dropzone-border-active` | dropzone border active |
+| `--dz-dropzone-border-active` | Drop-target border while dragging over (`2px solid --base-drop-target-border-color`) |
 | `--dz-dropzone-border-radius` | dropzone border radius |
 | `--dz-dropzone-hint-color` | dropzone hint color |
 | `--dz-dropzone-hint-font-size` | dropzone hint font size |
