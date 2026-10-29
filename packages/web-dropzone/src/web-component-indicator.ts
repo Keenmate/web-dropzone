@@ -18,7 +18,7 @@
  *     rolling list block in `dropzone.ts`.
  *
  * The default rendering is the library calling its own polished defaults
- * through the same hooks: Lucide SVG glyphs + a WAAPI-driven spinner for
+ * through the same hooks: Lucide SVG glyphs + the shared upload loader (core renderLoader) for
  * active uploads + a thin progress bar under the label. Each default part
  * is replaceable independently — you can override progress but keep the
  * built-in file info, or vice versa.
@@ -27,7 +27,7 @@
  * `applyStatusSurfaceResult`): string returns are skipped when equal to
  * the previous string; element returns are skipped when the returned
  * node is already mounted as the only child. That's what lets a cached
- * spinner survive across 50ms progress ticks without restarting.
+ * loader survive across 50ms progress ticks without restarting.
  */
 
 import styles from './css/main.css?inline';
@@ -41,10 +41,11 @@ import {
 import {
     escapeHtml,
     STATUS_ICONS,
-    createDropzoneSpinner,
     formatFileSize,
-    fileStatusLabel
+    fileStatusLabel,
+    statusLabel
 } from '@keenmate/web-dropzone-core';
+import { renderLoader } from '@keenmate/web-components-core';
 import {
     buildStatusSurfaceArgs,
     StatusSurface
@@ -493,15 +494,16 @@ export class DropzoneIndicatorElement extends SatelliteElement {
     /**
      * Library default for the file-info slot. While idle: nothing (empty
      * string memoizes to a no-op). While there's a focal file: the
-     * file's status glyph — swapped to the polished WAAPI spinner when
-     * the focal file is actively uploading. Returns an HTMLElement so the
-     * spinner instance survives across ticks (identity-checked memoization).
+     * file's status glyph — swapped to the upload loader (core renderLoader)
+     * when the focal file is actively uploading. Returns an HTMLElement so the
+     * loader instance survives across ticks (identity-checked memoization).
      */
     private defaultFileInfo(args: StatusSurfaceArgs): string | HTMLElement {
-        if (!args.currentFile) return '';
+        if (!args.currentFile) { this.releaseUploadLoader(); return ''; }
         if (args.currentFile.status === 'uploading') {
-            return this.getSharedSpinner();
+            return this.getUploadLoader();
         }
+        this.releaseUploadLoader();
         const status = args.currentFile.status as FileStatus;
         // Static glyph for non-uploading focal states (paused / error /
         // complete). Returned as a string so it memoizes by equality.
@@ -519,19 +521,39 @@ export class DropzoneIndicatorElement extends SatelliteElement {
     }
 
     /**
-     * Lazy-cached spinner. Reused across refreshes so the WAAPI rotation
-     * never restarts — `applyStatusSurfaceResult` short-circuits when
-     * the returned element is already mounted.
+     * The upload loader (SPEC §12.14 of core): a `role="status"` container
+     * filled by core `renderLoader()` — the store's `renderLoadingCallback`,
+     * else `window.components.renderLoaderCallback`, else the default
+     * `.dz-loader`. Drawn once per upload run and reused across refreshes so
+     * the animation never restarts (`applyStatusSurfaceResult` short-circuits
+     * when the returned element is already mounted); released (hook cleanup)
+     * when the focal file stops uploading or the store binding goes away.
      */
-    private sharedSpinner: HTMLElement | null = null;
-    private getSharedSpinner(): HTMLElement {
-        if (!this.sharedSpinner) {
-            this.sharedSpinner = createDropzoneSpinner({
-                ariaLabel: 'Uploading',
-                className: 'dz__indicator__spinner'
+    private uploadLoader: HTMLElement | null = null;
+    private removeUploadLoader: (() => void) | null = null;
+    private getUploadLoader(): HTMLElement {
+        if (!this.uploadLoader) {
+            const container = document.createElement('span');
+            container.className = 'dz__indicator__loader';
+            this.removeUploadLoader = renderLoader(this, container, 'upload', {
+                prefix: 'dz',
+                label: statusLabel(this.label, 'uploading'),
+                renderLoadingCallback: this.storeEl?.renderLoadingCallback ?? null
             });
+            this.uploadLoader = container;
         }
-        return this.sharedSpinner;
+        return this.uploadLoader;
+    }
+    private releaseUploadLoader(): void {
+        if (!this.uploadLoader) return;
+        this.removeUploadLoader?.();
+        this.removeUploadLoader = null;
+        this.uploadLoader = null;
+    }
+
+    protected override teardownStoreBinding(): void {
+        super.teardownStoreBinding();
+        this.releaseUploadLoader();
     }
 
     // ========================================================================
@@ -561,6 +583,7 @@ export {
     createDropzoneSpinner,
     STATUS_ICONS
 } from '@keenmate/web-dropzone-core';
+export type { LoaderRenderContext, RenderLoaderCallback } from '@keenmate/web-components-core';
 export type {
     StatusSurfaceArgs,
     StatusSurfaceCallback,

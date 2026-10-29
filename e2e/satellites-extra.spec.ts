@@ -172,6 +172,82 @@ test.describe('<web-dropzone-progress> data-status', () => {
     });
 });
 
+test.describe('shared loader', () => {
+    const ind = (page: Page) => dz(page, 'ind-off');
+    const start = (page: Page) => dz(page, 'sat').evaluate((el: any) => { void el.uploadAll(); });
+
+    test('indicator: default .dz-loader in a role=status container; rows: CSS inline loader + aria-busy', async ({ page }) => {
+        await addNamed(page, 'sat', ['a.txt']);
+        await start(page);
+        await expect.poll(() => pendingNames(page)).toContain('a.txt');
+
+        const container = ind(page).locator('.dz__indicator__loader');
+        await expect(container).toHaveAttribute('role', 'status');
+        await expect(container).toHaveAttribute('aria-label', 'Uploading');
+        const spin = container.locator('.dz-loader');
+        await expect(spin).toHaveCount(1);
+        const anim = await spin.evaluate((s) => {
+            const cs = getComputedStyle(s);
+            return { name: cs.animationName, mask: cs.maskImage || (cs as any).webkitMaskImage };
+        });
+        expect(anim.name).toBe('dz-loader-spin');
+        expect(anim.mask).toContain('data:image/svg+xml');
+
+        // The per-row loader is CSS only: no role=status, the row is aria-busy.
+        const row = dz(page, 'list-empty').locator('.dz__file-item');
+        await expect(row).toHaveAttribute('aria-busy', 'true');
+        await expect(row.locator('.dz-loader--inline')).toHaveCount(1);
+        await expect(row.locator('[role="status"]')).toHaveCount(0);
+
+        await resolveUpload(page, 'a.txt');
+        await expect(ind(page).locator('.dz__indicator__loader')).toHaveCount(0);
+        await expect(row).not.toHaveAttribute('aria-busy', /./);
+        await expect(row.locator('.dz-loader')).toHaveCount(0);
+    });
+
+    test('window.components.renderLoaderCallback replaces the default upload loader', async ({ page }) => {
+        await page.evaluate(() => {
+            (window as any).components.renderLoaderCallback = ({ component, context, containerElement }: any) => {
+                containerElement.innerHTML = `<i class="page-dots" data-component="${component}" data-context="${context}"></i>`;
+            };
+        });
+        await addNamed(page, 'sat', ['a.txt']);
+        await start(page);
+        await expect.poll(() => pendingNames(page)).toContain('a.txt');
+        const dots = ind(page).locator('.dz__indicator__loader .page-dots');
+        await expect(dots).toHaveAttribute('data-component', 'web-dropzone-indicator');
+        await expect(dots).toHaveAttribute('data-context', 'upload');
+        await expect(ind(page).locator('.dz__indicator__loader .dz-loader')).toHaveCount(0);
+    });
+
+    test("the store's renderLoadingCallback beats the page hook; the cleanup runs when the upload ends", async ({ page }) => {
+        await page.evaluate(() => {
+            (window as any).__cleanups = 0;
+            (window as any).components.renderLoaderCallback = ({ containerElement }: any) => {
+                containerElement.innerHTML = '<i class="page-dots"></i>';
+            };
+        });
+        await dz(page, 'sat').evaluate((el: any) => {
+            el.renderLoadingCallback = ({ containerElement }: any) => {
+                const b = document.createElement('b');
+                b.className = 'own-loader';
+                containerElement.appendChild(b);
+                return () => { (window as any).__cleanups++; };
+            };
+        });
+        await addNamed(page, 'sat', ['a.txt']);
+        await start(page);
+        await expect.poll(() => pendingNames(page)).toContain('a.txt');
+        await expect(ind(page).locator('.dz__indicator__loader .own-loader')).toHaveCount(1);
+        await expect(ind(page).locator('.page-dots')).toHaveCount(0);
+
+        await resolveUpload(page, 'a.txt');
+        await expect(ind(page).locator('.own-loader')).toHaveCount(0);
+        // Both indicators bound to #sat drew (and released) one loader each.
+        await expect.poll(() => page.evaluate(() => (window as any).__cleanups)).toBe(2);
+    });
+});
+
 test.describe('satellite labels', () => {
     test('a satellite inherits the store labels; its own labels win per key; live property change re-renders', async ({ page }) => {
         // Store labels → every satellite (here: the list's empty text).

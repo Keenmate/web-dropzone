@@ -30,16 +30,35 @@ import {
     defaultLabel,
     fileStatusLabel
 } from '@keenmate/web-dropzone-core';
-import type { FileState, FileItemPart, FileIconOverrides, LabelFn, RowAction } from '@keenmate/web-dropzone-core';
+import type { FileState, FileItemPart, FileIconOverrides, LabelFn, RowAction, FileStatus } from '@keenmate/web-dropzone-core';
 
 /** The label key of a row action button (aria-label / tooltip, `{name}` = file). */
 export const ACTION_LABEL_KEYS = { pause: 'pauseFile', resume: 'resumeFile', retry: 'retryFile' } as const satisfies Record<RowAction, string>;
+
+/**
+ * The tiny loader inside one item (a row's status pill, the summary icon): the
+ * shared loader contract drawn by CSS only (`.dz-loader--inline`, the
+ * `--dz-loader-inline-size` token) — no render hook, no `role="status"`; the
+ * item carries `aria-busy` instead. Big loading states go through core
+ * `renderLoader()` (the indicator chip).
+ */
+export const INLINE_LOADER = '<span class="dz-loader dz-loader--inline" aria-hidden="true"></span>';
+
+/** A status glyph — the inline loader while uploading, the Lucide icon otherwise. */
+export function statusGlyph(status: FileStatus): string {
+    return status === 'uploading' ? INLINE_LOADER : STATUS_ICONS[status];
+}
+
+/** `aria-busy` for a row root while its file uploads. */
+export function busyAttr(file: Pick<FileState, 'status'>): string {
+    return file.status === 'uploading' ? ' aria-busy="true"' : '';
+}
 
 /** Status pill — glyph + the status name as tooltip / accessible name (`labels`). */
 export function renderStatusPill(file: FileState, cls: string, label: LabelFn = defaultLabel): string {
     const name = escapeHtml(fileStatusLabel(label, file));
     const aria = escapeHtml(label('statusAria', { status: fileStatusLabel(label, file) }));
-    return `<span class="${cls} ${cls}--${file.status}" title="${name}" aria-label="${aria}" data-status="${file.status}">${STATUS_ICONS[file.status]}</span>`;
+    return `<span class="${cls} ${cls}--${file.status}" title="${name}" aria-label="${aria}" data-status="${file.status}">${statusGlyph(file.status)}</span>`;
 }
 
 export { escapeHtml };
@@ -204,7 +223,7 @@ export function renderListItem(file: FileState, opts: RowTemplateOptions = {}): 
     const p = opts.parts;
     const label = opts.label ?? defaultLabel;
     return `
-        <div class="dz__file-item dz__file-item--list" data-file-id="${file.id}" data-status="${file.status}"${reorderAttr}>
+        <div class="dz__file-item dz__file-item--list" data-file-id="${file.id}" data-status="${file.status}"${reorderAttr}${busyAttr(file)}>
             ${showPart(p, 'name') ? `<span class="dz__file-item__name">${escapeHtml(file.name)}</span>` : ''}
             ${showPart(p, 'action') ? renderRowActionButton(file, 'dz__file-item__action', label) : ''}
             ${showPart(p, 'cancel') ? renderCancelButton(file, 'dz__file-item__action', opts) : ''}
@@ -235,7 +254,7 @@ export function renderDetailedItem(file: FileState, opts: RowTemplateOptions = {
                     ${showType ? `<span class="dz__file-item__type">${escapeHtml(file.type || label('unknownType'))}</span>` : ''}
                 </div>` : '';
     return `
-        <div class="dz__file-item dz__file-item--detailed" data-file-id="${file.id}" data-status="${file.status}"${reorderAttr}>
+        <div class="dz__file-item dz__file-item--detailed" data-file-id="${file.id}" data-status="${file.status}"${reorderAttr}${busyAttr(file)}>
             ${showPart(p, 'icon') ? `<div class="dz__file-item__icon dz__file-item__icon--${category}">${inner}</div>` : ''}
             <div class="dz__file-item__info">
                 ${showPart(p, 'name') ? `<div class="dz__file-item__name">${escapeHtml(file.name)}</div>` : ''}
@@ -272,7 +291,7 @@ export function renderGridItem(file: FileState, opts: RowTemplateOptions = {}): 
     const showCancel = showPart(p, 'cancel');
     const showRemove = showPart(p, 'remove');
     return `
-        <div class="dz__preview-item ${isImage ? 'dz__preview-item--image' : ''}" data-file-id="${file.id}" data-status="${file.status}"${reorderAttr}>
+        <div class="dz__preview-item ${isImage ? 'dz__preview-item--image' : ''}" data-file-id="${file.id}" data-status="${file.status}"${reorderAttr}${busyAttr(file)}>
             ${inner}
             <div class="dz__preview-item__scrim" aria-hidden="true"></div>
             ${showName ? `<div class="dz__preview-item__overlay">
@@ -300,7 +319,7 @@ export function renderBadgeItem(file: FileState, opts: RowTemplateOptions = {}):
     const p = opts.parts;
     const label = opts.label ?? defaultLabel;
     return `
-        <span class="dz__badge ${statusClass}" data-file-id="${file.id}" data-status="${file.status}"${reorderAttr}>
+        <span class="dz__badge ${statusClass}" data-file-id="${file.id}" data-status="${file.status}"${reorderAttr}${busyAttr(file)}>
             <span class="dz__badge-text" title="${escapeHtml(file.name)}">
                 ${showPart(p, 'icon') ? `<span class="dz__badge-icon">${inner}</span>` : ''}
                 ${showPart(p, 'name') ? `<span class="dz__badge-name">${escapeHtml(file.name)}</span>` : ''}

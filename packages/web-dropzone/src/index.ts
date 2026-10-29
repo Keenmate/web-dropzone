@@ -36,6 +36,8 @@ export { createDropzoneSpinner, STATUS_ICONS, ACTION_ICONS, CANCEL_ICON, actionF
 export { DEFAULT_LABELS, resolveLabel, createLabelFn } from '@keenmate/web-dropzone-core';
 export type { DropzoneLabels, DropzoneLabelKey, LabelFn } from '@keenmate/web-dropzone-core';
 export type { RowAction } from '@keenmate/web-dropzone-core';
+// Shared loader (renderLoadingCallback / window.components.renderLoaderCallback)
+export type { LoaderRenderContext, RenderLoaderCallback } from '@keenmate/web-components-core';
 
 // The renderer class, for standalone use without the custom element (it
 // extends the headless `DropzoneEngine`; `<web-dropzone>` never exposes it —

@@ -9,6 +9,7 @@ A lightweight, accessible file upload web component with drag-drop support, file
 
 Breaking — see [CHANGELOG.md](CHANGELOG.md) for the migration tables.
 
+- **One loader for every KeenMate component** — the indicator chip's upload loader draws through the shared core loader (`renderLoadingCallback` on the store, else the page-wide `window.components.renderLoaderCallback`, else the `--base-loader-*` shape); per-row / summary loaders use the same tokens (`--dz-loader-*`) with `aria-busy` on the row. The uploading-row pulse stops under reduced motion; the loader only slows.
 - **One cancel rule** — `cancelFile(id)` now returns a promise and gives a running upload handler its `AbortSignal` plus up to `cancel-timeout` ms (default 2000) to settle; the row shows "Cancelling…". Settles in time → `cancelled`; otherwise `cancel-timeout-behavior` (`error`, retryable — or `remove`). Late results are ignored and the concurrency slot is freed either way. `beforeFilesCancelCallback` can veto, `file-cancel` reports how it ended (`{ file, result, uploadedBytes, metadata }`), and `cancelAll()` + a **Cancel all** button cover the whole queue.
 - **Row buttons split** — **⊘ Cancel** stops the upload and keeps the row (Retry available); **✕ Remove** always removes (a running upload is cancelled first). Both glyphs are configurable (`cancel-icon` / `remove-icon`).
 - **`labels`** — every UI string in one input (property or JSON attribute, merged per key over English, `{name}` placeholders, live). Replaces `prompt-text`, `hint-text`, `drag-active-text`, `no-file-chosen-text`, `overlay-text`, `select-files-text`, `empty-message`, `summary-template` and the `STATUS_LABELS` / `ACTION_LABELS` exports.
@@ -254,6 +255,7 @@ Every callback takes **one** `ctx` object that also carries `controller` / `elem
 | `renderSummaryCallback` | `{ files }` | `string \| HTMLElement` (structural mode) |
 | `renderRolling{Body,FileInfo,Progress}Callback` | `StatusSurfaceArgs` (`currentFile`, `aggregate`, `overallPercent`, …) | `string \| HTMLElement \| false \| null` (structural mode, rolling list) |
 | `getCustomStylesCallback` | context only | CSS string injected into the shadow root |
+| `renderLoadingCallback` | `{ component, context: 'upload', containerElement, element, label }` | fill `containerElement`; optional cleanup function — the indicator chip's upload loader (beats `window.components.renderLoaderCallback`) |
 | `persistStateCallback` / `loadStateCallback` | `{ key, state }` / `{ key }` | — / `DropzoneState \| null` (may be async) |
 
 ```javascript

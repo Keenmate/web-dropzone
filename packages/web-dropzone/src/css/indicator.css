@@ -139,11 +139,12 @@
 .dz__indicator__percent {
     opacity: 0.85;
 }
-/* Polished spinner — sized to 1em so it scales with --dz-rem. The
- * rotation comes from WAAPI (set in createDropzoneSpinner()) so no
- * @keyframes is needed inside the shadow root. */
-.dz__indicator__spinner {
-    color: currentColor;
+/* The upload loader container (core renderLoader, role="status"): the
+ * default .dz-loader or whatever a render hook drew. */
+.dz__indicator__loader {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Position anchors — each variant pins to its edge with a safe-area offset

@@ -118,6 +118,9 @@ test.describe('motion + disabled dimming follow the contract', () => {
         await page.emulateMedia({ reducedMotion: 'reduce' });
         expect((await cardTiming(page, 'scaled-default')).duration.split(', ')).toEqual(['0s', '0s']);
         expect(await cssvar(page, 'scaled-default', '--dz-transition-slow')).toBe('0s');
+        // The uploading-row pulse is decoration — it stops; the loader never does.
+        expect(await cssvar(page, 'scaled-default', '--dz-uploading-pulse-duration')).toBe('0s');
+        expect(await cssvar(page, 'scaled-default', '--dz-loader-duration')).not.toBe('0s');
     });
 
     test('disabled card dims once by --base-disabled-opacity (0.65 standalone)', async ({ page }) => {

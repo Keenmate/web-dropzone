@@ -42,6 +42,7 @@ import {
     type InputDef,
     type Converter,
     type EventDef,
+    type RenderLoaderCallback,
 } from '@keenmate/web-components-core';
 import { WebDropzone } from './dropzone';
 import { linkStoreController, linkStoreReorder, STORE_BUILD_EVENT } from './store-link';
@@ -282,6 +283,7 @@ const INPUTS: readonly InputDef[] = [
     { configKey: 'renderRollingBodyCallback',     converter: cb(),      on: 'update', type: 'StatusSurfaceCallback', description: 'Rolling list appearance (structural mode): replace the whole rolling body. `ctx`: `StatusSurfaceArgs`. `null` → default, `false` → hide.' },
     { configKey: 'renderRollingFileInfoCallback', converter: cb(),      on: 'update', type: 'StatusSurfaceCallback', description: 'Rolling list appearance (structural mode): the file-info slot of the current row. `ctx`: `StatusSurfaceArgs`.' },
     { configKey: 'renderRollingProgressCallback', converter: cb(),      on: 'update', type: 'StatusSurfaceCallback', description: 'Rolling list appearance (structural mode): the progress slot of the current row. `ctx`: `StatusSurfaceArgs`.' },
+    { configKey: 'renderLoadingCallback',         converter: cb(),      on: 'update', type: '(ctx: LoaderRenderContext) => void | (() => void)', description: 'Draw the upload loader of the bound `<web-dropzone-indicator>` chip (`ctx.context` = `upload`): fill `ctx.containerElement`, optionally return a cleanup. Beats the page-wide `window.components.renderLoaderCallback`; unset = that, else the default `.dz-loader` (the shared `--base-loader-*` contract). The tiny per-row / summary loaders are CSS-only (`--dz-loader-*` tokens). Read when a loader is drawn.' },
     { configKey: 'getCustomStylesCallback',       converter: cb(),      on: 'update', type: '(ctx: CustomStylesContext) => string | null | undefined', description: 'Returns a CSS string injected into the shadow root (prepended so @import/@font-face work). `ctx`: context only.' },
     { configKey: 'persistStateCallback',          converter: cb(),      on: 'update', type: '(ctx: PersistStateContext) => void | Promise<void>', description: 'Custom persistence sink (defaults to localStorage). `ctx`: `{ key, state }`.' },
     { configKey: 'loadStateCallback',             converter: cb(),      on: 'update', type: '(ctx: LoadStateContext) => DropzoneState | null | Promise<DropzoneState | null>', description: 'Custom persistence source paired with persistStateCallback. `ctx`: `{ key }`.' },
@@ -331,6 +333,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
     protected static override events = EVENTS;
 
     // `on*` twins — called with the event detail (core installs the accessors).
+    declare renderLoadingCallback: RenderLoaderCallback | null;
     declare onFileAdd: ((detail: FileAddEventDetail) => void) | null;
     declare onFileRemove: ((detail: FileRemoveEventDetail) => void) | null;
     declare onFilesChange: ((detail: FilesChangeEventDetail) => void) | null;
@@ -450,6 +453,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
         const storePartial: Record<string, unknown> = {};
         for (const [key, value] of Object.entries(partial)) {
             if (key === 'getCustomStylesCallback') continue; // handled above
+            if (key === 'renderLoadingCallback') continue;   // read by the loaders when they draw
             storePartial[key] = value === null ? undefined : value;
         }
         delete storePartial.isDisabled; // applied by disabledChanged() (input OR fieldset)

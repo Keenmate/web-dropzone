@@ -72,7 +72,7 @@ export {
 
 // Status / action icons live in `../core/icons` so the satellite renderers
 // and any user-provided callbacks can share the same Lucide SVG family.
-import { STATUS_ICONS, actionForStatus, UI_ICONS, statusLabel, countLabel } from '@keenmate/web-dropzone-core';
+import { actionForStatus, UI_ICONS, statusLabel, countLabel } from '@keenmate/web-dropzone-core';
 // Row templates (list / detailed / grid / badges) are shared with the
 // `<web-dropzone-list>` satellite via `./row-templates` — single source of
 // truth so the polished styling in `_file-item.css` applies identically
@@ -1647,7 +1647,7 @@ export class WebDropzone extends DropzoneEngine {
         // reserved but the user can't click it; removeFile(id) still works
         // programmatically.
         return `
-            <tr class="dz__popover__row ${isUploading ? 'dz__popover__row--uploading' : ''}" data-file-id="${file.id}">
+            <tr class="dz__popover__row ${isUploading ? 'dz__popover__row--uploading' : ''}" data-file-id="${file.id}"${isUploading ? ' aria-busy="true"' : ''}>
                 <td class="dz__popover__cell dz__popover__cell--icon"><span class="dz__popover__placeholder">${inner}</span></td>
                 <td class="dz__popover__cell dz__popover__cell--name">${escapeHtml(file.name)}</td>
                 <td class="dz__popover__cell dz__popover__cell--size">${formatFileSize(file.size)}</td>
@@ -1685,7 +1685,8 @@ export class WebDropzone extends DropzoneEngine {
         }
         const s = overall.aggregateStatus;
         const aria = escapeHtml(this.label('statusAria', { status: statusLabel(this.label, s) }));
-        return `<span class="dz__summary__icon dz__summary__icon--${s}" data-status="${s}" aria-label="${aria}">${STATUS_ICONS[s]}</span>`;
+        const busy = s === 'uploading' ? ' aria-busy="true"' : '';
+        return `<span class="dz__summary__icon dz__summary__icon--${s}" data-status="${s}" aria-label="${aria}"${busy}>${RowTemplate.statusGlyph(s)}</span>`;
     }
 
     /**

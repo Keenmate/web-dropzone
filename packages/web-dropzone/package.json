@@ -67,7 +67,7 @@
     "@keenmate/web-dropzone-core": "1.0.0-rc03"
   },
   "devDependencies": {
-    "@keenmate/base-css-variables": "^2.0.0-rc05",
+    "@keenmate/base-css-variables": "file:../../../base-css-variables",
     "happy-dom": "^15.11.7",
     "vitest": "^2.1.9"
   }

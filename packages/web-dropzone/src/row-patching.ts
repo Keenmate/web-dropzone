@@ -20,14 +20,13 @@
  */
 
 import {
-    STATUS_ICONS,
     ACTION_ICONS,
     actionForStatus,
     defaultLabel,
     fileStatusLabel
 } from '@keenmate/web-dropzone-core';
 import type { FileState, LabelFn } from '@keenmate/web-dropzone-core';
-import { progressLabel, isCancelOffered, ACTION_LABEL_KEYS } from './row-templates';
+import { progressLabel, isCancelOffered, ACTION_LABEL_KEYS, statusGlyph } from './row-templates';
 
 /**
  * Set the progress-bar fill's width. Idempotent — assigning the same
@@ -71,6 +70,9 @@ export function patchStatusIcon(
     label: LabelFn = defaultLabel
 ): void {
     const status = file.status;
+    // The row is busy while its file uploads (the inline loader has no role="status").
+    if (status === 'uploading') row.setAttribute('aria-busy', 'true');
+    else row.removeAttribute('aria-busy');
     const el = row.querySelector<HTMLElement>(`.${statusClass}`);
     if (!el || el.dataset.status === status) return;
     el.dataset.status = status;
@@ -78,7 +80,7 @@ export function patchStatusIcon(
     const name = fileStatusLabel(label, file);
     el.title = name;
     el.setAttribute('aria-label', label('statusAria', { status: name }));
-    el.innerHTML = STATUS_ICONS[status];
+    el.innerHTML = statusGlyph(status);
 }
 
 /**

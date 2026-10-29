@@ -33,7 +33,6 @@ import {
     isImageFile,
     createImagePreview,
     formatFileSize,
-    STATUS_ICONS,
     UI_ICONS,
     statusLabel
 } from '@keenmate/web-dropzone-core';
@@ -51,7 +50,8 @@ import {
     renderListItem,
     renderDetailedItem,
     renderGridItem,
-    renderBadgeItem
+    renderBadgeItem,
+    statusGlyph
 } from './row-templates';
 import type { RowTemplateOptions } from './row-templates';
 import type { DropzoneContext } from '@keenmate/web-dropzone-core';
@@ -308,7 +308,7 @@ export class DropzoneListElement extends SatelliteElement {
         const status = args.overallStatus === 'idle' ? 'pending' : args.overallStatus;
         const icon = status === 'pending'
             ? UI_ICONS.paperclip
-            : STATUS_ICONS[status];
+            : statusGlyph(status as FileStatus);
         const iconClass = status === 'pending'
             ? 'dz__summary__icon'
             : `dz__summary__icon dz__summary__icon--${status}`;
@@ -320,7 +320,7 @@ export class DropzoneListElement extends SatelliteElement {
         this.container.innerHTML = `
             <div class="dz__summary">
                 <div class="dz__summary__line" tabindex="0" role="button" aria-label="${escapeHtml(this.label('viewFiles'))}">
-                    <span class="${iconClass}" data-status="${status}" aria-label="${escapeHtml(this.label('statusAria', { status: statusName }))}">${icon}</span>
+                    <span class="${iconClass}" data-status="${status}" aria-label="${escapeHtml(this.label('statusAria', { status: statusName }))}"${status === 'uploading' ? ' aria-busy="true"' : ''}>${icon}</span>
                     <span class="dz__summary__text">${escapeHtml(text)}</span>
                 </div>
             </div>

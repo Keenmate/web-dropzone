@@ -79,8 +79,26 @@ web-dropzone { --dz-transition-fast: 0s; --dz-transition-normal: 0s;
         --base-duration-medium: 0s; --base-duration-slow: 0s; }         /* the whole page */
 ```
 
-`prefers-reduced-motion: reduce` sets them to `0s` (and the uploading-row pulse). The status spinners
-(`--dz-status-spin-duration`, 1s) keep turning — they show that an upload is running; `0s` stops them.
+`prefers-reduced-motion: reduce` sets them to `0s` (and the uploading-row pulse). The loader keeps
+turning — it shows that an upload is running; the contract slows it (`--base-loader-duration` 1.5s).
+
+## Loader
+
+One loader look for every KeenMate component (the `--base-loader-*` contract): a single-colour mask
+shape in `currentColor`.
+
+| Token | Default |
+|---|---|
+| `--dz-loader-icon` | `var(--base-loader-icon, <arc SVG>)` |
+| `--dz-loader-rotate` | `var(--base-loader-rotate, 1turn)` (`0` = the SVG animates itself) |
+| `--dz-loader-duration` | `var(--base-loader-duration, 0.8s)` |
+| `--dz-loader-size` | `var(--base-loader-size, 1.25em)` — the indicator chip's upload loader |
+| `--dz-loader-inline-size` | `calc(var(--dz-loader-size) * 0.75)` — the tiny per-row / summary loader |
+
+The indicator chip's upload loader is drawn by core `renderLoader()` into a `role="status"` container:
+the store's `renderLoadingCallback`, else the page-wide `window.components.renderLoaderCallback`, else
+the default `<span class="dz-loader">` (`ctx.context` = `'upload'`). The per-row status and the summary
+icon show the CSS-only `.dz-loader--inline` while uploading (the row carries `aria-busy="true"`).
 
 ## Component variables (`--dz-*`)
 
@@ -280,7 +298,6 @@ web-dropzone { --dz-transition-fast: 0s; --dz-transition-normal: 0s;
 |---|---|
 | `--dz-icon-remove` | icon remove |
 | `--dz-status-icon-size` | status icon size |
-| `--dz-status-spin-duration` | status spinner loop (1s; keeps turning under reduced motion; 0s stops it) |
 
 ### file-item
 

@@ -11,6 +11,26 @@ No stable 1.0.0 is published, so the break ships as the next release
 candidate — but `^1.0.0-rc02` consumers will pull it: the event,
 callback and store-access API below is breaking.
 
+### Changed — BREAKING (shared loader, 2026-10-29)
+
+- **Upload loaders follow the shared loader contract.** The indicator chip's upload loader is drawn
+  by core `renderLoader()` into a `role="status"` container (`aria-label` = `labels.statusUploading`):
+  the new store input **`renderLoadingCallback`** (property; `ctx.context` = `'upload'`; may return a
+  cleanup, run when the upload run ends), else the page-wide `window.components.renderLoaderCallback`,
+  else the default `<span class="dz-loader">`. It replaces the WAAPI `createDropzoneSpinner()` spinner
+  in the chip (the helper itself is still exported).
+- **Per-row and summary loaders are CSS only:** the uploading status glyph in list / detailed / grid /
+  badges / popover rows and the summary icon is now `<span class="dz-loader dz-loader--inline">`
+  (no hook, no `role="status"`); the row gets `aria-busy="true"` while its file uploads.
+- **CSS — BREAKING:** new tokens `--dz-loader-icon` / `-rotate` / `-duration` / `-size` (chained to
+  `--base-loader-*`) and `--dz-loader-inline-size` (0.75×). **Removed** `--dz-status-spin-duration`
+  (→ `--dz-loader-duration`), the `dz-status-spin` keyframe (→ `dz-loader-spin`) and the
+  `.dz__indicator__spinner` class (→ `.dz__indicator__loader`). Under reduced motion the uploading-row
+  pulse stops (`--dz-uploading-pulse-duration: 0s`), the loader slows (contract: 1.5s).
+- `LoaderRenderContext` / `RenderLoaderCallback` types re-exported.
+- **Dev:** `@keenmate/base-css-variables` points to `file:../../../base-css-variables` (rc06 with the
+  loader tokens is unpublished) — **switch back to `^2.0.0-rc06` before publishing**.
+
 ### Changed — BREAKING (leftover decisions, round 2)
 
 - **BREAKING** label key `empty` → `noData` (default "No files selected"; `<web-dropzone>` and

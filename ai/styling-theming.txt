@@ -82,7 +82,7 @@ File list             --dz-file-list-gap, -margin-top, --dz-file-list-max-height
 File rows             --dz-item-padding, -border, -border-radius, -bg(-hover),
                       -icon-size/-font-size/-bg/-color, -name-*, -meta-*,
                       -progress-width, -progress-text-width, -status-width,
-                      --dz-status-icon-size, --dz-status-spin-duration,
+                      --dz-status-icon-size,
                       --dz-item-remove-*, --dz-item-action-*
 Badges                --dz-badges-gap, --dz-badge-height, -border-radius,
                       -max-width, -font-size, -icon-size (0 hides), -text-*,
@@ -109,7 +109,14 @@ Typography / radius   --dz-font-size-xs/sm/base/lg, --dz-font-weight-*,
                       --dz-line-height-*, --dz-border-radius-sm/md/lg
 Motion                --dz-transition-fast/normal/medium/slow (-> --base-duration-*,
                       0.1/0.15/0.25/0.3s), --dz-easing-snappy / --dz-easing-out
-                      (-> --base-ease-*), --dz-uploading-pulse-duration.
+                      (-> --base-ease-*), --dz-uploading-pulse-duration (stops
+                      under reduced motion).
+Loader                --dz-loader-icon/-rotate/-duration/-size (-> --base-loader-*),
+                      --dz-loader-inline-size (0.75x; per-row / summary, CSS only,
+                      row gets aria-busy). Indicator chip upload loader = core
+                      renderLoader: store el.renderLoadingCallback >
+                      window.components.renderLoaderCallback > <span class="dz-loader">.
+                      ❌ --dz-status-spin-duration → ✅ --dz-loader-duration
                       Motion off = CSS only: these 0s, or --base-duration-*: 0s
                       page-wide; prefers-reduced-motion does it automatically
                       (status spinners keep turning).

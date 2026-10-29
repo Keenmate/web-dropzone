@@ -101,14 +101,6 @@
 .dz__file-item__status--paused    { color: var(--dz-warning-color); }
 .dz__file-item__status--cancelled { color: var(--dz-text-color-3); }
 
-.dz__file-item__status--uploading > svg {
-  animation: dz-status-spin var(--dz-status-spin-duration) linear infinite;
-}
-
-@keyframes dz-status-spin {
-  to { transform: rotate(360deg); }
-}
-
 /* Manual upload mode — files sit in 'pending' until the consumer triggers
    uploadAll(), so the per-row clock icon would otherwise read as "stuck".
    Hide it (preserving the slot via visibility) until the file actually
@@ -417,10 +409,6 @@
 .dz__badge-status--paused    { color: var(--dz-warning-color); }
 .dz__badge-status--cancelled { color: var(--dz-text-color-3); }
 
-.dz__badge-status--uploading > svg {
-  animation: dz-status-spin var(--dz-status-spin-duration) linear infinite;
-}
-
 /* Remove half — square pill end with X glyph rendered via mask so it inherits
    the configured remove color via currentColor. */
 .dz__badge-remove {
@@ -697,10 +685,6 @@
 .dz__preview-item__status--error     { color: var(--dz-error-color); }
 .dz__preview-item__status--paused    { color: var(--dz-warning-color); }
 .dz__preview-item__status--cancelled { color: var(--dz-text-color-3); }
-
-.dz__preview-item__status--uploading > svg {
-  animation: dz-status-spin var(--dz-status-spin-duration) linear infinite;
-}
 
 /* Status-overlay variant (`grid-status="overlay"`) — on a finished file the
    corner glyph expands to a full-tile light veil with a big centred icon

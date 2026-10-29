@@ -45,7 +45,11 @@
     { "name": "base-duration-slow", "required": false, "usage": "Motion speed slow (0.3s) — rolling rotation, overall progress. 0s turns it off." },
     { "name": "base-ease-standard", "required": false, "usage": "Standard easing — every transition." },
     { "name": "base-ease-out", "required": false, "usage": "Ease-out — fade-ins, progress-fill growth." },
-    { "name": "base-disabled-opacity", "required": false, "usage": "Disabled dimming of the dropzone and its buttons." }
+    { "name": "base-disabled-opacity", "required": false, "usage": "Disabled dimming of the dropzone and its buttons." },
+    { "name": "base-loader-icon", "required": false, "usage": "Loader shape (drives --dz-loader-icon)." },
+    { "name": "base-loader-rotate", "required": false, "usage": "Loader rotation per cycle (drives --dz-loader-rotate)." },
+    { "name": "base-loader-duration", "required": false, "usage": "Loader cycle 0.8s, 1.5s under reduced motion (drives --dz-loader-duration)." },
+    { "name": "base-loader-size", "required": false, "usage": "Loader size (drives --dz-loader-size)." }
 
   ],
   "componentVariables": [
@@ -290,7 +294,11 @@
     { "name": "dz-show-more-margin-top", "category": "show-more", "usage": "show more margin top" },
     { "name": "dz-show-more-padding", "category": "show-more", "usage": "show more padding" },
     { "name": "dz-status-icon-size", "category": "icons", "usage": "status icon size" },
-    { "name": "dz-status-spin-duration", "category": "icons", "usage": "status spinner loop (1s; keeps turning under reduced motion; 0s stops it)" },
+    { "name": "dz-loader-icon", "category": "loader", "usage": "loader shape, a mask image in currentColor (base: --base-loader-icon)" },
+    { "name": "dz-loader-rotate", "category": "loader", "usage": "loader rotation per cycle, 1turn; 0 = the SVG animates itself (base: --base-loader-rotate)" },
+    { "name": "dz-loader-duration", "category": "loader", "usage": "loader cycle 0.8s; 1.5s under reduced motion (base: --base-loader-duration)" },
+    { "name": "dz-loader-size", "category": "loader", "usage": "indicator-chip upload loader size, 1.25em (base: --base-loader-size)" },
+    { "name": "dz-loader-inline-size", "category": "loader", "usage": "tiny per-row / summary loader (0.75x --dz-loader-size)" },
     { "name": "dz-success-bg", "category": "semantic", "usage": "success bg" },
     { "name": "dz-success-color", "category": "semantic", "usage": "success color" },
     { "name": "dz-summary-bg", "category": "summary", "usage": "summary bg" },
