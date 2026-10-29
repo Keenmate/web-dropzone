@@ -138,9 +138,9 @@ dz.renderRollingBodyCallback = ({ aggregate }) =>
 
 Return rules: null/undefined = default part; false = hide; string = innerHTML
 (skipped if identical to the previous string); HTMLElement = mounted (skipped if
-it is already the slot's only child - cache elements/spinners outside the
-callback to keep animations running). createDropzoneSpinner() gives a
-library-grade spinner for custom parts.
+it is already the slot's only child - cache elements/loaders outside the
+callback to keep animations running). For a loader in a custom part use the
+shared CSS loader: <span class="dz-loader"> (--dz-loader-* tokens).
 
 FILE ICONS (ANY MODE)
 ---------------------

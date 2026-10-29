@@ -28,7 +28,7 @@ The renderer package already depends on this one — installing both is unnecess
 - **Domain types** — `DropzoneConfig`, `FileState`, `FileStatus`, `FileUploadHandler`, `FileUploadResult`, `OverallProgress`, `ValidationResult`, `RejectedFile`, …
 - **Pure helpers** — `formatFileSize`, `getFileTypeCategory`, `getFileIcon`, `isImageFile`, `createImagePreview`, `validateFile`, `dedupeKeyFor`, `createFileState`.
 - **Status-surface contract** — `StatusSurfaceArgs`, `StatusSurfaceCallback`, `StatusAggregate` for indicator-style UIs.
-- **Icons** — `STATUS_ICONS`, `ACTION_ICONS`, `createDropzoneSpinner()`, `actionForStatus()`.
+- **Icons** — `STATUS_ICONS`, `ACTION_ICONS`, `actionForStatus()`.
 
 ## Interaction model
 

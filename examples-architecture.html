@@ -577,9 +577,7 @@
             </div>
 
             <div class="code-block">
-<pre>import { createDropzoneSpinner } from '@keenmate/web-dropzone'
-
-// A · whole-body callback. `false` → hide the surface.
+<pre>// A · whole-body callback. `false` → hide the surface.
 counter.renderBodyCallback = ({ aggregate }) =&gt;
   aggregate.total === 0
     ? false
@@ -593,12 +591,18 @@ speed.renderBodyCallback     = ({ aggregate }) =&gt; aggregate.uploading &gt; 0 
 speed.renderFileInfoCallback = ({ currentFile: f }) =&gt; f ? `&lt;strong&gt;${esc(f.name)}&lt;/strong&gt;` : ''
 speed.renderProgressCallback = ({ currentFile: f }) =&gt; f ? `@ ${formatRate(rateOf(f))}` : ''
 
-// C · library's polished spinner, cached so the WAAPI rotation
-// never restarts. Identity-checked memoization no-ops every tick.
+// C · the shared CSS loader (.dz-loader, --dz-loader-* tokens), cached so
+// identity-checked memoization no-ops every tick and the rotation never restarts.
 let cached
 spinner.renderBodyCallback = ({ aggregate }) =&gt; {
   if (aggregate.uploading === 0) return false
-  return (cached ??= createDropzoneSpinner({ ariaLabel: 'Syncing' }))
+  if (!cached) {
+    cached = document.createElement('span')
+    cached.className = 'dz-loader'
+    cached.setAttribute('role', 'status')
+    cached.setAttribute('aria-label', 'Syncing')
+  }
+  return cached
 }</pre>
             </div>
         </section>
@@ -706,13 +710,11 @@ store.addEventListener('files-change', (e) =&gt; {
 
     <script type="module">
         // Library exports used by the structural-callback demos below.
-        // `createDropzoneSpinner` returns a polished WAAPI-driven spinner
-        // any user callback can return verbatim to inherit the OOB look.
         // `ACTION_ICONS` are the same pause/resume/retry SVGs the list
         // satellite uses for per-row actions — reused here for the
         // floating indicator's control buttons so the visual language is
         // consistent across surfaces.
-        import { createDropzoneSpinner, ACTION_ICONS, resolveLabel } from '/src/index.ts';
+        import { ACTION_ICONS, resolveLabel } from '/src/index.ts';
         import { simulateUpload, wireQueueControlButton } from '/examples-shared.js';
 
         // ============================================================
@@ -1221,18 +1223,23 @@ store.addEventListener('files-change', (e) =&gt; {
             };
         }
 
-        // C · Silent activity spinner. Uses the library's polished
-        // spinner via `createDropzoneSpinner()` — cached OUTSIDE the
-        // callback so the same instance is returned every tick, which
-        // means the indicator's identity-checked memoization skips the
-        // DOM swap and WAAPI rotation never restarts. When idle, body
+        // C · Silent activity spinner. Uses the shared CSS loader
+        // (`<span class="dz-loader">`, themed by the --dz-loader-* tokens) —
+        // cached OUTSIDE the callback so the same instance is returned every
+        // tick, which means the indicator's identity-checked memoization
+        // skips the DOM swap and the rotation never restarts. When idle, body
         // returns `false` → indicator hides entirely.
         const indSpinner = document.getElementById('ind-spinner');
         let cachedSpinner = null;
         if (indSpinner) {
             indSpinner.renderBodyCallback = ({ aggregate }) => {
                 if (aggregate.uploading === 0) return false;
-                if (!cachedSpinner) cachedSpinner = createDropzoneSpinner({ ariaLabel: 'Syncing' });
+                if (!cachedSpinner) {
+                    cachedSpinner = document.createElement('span');
+                    cachedSpinner.className = 'dz-loader';
+                    cachedSpinner.setAttribute('role', 'status');
+                    cachedSpinner.setAttribute('aria-label', 'Syncing');
+                }
                 return cachedSpinner;
             };
         }

@@ -18,7 +18,11 @@ callback and store-access API below is breaking.
   the new store input **`renderLoadingCallback`** (property; `ctx.context` = `'upload'`; may return a
   cleanup, run when the upload run ends), else the page-wide `window.components.renderLoaderCallback`,
   else the default `<span class="dz-loader">`. It replaces the WAAPI `createDropzoneSpinner()` spinner
-  in the chip (the helper itself is still exported).
+  in the chip.
+- **Removed `createDropzoneSpinner()`** from `@keenmate/web-dropzone-core` and the `@keenmate/web-dropzone`
+  re-exports (entry + indicator module). Nothing used it any more; for a loader in a custom render
+  callback return the shared CSS loader `<span class="dz-loader">` (`--dz-loader-*` tokens), cached
+  outside the callback.
 - **Per-row and summary loaders are CSS only:** the uploading status glyph in list / detailed / grid /
   badges / popover rows and the summary icon is now `<span class="dz-loader dz-loader--inline">`
   (no hook, no `role="status"`); the row gets `aria-busy="true"` while its file uploads.

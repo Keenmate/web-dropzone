@@ -30,7 +30,7 @@ packages/
 │   │   ├── store-api.ts       ← status-surface types (StatusSurfaceArgs, …)
 │   │   ├── file-pipeline.ts   ← stateless validation helpers
 │   │   ├── types.ts           ← all domain types + event-detail types
-│   │   ├── icons.ts           ← shared Lucide SVG family + createDropzoneSpinner
+│   │   ├── icons.ts           ← shared Lucide SVG family
 │   │   ├── dropzone-shared.ts ← DEFAULT_CONFIG + formatFileSize / getFileIcon / …
 │   │   ├── dom-utils.ts       ← escapeHtml (zero-dep DOM primitive)
 │   │   └── logger.ts          ← runtime-controllable log channels
@@ -78,7 +78,7 @@ The renderer talks to the core through exactly two surfaces — nothing else.
 |---|---|---|
 | Drop `<web-dropzone>` (or any built-in satellite) into a page | `@keenmate/web-dropzone` | `import '@keenmate/web-dropzone'` registers all custom elements |
 | Build a React / Vue / Lit / Svelte / Solid renderer | `@keenmate/web-dropzone-core` | `import { DropzoneEngine } from '@keenmate/web-dropzone-core'` then `new DropzoneEngine(hostElement, config)` |
-| Both: the built-in elements **and** a custom satellite that runs alongside them | `@keenmate/web-dropzone` only | The renderer re-exports core types and helpers — `import { DropzoneController, createDropzoneSpinner } from '@keenmate/web-dropzone'` works |
+| Both: the built-in elements **and** a custom satellite that runs alongside them | `@keenmate/web-dropzone` only | The renderer re-exports core types and helpers — `import { DropzoneController, STATUS_ICONS } from '@keenmate/web-dropzone'` works |
 
 Installing both packages explicitly is fine but redundant — the renderer pins `@keenmate/web-dropzone-core: ^1.0.0` and bundles the core code into its single-file `dist/dropzone.js`, so the runtime is self-contained either way. The hard dep exists so the renderer's `dist/index.d.ts` can re-export core types without npm warning the consumer.
 
@@ -156,7 +156,7 @@ Any "status surface" (the indicator chip, the rolling list appearance, future on
 
 All three share the `StatusSurfaceCallback` shape: `(args: StatusSurfaceArgs) => string | HTMLElement | false | null` — one ctx that also carries the store's `controller` / `element`. On `<web-dropzone>` (rolling list, structural mode) they are the `renderRollingBodyCallback` / `renderRollingFileInfoCallback` / `renderRollingProgressCallback` inputs; on `<web-dropzone-indicator>` they keep the short names (the indicator has only one surface). String returns are skipped when equal to the previous string; element returns are skipped when the returned node is already the slot's only child — cache your spinner or element outside the callback and you get a true no-op across ticks (WAAPI animations don't restart, focus / transitions in flight survive).
 
-Polished OOB rendering uses the same callbacks internally with library defaults — every part is replaceable independently. The `createDropzoneSpinner()` factory gives custom callbacks a library-grade WAAPI spinner to drop in.
+Polished OOB rendering uses the same callbacks internally with library defaults — every part is replaceable independently. For a loader in a custom part, return the shared CSS loader `<span class="dz-loader">` (themed by the `--dz-loader-*` tokens).
 
 **Surface implementations today:**
 - `<web-dropzone-indicator>` — exposes the three callbacks directly on the element.

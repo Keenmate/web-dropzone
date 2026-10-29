@@ -164,9 +164,10 @@ Returns: null/undefined = library default; false = hide (body: whole surface);
 string = innerHTML, skipped when equal to the last string; HTMLElement =
 mounted, skipped when already the slot's only child.
 
-const spinner = createDropzoneSpinner({ ariaLabel: 'Uploading' });   // cache it
+const loader = document.createElement('span');   // cache it
+loader.className = 'dz-loader';                   // shared CSS loader (--dz-loader-*)
 indicator.renderFileInfoCallback = ({ currentFile }) =>
-  currentFile?.status === 'uploading' ? spinner : null;
+  currentFile?.status === 'uploading' ? loader : null;
 indicator.renderProgressCallback = ({ aggregate, overallPercent }) =>
   aggregate.total ? `${aggregate.complete}/${aggregate.total} · ${overallPercent}%` : '';
 indicator.renderBodyCallback = ({ aggregate }) => aggregate.total === 0 ? false : null;

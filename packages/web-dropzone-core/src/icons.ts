@@ -58,8 +58,8 @@ export const UI_ICONS = {
 /**
  * Per-status glyph used wherever the queue shows a single file's state —
  * inline list rows, the popover, the indicator chip, and the rolling block.
- * The `uploading` glyph is a partial arc designed to be rotated via WAAPI
- * (see `createDropzoneSpinner`) or CSS animation; the rest are static.
+ * The `uploading` glyph is a partial arc (static here — loaders draw
+ * through core `renderLoader`); the rest are static.
  */
 export const STATUS_ICONS: Record<FileStatus, string> = {
     pending:   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>',
@@ -97,48 +97,4 @@ export function actionForStatus(status: FileStatus): RowAction | null {
     // an uploading row cancels and leaves the row for the user to retry.
     if (status === 'error' || status === 'cancelled') return 'retry';
     return null;
-}
-
-/**
- * Polished activity spinner — the OOB animation for "something is happening"
- * states. Returns an HTMLElement with a Web Animations API rotation already
- * attached, so the spinner survives shadow-DOM boundaries without depending
- * on any host-page CSS keyframes. The element is safe to cache and re-mount
- * many times; WAAPI animations persist across detach/attach and the indicator
- * uses identity-based memoization to avoid restarting.
- *
- * The glyph itself is the Lucide loader-circle (24/24, currentColor stroke),
- * sized to `1em` so it inherits the surrounding font-size — drop it inside a
- * chip / row / button at whatever scale and it fits.
- */
-export function createDropzoneSpinner(opts: {
-    /** Duration of one full rotation, ms. Default 1100. */
-    durationMs?: number;
-    /** Optional class added to the wrapper span (useful for ad-hoc theming). */
-    className?: string;
-    /** Optional aria-label for assistive tech. Default "Loading". */
-    ariaLabel?: string;
-} = {}): HTMLElement {
-    const wrapper = document.createElement('span');
-    wrapper.setAttribute('role', 'img');
-    wrapper.setAttribute('aria-label', opts.ariaLabel ?? 'Loading');
-    wrapper.className = `dz__spinner${opts.className ? ` ${opts.className}` : ''}`;
-    wrapper.style.display = 'inline-flex';
-    wrapper.style.alignItems = 'center';
-    wrapper.style.justifyContent = 'center';
-    wrapper.style.width = '1em';
-    wrapper.style.height = '1em';
-    wrapper.style.lineHeight = '1';
-    wrapper.innerHTML = STATUS_ICONS.uploading;
-    const svg = wrapper.querySelector('svg');
-    if (svg) {
-        svg.style.width = '100%';
-        svg.style.height = '100%';
-        svg.style.transformOrigin = '50% 50%';
-        svg.animate(
-            [{ transform: 'rotate(0deg)' }, { transform: 'rotate(360deg)' }],
-            { duration: opts.durationMs ?? 1100, iterations: Infinity }
-        );
-    }
-    return wrapper;
 }

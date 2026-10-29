@@ -73,7 +73,6 @@ compact / popover -> display-modes.txt
 concurrency -> upload-pipeline.txt
 controller (el.controller, DropzoneController) -> typescript-types.txt, events-callbacks.txt
 controls / item-controls -> display-modes.txt, advanced-patterns.txt
-createDropzoneSpinner -> satellites.txt, custom-rendering.txt
 CSS variables (--dz-*) -> styling-theming.txt
 
 D

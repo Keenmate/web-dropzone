@@ -77,13 +77,12 @@ export {
 } from './file-pipeline';
 export type { ValidationConfig } from './file-pipeline';
 
-// ---- Icons (shared SVG family + spinner factory) -----------------------
+// ---- Icons (shared SVG family) -----------------------
 export {
     STATUS_ICONS,
     ACTION_ICONS,
     actionForStatus,
     CANCEL_ICON,
-    createDropzoneSpinner,
     FILE_TYPE_ICONS,
     UI_ICONS
 } from './icons';

@@ -40,7 +40,7 @@ import {
 
   // icons + status-surface helpers
   FILE_TYPE_ICONS, UI_ICONS, STATUS_ICONS, ACTION_ICONS, CANCEL_ICON,
-  actionForStatus, createDropzoneSpinner,
+  actionForStatus,
 
   // file helpers
   formatFileSize, getFileTypeCategory, getFileIcon, isImageFile,

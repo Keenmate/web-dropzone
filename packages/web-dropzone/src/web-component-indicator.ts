@@ -577,10 +577,9 @@ if (typeof customElements !== 'undefined' && !customElements.get('web-dropzone-i
 }
 
 // Convenience re-exports so users writing callbacks have a single import
-// path for everything: types + spinner + status icons.
+// path for everything: types + status icons.
 export {
     formatFileSize,
-    createDropzoneSpinner,
     STATUS_ICONS
 } from '@keenmate/web-dropzone-core';
 export type { LoaderRenderContext, RenderLoaderCallback } from '@keenmate/web-components-core';

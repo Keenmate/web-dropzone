@@ -31,7 +31,7 @@ export type {
     StatusSurfaceResult,
     StatusAggregate
 } from '@keenmate/web-dropzone-core';
-export { createDropzoneSpinner, STATUS_ICONS, ACTION_ICONS, CANCEL_ICON, actionForStatus } from '@keenmate/web-dropzone-core';
+export { STATUS_ICONS, ACTION_ICONS, CANCEL_ICON, actionForStatus } from '@keenmate/web-dropzone-core';
 // UI strings — the `labels` input (one lookup: resolveLabel).
 export { DEFAULT_LABELS, resolveLabel, createLabelFn } from '@keenmate/web-dropzone-core';
 export type { DropzoneLabels, DropzoneLabelKey, LabelFn } from '@keenmate/web-dropzone-core';
