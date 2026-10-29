@@ -590,7 +590,7 @@ Use `--dz-rem` for global scaling:
 | `--dz-main-bg` | `#ffffff` / `#1e293b` | Surface the derived colors start from |
 | `--dz-border-color` | `--dz-main-bg`, OKLCH step | Border color |
 | `--dz-dropzone-bg` | `--dz-main-bg` | Dropzone background |
-| `--dz-dropzone-bg-active` | accent 5% | Background when dragging over |
+| `--dz-dropzone-bg-active` | `--base-primary-bg-subtle` (accent 10% light / 20% dark) | Background when dragging over |
 | `--dz-dropzone-border` | `2px dashed` border color | Border style |
 | `--dz-dropzone-border-active` | `2px solid` accent | Border when dragging over |
 | `--dz-dropzone-border-radius` | `0.8rem` | Border radius |

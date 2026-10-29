@@ -23,6 +23,9 @@ callback and store-access API below is breaking.
   re-exports (entry + indicator module). Nothing used it any more; for a loader in a custom render
   callback return the shared CSS loader `<span class="dz-loader">` (`--dz-loader-*` tokens), cached
   outside the callback.
+- **Changed (visual):** the drop-target background while dragging over the card,
+  `--dz-dropzone-bg-active`, chains the contract's primary tint — `var(--base-primary-bg-subtle, …)`
+  — accent 10% light / 20% dark (the contract's tint, also standalone), was a flat 5%. The border stays the accent.
 - **Per-row and summary loaders are CSS only:** the uploading status glyph in list / detailed / grid /
   badges / popover rows and the summary icon is now `<span class="dz-loader dz-loader--inline">`
   (no hook, no `role="status"`); the row gets `aria-busy="true"` while its file uploads.
