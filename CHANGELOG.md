@@ -11,6 +11,20 @@ No stable 1.0.0 is published, so the break ships as the next release
 candidate — but `^1.0.0-rc02` consumers will pull it: the event,
 callback and store-access API below is breaking.
 
+### Added (responsive rules, 2026-10-30)
+
+- **Responsive rules** (web-components-core SPEC §6.7): `responsive` (map: device class → partial
+  config; property or JSON attribute) and `responsiveCallback` on the element, per tag on
+  `window.components['web-dropzone']`, and page-wide on `window.components`. Precedence: page →
+  per-tag → instance attributes/properties → instance rules; overrides never reflect. Typed aliases
+  **`DropzoneResponsiveMap`** / **`DropzoneResponsiveCallback`** (over the new exported
+  **`DropzoneElementConfig`** = `DropzoneConfig` + the element-only `shouldKeepAliveWhenRemoved` /
+  `renderLoadingCallback`).
+- The `window.components['web-dropzone']` entry is now published through core
+  `registerComponent()` — a pre-existing entry object (e.g. per-tag `responsive` set before the
+  script loaded) is adopted instead of overwritten, and assigning the per-tag rules re-evaluates the
+  live instances. Entry members unchanged.
+
 ### Added (armed drop target, 2026-10-30)
 
 - **`highlight-on-page-drag`** (`el.shouldHighlightOnPageDrag`, default `false` — nothing changes

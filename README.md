@@ -9,6 +9,7 @@ A lightweight, accessible file upload web component with drag-drop support, file
 
 Breaking — see [CHANGELOG.md](CHANGELOG.md) for the migration tables.
 
+- **Responsive rules** — per device class partial configs (page / `web-dropzone` tag / instance, map or callback) through core SPEC §6.7; instance attributes always win over page rules. See [Responsive rules](#responsive-rules).
 - **Armed drop target** — opt-in `highlight-on-page-drag`: while files are dragged anywhere over the page, every opted-in dropzone / picker tints (`--dz-dropzone-bg-armed` → `--base-drop-target-bg`) and gets `armed` + `:state(armed)`; the card under the pointer keeps the active look. One shared page listener for all instances.
 - **One loader for every KeenMate component** — the indicator chip's upload loader draws through the shared core loader (`renderLoadingCallback` on the store, else the page-wide `window.components.renderLoaderCallback`, else the `--base-loader-*` shape); per-row / summary loaders use the same tokens (`--dz-loader-*`) with `aria-busy` on the row. The uploading-row pulse stops under reduced motion; the loader only slows.
 - **One cancel rule** — `cancelFile(id)` now returns a promise and gives a running upload handler its `AbortSignal` plus up to `cancel-timeout` ms (default 2000) to settle; the row shows "Cancelling…". Settles in time → `cancelled`; otherwise `cancel-timeout-behavior` (`error`, retryable — or `remove`). Late results are ignored and the concurrency slot is freed either way. `beforeFilesCancelCallback` can veto, `file-cancel` reports how it ended (`{ file, result, uploadedBytes, metadata }`), and `cancelAll()` + a **Cancel all** button cover the whole queue.
@@ -506,6 +507,35 @@ page-wide localisation will plug in there.
 A label set to `''` is deliberately empty and renders nothing (e.g. `noData: ''` hides the empty-list
 text); a missing / `undefined` key falls back to English. Labels are **text** — always inserted escaped
 (no label is rendered as HTML), so placeholder values like `{name}` are safe.
+
+## Responsive rules
+
+Tune any input per device class (`mobile` / `tablet` / `desktop`) without app-side viewport code —
+the shared mechanism of `@keenmate/web-components-core`
+([SPEC §6.7](https://github.com/keenmate/web-components-core/blob/main/docs/SPEC.md)). A **map**
+(device class → partial config) or a **callback** (`ctx` → partial config), at three levels:
+
+```js
+// page-wide, every KeenMate component (unknown keys are skipped silently)
+window.components.responsive = { mobile: { /* … */ } };
+// every <web-dropzone> on the page
+window.components['web-dropzone'].responsive = {
+    mobile: { displayMode: 'compact', maxVisibleFileCount: 3 },
+};
+window.components['web-dropzone'].responsiveCallback = ({ deviceClass, env }) =>
+    deviceClass === 'tablet' && env.orientation === 'portrait' ? { displayMode: 'list' } : undefined;
+// one instance (property, or the JSON attribute responsive='{"mobile":{…}}')
+el.responsive = { tablet: { selectorAppearance: 'button' } };
+el.responsiveCallback = (ctx) => ({ /* … */ });
+```
+
+Precedence, later wins key by key: page map → page callback → per-tag map → per-tag callback →
+**attributes / properties set on the instance** → instance map → instance callback. So
+`<web-dropzone display-mode="list">` keeps `list` whatever the page rules say. Rules re-run when the
+device class / breakpoint / orientation changes; overrides never reflect to attributes, and a key a
+rule stops returning goes back to its base value. Per-tag rules may be set before the script loads
+(`window.components = { 'web-dropzone': { responsive: … } }` is adopted). Types:
+`DropzoneResponsiveMap`, `DropzoneResponsiveCallback`.
 
 ## File State
 

@@ -176,7 +176,25 @@ export interface GlobalDropzoneAPI {
 // for `Window.components` — that would clash with core's augmentation.)
 
 // Import logging functions for global API
-import type { LogLevelDesc } from '@keenmate/web-components-core';
+import { registerComponent } from '@keenmate/web-components-core';
+import type { LogLevelDesc, ResponsiveMap, ResponsiveCallback, RenderLoaderCallback as CoreRenderLoaderCallback } from '@keenmate/web-components-core';
+import type { DropzoneConfig as DropzoneConfigType } from '@keenmate/web-dropzone-core';
+
+/**
+ * Every `<web-dropzone>` input, keyed by `configKey`: the store's
+ * `DropzoneConfig` plus the two element-only inputs.
+ */
+export type DropzoneElementConfig = DropzoneConfigType & {
+    shouldKeepAliveWhenRemoved?: boolean;
+    renderLoadingCallback?: CoreRenderLoaderCallback | null;
+};
+
+/** Responsive rules map for `<web-dropzone>` (core SPEC §6.7): device class → partial config. */
+export type DropzoneResponsiveMap = ResponsiveMap<DropzoneElementConfig>;
+
+/** Responsive rules callback for `<web-dropzone>` (core SPEC §6.7): context → partial config. */
+export type DropzoneResponsiveCallback = ResponsiveCallback<DropzoneElementConfig>;
+
 import {
     setLogLevel,
     enableLogging,
@@ -185,11 +203,13 @@ import {
     LOGGING_CATEGORIES
 } from '@keenmate/web-dropzone-core';
 
-// Initialize global API
+// Initialize global API. `registerComponent` publishes the entry (adopting an
+// object the page created before this script loaded) and installs the per-tag
+// `responsive` / `responsiveCallback` accessors (SPEC §6.7) — assigning them
+// re-evaluates the live instances. The element itself is defined by
+// `./web-component` (registration order — see above), so no auto-define here.
 if (typeof window !== 'undefined') {
-    window.components = window.components || {};
-    window.components['web-dropzone'] = {
-        version: () => __VERSION__,
+    const entry = registerComponent('web-dropzone', DropzoneElement as unknown as CustomElementConstructor, {
         config: {
             name: __PACKAGE_NAME__,
             version: __VERSION__,
@@ -199,20 +219,16 @@ if (typeof window !== 'undefined') {
             homepage: __HOMEPAGE__,
             core: { name: __CORE_PACKAGE_NAME__, version: __CORE_VERSION__ }
         },
-        logging: {
-            enableLogging,
-            disableLogging,
-            // Core's registry types levels as `LogLevelDesc` (string | number);
-            // dropzone-core's controls take the string level name — widen here.
-            setLogLevel: (level: LogLevelDesc) => setLogLevel(level as string),
-            setCategoryLevel: (category: string, level: LogLevelDesc) => setCategoryLevel(category, level as string),
-            getCategories: () => [...LOGGING_CATEGORIES]
-        },
-        register: () => {
-            if (typeof customElements !== 'undefined' && !customElements.get('web-dropzone')) {
-                customElements.define('web-dropzone', DropzoneElement);
-            }
-        },
-        getInstances: () => getAllInstances()
+        shouldAutoDefine: false
+    });
+    entry.logging = {
+        enableLogging,
+        disableLogging,
+        // Core's registry types levels as `LogLevelDesc` (string | number);
+        // dropzone-core's controls take the string level name — widen here.
+        setLogLevel: (level: LogLevelDesc) => setLogLevel(level as string),
+        setCategoryLevel: (category: string, level: LogLevelDesc) => setCategoryLevel(category, level as string),
+        getCategories: () => [...LOGGING_CATEGORIES]
     };
+    entry.getInstances = () => getAllInstances();
 }
