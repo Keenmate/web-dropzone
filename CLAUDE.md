@@ -54,7 +54,7 @@ A file upload web component with drag-drop support, file previews, validation, a
 - `DEFAULT_CONFIG` + pure helpers: `formatFileSize`, `getFileTypeCategory`, `getFileIcon`, `isImageFile`, `createImagePreview`, `generateFileId`, `FILE_ICONS`.
 
 **icons.ts**
-- Shared Lucide SVG family: `STATUS_ICONS`, `STATUS_LABELS`, `ACTION_ICONS`, `ACTION_LABELS`, `actionForStatus()`, `createDropzoneSpinner()`.
+- Shared Lucide SVG family: `STATUS_ICONS`, `STATUS_LABELS`, `ACTION_ICONS`, `ACTION_LABELS`, `actionForStatus()`. (Loaders are drawn by core `renderLoader()` + the `.dz-loader` CSS; `createDropzoneSpinner()` was removed in v2.)
 
 **dom-utils.ts**
 - Two tiny zero-dep DOM primitives: `dispatchComposedEvent`, `escapeHtml`. The only DOM-touching code in the core package — kept here so renderers can rely on them without a renderer → core cycle.
@@ -94,7 +94,7 @@ A file upload web component with drag-drop support, file previews, validation, a
 - Per-row template strings and in-place patchers for list / detailed / grid / badges / popover modes. The hot path under upload progress ticks.
 
 **index.ts**
-- Public exports — re-exports core types/helpers so consumers can `import { DropzoneStoreAPI, FileState, createDropzoneSpinner } from '@keenmate/web-dropzone'` without depending on `-core` directly.
+- Public exports — re-exports core types/helpers so consumers can `import { DropzoneStoreAPI, FileState } from '@keenmate/web-dropzone'` without depending on `-core` directly.
 - Wires the `window.components['web-dropzone']` global API.
 
 ### CSS — `packages/web-dropzone/src/css/`
