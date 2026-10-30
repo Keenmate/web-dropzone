@@ -572,6 +572,13 @@ export interface DropzoneConfig {
     overlayTarget?: HTMLElement | string | null;
     /** Icon for the drag overlay */
     overlayIcon?: string;
+    /**
+     * Arm the drop target while files are dragged anywhere over the page
+     * (`highlight-on-page-drag`): the host gets `armed` + `:state(armed)` and
+     * the card takes `--dz-dropzone-bg-armed`. A bound picker satellite
+     * inherits it unless it sets its own attribute. Default `false`.
+     */
+    shouldHighlightOnPageDrag?: boolean;
 
     // ========================================================================
     // FORM INTEGRATION

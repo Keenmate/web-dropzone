@@ -71,9 +71,14 @@ Colors / surfaces     --dz-accent-*, --dz-text-color-1..4, --dz-background,
                       --dz-primary-bg(-hover), --dz-border-color,
                       --dz-success/error/warning-color, --dz-*-bg (10% tints),
                       --dz-surface-color, --dz-hover-bg
-Card selector         --dz-dropzone-border(-active), -border-radius, -bg(-hover/-active),
+Card selector         --dz-dropzone-border(-active), -border-radius, -bg(-hover/-active/-armed),
                       -padding, -min-height, -icon-size, -icon-color,
                       -text-font-size, -text-color, -hint-font-size, -hint-color
+                      -bg-armed (-> --base-drop-target-bg): files dragged anywhere
+                      over the page with highlight-on-page-drag; host gets `armed`
+                      + :state(armed) — style your own surface with
+                      web-dropzone[armed] / :state(armed). Under the pointer the
+                      -bg-active look wins.
 Card sizes            --dz-dropzone-card-minimal-*, --dz-dropzone-card-big-*
 Button / minimal      --dz-button-padding, -font-size, -badge-border-radius,
                       --dz-minimal-size, --dz-minimal-icon-size

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — armed state (highlight-on-page-drag)</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>web-dropzone, web-dropzone-picker { display: block; max-width: 420px; }</style>
+    <script>
+        // Count the page-drag tracker's window-level capture listeners (the
+        // drag overlay listens on `document`, so it doesn't show up here).
+        window.__dragenterCaptureAdds = 0;
+        window.__dragenterCaptureRemoves = 0;
+        const isCapture = (o) => o === true || (o && o.capture === true);
+        const add = window.addEventListener;
+        const remove = window.removeEventListener;
+        window.addEventListener = function (type, fn, opts) {
+            if (type === 'dragenter' && isCapture(opts)) window.__dragenterCaptureAdds++;
+            return add.call(this, type, fn, opts);
+        };
+        window.removeEventListener = function (type, fn, opts) {
+            if (type === 'dragenter' && isCapture(opts)) window.__dragenterCaptureRemoves++;
+            return remove.call(this, type, fn, opts);
+        };
+    </script>
+</head>
+<body>
+    <h1>armed state — highlight-on-page-drag</h1>
+    <p>Targeted by <code>e2e/armed.spec.ts</code>.</p>
+
+    <div class="fixture" id="outside">
+        <div class="fixture-label">somewhere else on the page (drags are dispatched here)</div>
+        <p>Not a drop target.</p>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">default — no highlight-on-page-drag</div>
+        <web-dropzone id="plain" accept="*/*" display-mode="list"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">bulk card + highlight-on-page-drag (the managed picker arms)</div>
+        <web-dropzone id="bulk" accept="*/*" display-mode="list" highlight-on-page-drag></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">structural card + highlight-on-page-drag (the in-class card)</div>
+        <web-dropzone id="structural" accept="*/*" render-mode="structural" display-mode="list" highlight-on-page-drag></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">disabled + highlight-on-page-drag — never armed</div>
+        <web-dropzone id="disabled" accept="*/*" display-mode="list" highlight-on-page-drag disabled></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">standalone picker with its own highlight-on-page-drag (headless store)</div>
+        <web-dropzone id="store" render-mode="headless" accept="*/*"></web-dropzone>
+        <web-dropzone-picker id="picker" for="store" highlight-on-page-drag></web-dropzone-picker>
+    </div>
+
+    <script type="module">
+        import '/src/index.ts';
+
+        const outside = document.getElementById('outside');
+        const fileTransfer = () => {
+            const dt = new DataTransfer();
+            dt.items.add(new File([new Uint8Array(64)], 'a.txt', { type: 'text/plain' }));
+            return dt;
+        };
+        const textTransfer = () => {
+            const dt = new DataTransfer();
+            dt.setData('text/plain', 'just text');
+            return dt;
+        };
+        const fire = (target, type, dt) =>
+            target.dispatchEvent(new DragEvent(type, { bubbles: true, cancelable: true, composed: true, dataTransfer: dt }));
+
+        let pulse = null;
+        /** Start a drag over the page: dragenter + a dragover pulse (a live native drag pulses). */
+        window.__startDrag = (kind = 'files') => {
+            const dt = kind === 'files' ? fileTransfer() : textTransfer();
+            fire(outside, 'dragenter', dt);
+            fire(outside, 'dragover', dt);
+            clearInterval(pulse);
+            pulse = setInterval(() => fire(outside, 'dragover', dt), 80);
+        };
+        window.__stopPulse = () => { clearInterval(pulse); pulse = null; };
+        /** End the drag with `type` on `#outside` (pulse stopped first); returns whether #bulk is still armed right after. */
+        window.__endDrag = (type) => {
+            window.__stopPulse();
+            if (type === 'Escape') {
+                window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+            } else {
+                fire(outside, type, fileTransfer());
+            }
+            return !!document.getElementById('bulk')?.hasAttribute('armed');
+        };
+        /** The card surface of a dropzone / picker (bulk: inside the managed picker's shadow). */
+        window.__card = (id) => {
+            const el = document.getElementById(id);
+            const inner = el.shadowRoot.querySelector('web-dropzone-picker');
+            return (inner ? inner.shadowRoot : el.shadowRoot).querySelector('.dz__dropzone--card');
+        };
+
+        Promise.all(['web-dropzone', 'web-dropzone-picker'].map((t) => customElements.whenDefined(t)))
+            .then(() => Promise.all([...document.querySelectorAll('web-dropzone')].map((el) => el.whenReady())))
+            .then(() => { window.__ready = true; });
+    </script>
+</body>
+</html>

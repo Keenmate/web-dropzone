@@ -187,6 +187,11 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Two overlays don't steal each other's drags (both close on drop) | ✓   | `drag-overlay.spec.ts` | `drag-overlay.html` |
 | `overlayTarget` property as an HTMLElement                    | ✓      | `drag-overlay.spec.ts` | `drag-overlay.html` |
 | `overlay-target="#id"` (documented selector form)             | ✓      | `drag-overlay.spec.ts` (NOTES #1 fixed) | `drag-overlay.html` |
+| `highlight-on-page-drag` off by default (no `armed`)          | ✓      | `armed.spec.ts` | `armed.html` |
+| Armed while a file drag is over the page (attr, `:state`, bg, bulk / structural / picker) | ✓ | `armed.spec.ts` | `armed.html` |
+| Armed cleared on drop / dragleave out / dragend / Escape / heartbeat / disconnect | ✓ | `armed.spec.ts` | `armed.html` |
+| Text drag / disabled never arm; under-pointer card keeps -bg-active | ✓  | `armed.spec.ts` | `armed.html` |
+| All instances share one page listener set (ref-counted)       | ✓      | `armed.spec.ts` | `armed.html` |
 
 > Drags are synthetic: a constructed `DataTransfer` carrying real `File`
 > objects reports `types` including `"Files"` in Chromium, so

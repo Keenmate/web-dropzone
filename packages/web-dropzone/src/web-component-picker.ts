@@ -21,6 +21,7 @@ import {
     resolveEnumAttribute
 } from './satellite-base';
 import { escapeHtml, UI_ICONS } from '@keenmate/web-dropzone-core';
+import { subscribePageFileDrag, isPageFileDragActive, applyArmedState } from './page-file-drag';
 import type { DropzoneElement } from './web-component';
 import type {
     SelectorAppearance,
@@ -40,6 +41,10 @@ export class DropzonePickerElement extends SatelliteElement {
     private inputEl: HTMLInputElement | null = null;
     private dragActive = false;
     private dragCounter = 0;
+    /** Unsubscribe from the shared page-drag tracker (set while `highlight-on-page-drag` is live). */
+    private unsubscribePageDrag: (() => void) | null = null;
+    private isArmedState = false;
+    private internalsRef: ElementInternals | null | undefined;
     /** UI strings from the bound store's `labels` (the picker's own attributes win). */
 
     // Mode B per-picker upload binding (see ARCHITECTURE.md). These are
@@ -96,7 +101,7 @@ export class DropzonePickerElement extends SatelliteElement {
     static get observedAttributes(): string[] {
         return [
             'for', 'selector-appearance', 'card-size', 'accept', 'multiple',
-            'labels', 'icon', 'disabled', 'inside'
+            'labels', 'icon', 'disabled', 'inside', 'highlight-on-page-drag'
         ];
     }
 
@@ -135,6 +140,16 @@ export class DropzonePickerElement extends SatelliteElement {
         document.removeEventListener('dragend', this.handleDocReset);
         this.dragActive = false;
         this.dragCounter = 0;
+        this.syncPageDrag();
+    }
+
+    /**
+     * True while the picker is armed (`highlight-on-page-drag` + files are
+     * dragged over the page + it accepts drops). Mirrors the `armed` attribute
+     * / `:state(armed)`.
+     */
+    get isArmed(): boolean {
+        return this.isArmedState;
     }
 
     // ========================================================================
@@ -271,6 +286,49 @@ export class DropzonePickerElement extends SatelliteElement {
         this.container.innerHTML = inner;
         this.inputEl = this.container.querySelector('input.dz__dropzone__input');
         this.attachInteractionHandlers();
+        this.syncPageDrag();
+    }
+
+    // ========================================================================
+    // ARMED (highlight-on-page-drag)
+    // ========================================================================
+
+    /** Own `highlight-on-page-drag` attribute wins; else the bound store's setting. */
+    private shouldHighlightOnPageDrag(): boolean {
+        const raw = this.getAttribute('highlight-on-page-drag');
+        if (raw !== null) return raw !== 'false';
+        return !!this.store?.getConfig().shouldHighlightOnPageDrag;
+    }
+
+    /** Join / leave the shared page-drag tracker (one page listener set for every instance). */
+    private syncPageDrag(): void {
+        const shouldTrack = this.isConnected && !!this.store && this.shouldHighlightOnPageDrag();
+        if (shouldTrack && !this.unsubscribePageDrag) {
+            this.unsubscribePageDrag = subscribePageFileDrag(() => this.syncArmed());
+        } else if (!shouldTrack && this.unsubscribePageDrag) {
+            this.unsubscribePageDrag();
+            this.unsubscribePageDrag = null;
+        }
+        this.syncArmed();
+    }
+
+    /** Armed = tracking + a file drag over the page + the picker accepts drops. */
+    private syncArmed(): void {
+        const isArmed = !!this.unsubscribePageDrag && isPageFileDragActive() && !this.isDisabled();
+        if (isArmed === this.isArmedState) return;
+        this.isArmedState = isArmed;
+        applyArmedState(this, this.getInternals(), isArmed);
+    }
+
+    /** Lazily attached internals for `:state(armed)`; null where unsupported. */
+    private getInternals(): ElementInternals | null {
+        if (this.internalsRef !== undefined) return this.internalsRef;
+        try {
+            this.internalsRef = typeof this.attachInternals === 'function' ? this.attachInternals() : null;
+        } catch {
+            this.internalsRef = null;
+        }
+        return this.internalsRef;
     }
 
     /**

@@ -42,6 +42,14 @@
   background: var(--dz-dropzone-bg-active);
 }
 
+/* Armed (highlight-on-page-drag): files are dragged somewhere over the page —
+   every valid target tints; the card under the pointer keeps -bg-active. The
+   host carries `armed` (+ :state(armed)) — <web-dropzone> in structural mode,
+   the picker satellite (standalone or mounted by a bulk-mode store). */
+:host([armed]) .dz__dropzone--card:not(.dz__dropzone--active):not(.dz__dropzone--disabled) {
+  background: var(--dz-dropzone-bg-armed);
+}
+
 /* Has files state */
 .dz__dropzone--has-files {
   /* Optional: could shrink dropzone when files are added */

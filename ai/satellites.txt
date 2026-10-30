@@ -62,6 +62,9 @@ Attributes:
                        readonly store blocks adding too)
   inside="true"        files-inside layout: renders a <slot> inside the card;
                        put a <web-dropzone-list nested="true"> as its child
+  highlight-on-page-drag  arm while files are dragged anywhere over the page
+                       (`armed` attr + :state(armed), picker.isArmed, card bg
+                       --dz-dropzone-bg-armed); default: the store's setting
 
 Properties (JS only), Mode B per-picker routing:
   uploadFileCallback   FileUploadHandler stamped on every file this picker adds

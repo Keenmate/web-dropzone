@@ -46,6 +46,7 @@ import {
 } from '@keenmate/web-components-core';
 import { WebDropzone } from './dropzone';
 import { linkStoreController, linkStoreReorder, STORE_BUILD_EVENT } from './store-link';
+import { subscribePageFileDrag, isPageFileDragActive, applyArmedState } from './page-file-drag';
 import { initLogger, createDropzoneController, isLabelsValue, countLabel, defaultLabel } from '@keenmate/web-dropzone-core';
 import type {
     DropzoneController,
@@ -245,6 +246,7 @@ const INPUTS: readonly InputDef[] = [
         },
     ), shouldReflect: true, on: 'update', type: 'HTMLElement | string', description: 'Element (or selector string) that acts as the full-viewport drag-overlay target. Assign an HTMLElement via the property; a selector string via the `overlay-target` attribute.' },
     { configKey: 'overlayIcon',             attribute: 'overlay-icon',        converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'Icon shown in the drag overlay.' },
+    { configKey: 'shouldHighlightOnPageDrag', attribute: 'highlight-on-page-drag', converter: toBool('default-false'),                                         on: 'update', type: 'boolean', description: 'Arm the drop target while FILES are dragged anywhere over the page: the host gets the `armed` attribute + `:state(armed)` and the card takes `--dz-dropzone-bg-armed` (the card under the pointer keeps `--dz-dropzone-bg-active`). Cleared on drop anywhere, when the drag leaves the window, on Escape / `dragend`, and on disconnect. Never armed while disabled / read-only; text and other non-file drags never arm. One shared page listener for all instances.' },
 
     // ── Form integration ──────────────────────────────────────────────────────
     { configKey: 'name',                    attribute: 'name',                converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'Form field name. Files submit as real FormData blobs under this name.' },
@@ -354,6 +356,9 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
     #dropzone?: WebDropzone;
     #container: HTMLElement;
     #customStyleSheet?: HTMLStyleElement;
+    /** Unsubscribe from the shared page-drag tracker (set while `highlight-on-page-drag` is live). */
+    #unsubscribePageDrag?: () => void;
+    #isArmed = false;
 
     /**
      * What the engine reports to — built once, so every engine (each rebuild)
@@ -418,6 +423,16 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
      */
     protected override disabledChanged(isDisabled: boolean): void {
         this.#dropzone?.updateConfig({ isDisabled });
+        this.#syncArmed();
+    }
+
+    /**
+     * True while the dropzone is armed (`highlight-on-page-drag` + files are
+     * dragged over the page + it accepts drops). Mirrors the `armed` attribute
+     * / `:state(armed)`.
+     */
+    get isArmed(): boolean {
+        return this.#isArmed;
     }
 
     // ── core lifecycle hooks ──────────────────────────────────────────────────
@@ -425,6 +440,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
     /** Structural change (or first connect): rebuild the store from scratch. */
     protected override reinit(): void {
         this.#rebuildStore();
+        this.#syncPageDrag();
     }
 
     /**
@@ -434,6 +450,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
      * (matching the pre-core behaviour, where a mode flip reset the selection).
      */
     protected override update(partial: Record<string, unknown>): void {
+        if ('shouldHighlightOnPageDrag' in partial || 'isReadonly' in partial) this.#syncPageDrag();
         if (
             'renderMode' in partial ||
             'displayMode' in partial ||
@@ -481,6 +498,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
         instances.add(this);
         if (this.#dropzone) this.#dropzone.activate();
         else this.#buildStore();
+        this.#syncPageDrag();
 
         initLogger.debug('DropzoneElement connected');
     }
@@ -493,6 +511,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
     protected override disconnect(): void {
         instances.delete(this);
         this.#dropzone?.deactivate();
+        this.#syncPageDrag();
         initLogger.debug('DropzoneElement disconnected');
     }
 
@@ -527,6 +546,35 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
     protected override destroyCallback(): void {
         instances.delete(this);
         if (this.#dropzone) this.#teardownStore(this.#dropzone);
+    }
+
+    // ── armed (highlight-on-page-drag) ───────────────────────────────────────
+
+    /**
+     * Join / leave the shared page-drag tracker per `highlight-on-page-drag`
+     * and the connection state (one page listener set for every instance),
+     * then re-derive the armed state.
+     */
+    #syncPageDrag(): void {
+        const shouldTrack = this.isConnected && !!this.config.shouldHighlightOnPageDrag;
+        if (shouldTrack && !this.#unsubscribePageDrag) {
+            this.#unsubscribePageDrag = subscribePageFileDrag(() => this.#syncArmed());
+        } else if (!shouldTrack && this.#unsubscribePageDrag) {
+            this.#unsubscribePageDrag();
+            this.#unsubscribePageDrag = undefined;
+        }
+        this.#syncArmed();
+    }
+
+    /** Armed = tracking + a file drag over the page + the dropzone accepts drops. */
+    #syncArmed(): void {
+        const isArmed = !!this.#unsubscribePageDrag
+            && isPageFileDragActive()
+            && !this.isEffectivelyDisabled
+            && !this.config.isReadonly;
+        if (isArmed === this.#isArmed) return;
+        this.#isArmed = isArmed;
+        applyArmedState(this, this.internals, isArmed);
     }
 
     /** Destroy `engine` (if it is still the live store) and clear the form value. */

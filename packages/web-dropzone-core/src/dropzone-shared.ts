@@ -46,6 +46,7 @@ export const DEFAULT_CONFIG: Required<Omit<DropzoneConfig, 'fileIcons' | 'getFil
     icon: UI_ICONS.cloudUpload,
     popoverPlacement: 'bottom-start',
     overlayIcon: UI_ICONS.upload,
+    shouldHighlightOnPageDrag: false,
     name: '',
     valueFormat: 'json',
     concurrency: 1,

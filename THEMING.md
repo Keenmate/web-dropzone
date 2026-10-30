@@ -214,6 +214,7 @@ icon show the CSS-only `.dz-loader--inline` while uploading (the row carries `ar
 |---|---|
 | `--dz-dropzone-bg` | dropzone bg |
 | `--dz-dropzone-bg-active` | Drop-target background while dragging over (`--base-drop-target-bg-active`) |
+| `--dz-dropzone-bg-armed` | Armed drop target — files dragged anywhere over the page, `highlight-on-page-drag` (`--base-drop-target-bg`) |
 | `--dz-dropzone-bg-hover` | dropzone bg hover |
 | `--dz-dropzone-border` | dropzone border |
 | `--dz-dropzone-border-active` | Drop-target border while dragging over (`2px solid --base-drop-target-border-color`) |

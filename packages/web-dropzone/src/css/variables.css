@@ -140,6 +140,7 @@
   --dz-dropzone-bg: var(--dz-background);
   --dz-dropzone-bg-hover: var(--dz-primary-bg);
   --dz-dropzone-bg-active: var(--base-drop-target-bg-active, var(--base-success-bg-subtle-hover, light-dark(color-mix(in srgb, var(--dz-success-color) 15%, transparent), color-mix(in srgb, var(--dz-success-color) 30%, transparent)))); /* drop target under the pointer */
+  --dz-dropzone-bg-armed: var(--base-drop-target-bg, var(--base-success-bg-subtle, light-dark(color-mix(in srgb, var(--dz-success-color) 10%, transparent), color-mix(in srgb, var(--dz-success-color) 20%, transparent)))); /* valid drop target while files are dragged over the page (highlight-on-page-drag) */
   --dz-dropzone-padding: calc(3.2 * var(--dz-rem, 10px));
   --dz-dropzone-min-height: calc(12 * var(--dz-rem, 10px));
 

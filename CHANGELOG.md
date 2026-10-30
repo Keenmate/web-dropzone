@@ -11,6 +11,21 @@ No stable 1.0.0 is published, so the break ships as the next release
 candidate — but `^1.0.0-rc02` consumers will pull it: the event,
 callback and store-access API below is breaking.
 
+### Added (armed drop target, 2026-10-30)
+
+- **`highlight-on-page-drag`** (`el.shouldHighlightOnPageDrag`, default `false` — nothing changes
+  unless you opt in): while FILES are dragged anywhere over the page, the dropzone is **armed** —
+  the host gets the `armed` attribute + `:state(armed)` (`el.isArmed`) and the card takes the new
+  token **`--dz-dropzone-bg-armed`** (chains `--base-drop-target-bg`, success 10% light / 20% dark
+  standalone); the card under the pointer keeps `--dz-dropzone-bg-active`. Cleared on a drop
+  anywhere, when the drag leaves the window (enter/leave counter), on Escape / `dragend`, after a
+  silent drag (no `dragover` pulse — Esc on an external drag), and on disconnect. Never armed while
+  disabled / read-only; text, link and other non-file drags never arm. One shared page listener set
+  for every instance (added with the first opted-in instance, removed with the last).
+- **`<web-dropzone-picker>`** takes the same `highlight-on-page-drag` attribute (its own wins, else
+  the bound store's setting — so the picker a bulk-mode store mounts follows the store) and the same
+  `armed` attribute / `:state(armed)` / `isArmed`.
+
 ### Changed — BREAKING (shared loader, 2026-10-29)
 
 - **Upload loaders follow the shared loader contract.** The indicator chip's upload loader is drawn

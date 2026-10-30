@@ -9,6 +9,7 @@ A lightweight, accessible file upload web component with drag-drop support, file
 
 Breaking — see [CHANGELOG.md](CHANGELOG.md) for the migration tables.
 
+- **Armed drop target** — opt-in `highlight-on-page-drag`: while files are dragged anywhere over the page, every opted-in dropzone / picker tints (`--dz-dropzone-bg-armed` → `--base-drop-target-bg`) and gets `armed` + `:state(armed)`; the card under the pointer keeps the active look. One shared page listener for all instances.
 - **One loader for every KeenMate component** — the indicator chip's upload loader draws through the shared core loader (`renderLoadingCallback` on the store, else the page-wide `window.components.renderLoaderCallback`, else the `--base-loader-*` shape); per-row / summary loaders use the same tokens (`--dz-loader-*`) with `aria-busy` on the row. The uploading-row pulse stops under reduced motion; the loader only slows.
 - **One cancel rule** — `cancelFile(id)` now returns a promise and gives a running upload handler its `AbortSignal` plus up to `cancel-timeout` ms (default 2000) to settle; the row shows "Cancelling…". Settles in time → `cancelled`; otherwise `cancel-timeout-behavior` (`error`, retryable — or `remove`). Late results are ignored and the concurrency slot is freed either way. `beforeFilesCancelCallback` can veto, `file-cancel` reports how it ended (`{ file, result, uploadedBytes, metadata }`), and `cancelAll()` + a **Cancel all** button cover the whole queue.
 - **Row buttons split** — **⊘ Cancel** stops the upload and keeps the row (Retry available); **✕ Remove** always removes (a running upload is cancelled first). Both glyphs are configurable (`cancel-icon` / `remove-icon`).
@@ -127,6 +128,7 @@ dropzone.controller.clear();
 | `cancel-icon` / `remove-icon` | `string` (raw HTML) | built-in | Row ⊘ Cancel / ✕ Remove glyphs — see the [XSS notice](#html-injection-xss-notice) |
 | `sink-completed` | `boolean` | `false` | Auto-move completed files to the end of the list (after `sink-completed-delay`) |
 | `keep-alive-when-removed` | `boolean` | `false` | Keep the store and its uploads when the element is removed from the page |
+| `highlight-on-page-drag` | `boolean` | `false` | While files are dragged anywhere over the page, arm the drop target: `armed` attribute + `:state(armed)` (`el.isArmed`), card background `--dz-dropzone-bg-armed`. Cleared on drop / leaving the window / Escape / disconnect; never while disabled or read-only; non-file drags never arm |
 | `overlay-icon` | `string` (raw HTML) | Lucide `upload` | Icon shown in drag overlay. Accepts any HTML (SVG / `<img>` / emoji) — see the [XSS notice](#html-injection-xss-notice) |
 
 ## Display Modes
@@ -591,6 +593,7 @@ Use `--dz-rem` for global scaling:
 | `--dz-border-color` | `--dz-main-bg`, OKLCH step | Border color |
 | `--dz-dropzone-bg` | `--dz-main-bg` | Dropzone background |
 | `--dz-dropzone-bg-active` | `--base-drop-target-bg-active` (success 15% light / 30% dark) | Background when dragging over |
+| `--dz-dropzone-bg-armed` | `--base-drop-target-bg` (success 10% light / 20% dark) | Background while files are dragged anywhere over the page (`highlight-on-page-drag`) |
 | `--dz-dropzone-border` | `2px dashed` border color | Border style |
 | `--dz-dropzone-border-active` | `2px solid` `--base-drop-target-border-color` (success) | Border when dragging over |
 | `--dz-dropzone-border-radius` | `0.8rem` | Border radius |
