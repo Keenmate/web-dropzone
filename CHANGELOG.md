@@ -13,8 +13,10 @@ callback and store-access API below is breaking.
 
 ### Added (responsive rules, 2026-10-30)
 
-- **Responsive rules** (web-components-core SPEC §6.7): `responsive` (map: device class → partial
-  config; property or JSON attribute) and `responsiveCallback` on the element, per tag on
+- **Responsive rules** (web-components-core SPEC §6.7): `responsive` (map with two axes —
+  `{ device: { mobile|tablet|desktop: partial }, breakpoint: { mobile|tablet|desktop: partial } }`;
+  device = touch capability / short side, breakpoint = window width, device wins on the same key;
+  property or JSON attribute) and `responsiveCallback` on the element, per tag on
   `window.components['web-dropzone']`, and page-wide on `window.components`. Precedence: page →
   per-tag → instance attributes/properties → instance rules; overrides never reflect. Typed aliases
   **`DropzoneResponsiveMap`** / **`DropzoneResponsiveCallback`** (over the new exported

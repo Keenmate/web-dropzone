@@ -6,12 +6,13 @@ import { test, expect, dz } from './fixtures';
  * an attribute written on the instance beats it, and overrides never reflect.
  *
  * Fixture: test/reactivity.html (`#caps` has `display-mode="list"` written on it).
- * Viewport 390×844 → device class `mobile`.
+ * Viewport 390×844 + touch → device class `mobile` (the map's `device` axis).
  */
 
 const PAGE = '/test/reactivity.html';
-const RULE = { mobile: { displayMode: 'compact', maxVisibleFileCount: 3 } };
+const RULE = { device: { mobile: { displayMode: 'compact', maxVisibleFileCount: 3 } } };
 
+test.describe('touch phone (device axis)', () => {
 test.use({ viewport: { width: 390, height: 844 }, hasTouch: true });
 
 
@@ -60,4 +61,26 @@ test('a per-tag rule set before the script loaded is adopted', async ({ page }) 
         return [el.displayMode, el.maxVisibleFileCount, typeof (window as any).components['web-dropzone'].version];
     });
     expect(flip).toEqual(['compact', 3, 'function']);
+});
+});
+
+test.describe('narrowed desktop window (breakpoint axis)', () => {
+test.use({ viewport: { width: 700, height: 900 }, hasTouch: false });
+
+test('a breakpoint-axis rule applies on a narrow desktop window; a device-axis mobile rule does not', async ({ page }) => {
+    await page.goto(PAGE);
+    await page.waitForFunction(() => (window as any).__ready === true);
+    const res = await dz(page, 'flip').evaluate(async (el: any) => {
+        el.responsive = { device: { mobile: { maxVisibleFileCount: 2 } }, breakpoint: { mobile: { maxVisibleFileCount: 4 } } };
+        await el.whenSettled();
+        const narrow = el.maxVisibleFileCount;
+        return { narrow };
+    });
+    // desktop (mouse) at 700 px → deviceClass `desktop`, breakpoint `mobile`.
+    expect(res.narrow).toBe(4);
+
+    // Widening across the 768 px line drops the breakpoint entry → base value.
+    await page.setViewportSize({ width: 1200, height: 900 });
+    await expect.poll(() => dz(page, 'flip').evaluate((el: any) => el.maxVisibleFileCount)).toBe(7);
+});
 });

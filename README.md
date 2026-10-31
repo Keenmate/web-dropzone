@@ -510,29 +510,39 @@ text); a missing / `undefined` key falls back to English. Labels are **text** �
 
 ## Responsive rules
 
-Tune any input per device class (`mobile` / `tablet` / `desktop`) without app-side viewport code —
-the shared mechanism of `@keenmate/web-components-core`
-([SPEC §6.7](https://github.com/keenmate/web-components-core/blob/main/docs/SPEC.md)). A **map**
-(device class → partial config) or a **callback** (`ctx` → partial config), at three levels:
+Tune any input per device class or window width without app-side viewport code — the shared
+mechanism of `@keenmate/web-components-core`
+([SPEC §6.7](https://github.com/keenmate/web-components-core/blob/main/docs/SPEC.md)). A **map** has
+two axes, each keyed `mobile` / `tablet` / `desktop`:
+
+- **`device`** — what the device *is* (touch capability first, then the short side): a phone is
+  `mobile`, a touch tablet `tablet`; a mouse / trackpad machine is `desktop` at any width.
+- **`breakpoint`** — the window width (the 768 / 1024 px lines): a narrowed desktop window is
+  `mobile` below 768 px.
+
+The breakpoint entry applies first, then the device entry over it (device wins on the same key).
+Own widths or combinations (device AND width, orientation, …) go in a **callback** (`ctx` → partial
+config). Both at three levels:
 
 ```js
 // page-wide, every KeenMate component (unknown keys are skipped silently)
-window.components.responsive = { mobile: { /* … */ } };
+window.components.responsive = { device: { mobile: { /* … */ } } };
 // every <web-dropzone> on the page
 window.components['web-dropzone'].responsive = {
-    mobile: { displayMode: 'compact', maxVisibleFileCount: 3 },
+    device:     { mobile: { displayMode: 'compact', maxVisibleFileCount: 3 } },
+    breakpoint: { mobile: { maxVisibleFileCount: 5 } },
 };
 window.components['web-dropzone'].responsiveCallback = ({ deviceClass, env }) =>
     deviceClass === 'tablet' && env.orientation === 'portrait' ? { displayMode: 'list' } : undefined;
-// one instance (property, or the JSON attribute responsive='{"mobile":{…}}')
-el.responsive = { tablet: { selectorAppearance: 'button' } };
+// one instance (property, or the JSON attribute responsive='{"breakpoint":{"mobile":{…}}}')
+el.responsive = { device: { tablet: { selectorAppearance: 'button' } } };
 el.responsiveCallback = (ctx) => ({ /* … */ });
 ```
 
 Precedence, later wins key by key: page map → page callback → per-tag map → per-tag callback →
 **attributes / properties set on the instance** → instance map → instance callback. So
 `<web-dropzone display-mode="list">` keeps `list` whatever the page rules say. Rules re-run when the
-device class / breakpoint / orientation changes; overrides never reflect to attributes, and a key a
+device class / breakpoint / orientation changes (callbacks also on every width change); overrides never reflect to attributes, and a key a
 rule stops returning goes back to its base value. Per-tag rules may be set before the script loads
 (`window.components = { 'web-dropzone': { responsive: … } }` is adopted). Types:
 `DropzoneResponsiveMap`, `DropzoneResponsiveCallback`.
