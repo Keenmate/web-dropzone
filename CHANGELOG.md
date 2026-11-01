@@ -11,6 +11,10 @@ No stable 1.0.0 is published, so the break ships as the next release
 candidate — but `^1.0.0-rc02` consumers will pull it: the event,
 callback and store-access API below is breaking.
 
+### Changed (dependencies, 2026-11-01)
+
+- Depends on the published `@keenmate/web-components-core@^1.0.0-rc15` (was the local `file:` link).
+
 ### Added (responsive rules, 2026-10-30)
 
 - **Responsive rules** (web-components-core SPEC §6.7): `responsive` (map with two axes —
