@@ -66,8 +66,9 @@ npm run dev
 # Build for production
 npm run build
 
-# Preview production build
-npm run preview
+# Build + preview the examples site (http://localhost:12501)
+npm run build:examples
+npm run preview:examples
 
 # Create npm package
 npm run package
@@ -266,7 +267,7 @@ Make sure you've run `make setup` or `npm install` first.
 
 ### Port already in use
 
-If port 5173 is in use, Vite will automatically try the next available port. Check the console output for the actual URL.
+The dev server runs on port 12500 (preview: 12501) from `package.json#kmwc.ports` and never hops to another port (`strictPort`). If it is busy, `make kill-port` frees 12500 / 12501 — check first that it isn't another repo's server.
 
 ### Build fails
 

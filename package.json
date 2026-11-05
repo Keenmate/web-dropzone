@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "dev": "vite",
-    "build": "npm run build -ws --if-present",
+    "build": "npm run build:core && npm run build:renderer",
     "build:core": "npm run build -w @keenmate/web-dropzone-core",
     "build:renderer": "npm run build -w @keenmate/web-dropzone",
     "build:examples": "vite build --mode examples",

@@ -1,0 +1,68 @@
+# Repo-specific make targets — included at the end of the generated Makefile
+# (`kmwc sync`). A target redefined here wins, with a make "overriding recipe"
+# warning; that is how the monorepo's publish flow replaces the single-package one.
+#
+# web-dropzone is an npm-workspaces monorepo: the root is private and builds only
+# the examples site; two packages publish — core first, then the renderer (which
+# depends on core and bundles its dist/). Release gates per publish-command.md:
+# `kmwc check-release` for each package, then the e2e suite.
+
+CORE_PACKAGE     := @keenmate/web-dropzone-core
+RENDERER_PACKAGE := @keenmate/web-dropzone
+
+.PHONY: build-core build-renderer clean-dist install-dev update-deps
+
+build-core: ## Build only @keenmate/web-dropzone-core
+	npm run build:core
+
+build-renderer: ## Build only @keenmate/web-dropzone (bundles core's dist/)
+	npm run build:renderer
+
+clean-dist: ## Clean only the dist folders of both packages
+	npm run clean:dist
+
+package: build ## Pack both packages (a .tgz in each package dir)
+	npm pack -w $(CORE_PACKAGE)
+	npm pack -w $(RENDERER_PACKAGE)
+
+publish-dry: ## Dry-run publish of both packages (clean build first)
+	npm run clean:dist
+	npm run build
+	npm publish --dry-run -w $(CORE_PACKAGE)
+	npm publish --dry-run -w $(RENDERER_PACKAGE)
+
+publish: ## Publish BOTH packages to npm as 'latest' (core first; release versions only)
+	npx kmwc check-release --tag latest --root packages/web-dropzone-core
+	npx kmwc check-release --tag latest --root packages/web-dropzone
+	@echo "WARNING: publishing $(CORE_PACKAGE) and $(RENDERER_PACKAGE) under the 'latest' dist-tag. Use 'make publish-rc' for pre-releases."
+	@$(CONFIRM)
+	npm run clean:dist
+	npm run build
+	npm run test:e2e
+	npm publish -w $(CORE_PACKAGE)
+	npm publish -w $(RENDERER_PACKAGE)
+
+publish-rc: ## Publish BOTH packages under the 'rc' dist-tag (core first; does NOT touch 'latest')
+	npx kmwc check-release --tag rc --root packages/web-dropzone-core
+	npx kmwc check-release --tag rc --root packages/web-dropzone
+	@echo "WARNING: publishing $(CORE_PACKAGE) and $(RENDERER_PACKAGE) under the 'rc' dist-tag."
+	@$(CONFIRM)
+	npm run clean:dist
+	npm run build
+	npm run test:e2e
+	npm publish --tag rc -w $(CORE_PACKAGE)
+	npm publish --tag rc -w $(RENDERER_PACKAGE)
+
+check-version: ## Show the versions of both packages
+	@echo "$(CORE_PACKAGE):"
+	@node -p "require('./packages/web-dropzone-core/package.json').version"
+	@echo "$(RENDERER_PACKAGE):"
+	@node -p "require('./packages/web-dropzone/package.json').version"
+
+install-dev: package ## Pack both and print install snippets for local testing
+	@echo "You can install these locally with:"
+	@echo "  npm install <path>/packages/web-dropzone-core/keenmate-web-dropzone-core-<v>.tgz"
+	@echo "  npm install <path>/packages/web-dropzone/keenmate-web-dropzone-<v>.tgz"
+
+update-deps: ## Update dependencies (root + workspaces)
+	npm update

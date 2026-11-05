@@ -1,6 +1,6 @@
 # Builds the examples into static files and serves them with nginx.
 #   docker compose up --build   (or: podman compose up --build)
-#   → http://localhost:12310
+#   → http://localhost:12510
 #
 # Equivalent to `make image-build && make image-run`; the Makefile image-*
 # targets are the primary workflow (runner configurable via .makefile.env).
@@ -8,4 +8,4 @@ services:
   examples:
     build: .
     ports:
-      - "12310:80"
+      - "12510:80"
