@@ -1,12 +1,13 @@
 <meta name="kmwc:title" content="📨 Split Overlay (Outlook-style)">
 <meta name="kmwc:subtitle" content="The WYSIWYG email body splits in half during drag — left side attaches the file, right side shares it as a link.">
+<link rel="stylesheet" href="examples-local.css">
 
     <style>
         .compose {
-            background: white;
+            background: var(--kmwc-main-bg);
             border-radius: 10px;
             padding: 1.5rem;
-            border: 1px solid #e5e7eb;
+            border: 1px solid var(--kmwc-border-color);
         }
         .compose .row {
             display: grid;
@@ -15,9 +16,9 @@
             align-items: center;
             margin-bottom: 0.75rem;
         }
-        .compose label { font-weight: 500; color: #4b5563; font-size: 0.9rem; }
+        .compose label { font-weight: 500; color: var(--kmwc-text-color-2); font-size: 0.9rem; }
         .compose input {
-            border: 1px solid #d1d5db;
+            border: 1px solid var(--kmwc-border-color-strong);
             border-radius: 6px;
             padding: 0.5rem 0.75rem;
             font: inherit;
@@ -30,10 +31,10 @@
             display: flex;
             gap: 0.25rem;
             padding: 0.4rem 0.5rem;
-            border: 1px solid #d1d5db;
+            border: 1px solid var(--kmwc-border-color-strong);
             border-bottom: 0;
             border-radius: 6px 6px 0 0;
-            background: #f9fafb;
+            background: var(--kmwc-elevated-bg);
         }
         .toolbar button {
             background: transparent;
@@ -42,13 +43,13 @@
             border-radius: 4px;
             font: inherit;
             font-size: 0.85rem;
-            color: #4b5563;
+            color: var(--kmwc-text-color-2);
             cursor: pointer;
         }
-        .toolbar button:hover { background: #e5e7eb; }
+        .toolbar button:hover { background: var(--kmwc-border-color); }
         .toolbar .sep {
             width: 1px;
-            background: #d1d5db;
+            background: var(--kmwc-border-color);
             margin: 0.15rem 0.3rem;
         }
 
@@ -58,19 +59,19 @@
             position: relative;
         }
         .wysiwyg {
-            border: 1px solid #d1d5db;
+            border: 1px solid var(--kmwc-border-color-strong);
             border-radius: 0 0 6px 6px;
             padding: 1rem 1rem 1.25rem;
             min-height: 220px;
             font: inherit;
             font-size: 0.95rem;
             line-height: 1.55;
-            color: #1f2937;
+            color: var(--kmwc-text-color-1);
             outline: none;
         }
-        .wysiwyg:focus { border-color: #93c5fd; box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
+        .wysiwyg:focus { border-color: var(--demo-info-border-color); box-shadow: var(--kmwc-input-box-shadow-focus); }
         .wysiwyg p { margin: 0 0 0.6rem 0; }
-        .wysiwyg .sig { color: #6b7280; font-size: 0.9rem; }
+        .wysiwyg .sig { color: var(--kmwc-text-color-3); font-size: 0.9rem; }
 
         /* The shared split grid covers the editor only. Invisible by
            default; each dropzone's overlay covers one half during drag.
@@ -89,13 +90,13 @@
             gap: 0.5rem;
             margin-top: 1rem;
             padding-top: 1rem;
-            border-top: 1px solid #f3f4f6;
+            border-top: 1px solid var(--kmwc-border-color);
         }
 
         .attached {
             margin-top: 1rem;
             padding-top: 1rem;
-            border-top: 1px solid #f3f4f6;
+            border-top: 1px solid var(--kmwc-border-color);
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 1.25rem;
@@ -103,7 +104,7 @@
         .attached h4 {
             margin: 0 0 0.5rem 0;
             font-size: 0.8rem;
-            color: #6b7280;
+            color: var(--kmwc-text-color-3);
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.05em;
@@ -112,7 +113,7 @@
         .hint {
             margin-top: 1rem;
             font-size: 0.85rem;
-            color: #6b7280;
+            color: var(--kmwc-text-color-3);
             text-align: center;
         }
     </style>
@@ -321,7 +322,7 @@
                 <li>Files dropped on Draft A's halves go to Draft A's lists; Draft B's halves to Draft B's lists. No cross-pollination.</li>
             </ul>
 
-            <h3 style="margin-top:1rem">Draft A — Q3 retrospective</h3>
+            <h3 class="mt-1">Draft A — Q3 retrospective</h3>
             <div class="editor-shell">
                 <div class="wysiwyg" contenteditable="true" spellcheck="false">
                     <p>Putting together notes for the Q3 retro — drop anything relevant onto this draft's halves. Blue/teal overlay = this draft.</p>

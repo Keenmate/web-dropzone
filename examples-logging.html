@@ -1,5 +1,6 @@
 <meta name="kmwc:title" content="🐛 Logging & Debugging">
 <meta name="kmwc:subtitle" content="Categorized debug output with runtime control — silent by default in production">
+<link rel="stylesheet" href="examples-local.css">
 
     <style>
         .log-controls {
@@ -12,20 +13,20 @@
             display: flex;
             flex-direction: column;
             font-size: 0.85rem;
-            color: #374151;
+            color: var(--kmwc-text-color-2);
             font-weight: 500;
             gap: 0.3rem;
         }
         .log-controls select {
             padding: 0.4rem 0.6rem;
-            border: 1px solid #cbd5e0;
+            border: 1px solid var(--kmwc-border-color-strong);
             border-radius: 6px;
             font-size: 0.875rem;
-            background: white;
+            background: var(--kmwc-main-bg);
         }
         .console {
-            background: #1f2937;
-            color: #e5e7eb;
+            background: var(--kmwc-console-bg);
+            color: var(--kmwc-console-text-color);
             font-family: 'SF Mono', Monaco, 'Courier New', monospace;
             font-size: 0.8rem;
             line-height: 1.5;
@@ -37,15 +38,15 @@
         }
         .console:empty::before {
             content: '(no log entries — interact with the dropzone above)';
-            color: #9ca3af;
+            color: var(--kmwc-console-muted-color);
             font-style: italic;
         }
-        .console .l-debug { color: #38bdf8; }
-        .console .l-info  { color: #34d399; }
-        .console .l-warn  { color: #fbbf24; }
-        .console .l-error { color: #f87171; }
-        .console .timestamp { color: #6b7280; }
-        .console .category  { color: #c084fc; font-weight: 600; }
+        .console .l-debug { color: var(--kmwc-console-info-color); }
+        .console .l-info  { color: var(--kmwc-console-ok-color); }
+        .console .l-warn  { color: var(--kmwc-console-warn-color); }
+        .console .l-error { color: var(--kmwc-console-err-color); }
+        .console .timestamp { color: var(--kmwc-console-muted-color); }
+        .console .category  { color: var(--kmwc-code-keyword-color); font-weight: 600; }
         .console-actions {
             display: flex;
             gap: 0.5rem;

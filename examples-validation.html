@@ -1,19 +1,20 @@
 <meta name="kmwc:title" content="✅ Validation & Rejection">
 <meta name="kmwc:subtitle" content="Size limits, count limits, MIME/extension filters, and custom validators">
+<link rel="stylesheet" href="examples-local.css">
 
     <style>
         .rejected-log {
-            background: #fef2f2;
-            border: 1px solid #fecaca;
+            background: var(--demo-danger-bg);
+            border: 1px solid var(--demo-danger-border-color);
             border-radius: 6px;
             padding: 0.75rem 1rem;
             margin-top: 0.75rem;
             font-size: 0.875rem;
-            color: #991b1b;
+            color: var(--kmwc-danger-color);
         }
         .rejected-log:empty::before {
             content: '(no rejections yet)';
-            color: #9ca3af;
+            color: var(--kmwc-text-color-4);
             font-style: italic;
         }
         .rejected-log .row {
@@ -24,7 +25,7 @@
         }
         .rejected-log .row:last-child { margin-bottom: 0; }
         .rejected-log .name { font-weight: 600; }
-        .rejected-log .reason { color: #b91c1c; }
+        .rejected-log .reason { color: var(--kmwc-danger-color); }
     </style>
 
         <!-- MAX SIZE -->

@@ -2,7 +2,9 @@
  * examples-shared-toast.js
  *
  * Minimal in-page toast service for the demo pages. Vanilla JS, no deps,
- * one file. Drop in via <script src="examples-shared-toast.js"></script>.
+ * one file. Load it as a module so the examples build bundles it:
+ * <script type="module" src="/examples-shared-toast.js"></script>. Colours read
+ * the devkit kit's --kmwc-* tokens, so toasts follow the theme switch.
  *
  * API:
  *   toast.info(message, opts?)
@@ -41,13 +43,13 @@
             gap: 0.8rem;
             align-items: start;
             padding: 1rem 1.2rem;
-            background: #ffffff;
-            border-left: 4px solid #6b7280;
+            background: var(--kmwc-main-bg);
+            border-left: 4px solid var(--kmwc-neutral-color);
             border-radius: 0.6rem;
-            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            box-shadow: 0 10px 30px -10px var(--kmwc-shadow-color), 0 4px 6px -2px var(--kmwc-shadow-color);
+            font-family: var(--kmwc-font-family);
             font-size: 1.35rem;
-            color: #111827;
+            color: var(--kmwc-text-color-1);
             line-height: 1.4;
             opacity: 0;
             transform: translateY(8px);
@@ -55,10 +57,10 @@
         }
         .demo-toast--visible { opacity: 1; transform: translateY(0); }
         .demo-toast--leaving { opacity: 0; transform: translateY(8px); }
-        .demo-toast--info    { border-left-color: #3b82f6; }
-        .demo-toast--success { border-left-color: #10b981; }
-        .demo-toast--warn    { border-left-color: #f59e0b; }
-        .demo-toast--error   { border-left-color: #ef4444; }
+        .demo-toast--info    { border-left-color: var(--kmwc-accent-color); }
+        .demo-toast--success { border-left-color: var(--kmwc-success-color); }
+        .demo-toast--warn    { border-left-color: var(--kmwc-warning-color); }
+        .demo-toast--error   { border-left-color: var(--kmwc-danger-fill-color); }
         .demo-toast__icon { font-size: 1.8rem; line-height: 1; padding-top: 0.1rem; }
         .demo-toast__body { min-width: 0; word-wrap: break-word; }
         .demo-toast__title { font-weight: 600; margin-bottom: 0.2rem; }
@@ -66,13 +68,13 @@
             background: transparent;
             border: none;
             cursor: pointer;
-            color: #6b7280;
+            color: var(--kmwc-text-color-3);
             font-size: 1.6rem;
             padding: 0 0.4rem;
             margin-top: -0.2rem;
             border-radius: 0.4rem;
         }
-        .demo-toast__close:hover { background: #f3f4f6; color: #111827; }
+        .demo-toast__close:hover { background: var(--kmwc-hover-bg); color: var(--kmwc-text-color-1); }
     `;
 
     const ICONS = {

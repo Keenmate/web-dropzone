@@ -1,5 +1,6 @@
 <meta name="kmwc:title" content="Vue 3 integration">
 <meta name="kmwc:subtitle" content="A Vue 3 component listens to a headless <code>&lt;web-dropzone&gt;</code> store via <code>onMounted</code> + <code>files-change</code>, then renders its own template-driven list with reactive computed stats.">
+<link rel="stylesheet" href="examples-local.css">
 
     <style>
         .vu-list {
@@ -14,11 +15,11 @@
             gap: 0.75rem;
             align-items: center;
             padding: 0.6rem 0.8rem;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
+            background: var(--kmwc-elevated-bg);
+            border: 1px solid var(--kmwc-border-color);
             border-radius: 8px;
         }
-        .vu-row__name { font-weight: 500; color: #1e293b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .vu-row__name { font-weight: 500; color: var(--kmwc-text-color-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .vu-row__status {
             font-size: 0.78rem;
             text-transform: uppercase;
@@ -28,15 +29,15 @@
             padding: 0.15rem 0.5rem;
             border-radius: 999px;
         }
-        .vu-row__status--pending  { background: #e2e8f0; color: #475569; }
-        .vu-row__status--uploading{ background: #dbeafe; color: #1e40af; }
-        .vu-row__status--paused   { background: #fef3c7; color: #92400e; }
-        .vu-row__status--complete { background: #dcfce7; color: #166534; }
-        .vu-row__status--error    { background: #fee2e2; color: #991b1b; }
+        .vu-row__status--pending  { background: var(--kmwc-border-color); color: var(--kmwc-text-color-2); }
+        .vu-row__status--uploading{ background: var(--demo-info-bg); color: var(--demo-info-text-color); }
+        .vu-row__status--paused   { background: var(--demo-warning-bg); color: var(--kmwc-warning-color); }
+        .vu-row__status--complete { background: var(--demo-success-bg); color: var(--kmwc-success-color); }
+        .vu-row__status--error    { background: var(--demo-danger-bg); color: var(--kmwc-danger-color); }
         .vu-row__bar {
             position: relative;
             height: 0.45rem;
-            background: #e2e8f0;
+            background: var(--kmwc-border-color);
             border-radius: 999px;
             overflow: hidden;
         }
@@ -46,25 +47,25 @@
         .vu-row__bar-fill {
             position: absolute;
             inset: 0 auto 0 0;
-            background: #10b981;
+            background: var(--kmwc-accent-color);
         }
         .vu-row__actions { display: flex; gap: 0.35rem; }
         .vu-row__action {
-            border: 1px solid #cbd5e0;
-            background: white;
+            border: 1px solid var(--kmwc-border-color-strong);
+            background: var(--kmwc-main-bg);
             border-radius: 6px;
             padding: 0.25rem 0.5rem;
             font-size: 0.75rem;
-            color: #334155;
+            color: var(--kmwc-text-color-2);
             cursor: pointer;
         }
-        .vu-row__action:hover { background: #f1f5f9; }
+        .vu-row__action:hover { background: var(--kmwc-hover-bg); }
         .vu-empty {
             padding: 2rem 1rem;
             text-align: center;
-            color: #94a3b8;
+            color: var(--kmwc-text-color-4);
             font-style: italic;
-            border: 1px dashed #cbd5e0;
+            border: 1px dashed var(--kmwc-border-color-strong);
             border-radius: 8px;
         }
         .vu-stats {
@@ -75,8 +76,8 @@
         }
         .vu-stat {
             padding: 0.6rem 0.8rem;
-            background: #ecfdf5;
-            border: 1px solid #d1fae5;
+            background: var(--demo-success-bg);
+            border: 1px solid var(--demo-success-border-color);
             border-radius: 8px;
             text-align: center;
         }
@@ -85,13 +86,13 @@
             font-size: 0.72rem;
             text-transform: uppercase;
             letter-spacing: 0.06em;
-            color: #065f46;
+            color: var(--kmwc-success-color);
             margin-bottom: 0.2rem;
         }
         .vu-stat__value {
             font-size: 1.4rem;
             font-weight: 700;
-            color: #064e3b;
+            color: var(--kmwc-success-color);
             font-variant-numeric: tabular-nums;
         }
     </style>

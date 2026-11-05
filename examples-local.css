@@ -1,0 +1,86 @@
+/* =============================================================================
+   web-dropzone example pages — what the devkit kit doesn't provide.
+   Linked by the pages that use it (<link rel="stylesheet" href="examples-local.css">).
+   Every colour reads a kit --kmwc-* token, so the pages follow the theme switch.
+   ============================================================================= */
+
+/* Tone tints for demo rows, badges and buttons (collision states, statuses …):
+   the kit's semantic colours at low strength, on any surface, light or dark. */
+:root {
+    --demo-info-text-color: var(--kmwc-accent-color-active);
+    --demo-info-bg: var(--kmwc-accent-light-bg);
+    --demo-info-strong-bg: color-mix(in srgb, var(--kmwc-accent-color) 28%, transparent);
+    --demo-info-border-color: var(--kmwc-accent-border-color);
+    --demo-success-bg: color-mix(in srgb, var(--kmwc-success-color) 12%, transparent);
+    --demo-success-strong-bg: color-mix(in srgb, var(--kmwc-success-color) 25%, transparent);
+    --demo-success-border-color: color-mix(in srgb, var(--kmwc-success-color) 40%, transparent);
+    --demo-danger-bg: color-mix(in srgb, var(--kmwc-danger-color) 10%, transparent);
+    --demo-danger-strong-bg: color-mix(in srgb, var(--kmwc-danger-color) 22%, transparent);
+    --demo-danger-border-color: color-mix(in srgb, var(--kmwc-danger-color) 35%, transparent);
+    --demo-warning-bg: color-mix(in srgb, var(--kmwc-warning-color) 12%, transparent);
+    --demo-warning-border-color: color-mix(in srgb, var(--kmwc-warning-color) 40%, transparent);
+}
+
+/* --------------------------------------------------------------------------
+ * Active-demo toggle. Pages with several drag targets (architecture,
+ * split-overlay, drag-overlay) put one of these radio chips inside each demo
+ * card. The page's script toggles `disabled` on the inactive demos' stores so
+ * a drag onto the page only goes to the focused demo. The unchecked card also
+ * dims to make the focus visible at a glance.
+ *
+ * Markup pattern (inside each demo card):
+ *   <label class="demo-toggle">
+ *     <input type="radio" name="active-demo" value="...">
+ *     <span>Active demo</span>
+ *   </label>
+ * -------------------------------------------------------------------------- */
+.demo-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.7rem;
+    margin-bottom: 1rem;
+    background: var(--kmwc-hover-bg);
+    border: 1px solid var(--kmwc-border-color-strong);
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--kmwc-text-color-2);
+    cursor: pointer;
+    user-select: none;
+}
+.demo-toggle input { margin: 0; cursor: pointer; }
+.card:has(.demo-toggle input:checked) .demo-toggle,
+.example-section:has(.demo-toggle input:checked) .demo-toggle {
+    background: var(--demo-success-bg);
+    border-color: var(--demo-success-border-color);
+    color: var(--kmwc-success-color);
+}
+/* Only dim cards that DO have a toggle but it's unchecked — sections without
+ * any toggle (e.g. intro / topology blocks) stay at full opacity. */
+.card:has(.demo-toggle):not(:has(.demo-toggle input:checked)),
+.example-section:has(.demo-toggle):not(:has(.demo-toggle input:checked)) {
+    opacity: 0.6;
+}
+
+/* Theme-preview card (examples-theming.html): the card shell; each preset
+   (.dark-theme, .neon-theme …) paints its own surface on top. */
+.theme-card {
+    background: var(--kmwc-main-bg);
+    border-radius: var(--kmwc-radius-lg);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px var(--kmwc-shadow-color);
+}
+.theme-card h2 {
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+.theme-card h3 {
+    margin-bottom: 0.75rem;
+    font-size: 1.25rem;
+}
+.theme-card p {
+    margin-bottom: 1rem;
+    color: var(--kmwc-text-color-2);
+}

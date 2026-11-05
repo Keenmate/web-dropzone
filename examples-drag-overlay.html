@@ -1,26 +1,31 @@
 <meta name="kmwc:title" content="🎯 Drag Overlay">
 <meta name="kmwc:subtitle" content="Turn any element on the page into a drop target by hovering the OS drag onto it">
+<link rel="stylesheet" href="examples-local.css">
 
     <style>
         .mock-form {
-            border: 2px dashed #cbd5e0;
+            border: 2px dashed var(--kmwc-border-color-strong);
             border-radius: 12px;
             padding: 2rem;
-            background: #fafbfc;
+            background: var(--kmwc-elevated-bg);
         }
         .mock-form .form-row {
             display: grid;
-            grid-template-columns: 140px 1fr;
+            grid-template-columns: 140px minmax(0, 1fr);
             gap: 1rem;
             align-items: center;
             margin-bottom: 1rem;
         }
-        .mock-form label { font-weight: 500; color: #374151; }
+        /* Phone: label above its field. */
+        @media (max-width: 40rem) {
+            .mock-form .form-row { grid-template-columns: minmax(0, 1fr); gap: 0.4rem; }
+        }
+        .mock-form label { font-weight: 500; color: var(--kmwc-text-color-2); }
         .mock-form input[type="text"],
         .mock-form input[type="email"],
         .mock-form textarea {
             padding: 0.5rem 0.75rem;
-            border: 1px solid #cbd5e0;
+            border: 1px solid var(--kmwc-border-color-strong);
             border-radius: 6px;
             font-size: 0.95rem;
             font-family: inherit;
@@ -28,47 +33,47 @@
         }
         .mock-form textarea { min-height: 90px; resize: vertical; }
         .mock-card {
-            background: white;
+            background: var(--kmwc-main-bg);
             border-radius: 10px;
             padding: 1.5rem;
-            border: 1px solid #e5e7eb;
+            border: 1px solid var(--kmwc-border-color);
             margin-bottom: 1.25rem;
         }
         .mock-card h3 {
             margin: 0 0 0.75rem 0;
             font-size: 1.05rem;
-            color: #1f2937;
+            color: var(--kmwc-text-color-1);
         }
         .full-page-target {
-            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            background: linear-gradient(135deg, var(--demo-success-bg) 0%, var(--demo-success-strong-bg) 100%);
             border-radius: 12px;
             padding: 2rem;
             text-align: center;
-            color: #065f46;
+            color: var(--kmwc-success-color);
         }
         .full-page-target h3 {
-            color: #047857;
+            color: var(--kmwc-success-color);
             margin: 0 0 0.5rem 0;
             font-size: 1.15rem;
         }
-        .full-page-target p { color: #065f46; margin: 0; }
+        .full-page-target p { color: var(--kmwc-success-color); margin: 0; }
         .picked-files {
             margin-top: 1rem;
             font-size: 0.9rem;
-            color: #4b5563;
+            color: var(--kmwc-text-color-2);
         }
         .reject-toast {
             margin-top: 0.75rem;
             padding: 0.5rem 0.75rem;
             border-radius: 6px;
-            background: #fef2f2;
-            border: 1px solid #fca5a5;
-            color: #991b1b;
+            background: var(--demo-danger-bg);
+            border: 1px solid var(--demo-danger-border-color);
+            color: var(--kmwc-danger-color);
             font-size: 0.85rem;
             line-height: 1.4;
         }
         .reject-toast[hidden] { display: none; }
-        .reject-toast strong { color: #7f1d1d; }
+        .reject-toast strong { color: var(--kmwc-danger-color); }
     </style>
 
         <!-- WHAT IT IS -->
@@ -154,7 +159,7 @@
 
             <div id="reports-card" class="mock-card">
                 <h3>📊 Q4 Reports</h3>
-                <p style="color:#6b7280;font-size:0.9rem;margin:0 0 0.75rem 0;">The overlay covers this card while you're dragging.</p>
+                <p style="color:var(--kmwc-text-color-3);font-size:0.9rem;margin:0 0 0.75rem 0;">The overlay covers this card while you're dragging.</p>
                 <web-dropzone-list
                     for="overlay-card"
                     list-appearance="badges"

@@ -1,5 +1,6 @@
 <meta name="kmwc:title" content="🎨 Theming &amp; Sizing">
 <meta name="kmwc:subtitle" content="Three levels of customization: <code>--base-*</code> (cross-component), <code>--dz-*</code> (component), <code>--dz-rem</code> (global scaling)">
+<link rel="stylesheet" href="examples-local.css">
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -28,11 +29,11 @@
         #font-quicksand  { font-family: 'Quicksand', sans-serif; }
 
         .controls-card {
-            background: white;
+            background: var(--kmwc-main-bg);
             border-radius: 0.5rem;
             padding: 1.5rem;
             margin-bottom: 2rem;
-            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+            box-shadow: 0 1px 3px 0 var(--kmwc-shadow-color);
         }
         .controls-header {
             display: flex;
@@ -52,7 +53,7 @@
             font-size: 0.75rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            color: #6b7280;
+            color: var(--kmwc-text-color-3);
             margin-bottom: 0.75rem;
             font-weight: 600;
         }
@@ -65,28 +66,28 @@
             display: flex;
             flex-direction: column;
             font-size: 0.875rem;
-            color: #374151;
+            color: var(--kmwc-text-color-2);
             gap: 0.25rem;
         }
         .control-grid input[type="color"] {
             width: 100%;
             height: 38px;
-            border: 1px solid #cbd5e0;
+            border: 1px solid var(--kmwc-border-color-strong);
             border-radius: 6px;
             cursor: pointer;
             padding: 2px;
         }
         .control-grid input[type="number"] {
             padding: 0.4rem 0.6rem;
-            border: 1px solid #cbd5e0;
+            border: 1px solid var(--kmwc-border-color-strong);
             border-radius: 6px;
             font-size: 0.875rem;
         }
-        .reset-btn { background: #e53e3e; }
-        .reset-btn:hover { background: #c53030; }
+        .reset-btn { background: var(--kmwc-danger-fill-color); }
+        .reset-btn:hover { background: var(--kmwc-danger-fill-color-hover); }
 
         .demo-zone {
-            border: 1px dashed #cbd5e0;
+            border: 1px dashed var(--kmwc-border-color-strong);
             border-radius: 8px;
             padding: 1.5rem;
             margin-top: 1rem;
@@ -99,7 +100,7 @@
            --------------------------------------------------------------------- */
         .theme-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(min(500px, 100%), 1fr));
             gap: 2rem;
         }
         .theme-card h3 { margin: 0 0 0.5rem 0; font-size: 1.5rem; }
@@ -108,6 +109,21 @@
         .theme-card .form-group:last-child { margin-bottom: 0; }
         .theme-card label { font-size: 0.85rem; }
 
+        /* MINIMAL (component-level vars) */
+        .minimal-theme { background: var(--kmwc-main-bg); border: 1px solid var(--kmwc-border-color); }
+        #minimal-theme {
+            --dz-dropzone-border: 1px solid #d1d5db;
+            --dz-dropzone-border-radius: 0;
+            --dz-dropzone-min-height: 80px;
+            --dz-dropzone-icon-size: 24px;
+            --dz-dropzone-padding: 16px;
+            --dz-dropzone-text-font-size: 14px;
+        }
+    </style>
+
+    <!-- Theme gallery presets: each card is a fixed theme (its own surface and
+         --base-* palette), the same in light and dark mode on purpose. -->
+    <style data-kmwc-fixed-colors>
         /* DARK */
         .dark-theme { background: #0f172a; color: #e2e8f0; }
         .dark-theme h3, .dark-theme p, .dark-theme label { color: #e2e8f0; }
@@ -185,17 +201,6 @@
             --base-primary-color: #34d399;
             --base-primary-color-hover: #10b981;
             --base-on-primary-text-color: #064e3b;
-        }
-
-        /* MINIMAL (component-level vars) */
-        .minimal-theme { background: white; border: 1px solid #e5e7eb; }
-        #minimal-theme {
-            --dz-dropzone-border: 1px solid #d1d5db;
-            --dz-dropzone-border-radius: 0;
-            --dz-dropzone-min-height: 80px;
-            --dz-dropzone-icon-size: 24px;
-            --dz-dropzone-padding: 16px;
-            --dz-dropzone-text-font-size: 14px;
         }
     </style>
 

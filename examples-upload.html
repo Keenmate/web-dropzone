@@ -1,5 +1,6 @@
 <meta name="kmwc:title" content="📤 Simulated Uploads">
 <meta name="kmwc:subtitle" content="Fake-upload pipelines wired via the public JS API — see progress bars, completion, and error states.">
+<link rel="stylesheet" href="examples-local.css">
 
     <style>
         /* Playground control panel */
@@ -8,8 +9,8 @@
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 1.25rem;
             padding: 1.25rem;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
+            background: var(--kmwc-elevated-bg);
+            border: 1px solid var(--kmwc-border-color);
             border-radius: 8px;
             margin-bottom: 1.5rem;
         }
@@ -21,20 +22,20 @@
         .playground-controls label {
             font-size: 0.875rem;
             font-weight: 600;
-            color: #475569;
+            color: var(--kmwc-text-color-2);
         }
         .playground-controls .control-value {
             font-size: 0.85rem;
             font-weight: 500;
-            color: #1a202c;
+            color: var(--kmwc-text-color-1);
         }
         .playground-controls select,
         .playground-controls input[type="range"] {
             font: inherit;
             padding: 0.4rem 0.6rem;
-            border: 1px solid #cbd5e0;
+            border: 1px solid var(--kmwc-border-color-strong);
             border-radius: 6px;
-            background: white;
+            background: var(--kmwc-main-bg);
             width: 100%;
         }
         .playground-controls input[type="range"] {
@@ -65,22 +66,22 @@
         }
         .playground-go {
             padding: 0.6rem 1.25rem;
-            background: #667eea;
-            color: white;
+            background: var(--kmwc-accent-color);
+            color: var(--kmwc-text-color-on-accent);
             border: none;
             border-radius: 6px;
             font-weight: 600;
             font-size: 0.95rem;
         }
         .playground-go:hover:not(:disabled) {
-            background: #5a6fd6;
+            background: var(--kmwc-accent-color-hover);
         }
         .playground-go:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
         .playground-pending {
-            color: #64748b;
+            color: var(--kmwc-text-color-3);
             font-size: 0.9rem;
         }
 
@@ -88,8 +89,8 @@
         .resume-log {
             margin-top: 1.25rem;
             padding: 0.75rem 1rem;
-            background: #0f172a;
-            color: #e2e8f0;
+            background: var(--kmwc-console-bg);
+            color: var(--kmwc-console-text-color);
             border-radius: 8px;
             font-family: 'SF Mono', 'Monaco', Consolas, monospace;
             font-size: 0.85rem;
@@ -97,12 +98,12 @@
             overflow-y: auto;
         }
         .resume-log__empty {
-            color: #64748b;
+            color: var(--kmwc-console-muted-color);
             font-style: italic;
         }
         .resume-log__entry {
             padding: 0.3rem 0;
-            border-bottom: 1px solid #1e293b;
+            border-bottom: 1px solid color-mix(in srgb, var(--kmwc-console-text-color) 12%, transparent);
             display: flex;
             gap: 0.75rem;
             flex-wrap: wrap;
@@ -111,24 +112,24 @@
             border-bottom: none;
         }
         .resume-log__time {
-            color: #64748b;
+            color: var(--kmwc-console-muted-color);
             min-width: 5.5rem;
         }
         .resume-log__tag {
             font-weight: 600;
             min-width: 5.5rem;
         }
-        .resume-log__tag--start  { color: #60a5fa; }
-        .resume-log__tag--resume { color: #fbbf24; }
-        .resume-log__tag--retry  { color: #c084fc; }
-        .resume-log__tag--done   { color: #4ade80; }
-        .resume-log__tag--fail   { color: #f87171; }
+        .resume-log__tag--start  { color: var(--kmwc-console-info-color); }
+        .resume-log__tag--resume { color: var(--kmwc-console-warn-color); }
+        .resume-log__tag--retry  { color: var(--kmwc-code-keyword-color); }
+        .resume-log__tag--done   { color: var(--kmwc-console-ok-color); }
+        .resume-log__tag--fail   { color: var(--kmwc-console-err-color); }
         .resume-log__file {
-            color: #cbd5e0;
+            color: var(--kmwc-console-muted-color);
             font-weight: 500;
         }
         .resume-log__detail {
-            color: #94a3b8;
+            color: var(--kmwc-console-muted-color);
         }
     </style>
 

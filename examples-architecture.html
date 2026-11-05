@@ -1,5 +1,6 @@
 <meta name="kmwc:title" content="Architecture: store + satellites">
 <meta name="kmwc:subtitle" content="Live demonstration of <code>&lt;web-dropzone&gt;</code> as a headless store with bound <code>&lt;web-dropzone-picker&gt;</code>, <code>&lt;web-dropzone-list&gt;</code>, and <code>&lt;web-dropzone-indicator&gt;</code> satellite renderers — see <code>ARCHITECTURE.md</code>.">
+<link rel="stylesheet" href="examples-local.css">
 
     <style>
         .scenario-row {
@@ -19,22 +20,22 @@
             margin-bottom: 1.5rem;
         }
         .pillar {
-            border: 1px solid #e2e8f0;
-            background: #f8fafc;
+            border: 1px solid var(--kmwc-border-color);
+            background: var(--kmwc-elevated-bg);
             border-radius: 8px;
             padding: 1rem;
         }
         .pillar h4 {
             margin: 0 0 0.4rem;
             font-size: 0.95rem;
-            color: #1e293b;
+            color: var(--kmwc-text-color-1);
             text-transform: uppercase;
             letter-spacing: 0.04em;
         }
         .pillar p {
             margin: 0;
             font-size: 0.85rem;
-            color: #475569;
+            color: var(--kmwc-text-color-2);
         }
 
         .topology-diagram {
@@ -44,8 +45,8 @@
             row-gap: 0.6rem;
             align-items: center;
             padding: 1rem 1.25rem;
-            background: #0f172a;
-            color: #e2e8f0;
+            background: var(--kmwc-console-bg);
+            color: var(--kmwc-console-text-color);
             border-radius: 8px;
             font-family: 'SF Mono', 'Monaco', Consolas, monospace;
             font-size: 0.85rem;
@@ -56,17 +57,17 @@
            so comments align in their own column regardless of tag width — no
            hand-counted spaces, no overlap. */
         .topology-diagram .code { white-space: pre; }
-        .topology-diagram .arrow { color: #64748b; }
-        .topology-diagram .tag-store { color: #60a5fa; }
-        .topology-diagram .tag-picker { color: #4ade80; }
-        .topology-diagram .tag-list { color: #fbbf24; }
-        .topology-diagram .tag-indicator { color: #c084fc; }
-        .topology-diagram .note { color: #94a3b8; font-style: italic; white-space: nowrap; }
+        .topology-diagram .arrow { color: var(--kmwc-console-muted-color); }
+        .topology-diagram .tag-store { color: var(--kmwc-console-info-color); }
+        .topology-diagram .tag-picker { color: var(--kmwc-console-ok-color); }
+        .topology-diagram .tag-list { color: var(--kmwc-console-warn-color); }
+        .topology-diagram .tag-indicator { color: var(--kmwc-code-keyword-color); }
+        .topology-diagram .note { color: var(--kmwc-console-muted-color); font-style: italic; white-space: nowrap; }
 
         .satellite-stage {
             padding: 1.25rem;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
+            background: var(--kmwc-elevated-bg);
+            border: 1px solid var(--kmwc-border-color);
             border-radius: 8px;
             margin-bottom: 1rem;
         }
@@ -78,15 +79,15 @@
             text-transform: uppercase;
             letter-spacing: 0.06em;
             font-size: 0.75rem;
-            color: #64748b;
+            color: var(--kmwc-text-color-3);
             margin-bottom: 0.6rem;
         }
 
         .form-shell {
-            border: 1px solid #e2e8f0;
+            border: 1px solid var(--kmwc-border-color);
             border-radius: 12px;
             padding: 1.5rem;
-            background: white;
+            background: var(--kmwc-main-bg);
         }
         .form-shell .row {
             display: flex;
@@ -102,36 +103,37 @@
             margin-bottom: 1rem;
         }
 
-        .event-log {
+        .store-event-log {
             margin-top: 1rem;
             padding: 0.75rem 1rem;
-            background: #0f172a;
-            color: #e2e8f0;
+            background: var(--kmwc-console-bg);
+            color: var(--kmwc-console-text-color);
             border-radius: 8px;
             font-family: 'SF Mono', 'Monaco', Consolas, monospace;
             font-size: 0.82rem;
             max-height: 12rem;
             overflow-y: auto;
         }
-        .event-log__empty {
-            color: #64748b;
+        .store-event-log__empty {
+            color: var(--kmwc-console-muted-color);
             font-style: italic;
         }
-        .event-log__row {
+        .store-event-log__row {
             padding: 0.2rem 0;
-            border-bottom: 1px solid #1e293b;
+            border-bottom: 1px solid color-mix(in srgb, var(--kmwc-console-text-color) 12%, transparent);
             display: grid;
-            grid-template-columns: 7rem 9rem 1fr;
+            grid-template-columns: 7rem 9rem minmax(0, 1fr);
             gap: 0.5rem;
         }
-        .event-log__row:last-child { border-bottom: none; }
-        .event-log__time { color: #64748b; }
-        .event-log__type { font-weight: 600; }
-        .event-log__type--file-add         { color: #4ade80; }
-        .event-log__type--file-remove       { color: #f87171; }
-        .event-log__type--file-progress      { color: #60a5fa; }
-        .event-log__type--file-status-change{ color: #fbbf24; }
-        .event-log__type--ready        { color: #a78bfa; }
+        .store-event-log__row:last-child { border-bottom: none; }
+        .store-event-log__detail { overflow-wrap: anywhere; }
+        .store-event-log__time { color: var(--kmwc-console-muted-color); }
+        .store-event-log__type { font-weight: 600; }
+        .store-event-log__type--file-add         { color: var(--kmwc-console-ok-color); }
+        .store-event-log__type--file-remove       { color: var(--kmwc-console-err-color); }
+        .store-event-log__type--file-progress      { color: var(--kmwc-console-info-color); }
+        .store-event-log__type--file-status-change{ color: var(--kmwc-console-warn-color); }
+        .store-event-log__type--ready        { color: var(--kmwc-code-keyword-color); }
 
         .scenario-title {
             display: flex;
@@ -147,13 +149,13 @@
             letter-spacing: 0.06em;
             padding: 0.15rem 0.5rem;
             border-radius: 4px;
-            background: #ede9fe;
-            color: #6d28d9;
+            background: var(--kmwc-accent-light-bg);
+            color: var(--kmwc-accent-color);
             font-weight: 600;
         }
-        .scenario-title .scenario-mode--a { background: #dcfce7; color: #166534; }
-        .scenario-title .scenario-mode--b { background: #dbeafe; color: #1e40af; }
-        .scenario-title .scenario-mode--e { background: #ffedd5; color: #9a3412; }
+        .scenario-title .scenario-mode--a { background: var(--demo-success-bg); color: var(--kmwc-success-color); }
+        .scenario-title .scenario-mode--b { background: var(--demo-info-bg); color: var(--demo-info-text-color); }
+        .scenario-title .scenario-mode--e { background: var(--demo-warning-bg); color: var(--kmwc-warning-color); }
 
         /* ----------------------------------------------------------------
          * Scenario 6 — each indicator gets a distinct visual theme via
@@ -173,7 +175,7 @@
             border: none;
             padding: 0;
             box-shadow: none;
-            color: #6d28d9;
+            color: var(--kmwc-accent-color);
         }
         #ind-counter::part(chip):hover {
             background: transparent;
@@ -212,6 +214,7 @@
          * itself (inline) because light-DOM rules can't reach into the chip's
          * shadow root.
          * ---------------------------------------------------------------- */
+        /* kmwc-fixed-colors: the floating chip is always dark — its body (renderBodyCallback, inside the shadow root) draws light status colours on it */
         #ind-grid::part(chip) {
             top: 1.6rem;
             right: 1.6rem;
@@ -225,6 +228,16 @@
         }
         #ind-grid::part(chip):hover {
             transform: none;
+        }
+
+        /* Renderer bug, to fix in packages/web-dropzone (indicator.css): a CLOSED
+         * inline drawer is only `visibility: hidden`, so it still takes layout
+         * room and widens the page when its chip sits near the right edge or on
+         * a phone (kmwc check-pages). Until the component takes it out of layout
+         * itself, this page does so while it's closed (the open fade-in is lost
+         * here; opening still works — data-drawer-open is on the host). */
+        web-dropzone-indicator[data-position="inline"]:not([data-drawer-open="true"])::part(drawer) {
+            display: none;
         }
     </style>
 
@@ -266,7 +279,7 @@
                     max-file-count="5"
                     auto-upload="false"
                 ></web-dropzone>
-                <button id="dz-classic-upload" type="button" style="margin-top:1rem; padding:0.6rem 1.1rem; background:#2563eb; color:white; border:0; border-radius:6px; font-weight:500; cursor:pointer;">
+                <button id="dz-classic-upload" type="button" class="mt-1">
                     Upload all
                 </button>
             </div>
@@ -309,16 +322,16 @@
                     <div class="form-shell">
                         <div class="row">
                             <label for="dz-decoupled-name" class="demo-label">Name</label>
-                            <input id="dz-decoupled-name" type="text" placeholder="Project title" style="flex:1; padding:0.6rem; border:1px solid #cbd5e0; border-radius:6px;">
+                            <input id="dz-decoupled-name" type="text" placeholder="Project title" style="flex:1; padding:0.6rem; border:1px solid var(--kmwc-border-color-strong); border-radius:6px;">
                         </div>
-                        <p style="font-size:0.85rem; color:#64748b; margin-top:0.75rem; margin-bottom:0.75rem;">Attachments:</p>
+                        <p style="font-size:0.85rem; color:var(--kmwc-text-color-3); margin-top:0.75rem; margin-bottom:0.75rem;">Attachments:</p>
                         <web-dropzone-picker
                             for="dz-decoupled"
                             selector-appearance="card"
                             card-size="compact"
                             labels='{"prompt": "Drop attachments here"}'
                         ></web-dropzone-picker>
-                        <button id="dz-decoupled-upload" type="button" style="margin-top:1rem; padding:0.6rem 1.1rem; background:#2563eb; color:white; border:0; border-radius:6px; font-weight:500; cursor:pointer;">
+                        <button id="dz-decoupled-upload" type="button" class="mt-1">
                             Upload all
                         </button>
                     </div>
@@ -371,10 +384,10 @@
                         labels='{"prompt": "Drop avatar image"}'
                         icon="🖼️"
                     ></web-dropzone-picker>
-                    <div style="margin-top:1rem;">
+                    <div class="mt-1">
                         <web-dropzone-list for="dz-avatar" list-appearance="grid"></web-dropzone-list>
                     </div>
-                    <button id="dz-avatar-upload" type="button" style="margin-top:0.75rem; padding:0.5rem 1rem; background:#2563eb; color:white; border:0; border-radius:6px; font-weight:500; cursor:pointer;">
+                    <button id="dz-avatar-upload" type="button" style="margin-top:0.75rem">
                         Upload avatar
                     </button>
                 </div>
@@ -386,10 +399,10 @@
                         selector-appearance="button"
                         labels='{"prompt": "Add documents"}'
                     ></web-dropzone-picker>
-                    <div style="margin-top:1rem;">
+                    <div class="mt-1">
                         <web-dropzone-list for="dz-docs" list-appearance="list"></web-dropzone-list>
                     </div>
-                    <button id="dz-docs-upload" type="button" style="margin-top:0.75rem; padding:0.5rem 1rem; background:#2563eb; color:white; border:0; border-radius:6px; font-weight:500; cursor:pointer;">
+                    <button id="dz-docs-upload" type="button" style="margin-top:0.75rem">
                         Upload documents
                     </button>
                 </div>
@@ -441,8 +454,8 @@
             </div>
 
             <div class="stage-label">Substrate event log (store fan-out)</div>
-            <div id="event-log" class="event-log">
-                <div class="event-log__empty">Drop files into either picker to see <code>file-add</code> / <code>file-progress</code> / <code>file-status-change</code> dispatched by the store and consumed by every satellite.</div>
+            <div id="store-event-log" class="store-event-log">
+                <div class="store-event-log__empty">Drop files into either picker to see <code>file-add</code> / <code>file-progress</code> / <code>file-status-change</code> dispatched by the store and consumed by every satellite.</div>
             </div>
 
             <div class="code-block">
@@ -487,7 +500,7 @@
                         labels='{"prompt": "Add files"}'
                     ></web-dropzone-picker>
                 </div>
-                <p style="font-size:0.85rem; color:#64748b; margin-top:1rem; margin-bottom:0;">↘ A floating chip is pinned to the right edge of the page. Click it to slide out the queue.</p>
+                <p style="font-size:0.85rem; color:var(--kmwc-text-color-3); margin-top:1rem; margin-bottom:0;">↘ A floating chip is pinned to the right edge of the page. Click it to slide out the queue.</p>
             </div>
 
             <web-dropzone-indicator
@@ -524,7 +537,7 @@
             <div class="mode-b-grid" style="margin-top:1.5rem;">
                 <div class="satellite-stage">
                     <div class="stage-label">A · Inline counter — pure text, no pill</div>
-                    <p style="font-size:0.85rem; color:#64748b; margin:0.5rem 0 0.75rem;">Inline placement, default drawer (click to expand). The chip's wrapper is stripped via <code>::part(chip)</code> so the callback's output reads as inline body text — the line below is one continuous sentence.</p>
+                    <p style="font-size:0.85rem; color:var(--kmwc-text-color-3); margin:0.5rem 0 0.75rem;">Inline placement, default drawer (click to expand). The chip's wrapper is stripped via <code>::part(chip)</code> so the callback's output reads as inline body text — the line below is one continuous sentence.</p>
                     <p>Status: <web-dropzone-indicator
                         id="ind-counter"
                         for="dz-flex"
@@ -534,7 +547,7 @@
 
                 <div class="satellite-stage">
                     <div class="stage-label">B · Filename + speed — <code>[Uploading xyz.zip @ 12.6 MB/s]</code></div>
-                    <p style="font-size:0.85rem; color:#64748b; margin:0.5rem 0 0.75rem;">Inline + <code>drawer="off"</code>. Callback reads <code>currentUploadingFile</code> and tracks per-tick deltas for the speed.</p>
+                    <p style="font-size:0.85rem; color:var(--kmwc-text-color-3); margin:0.5rem 0 0.75rem;">Inline + <code>drawer="off"</code>. Callback reads <code>currentUploadingFile</code> and tracks per-tick deltas for the speed.</p>
                     <p>Now: <web-dropzone-indicator
                         id="ind-speed"
                         for="dz-flex"
@@ -545,7 +558,7 @@
 
                 <div class="satellite-stage">
                     <div class="stage-label">C · Silent activity spinner</div>
-                    <p style="font-size:0.85rem; color:#64748b; margin:0.5rem 0 0.75rem;">Inline + <code>drawer="off"</code>, callback returns just a spinning glyph while anything is uploading and nothing otherwise.</p>
+                    <p style="font-size:0.85rem; color:var(--kmwc-text-color-3); margin:0.5rem 0 0.75rem;">Inline + <code>drawer="off"</code>, callback returns just a spinning glyph while anything is uploading and nothing otherwise.</p>
                     <p>Sync: <web-dropzone-indicator
                         id="ind-spinner"
                         for="dz-flex"
@@ -556,7 +569,7 @@
 
                 <div class="satellite-stage">
                     <div class="stage-label">D · Default chip (for reference)</div>
-                    <p style="font-size:0.85rem; color:#64748b; margin:0.5rem 0 0.75rem;">Inline + default drawer + no callback. Same element, no JS configuration — built-in icon + label + percent.</p>
+                    <p style="font-size:0.85rem; color:var(--kmwc-text-color-3); margin:0.5rem 0 0.75rem;">Inline + default drawer + no callback. Same element, no JS configuration — built-in icon + label + percent.</p>
                     <p>Stock: <web-dropzone-indicator
                         for="dz-flex"
                         position="inline"
@@ -666,7 +679,7 @@ spinner.renderBodyCallback = ({ aggregate }) =&gt; {
 
             <web-dropzone id="dz-byo" multiple max-file-count="8"></web-dropzone>
 
-            <div class="grid" style="margin-top:1rem">
+            <div class="grid mt-1">
                 <div>
                     <web-dropzone-picker for="dz-byo" selector-appearance="card" labels='{"prompt": "Drop files for BYO renderer"}'></web-dropzone-picker>
                 </div>
@@ -1235,7 +1248,7 @@ store.addEventListener('files-change', (e) =&gt; {
         // ============================================================
         // Event log for Mode B — surfaces what the store dispatches.
         // ============================================================
-        const log = document.getElementById('event-log');
+        const log = document.getElementById('store-event-log');
         const dzModeB = document.getElementById('dz-modeb');
         const MAX_LOG_ROWS = 50;
         let logRows = [];
@@ -1244,11 +1257,11 @@ store.addEventListener('files-change', (e) =&gt; {
         function addLogRow(type, detail) {
             if (logRows.length === 0 && log) log.innerHTML = '';
             const row = document.createElement('div');
-            row.className = 'event-log__row';
+            row.className = 'store-event-log__row';
             row.innerHTML = `
-                <span class="event-log__time">${formatTime()}</span>
-                <span class="event-log__type event-log__type--${type}">${type}</span>
-                <span class="event-log__detail">${detail}</span>
+                <span class="store-event-log__time">${formatTime()}</span>
+                <span class="store-event-log__type store-event-log__type--${type}">${type}</span>
+                <span class="store-event-log__detail">${detail}</span>
             `;
             log.prepend(row);
             logRows.push(row);
@@ -1289,16 +1302,16 @@ store.addEventListener('files-change', (e) =&gt; {
             dzByo.uploadFileCallback = simulateUpload({ bucket: 'byo', durationMs: 4000, failRate: 0.2 });
             const list = document.getElementById('byo-list');
             const colorForStatus = (s) => ({
-                pending: '#6b7280', uploading: '#2563eb',
-                complete: '#16a34a', error: '#dc2626', paused: '#a16207'
-            })[s] || '#6b7280';
+                pending: 'var(--kmwc-text-color-3)', uploading: 'var(--kmwc-accent-color)',
+                complete: 'var(--kmwc-success-color)', error: 'var(--kmwc-danger-color)', paused: 'var(--kmwc-warning-color)'
+            })[s] || 'var(--kmwc-text-color-3)';
             dzByo.addEventListener('files-change', (e) => {
                 const items = e.detail.files.map((f) => {
                     const li = document.createElement('li');
                     li.style.display = 'flex';
                     li.style.gap = '0.5rem';
                     li.style.padding = '0.25rem 0';
-                    li.style.borderBottom = '1px solid #e5e7eb';
+                    li.style.borderBottom = '1px solid var(--kmwc-border-color)';
                     const name = document.createElement('span');
                     name.textContent = f.name;
                     name.style.flex = '1';
@@ -1312,7 +1325,7 @@ store.addEventListener('files-change', (e) =&gt; {
                     pct.textContent = Math.round(f.progress) + '%';
                     pct.style.width = '3rem';
                     pct.style.textAlign = 'right';
-                    pct.style.color = '#6b7280';
+                    pct.style.color = 'var(--kmwc-text-color-3)';
                     li.append(name, status, pct);
                     return li;
                 });

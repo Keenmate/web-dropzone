@@ -1,5 +1,6 @@
 <meta name="kmwc:title" content="✨ Structural Rendering">
 <meta name="kmwc:subtitle" content="Override file items, prompts, summaries, and the list wrapper via render callbacks">
+<link rel="stylesheet" href="examples-local.css">
 
         <!-- INTRO -->
         <div class="card">
@@ -54,7 +55,7 @@
             &lt;line x1="12" y1="3" x2="12" y2="15"/&gt;
         &lt;/svg&gt;
         &lt;strong&gt;Upload to cloud&lt;/strong&gt;
-        &lt;small style="color:#6b7280"&gt;Drag and drop or click to browse&lt;/small&gt;
+        &lt;small style="color:var(--kmwc-text-color-3)"&gt;Drag and drop or click to browse&lt;/small&gt;
     &lt;/div&gt;
 `</code></pre>
             </div>
@@ -297,15 +298,15 @@ el.renderFileItemCallback = ({ file }) =&gt; `
                     <line x1="12" y1="3" x2="12" y2="15"/>
                 </svg>
                 <strong>Upload to cloud</strong>
-                <small style="color:#6b7280">Drag and drop or click to browse</small>
+                <small style="color:var(--kmwc-text-color-3)">Drag and drop or click to browse</small>
             </div>
         `
 
         document.getElementById('prompt-marketing').renderPromptCallback = () => `
             <div style="text-align:center;line-height:1.4">
                 <div style="font-size:2.5rem">🎯</div>
-                <div style="font-size:1.15rem;font-weight:600;color:#111827">Get your free analysis</div>
-                <div style="color:#6b7280;font-size:0.9rem">Upload your report (PDF or image) and we'll do the rest</div>
+                <div style="font-size:1.15rem;font-weight:600;color:var(--kmwc-text-color-1)">Get your free analysis</div>
+                <div style="color:var(--kmwc-text-color-3);font-size:0.9rem">Upload your report (PDF or image) and we'll do the rest</div>
             </div>
         `
 
@@ -319,20 +320,20 @@ el.renderFileItemCallback = ({ file }) =&gt; `
                 gap: 0.75rem;
                 align-items: center;
                 padding: 0.6rem 0.9rem;
-                border: 1px solid #e5e7eb;
+                border: 1px solid var(--kmwc-border-color);
                 border-radius: 6px;
-                background: white;
+                background: var(--kmwc-main-bg);
                 font-size: 0.9rem;
             }
             .receipt-icon { font-size: 1.2rem; }
-            .receipt-name { font-weight: 600; color: #111827; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-            .receipt-date { color: #6b7280; font-size: 0.8rem; }
-            .receipt-size { color: #6b7280; font-size: 0.8rem; }
+            .receipt-name { font-weight: 600; color: var(--kmwc-text-color-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+            .receipt-date { color: var(--kmwc-text-color-3); font-size: 0.8rem; }
+            .receipt-size { color: var(--kmwc-text-color-3); font-size: 0.8rem; }
             .receipt-row button {
                 background: transparent; border: none; cursor: pointer;
-                font-size: 1.2rem; color: #9ca3af; padding: 0 0.4rem;
+                font-size: 1.2rem; color: var(--kmwc-text-color-4); padding: 0 0.4rem;
             }
-            .receipt-row button:hover { color: #dc2626; }
+            .receipt-row button:hover { color: var(--kmwc-danger-color); }
         `
         receipts.renderFileItemCallback = ({ file }) => `
             <div class="receipt-row" data-file-id="${file.id}">
@@ -388,7 +389,7 @@ el.renderFileItemCallback = ({ file }) =&gt; `
         summary.getCustomStylesCallback = () => `
             .pill {
                 display: inline-block;
-                background: #667eea; color: white;
+                background: var(--kmwc-accent-color); color: white;
                 border-radius: 999px;
                 padding: 0.1rem 0.55rem;
                 font-weight: 600; font-size: 0.85em;
@@ -473,32 +474,32 @@ el.renderFileItemCallback = ({ file }) =&gt; `
             .receipt-table th,
             .receipt-table td {
                 padding: 0.5rem 0.75rem;
-                border-bottom: 1px solid #e5e7eb;
+                border-bottom: 1px solid var(--kmwc-border-color);
                 text-align: left;
                 font-size: 0.9rem;
                 vertical-align: middle;
             }
             .receipt-table thead th {
-                background: #f9fafb;
+                background: var(--kmwc-elevated-bg);
                 font-weight: 600;
-                color: #374151;
+                color: var(--kmwc-text-color-2);
             }
             .receipt-table tbody tr[data-status="complete"] td { color: #16a34a; }
-            .receipt-table tbody tr[data-status="error"] td    { color: #dc2626; }
+            .receipt-table tbody tr[data-status="error"] td    { color: var(--kmwc-danger-color); }
             .receipt-table tbody tr[data-status="paused"] td   { color: #a16207; }
             .receipt-table .progress-cell { width: 14rem; }
             .receipt-table progress {
                 width: 100%; height: 0.5rem;
                 appearance: none; -webkit-appearance: none;
-                border: 1px solid #e5e7eb; border-radius: 999px;
-                background: #f3f4f6;
+                border: 1px solid var(--kmwc-border-color); border-radius: 999px;
+                background: var(--kmwc-hover-bg);
             }
             .receipt-table progress::-webkit-progress-bar { background: transparent; }
-            .receipt-table progress::-webkit-progress-value { background: #667eea; border-radius: 999px; }
-            .receipt-table progress::-moz-progress-bar     { background: #667eea; border-radius: 999px; }
+            .receipt-table progress::-webkit-progress-value { background: var(--kmwc-accent-color); border-radius: 999px; }
+            .receipt-table progress::-moz-progress-bar     { background: var(--kmwc-accent-color); border-radius: 999px; }
             .receipt-table .pct {
                 font-variant-numeric: tabular-nums;
-                font-size: 0.8rem; color: #6b7280;
+                font-size: 0.8rem; color: var(--kmwc-text-color-3);
                 margin-left: 0.4rem;
             }
             .receipt-table .actions { text-align: right; white-space: nowrap; }
@@ -506,13 +507,13 @@ el.renderFileItemCallback = ({ file }) =&gt; `
                 background: transparent;
                 border: none;
                 cursor: pointer;
-                color: #6b7280;
+                color: var(--kmwc-text-color-3);
                 font-size: 1rem;
                 padding: 0.1rem 0.3rem;
                 line-height: 1;
             }
-            .receipt-table .actions button:hover { color: #111827; }
-            .receipt-table .actions .rm:hover    { color: #dc2626; }
+            .receipt-table .actions button:hover { color: var(--kmwc-text-color-1); }
+            .receipt-table .actions .rm:hover    { color: var(--kmwc-danger-color); }
         `
         wrapperTable.renderListWrapperCallback = ({ rowsHtml }) => `
             <table class="receipt-table">
@@ -554,14 +555,14 @@ el.renderFileItemCallback = ({ file }) =&gt; `
                 align-items: center;
                 gap: 0.6rem;
                 padding: 0.5rem 0.75rem;
-                border: 1px solid #e5e7eb;
+                border: 1px solid var(--kmwc-border-color);
                 border-radius: 6px;
-                background: white;
+                background: var(--kmwc-main-bg);
                 margin-bottom: 0.4rem;
             }
-            .event-row[data-status="complete"] { border-color: #bbf7d0; background: #f0fdf4; }
-            .event-row[data-status="error"]    { border-color: #fecaca; background: #fef2f2; }
-            .event-row[data-status="paused"]   { border-color: #fde68a; background: #fffbeb; }
+            .event-row[data-status="complete"] { border-color: var(--demo-success-border-color); background: var(--demo-success-bg); }
+            .event-row[data-status="error"]    { border-color: var(--demo-danger-border-color); background: var(--demo-danger-bg); }
+            .event-row[data-status="paused"]   { border-color: var(--demo-warning-border-color); background: var(--demo-warning-bg); }
             .event-row .star {
                 cursor: pointer;
                 font-size: 1.1rem;
@@ -578,7 +579,7 @@ el.renderFileItemCallback = ({ file }) =&gt; `
                 width: 3rem;
                 text-align: right;
                 font-variant-numeric: tabular-nums;
-                color: #6b7280;
+                color: var(--kmwc-text-color-3);
                 font-size: 0.85rem;
             }
             .event-row .action,
@@ -586,13 +587,13 @@ el.renderFileItemCallback = ({ file }) =&gt; `
                 background: transparent;
                 border: none;
                 cursor: pointer;
-                color: #6b7280;
+                color: var(--kmwc-text-color-3);
                 font-size: 1rem;
                 padding: 0.1rem 0.3rem;
                 line-height: 1;
             }
-            .event-row .action:hover { color: #111827; }
-            .event-row .rm:hover     { color: #dc2626; }
+            .event-row .action:hover { color: var(--kmwc-text-color-1); }
+            .event-row .rm:hover     { color: var(--kmwc-danger-color); }
             .event-row .action[hidden] { display: none; }
         `
         eventRows.renderFileItemCallback = ({ file }) => {

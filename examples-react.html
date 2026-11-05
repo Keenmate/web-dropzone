@@ -1,5 +1,6 @@
 <meta name="kmwc:title" content="React integration">
 <meta name="kmwc:subtitle" content="A React component subscribes to a headless <code>&lt;web-dropzone&gt;</code> store via <code>useEffect</code> + <code>files-change</code>, then renders its own JSX file list with full pause / resume / retry control.">
+<link rel="stylesheet" href="examples-local.css">
 
     <style>
         .rx-list {
@@ -14,11 +15,11 @@
             gap: 0.75rem;
             align-items: center;
             padding: 0.6rem 0.8rem;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
+            background: var(--kmwc-elevated-bg);
+            border: 1px solid var(--kmwc-border-color);
             border-radius: 8px;
         }
-        .rx-row__name { font-weight: 500; color: #1e293b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .rx-row__name { font-weight: 500; color: var(--kmwc-text-color-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .rx-row__status {
             font-size: 0.78rem;
             text-transform: uppercase;
@@ -28,11 +29,11 @@
             padding: 0.15rem 0.5rem;
             border-radius: 999px;
         }
-        .rx-row__status--pending  { background: #e2e8f0; color: #475569; }
-        .rx-row__status--uploading{ background: #dbeafe; color: #1e40af; }
-        .rx-row__status--paused   { background: #fef3c7; color: #92400e; }
-        .rx-row__status--complete { background: #dcfce7; color: #166534; }
-        .rx-row__status--error    { background: #fee2e2; color: #991b1b; }
+        .rx-row__status--pending  { background: var(--kmwc-border-color); color: var(--kmwc-text-color-2); }
+        .rx-row__status--uploading{ background: var(--demo-info-bg); color: var(--demo-info-text-color); }
+        .rx-row__status--paused   { background: var(--demo-warning-bg); color: var(--kmwc-warning-color); }
+        .rx-row__status--complete { background: var(--demo-success-bg); color: var(--kmwc-success-color); }
+        .rx-row__status--error    { background: var(--demo-danger-bg); color: var(--kmwc-danger-color); }
         /* Width is driven by the `--rx-progress` custom property on .rx-row
            rather than an inline style on the fill, which gives React's
            reconciler one stable element with a single changing CSS variable.
@@ -40,7 +41,7 @@
         .rx-row__bar {
             position: relative;
             height: 0.45rem;
-            background: #e2e8f0;
+            background: var(--kmwc-border-color);
             border-radius: 999px;
             overflow: hidden;
         }
@@ -55,48 +56,49 @@
             bottom: 0;
             left: 0;
             width: var(--rx-progress, 0%);
-            background: #6366f1;
+            background: var(--kmwc-accent-color);
         }
         .rx-row__pct {
             font-variant-numeric: tabular-nums;
             text-align: right;
-            color: #475569;
+            color: var(--kmwc-text-color-2);
             font-size: 0.85rem;
         }
         .rx-row__actions { display: flex; gap: 0.35rem; }
         .rx-row__action {
-            border: 1px solid #cbd5e0;
-            background: white;
+            border: 1px solid var(--kmwc-border-color-strong);
+            background: var(--kmwc-main-bg);
             border-radius: 6px;
             padding: 0.25rem 0.5rem;
             font-size: 0.75rem;
-            color: #334155;
+            color: var(--kmwc-text-color-2);
             cursor: pointer;
         }
-        .rx-row__action:hover { background: #f1f5f9; }
+        .rx-row__action:hover { background: var(--kmwc-hover-bg); }
         .rx-empty {
             padding: 2rem 1rem;
             text-align: center;
-            color: #94a3b8;
+            color: var(--kmwc-text-color-4);
             font-style: italic;
-            border: 1px dashed #cbd5e0;
+            border: 1px dashed var(--kmwc-border-color-strong);
             border-radius: 8px;
         }
         .rx-toolbar {
             display: flex;
+            flex-wrap: wrap;
             gap: 0.5rem;
             margin-top: 1rem;
         }
         .rx-toolbar button {
-            border: 1px solid #cbd5e0;
-            background: white;
+            border: 1px solid var(--kmwc-border-color-strong);
+            background: var(--kmwc-main-bg);
             border-radius: 6px;
             padding: 0.4rem 0.85rem;
             font-size: 0.85rem;
-            color: #334155;
+            color: var(--kmwc-text-color-2);
             cursor: pointer;
         }
-        .rx-toolbar button:hover { background: #f1f5f9; }
+        .rx-toolbar button:hover { background: var(--kmwc-hover-bg); }
         .rx-toolbar button:disabled {
             opacity: 0.4;
             cursor: not-allowed;
@@ -297,7 +299,7 @@ createRoot(document.getElementById('react-root')).render(React.createElement(Upl
                     <button onClick=${callAll('resumeAll')} disabled=${!anyPaused}>Resume all</button>
                     <button onClick=${callAll('retryAll')} disabled=${!anyError}>Retry all</button>
                     <button onClick=${callAll('clear')} disabled=${files.length === 0}>Clear</button>
-                    <span style=${{ marginLeft: 'auto', alignSelf: 'center', fontSize: '0.85rem', color: '#475569', fontVariantNumeric: 'tabular-nums' }}>
+                    <span style=${{ marginLeft: 'auto', alignSelf: 'center', fontSize: '0.85rem', color: 'var(--kmwc-text-color-2)', fontVariantNumeric: 'tabular-nums' }}>
                         files-change received: <strong>${eventCount}</strong>
                     </span>
                 </div>

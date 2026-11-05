@@ -1,5 +1,6 @@
 <meta name="kmwc:title" content="🗂️ SharePoint-style name collision">
 <meta name="kmwc:subtitle" content="Check filenames against a server inventory before upload — let the user choose Overwrite / Rename / Skip per file">
+<link rel="stylesheet" href="examples-local.css">
 
     <style>
         /* Server-inventory panel — shows what names exist server-side. */
@@ -8,8 +9,8 @@
             flex-wrap: wrap;
             gap: 0.5rem;
             padding: 0.85rem 1rem;
-            background: #eff6ff;
-            border: 1px solid #bfdbfe;
+            background: var(--demo-info-bg);
+            border: 1px solid var(--demo-info-border-color);
             border-radius: 8px;
             margin-bottom: 1rem;
         }
@@ -18,17 +19,17 @@
             align-items: center;
             gap: 0.35rem;
             padding: 0.25rem 0.6rem;
-            background: white;
-            border: 1px solid #bfdbfe;
+            background: var(--kmwc-main-bg);
+            border: 1px solid var(--demo-info-border-color);
             border-radius: 999px;
             font-size: 0.85rem;
-            color: #1e40af;
+            color: var(--demo-info-text-color);
             font-family: 'SF Mono', Consolas, monospace;
         }
         .sp-inventory .sp-inv-pill.is-new {
-            background: #ecfdf5;
-            border-color: #86efac;
-            color: #166534;
+            background: var(--demo-success-bg);
+            border-color: var(--demo-success-border-color);
+            color: var(--kmwc-success-color);
         }
         .sp-inv-download {
             font: inherit;
@@ -45,7 +46,7 @@
         }
         .sp-inv-download:hover {
             opacity: 1;
-            background: rgba(0, 0, 0, 0.08);
+            background: var(--kmwc-hover-bg);
         }
         .sp-inventory-label {
             width: 100%;
@@ -53,7 +54,7 @@
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            color: #1e40af;
+            color: var(--demo-info-text-color);
             margin-bottom: 0.25rem;
         }
 
@@ -68,7 +69,7 @@
             content: 'No files yet — drop something onto the dropzone above.';
             display: block;
             padding: 1rem;
-            color: #94a3b8;
+            color: var(--kmwc-text-color-4);
             font-style: italic;
             font-size: 0.9rem;
             text-align: center;
@@ -79,56 +80,56 @@
             align-items: center;
             gap: 1rem;
             padding: 0.75rem 1rem;
-            background: white;
-            border: 1px solid #e5e7eb;
+            background: var(--kmwc-main-bg);
+            border: 1px solid var(--kmwc-border-color);
             border-radius: 8px;
             transition: background 0.15s, border-color 0.15s;
         }
         .sp-row--pending {
-            background: #fffbeb;
-            border-color: #fcd34d;
+            background: var(--demo-warning-bg);
+            border-color: var(--demo-warning-border-color);
         }
         .sp-row--overwrite {
-            background: #fef2f2;
-            border-color: #fecaca;
+            background: var(--demo-danger-bg);
+            border-color: var(--demo-danger-border-color);
         }
         .sp-row--rename {
-            background: #eff6ff;
-            border-color: #bfdbfe;
+            background: var(--demo-info-bg);
+            border-color: var(--demo-info-border-color);
         }
         .sp-row--new {
-            background: #f0fdf4;
-            border-color: #bbf7d0;
+            background: var(--demo-success-bg);
+            border-color: var(--demo-success-border-color);
         }
         .sp-row__meta {
             min-width: 0;
         }
         .sp-row__name {
             font-weight: 600;
-            color: #1f2937;
+            color: var(--kmwc-text-color-1);
             font-size: 0.95rem;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
         .sp-row__name del {
-            color: #9ca3af;
+            color: var(--kmwc-text-color-4);
             text-decoration: line-through;
             font-weight: 500;
             margin-right: 0.4rem;
         }
         .sp-row__name ins {
-            color: #1d4ed8;
+            color: var(--demo-info-text-color);
             text-decoration: none;
         }
         .sp-row__sub {
             font-size: 0.8rem;
-            color: #64748b;
+            color: var(--kmwc-text-color-3);
             margin-top: 0.15rem;
         }
         .sp-row__sub strong {
             font-weight: 600;
-            color: #475569;
+            color: var(--kmwc-text-color-2);
         }
         .sp-row__actions {
             display: flex;
@@ -149,33 +150,33 @@
             white-space: nowrap;
         }
         .sp-btn--overwrite {
-            background: #fee2e2;
-            border-color: #fecaca;
-            color: #991b1b;
+            background: var(--demo-danger-bg);
+            border-color: var(--demo-danger-border-color);
+            color: var(--kmwc-danger-color);
         }
-        .sp-btn--overwrite:hover { background: #fecaca; }
+        .sp-btn--overwrite:hover { background: var(--demo-danger-strong-bg); }
         .sp-btn--rename {
-            background: #dbeafe;
-            border-color: #bfdbfe;
-            color: #1e40af;
+            background: var(--demo-info-bg);
+            border-color: var(--demo-info-border-color);
+            color: var(--demo-info-text-color);
         }
-        .sp-btn--rename:hover { background: #bfdbfe; }
+        .sp-btn--rename:hover { background: var(--demo-info-strong-bg); }
         .sp-btn--skip {
-            background: #f3f4f6;
-            border-color: #d1d5db;
-            color: #4b5563;
+            background: var(--kmwc-hover-bg);
+            border-color: var(--kmwc-border-color-strong);
+            color: var(--kmwc-text-color-2);
         }
-        .sp-btn--skip:hover { background: #e5e7eb; }
+        .sp-btn--skip:hover { background: var(--kmwc-border-color); }
         .sp-btn--change {
             background: transparent;
             border-color: transparent;
-            color: #64748b;
+            color: var(--kmwc-text-color-3);
             text-decoration: underline;
             font-weight: 500;
             font-size: 0.78rem;
             padding: 0.25rem 0.4rem;
         }
-        .sp-btn--change:hover { color: #1f2937; }
+        .sp-btn--change:hover { color: var(--kmwc-text-color-1); }
         .sp-badge {
             display: inline-flex;
             align-items: center;
@@ -188,39 +189,39 @@
             letter-spacing: 0.03em;
         }
         .sp-badge--overwrite {
-            background: #fecaca;
-            color: #7f1d1d;
+            background: var(--demo-danger-strong-bg);
+            color: var(--kmwc-danger-color);
         }
         .sp-badge--rename {
-            background: #bfdbfe;
-            color: #1e3a8a;
+            background: var(--demo-info-strong-bg);
+            color: var(--demo-info-text-color);
         }
         .sp-badge--new {
-            background: #bbf7d0;
-            color: #14532d;
+            background: var(--demo-success-strong-bg);
+            color: var(--kmwc-success-color);
         }
         .sp-badge--complete {
-            background: #d1fae5;
-            color: #064e3b;
+            background: var(--demo-success-bg);
+            color: var(--kmwc-success-color);
         }
         .sp-rename-input {
             font: inherit;
             font-size: 0.85rem;
             padding: 0.3rem 0.6rem;
-            border: 1px solid #93c5fd;
+            border: 1px solid var(--demo-info-border-color);
             border-radius: 6px;
             min-width: 200px;
-            background: white;
-            color: #1e3a8a;
+            background: var(--kmwc-main-bg);
+            color: var(--demo-info-text-color);
             font-family: 'SF Mono', Consolas, monospace;
         }
         .sp-rename-input:focus {
             outline: none;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+            border-color: var(--kmwc-accent-color);
+            box-shadow: var(--kmwc-input-box-shadow-focus);
         }
         .sp-rename-error {
-            color: #b91c1c;
+            color: var(--kmwc-danger-color);
             font-size: 0.75rem;
             margin-top: 0.25rem;
         }
@@ -232,33 +233,33 @@
             justify-content: space-between;
             gap: 1rem;
             padding: 0.75rem 1rem;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
+            background: var(--kmwc-elevated-bg);
+            border: 1px solid var(--kmwc-border-color);
             border-radius: 8px;
             margin-top: 1rem;
             flex-wrap: wrap;
         }
         .sp-toolbar__status {
             font-size: 0.85rem;
-            color: #475569;
+            color: var(--kmwc-text-color-2);
         }
-        .sp-toolbar__status strong { color: #1e293b; }
-        .sp-toolbar__status .is-warn { color: #92400e; }
+        .sp-toolbar__status strong { color: var(--kmwc-text-color-1); }
+        .sp-toolbar__status .is-warn { color: var(--kmwc-warning-color); }
         .sp-upload-btn {
             font: inherit;
             font-size: 0.9rem;
             font-weight: 600;
             padding: 0.55rem 1.1rem;
-            background: #2563eb;
-            color: white;
+            background: var(--kmwc-accent-color);
+            color: var(--kmwc-text-color-on-accent);
             border: none;
             border-radius: 6px;
             cursor: pointer;
         }
-        .sp-upload-btn:hover:not(:disabled) { background: #1d4ed8; }
+        .sp-upload-btn:hover:not(:disabled) { background: var(--kmwc-accent-color-hover); }
         .sp-upload-btn:disabled {
-            background: #cbd5e0;
-            color: #f1f5f9;
+            background: var(--kmwc-border-color);
+            color: var(--kmwc-text-color-3);
             cursor: not-allowed;
         }
 
@@ -266,8 +267,8 @@
         .sp-log {
             margin-top: 1rem;
             padding: 0.75rem 1rem;
-            background: #0f172a;
-            color: #e2e8f0;
+            background: var(--kmwc-console-bg);
+            color: var(--kmwc-console-text-color);
             border-radius: 8px;
             font-family: 'SF Mono', Consolas, monospace;
             font-size: 0.82rem;
@@ -275,29 +276,29 @@
             overflow-y: auto;
         }
         .sp-log__empty {
-            color: #64748b;
+            color: var(--kmwc-console-muted-color);
             font-style: italic;
         }
         .sp-log__entry {
             padding: 0.25rem 0;
             display: flex;
             gap: 0.6rem;
-            border-bottom: 1px solid #1e293b;
+            border-bottom: 1px solid color-mix(in srgb, var(--kmwc-console-text-color) 12%, transparent);
         }
         .sp-log__entry:last-child { border-bottom: none; }
-        .sp-log__time { color: #64748b; min-width: 5.5rem; }
+        .sp-log__time { color: var(--kmwc-console-muted-color); min-width: 5.5rem; }
         .sp-log__tag {
             font-weight: 700;
             min-width: 5.5rem;
         }
-        .sp-log__tag--check { color: #60a5fa; }
-        .sp-log__tag--keep  { color: #4ade80; }
-        .sp-log__tag--coll  { color: #fbbf24; }
-        .sp-log__tag--ovr   { color: #f87171; }
-        .sp-log__tag--ren   { color: #93c5fd; }
-        .sp-log__tag--skip  { color: #94a3b8; }
-        .sp-log__tag--up    { color: #c084fc; }
-        .sp-log__msg { color: #cbd5e0; flex: 1; }
+        .sp-log__tag--check { color: var(--kmwc-console-info-color); }
+        .sp-log__tag--keep  { color: var(--kmwc-console-ok-color); }
+        .sp-log__tag--coll  { color: var(--kmwc-console-warn-color); }
+        .sp-log__tag--ovr   { color: var(--kmwc-console-err-color); }
+        .sp-log__tag--ren   { color: var(--kmwc-console-info-color); }
+        .sp-log__tag--skip  { color: var(--kmwc-console-muted-color); }
+        .sp-log__tag--up    { color: var(--kmwc-code-keyword-color); }
+        .sp-log__msg { color: var(--kmwc-console-muted-color); flex: 1; }
     </style>
 
         <div class="card">
@@ -309,7 +310,7 @@
                 <li>For each collision, the user picks an action per row: <strong>Overwrite</strong>, <strong>Rename</strong> (with a suggested non-conflicting name), or <strong>Skip</strong>.</li>
                 <li>Once every collision has a decision, the upload starts. Renamed files upload under the new name.</li>
             </ol>
-            <p style="margin-top:1rem;">No core API changes were needed for this — it's a straight application of <code>render-mode="structural"</code> (custom per-row rendering), <code>auto-upload="false"</code> (stage instead of upload-on-add), <code>removeFile(id)</code> (skip), and a closure-captured decisions map (read by both the row renderer and the <code>uploadFileCallback</code>).</p>
+            <p class="mt-1">No core API changes were needed for this — it's a straight application of <code>render-mode="structural"</code> (custom per-row rendering), <code>auto-upload="false"</code> (stage instead of upload-on-add), <code>removeFile(id)</code> (skip), and a closure-captured decisions map (read by both the row renderer and the <code>uploadFileCallback</code>).</p>
         </div>
 
         <!-- LIVE DEMO -->
@@ -564,7 +565,7 @@
                                     <div class="sp-row__sub">${formatSize(file.size)} · checking server…</div>
                                 </div>
                                 <div class="sp-row__actions">
-                                    <span class="sp-badge" style="background:#e0e7ff;color:#3730a3">⏳ Checking</span>
+                                    <span class="sp-badge" style="background:var(--demo-info-bg);color:var(--demo-info-text-color)">⏳ Checking</span>
                                 </div>
                             `
                             return

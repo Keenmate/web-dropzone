@@ -1,5 +1,6 @@
 <meta name="kmwc:title" content="🎛️ Display &amp; Composition">
 <meta name="kmwc:subtitle" content="Selector &amp; list appearance axes, card sizes, popover, files-inside, single vs multiple, accept patterns">
+<link rel="stylesheet" href="examples-local.css">
 
     <style>
         .placement-grid {
@@ -11,8 +12,8 @@
             .placement-grid { grid-template-columns: 1fr; }
         }
         .placement-cell {
-            background: white;
-            border: 1px solid #e5e7eb;
+            background: var(--kmwc-main-bg);
+            border: 1px solid var(--kmwc-border-color);
             border-radius: 8px;
             padding: 1.5rem;
             text-align: center;
@@ -20,19 +21,20 @@
         .placement-cell label {
             display: block;
             font-size: 0.85rem;
-            color: #6b7280;
+            color: var(--kmwc-text-color-3);
             margin-bottom: 0.75rem;
             font-family: monospace;
         }
         .ctrl-panel {
-            border: 1px solid #e5e7eb;
+            min-width: 0;  /* a fieldset is min-content wide by default — let it shrink on a phone */
+            border: 1px solid var(--kmwc-border-color);
             border-radius: 8px;
             padding: 0.5rem 1rem 0.85rem;
             margin: 0 0 1rem;
         }
         .ctrl-panel legend {
             font-size: 0.8rem;
-            color: #374151;
+            color: var(--kmwc-text-color-2);
             padding: 0 0.4rem;
         }
         .ctrl-panel label {
@@ -54,8 +56,8 @@
             font-size: 0.85rem;
             font-family: monospace;
         }
-        .tune-row > span:first-child { color: #374151; }
-        .tune-row output { color: #6b7280; text-align: right; }
+        .tune-row > span:first-child { color: var(--kmwc-text-color-2); }
+        .tune-row output { color: var(--kmwc-text-color-3); text-align: right; }
         .tune-row input[type="range"] { width: 100%; }
         .tune-row select { font-family: monospace; padding: 0.15rem 0.3rem; }
         .tune-row.is-off { opacity: 0.4; }
@@ -63,8 +65,8 @@
         .tune-readout {
             margin-top: 0.75rem;
             padding: 0.6rem 0.8rem;
-            background: #0f172a;
-            color: #e2e8f0;
+            background: var(--kmwc-console-bg);
+            color: var(--kmwc-console-text-color);
             border-radius: 6px;
             font-family: monospace;
             font-size: 0.78rem;
