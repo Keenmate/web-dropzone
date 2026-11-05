@@ -1,10 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Logging & Debugging - Web Dropzone</title>
-    <link rel="stylesheet" href="examples-shared.css">
+<meta name="kmwc:title" content="🐛 Logging & Debugging">
+<meta name="kmwc:subtitle" content="Categorized debug output with runtime control — silent by default in production">
+
     <style>
         .log-controls {
             display: grid;
@@ -56,14 +52,6 @@
             margin-top: 0.75rem;
         }
     </style>
-</head>
-<body>
-    <div class="container">
-        <header>
-            <a href="index.html" class="back-link">← Back to Examples</a>
-            <h1>🐛 Logging & Debugging</h1>
-            <p class="subtitle">Categorized debug output with runtime control — silent by default in production</p>
-        </header>
 
         <!-- INTRO -->
         <div class="card">
@@ -207,7 +195,7 @@ disableLogging()</code></pre>
         <footer>
             <p><a href="index.html">← Back to Examples</a></p>
         </footer>
-    </div>
+
 
     <script type="module">
         // Monkey-patch console.log/debug/info/warn/error briefly so we can also
@@ -280,9 +268,3 @@ disableLogging()</code></pre>
             if (dz) dz.uploadFileCallback = simulateUpload({ bucket: 'logging', durationMs: 3000, failRate: 0.2 });
         });
     </script>
-
-    <script type="module" src="/src/index.ts"></script>
-
-    <script type="module" src="examples-chapter-nav.js"></script>
-</body>
-</html>

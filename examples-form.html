@@ -1,10 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Form Integration - Web Dropzone</title>
-    <link rel="stylesheet" href="examples-shared.css">
+<meta name="kmwc:title" content="📝 Form Integration">
+<meta name="kmwc:subtitle" content="Form-associated submission with real FormData and automatic form reset">
+
     <style>
         .form-row {
             display: grid;
@@ -47,14 +43,6 @@
             font-style: italic;
         }
     </style>
-</head>
-<body>
-    <div class="container">
-        <header>
-            <a href="index.html" class="back-link">← Back to Examples</a>
-            <h1>📝 Form Integration</h1>
-            <p class="subtitle">Form-associated submission with real FormData and automatic form reset</p>
-        </header>
 
         <!-- HOW IT WORKS -->
         <div class="card">
@@ -186,7 +174,7 @@ app.post('/upload', upload.array('attachments'), (req, res) => {
         <footer>
             <p><a href="index.html">← Back to Examples</a></p>
         </footer>
-    </div>
+
 
     <script type="module">
         const form = document.getElementById('upload-form')
@@ -221,8 +209,3 @@ app.post('/upload', upload.array('attachments'), (req, res) => {
             return `${(b/(1024*1024)).toFixed(2)} MB`
         }
     </script>
-
-    <script type="module" src="/src/index.ts"></script>
-    <script type="module" src="examples-chapter-nav.js"></script>
-</body>
-</html>

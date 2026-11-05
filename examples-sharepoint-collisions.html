@@ -1,10 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SharePoint-style name-collision check - Web Dropzone</title>
-    <link rel="stylesheet" href="examples-shared.css">
+<meta name="kmwc:title" content="🗂️ SharePoint-style name collision">
+<meta name="kmwc:subtitle" content="Check filenames against a server inventory before upload — let the user choose Overwrite / Rename / Skip per file">
+
     <style>
         /* Server-inventory panel — shows what names exist server-side. */
         .sp-inventory {
@@ -303,14 +299,6 @@
         .sp-log__tag--up    { color: #c084fc; }
         .sp-log__msg { color: #cbd5e0; flex: 1; }
     </style>
-</head>
-<body>
-    <div class="container">
-        <header>
-            <a href="index.html" class="back-link">← Back to Examples</a>
-            <h1>🗂️ SharePoint-style name collision</h1>
-            <p class="subtitle">Check filenames against a server inventory before upload — let the user choose Overwrite / Rename / Skip per file</p>
-        </header>
 
         <div class="card">
             <h2>SP01 · What this demonstrates</h2>
@@ -412,7 +400,7 @@
         <footer>
             <p>Web Dropzone · <a href="https://github.com/keenmate/web-dropzone">GitHub</a></p>
         </footer>
-    </div>
+
 
     <script type="module">
         // -----------------------------------------------------------
@@ -850,8 +838,3 @@
             return `${(bytes / 1024 / 1024).toFixed(1)} MB`
         }
     </script>
-
-    <script type="module" src="/src/index.ts"></script>
-    <script type="module" src="examples-chapter-nav.js"></script>
-</body>
-</html>

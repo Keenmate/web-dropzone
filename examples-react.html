@@ -1,10 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>React integration — Web Dropzone</title>
-    <link rel="stylesheet" href="examples-shared.css">
+<meta name="kmwc:title" content="React integration">
+<meta name="kmwc:subtitle" content="A React component subscribes to a headless <code>&lt;web-dropzone&gt;</code> store via <code>useEffect</code> + <code>files-change</code>, then renders its own JSX file list with full pause / resume / retry control.">
+
     <style>
         .rx-list {
             display: flex;
@@ -106,14 +102,6 @@
             cursor: not-allowed;
         }
     </style>
-</head>
-<body>
-    <div class="container">
-        <header>
-            <a href="index.html" class="back-link">← Back to examples</a>
-            <h1>React integration</h1>
-            <p class="subtitle">A React component subscribes to a headless <code>&lt;web-dropzone&gt;</code> store via <code>useEffect</code> + <code>files-change</code>, then renders its own JSX file list with full pause / resume / retry control.</p>
-        </header>
 
         <section class="example-section">
             <h2>RC01 · Why headless mode unlocks React patterns</h2>
@@ -193,7 +181,7 @@ createRoot(document.getElementById('react-root')).render(React.createElement(Upl
         <footer>
             <p>Web Dropzone · <a href="https://github.com/keenmate/web-dropzone">GitHub</a> · <a href="examples-architecture.html">Architecture</a></p>
         </footer>
-    </div>
+
 
     <script type="module">
         // Bare specifiers (`'react'`, `'react-dom/client'`) would normally be
@@ -318,9 +306,3 @@ createRoot(document.getElementById('react-root')).render(React.createElement(Upl
 
         createRoot(document.getElementById('react-root')).render(React.createElement(Uploader))
     </script>
-
-    <script type="module" src="/src/index.ts"></script>
-
-    <script type="module" src="examples-chapter-nav.js"></script>
-</body>
-</html>

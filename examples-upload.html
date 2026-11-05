@@ -1,10 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulated Uploads - Web Dropzone</title>
-    <link rel="stylesheet" href="examples-shared.css">
+<meta name="kmwc:title" content="📤 Simulated Uploads">
+<meta name="kmwc:subtitle" content="Fake-upload pipelines wired via the public JS API — see progress bars, completion, and error states.">
+
     <style>
         /* Playground control panel */
         .playground-controls {
@@ -135,14 +131,6 @@
             color: #94a3b8;
         }
     </style>
-</head>
-<body>
-    <div class="container">
-        <header>
-            <a href="index.html" class="back-link">← Back to Examples</a>
-            <h1>📤 Simulated Uploads</h1>
-            <p class="subtitle">Fake-upload pipelines wired via the public JS API — see progress bars, completion, and error states.</p>
-        </header>
 
         <!-- INTRO -->
         <div class="card">
@@ -361,9 +349,9 @@ dropzone.retryPolicy = { attempts: 3, delayMs: 1000, backoff: 2 }</code></pre>
         <footer>
             <p>Web Dropzone · <a href="https://github.com/keenmate/web-dropzone">GitHub</a></p>
         </footer>
-    </div>
 
-    <script src="examples-shared-toast.js"></script>
+
+    <script type="module" src="/examples-shared-toast.js"></script>
     <script type="module">
         // Surface rejection events (from validation, dedupe, etc.) as toasts.
         const REJECTION_LABEL = {
@@ -687,19 +675,13 @@ dropzone.retryPolicy = { attempts: 3, delayMs: 1000, backoff: 2 }</code></pre>
             applyMode()
         }
 
-        // Wait for the custom element to be defined before wiring. The
-        // `<script src="/src/index.ts">` that registers it lives later in the
-        // document, so by the time this inline module runs, the dropzones are
-        // still un-upgraded HTMLElements. Setting `dz.uploadFileCallback =
-        // ...` on an un-upgraded element installs it as an instance property
-        // that shadows the prototype setter forever — the pipeline never sees
-        // the handler.
+        // Wait for the custom element to be defined before wiring. The devkit
+        // layout loads the entry module in <head>, so it is normally defined by
+        // now — but setting `dz.uploadFileCallback = ...` on an un-upgraded
+        // element would install it as an instance property that shadows the
+        // prototype setter forever (the pipeline never sees the handler), so the
+        // wiring doesn't rely on script order.
         customElements.whenDefined('web-dropzone').then(() => {
             wirePlayground()
         })
     </script>
-
-    <script type="module" src="/src/index.ts"></script>
-    <script type="module" src="examples-chapter-nav.js"></script>
-</body>
-</html>

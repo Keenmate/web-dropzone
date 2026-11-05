@@ -1,10 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Drag Overlay - Web Dropzone</title>
-    <link rel="stylesheet" href="examples-shared.css">
+<meta name="kmwc:title" content="🎯 Drag Overlay">
+<meta name="kmwc:subtitle" content="Turn any element on the page into a drop target by hovering the OS drag onto it">
+
     <style>
         .mock-form {
             border: 2px dashed #cbd5e0;
@@ -74,14 +70,6 @@
         .reject-toast[hidden] { display: none; }
         .reject-toast strong { color: #7f1d1d; }
     </style>
-</head>
-<body>
-    <div class="container">
-        <header>
-            <a href="index.html" class="back-link">← Back to Examples</a>
-            <h1>🎯 Drag Overlay</h1>
-            <p class="subtitle">Turn any element on the page into a drop target by hovering the OS drag onto it</p>
-        </header>
 
         <!-- WHAT IT IS -->
         <div class="card">
@@ -213,7 +201,7 @@ el.overlayTarget = document.body
         <footer>
             <p><a href="index.html">← Back to Examples</a></p>
         </footer>
-    </div>
+
 
     <script type="module">
         import { simulateUpload } from '/examples-shared.js';
@@ -281,8 +269,3 @@ el.overlayTarget = document.body
                 : '(none picked yet)'
         })
     </script>
-
-    <script type="module" src="/src/index.ts"></script>
-    <script type="module" src="examples-chapter-nav.js"></script>
-</body>
-</html>

@@ -1,10 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Display & Composition - Web Dropzone</title>
-    <link rel="stylesheet" href="examples-shared.css">
+<meta name="kmwc:title" content="🎛️ Display &amp; Composition">
+<meta name="kmwc:subtitle" content="Selector &amp; list appearance axes, card sizes, popover, files-inside, single vs multiple, accept patterns">
+
     <style>
         .placement-grid {
             display: grid;
@@ -76,14 +72,6 @@
             word-break: break-all;
         }
     </style>
-</head>
-<body>
-    <div class="container">
-        <header>
-            <a href="index.html" class="back-link">← Back to Examples</a>
-            <h1>🎛️ Display &amp; Composition</h1>
-            <p class="subtitle">Selector &amp; list appearance axes, card sizes, popover, files-inside, single vs multiple, accept patterns</p>
-        </header>
 
         <!-- DISPLAY: THREE ORTHOGONAL AXES -->
         <div class="card">
@@ -727,9 +715,9 @@ el.getFileIconCallback = ({ file }) =&gt;
         <footer>
             <p><a href="index.html">← Back to Examples</a></p>
         </footer>
-    </div>
 
-    <script src="examples-shared-toast.js"></script>
+
+    <script type="module" src="/examples-shared-toast.js"></script>
     <script type="module">
         import { simulateUpload } from '/examples-shared.js';
 
@@ -975,8 +963,3 @@ el.getFileIconCallback = ({ file }) =&gt;
             ])
         }
     </script>
-
-    <script type="module" src="/src/index.ts"></script>
-    <script type="module" src="examples-chapter-nav.js"></script>
-</body>
-</html>

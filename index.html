@@ -1,343 +1,162 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Dropzone - Examples</title>
-    <link rel="stylesheet" href="examples-shared.css">
-    <style>
-        body {
-            background: #f0f2f5;
-            min-height: 100vh;
-            padding: 2rem;
-        }
+<meta name="kmwc:layout" content="bare">
 
-        .page-container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .header-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 16px;
-            padding: 2.5rem 3rem;
-            margin-bottom: 2rem;
-            color: white;
-        }
-
-        .header-card h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin: 0 0 0.5rem 0;
-            color: white;
-            border-bottom: none;
-            padding-bottom: 0;
-        }
-
-        .header-card .subtitle {
-            font-size: 1.1rem;
-            opacity: 0.9;
-            margin: 0 0 1rem 0;
-        }
-
-        .version-badges {
-            display: inline-flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-        }
-        .version-badge {
-            display: inline-flex;
-            align-items: baseline;
-            gap: 0.35rem;
-            background: rgba(255, 255, 255, 0.18);
-            padding: 0.35rem 0.85rem;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            font-weight: 500;
-            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
-        }
-        .version-badge code {
-            background: transparent;
-            color: rgba(255, 255, 255, 0.85);
-            font-size: 0.8rem;
-        }
-        .version-badge strong {
-            font-weight: 600;
-        }
-
-        .section-heading {
-            font-size: 0.8rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: #64748b;
-            margin: 2.5rem 0 1rem 0.25rem;
-        }
-        .section-heading:first-of-type { margin-top: 0; }
-        .section-heading small {
-            font-size: 0.75rem;
-            font-weight: 400;
-            text-transform: none;
-            letter-spacing: 0;
-            color: #94a3b8;
-            margin-left: 0.5rem;
-        }
-
-        .cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .card-link {
-            background: white;
-            border-radius: 12px;
-            padding: 1.75rem;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            cursor: pointer;
-            text-decoration: none;
-            color: inherit;
-            display: block;
-        }
-
-        .card-link:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-            text-decoration: none;
-        }
-
-        .card-icon {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
-        }
-
-        .card-link h2.card-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin: 0 0 0.5rem 0;
-            color: #1a202c;
-            border-bottom: none;
-            padding-bottom: 0;
-        }
-
-        .card-description {
-            color: #64748b;
-            line-height: 1.6;
-            margin: 0;
-            font-size: 0.95rem;
-        }
-
-        .badge {
-            display: inline-block;
-            background: #f56565;
-            color: white;
-            padding: 0.15rem 0.5rem;
-            border-radius: 6px;
-            font-size: 0.65rem;
-            font-weight: 600;
-            margin-left: 0.5rem;
-            vertical-align: middle;
-            text-transform: uppercase;
-        }
-
-        footer {
-            text-align: center;
-            margin-top: 3rem;
-            color: #64748b;
-            font-size: 0.875rem;
-        }
-
-        footer a {
-            color: #667eea;
-            text-decoration: none;
-        }
-
-        footer a:hover {
-            text-decoration: underline;
-        }
-    </style>
-</head>
-<body>
-    <div class="page-container">
-        <header class="header-card">
-            <h1>Web Dropzone</h1>
-            <p class="subtitle">File upload web component with drag-drop, previews, validation, and multiple display modes</p>
-            <div class="version-badges" id="version-badges">
-                <span class="version-badge"><code>@keenmate/web-dropzone</code> <strong id="renderer-version">…</strong></span>
-                <span class="version-badge"><code>@keenmate/web-dropzone-core</code> <strong id="core-version">…</strong></span>
-            </div>
-        </header>
-
-        <div class="card" style="background:white;border-radius:12px;padding:1.5rem 2rem;margin-bottom:2rem;box-shadow:0 2px 8px rgba(0,0,0,0.08)">
-            <h2 style="margin-top:0">Three modes, one component</h2>
-            <p style="margin-bottom:0.5rem">Pick a render mode up-front via the <code>render-mode</code> attribute — it's a hard switch that decides who renders what.</p>
-            <ul style="margin:0.5rem 0 0;line-height:1.7">
-                <li><strong><code>render-mode="bulk"</code></strong> (default) — framework owns the UI; you style via CSS variables. See <a href="examples-display.html">Display &amp; Composition</a> / <a href="examples-validation.html">Validation</a>.</li>
-                <li><strong><code>render-mode="structural"</code></strong> — framework owns the lifecycle; you provide HTML structure via render callbacks (including <code>renderListWrapperCallback</code> for tables and element-returning rows with <code>file-row-update</code> events). See <a href="examples-structural.html">Structural Rendering</a>.</li>
-                <li><strong><code>render-mode="headless"</code></strong> — framework just fires events (<code>files-change</code> on rAF + granular ones); bring your own renderer or pair with satellites. See <a href="examples-architecture.html">Architecture</a>.</li>
-            </ul>
-        </div>
-
-        <div id="sections"></div>
-
-        <footer>
-            <p>Created by <a href="https://github.com/keenmate" target="_blank">KeenMate</a> &nbsp;|&nbsp; <a href="https://github.com/keenmate/web-dropzone" target="_blank">GitHub</a></p>
-        </footer>
+<!-- Header, cards, footer, version badge and the cross-page nav are rendered by
+     the devkit from the registry below + package.json#kmwc. The component entry
+     stays loaded (no kmwc:entry "none"): the intro card reads both package
+     versions from window.components['web-dropzone']. -->
+<template id="index-intro">
+    <div class="card">
+        <h2>Three modes, one component</h2>
+        <p>Pick a render mode up-front via the <code>render-mode</code> attribute — it's a hard switch that decides who renders what.</p>
+        <ul>
+            <li><strong><code>render-mode="bulk"</code></strong> (default) — framework owns the UI; you style via CSS variables. See <a href="examples-display.html">Display &amp; Composition</a> / <a href="examples-validation.html">Validation</a>.</li>
+            <li><strong><code>render-mode="structural"</code></strong> — framework owns the lifecycle; you provide HTML structure via render callbacks (including <code>renderListWrapperCallback</code> for tables and element-returning rows with <code>file-row-update</code> events). See <a href="examples-structural.html">Structural Rendering</a>.</li>
+            <li><strong><code>render-mode="headless"</code></strong> — framework just fires events (<code>files-change</code> on rAF + granular ones); bring your own renderer or pair with satellites. See <a href="examples-architecture.html">Architecture</a>.</li>
+        </ul>
+        <p>The pages below, by topic:</p>
+        <ul class="index-groups" data-index-groups></ul>
+        <p class="index-versions">
+            <span class="pill"><code>@keenmate/web-dropzone</code> <strong data-renderer-version>…</strong></span>
+            <span class="pill"><code>@keenmate/web-dropzone-core</code> <strong data-core-version>…</strong></span>
+        </p>
     </div>
+</template>
 
-    <script>
-        // =====================================================
-        // Demo Page Registry
-        // Add new pages here - they'll appear automatically
-        // =====================================================
-        const sections = [
-            {
-                title: 'Technical reference',
-                hint: 'One concept per page — the API building blocks',
-                pages: [
-                    {
-                        href: 'examples-architecture.html',
-                        icon: '🛰️',
-                        title: 'Architecture: store + satellites',
-                        description: 'Headless <web-dropzone> store with <web-dropzone-picker>, <web-dropzone-list>, and <web-dropzone-indicator> satellites — plus a BYO-renderer example using files-change.'
-                    },
-                    {
-                        href: 'examples-display.html',
-                        icon: '🎛️',
-                        title: 'Display & Composition',
-                        description: 'Selector / list appearance axes, card sizes, popover placement, files-inside layout, single vs multiple, accept patterns, and the programmatic API.'
-                    },
-                    {
-                        href: 'examples-validation.html',
-                        icon: '✅',
-                        title: 'Validation & Rejection',
-                        description: 'maxSize, maxFiles, MIME/extension filters, custom validators, async confirmation gates, and file-reject handling.'
-                    },
-                    {
-                        href: 'examples-upload.html',
-                        icon: '📤',
-                        title: 'Upload Pipeline',
-                        description: 'uploadFileCallback with pause / resume / retry, concurrency, manual mode, and resume-aware progress via ctx.startBytes.'
-                    },
-                    {
-                        href: 'examples-structural.html',
-                        icon: '✨',
-                        title: 'Structural Rendering',
-                        description: 'render-mode="structural" — override file items, prompts, summaries, AND the list wrapper (table layouts!). Element-returning rows survive state ticks via file-row-update events.'
-                    },
-                    {
-                        href: 'examples-form.html',
-                        icon: '📝',
-                        title: 'Form Integration',
-                        description: 'Form-associated submission with real FormData, automatic form reset, and field naming.'
-                    },
-                    {
-                        href: 'examples-drag-overlay.html',
-                        icon: '🎯',
-                        title: 'Drag Overlay',
-                        description: 'Trigger a full-element drop overlay when files are dragged over an existing input or form area.'
-                    },
-                    {
-                        href: 'examples-theming.html',
-                        icon: '🎨',
-                        title: 'Theming & Sizing',
-                        description: 'Three levels: --base-* (cross-component), --dz-* (component), --dz-rem (global scaling). Live playground + recipe for building your own theme.'
-                    },
-                    {
-                        href: 'examples-logging.html',
-                        icon: '🐛',
-                        title: 'Logging & Debugging',
-                        description: 'Built-in logging system with categorized debug output for development and troubleshooting.'
-                    }
-                ]
-            },
-            {
-                title: 'Real-world scenarios',
-                hint: 'Applied demos showing what\'s possible',
-                pages: [
-                    {
-                        href: 'examples-sharepoint-collisions.html',
-                        icon: '🗂️',
-                        title: 'SharePoint-style name collision check',
-                        description: 'Pre-upload server check for existing filenames, per-row Overwrite / Rename / Skip decisions via render-mode="structural".'
-                    },
-                    {
-                        href: 'examples-split-overlay.html',
-                        icon: '📨',
-                        title: 'Outlook-style split overlay',
-                        description: 'Two dropzones share the viewport — split-screen "attach as file" vs "share as link" reveal during drag.'
-                    }
-                ]
-            },
-            {
-                title: 'Framework integration',
-                hint: 'Each wraps the headless store in a host framework',
-                pages: [
-                    {
-                        href: 'examples-lit.html',
-                        icon: '🔥',
-                        title: 'Lit integration',
-                        description: 'A <code>LitElement</code> wraps the headless store and renders a reactive file list with lit-html templates.'
-                    },
-                    {
-                        href: 'examples-react.html',
-                        icon: '⚛️',
-                        title: 'React integration',
-                        description: 'React component using <code>useRef</code> + <code>useEffect</code> + <code>files-change</code>. JSX via htm so it runs build-free in the browser.'
-                    },
-                    {
-                        href: 'examples-vue.html',
-                        icon: '🟢',
-                        title: 'Vue 3 integration',
-                        description: 'Vue 3 setup() component with <code>isCustomElement</code> opt-in, refs, and computed stats driven by the store.'
-                    }
-                ]
-            }
-        ]
+<style>
+    .index-groups a { white-space: nowrap; }
+    .index-versions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0; }
+</style>
 
-        function renderSections() {
-            const container = document.getElementById('sections')
-            container.innerHTML = sections.map(section => `
-                <h3 class="section-heading">${section.title}<small>${section.hint}</small></h3>
-                <div class="cards">
-                    ${section.pages.map(page => `
-                        <a href="${page.href}" class="card-link">
-                            <div class="card-icon">${page.icon}</div>
-                            <h2 class="card-title">
-                                ${page.title}${page.badge ? `<span class="badge">${page.badge}</span>` : ''}
-                            </h2>
-                            <p class="card-description">${page.description}</p>
-                        </a>
-                    `).join('')}
-                </div>
-            `).join('')
+<script type="module">
+    import { renderExamplesIndex } from '@keenmate/web-components-devkit/examples';
+
+    // Demo page registry, grouped — add new pages here; they appear automatically.
+    const pageGroups = [
+        {
+            title: 'Technical reference',
+            hint: 'One concept per page — the API building blocks',
+            pages: [
+                {
+                    href: 'examples-architecture.html',
+                    icon: '🛰️',
+                    title: 'Architecture: store + satellites',
+                    description: 'Headless <web-dropzone> store with <web-dropzone-picker>, <web-dropzone-list>, and <web-dropzone-indicator> satellites — plus a BYO-renderer example using files-change.'
+                },
+                {
+                    href: 'examples-display.html',
+                    icon: '🎛️',
+                    title: 'Display & Composition',
+                    description: 'Selector / list appearance axes, card sizes, popover placement, files-inside layout, single vs multiple, accept patterns, and the programmatic API.'
+                },
+                {
+                    href: 'examples-validation.html',
+                    icon: '✅',
+                    title: 'Validation & Rejection',
+                    description: 'maxSize, maxFiles, MIME/extension filters, custom validators, async confirmation gates, and file-reject handling.'
+                },
+                {
+                    href: 'examples-upload.html',
+                    icon: '📤',
+                    title: 'Upload Pipeline',
+                    description: 'uploadFileCallback with pause / resume / retry, concurrency, manual mode, and resume-aware progress via ctx.startBytes.'
+                },
+                {
+                    href: 'examples-structural.html',
+                    icon: '✨',
+                    title: 'Structural Rendering',
+                    description: 'render-mode="structural" — override file items, prompts, summaries, AND the list wrapper (table layouts!). Element-returning rows survive state ticks via file-row-update events.'
+                },
+                {
+                    href: 'examples-form.html',
+                    icon: '📝',
+                    title: 'Form Integration',
+                    description: 'Form-associated submission with real FormData, automatic form reset, and field naming.'
+                },
+                {
+                    href: 'examples-drag-overlay.html',
+                    icon: '🎯',
+                    title: 'Drag Overlay',
+                    description: 'Trigger a full-element drop overlay when files are dragged over an existing input or form area.'
+                },
+                {
+                    href: 'examples-theming.html',
+                    icon: '🎨',
+                    title: 'Theming & Sizing',
+                    description: 'Three levels: --base-* (cross-component), --dz-* (component), --dz-rem (global scaling). Live playground + recipe for building your own theme.'
+                },
+                {
+                    href: 'examples-logging.html',
+                    icon: '🐛',
+                    title: 'Logging & Debugging',
+                    description: 'Built-in logging system with categorized debug output for development and troubleshooting.'
+                }
+            ]
+        },
+        {
+            title: 'Real-world scenarios',
+            hint: 'Applied demos showing what\'s possible',
+            pages: [
+                {
+                    href: 'examples-sharepoint-collisions.html',
+                    icon: '🗂️',
+                    title: 'SharePoint-style name collision check',
+                    description: 'Pre-upload server check for existing filenames, per-row Overwrite / Rename / Skip decisions via render-mode="structural".'
+                },
+                {
+                    href: 'examples-split-overlay.html',
+                    icon: '📨',
+                    title: 'Outlook-style split overlay',
+                    description: 'Two dropzones share the viewport — split-screen "attach as file" vs "share as link" reveal during drag.'
+                }
+            ]
+        },
+        {
+            title: 'Framework integration',
+            hint: 'Each wraps the headless store in a host framework',
+            pages: [
+                {
+                    href: 'examples-lit.html',
+                    icon: '🔥',
+                    title: 'Lit integration',
+                    description: 'A LitElement wraps the headless store and renders a reactive file list with lit-html templates.'
+                },
+                {
+                    href: 'examples-react.html',
+                    icon: '⚛️',
+                    title: 'React integration',
+                    description: 'React component using useRef + useEffect + files-change. JSX via htm so it runs build-free in the browser.'
+                },
+                {
+                    href: 'examples-vue.html',
+                    icon: '🟢',
+                    title: 'Vue 3 integration',
+                    description: 'Vue 3 setup() component with isCustomElement opt-in, refs, and computed stats driven by the store.'
+                }
+            ]
         }
+    ];
 
-        renderSections()
+    const indexElement = renderExamplesIndex({
+        pages: pageGroups.flatMap((pageGroup) => pageGroup.pages),
+        links: [{ label: 'Architecture', href: 'https://github.com/keenmate/web-dropzone/blob/main/ARCHITECTURE.md' }],
+    });
 
-        // Feed the floating jump-nav (examples-chapter-nav.js) from the same
-        // registry, flattened across sections — so the index gets a quick
-        // "hop to any example" list with no extra data to maintain.
-        window.CHAPTER_NAV_ITEMS = sections.flatMap(section =>
-            section.pages.map(page => ({ label: page.title, href: page.href }))
-        )
-    </script>
+    // The intro card goes between the header and the page cards. The cards are
+    // one flat grid (renderExamplesIndex has no groups), so the grouping is
+    // spelled out in the intro, from the same registry.
+    const introFragment = document.getElementById('index-intro').content.cloneNode(true);
+    const escapeHtml = (text) => text.replace(/[&<>"']/g, (character) => `&#${character.charCodeAt(0)};`);
+    introFragment.querySelector('[data-index-groups]').innerHTML = pageGroups
+        .map((pageGroup) => `<li><strong>${escapeHtml(pageGroup.title)}</strong> — ${escapeHtml(pageGroup.hint)}: ${pageGroup.pages
+            .map((page) => `<a href="${escapeHtml(page.href)}">${escapeHtml(page.title)}</a>`)
+            .join(', ')}</li>`)
+        .join('');
+    indexElement.querySelector('header').after(introFragment);
 
-    <!-- Loads the dropzone module so window.components['web-dropzone'] is populated.
-         The landing page itself doesn't use any <web-dropzone> elements, but
-         importing the module here lets us read the two package versions from
-         the global API and render them in the header badges. -->
-    <script type="module">
-        import '/src/index.ts'
-        const api = window.components?.['web-dropzone']?.config
-        if (api) {
-            document.getElementById('renderer-version').textContent = 'v' + api.version
-            document.getElementById('core-version').textContent = 'v' + api.core.version
-        }
-    </script>
-
-    <script type="module" src="examples-chapter-nav.js"></script>
-</body>
-</html>
+    // Both package versions, from the renderer's global API (the entry is loaded in <head>).
+    const componentConfig = window.components?.['web-dropzone']?.config;
+    if (componentConfig) {
+        document.querySelector('[data-renderer-version]').textContent = `v${componentConfig.version}`;
+        document.querySelector('[data-core-version]').textContent = `v${componentConfig.core.version}`;
+    }
+</script>

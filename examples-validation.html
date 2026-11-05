@@ -1,10 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Validation & Rejection - Web Dropzone</title>
-    <link rel="stylesheet" href="examples-shared.css">
+<meta name="kmwc:title" content="✅ Validation & Rejection">
+<meta name="kmwc:subtitle" content="Size limits, count limits, MIME/extension filters, and custom validators">
+
     <style>
         .rejected-log {
             background: #fef2f2;
@@ -30,14 +26,6 @@
         .rejected-log .name { font-weight: 600; }
         .rejected-log .reason { color: #b91c1c; }
     </style>
-</head>
-<body>
-    <div class="container">
-        <header>
-            <a href="index.html" class="back-link">← Back to Examples</a>
-            <h1>✅ Validation & Rejection</h1>
-            <p class="subtitle">Size limits, count limits, MIME/extension filters, and custom validators</p>
-        </header>
 
         <!-- MAX SIZE -->
         <div class="card">
@@ -218,7 +206,7 @@ el.beforeFilesRemoveCallback = async ({ files, allFiles }) =&gt; {
         <footer>
             <p><a href="index.html">← Back to Examples</a></p>
         </footer>
-    </div>
+
 
     <script type="module">
         import { simulateUpload } from '/examples-shared.js';
@@ -285,8 +273,3 @@ el.beforeFilesRemoveCallback = async ({ files, allFiles }) =&gt; {
             return d.innerHTML
         }
     </script>
-
-    <script type="module" src="/src/index.ts"></script>
-    <script type="module" src="examples-chapter-nav.js"></script>
-</body>
-</html>

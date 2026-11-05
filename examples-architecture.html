@@ -1,10 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Architecture — Web Dropzone</title>
-    <link rel="stylesheet" href="examples-shared.css">
+<meta name="kmwc:title" content="Architecture: store + satellites">
+<meta name="kmwc:subtitle" content="Live demonstration of <code>&lt;web-dropzone&gt;</code> as a headless store with bound <code>&lt;web-dropzone-picker&gt;</code>, <code>&lt;web-dropzone-list&gt;</code>, and <code>&lt;web-dropzone-indicator&gt;</code> satellite renderers — see <code>ARCHITECTURE.md</code>.">
+
     <style>
         .scenario-row {
             display: grid;
@@ -231,14 +227,6 @@
             transform: none;
         }
     </style>
-</head>
-<body>
-    <div class="container">
-        <header>
-            <a href="index.html" class="back-link">← Back to examples</a>
-            <h1>Architecture: store + satellites</h1>
-            <p class="subtitle">Live demonstration of <code>&lt;web-dropzone&gt;</code> as a headless store with bound <code>&lt;web-dropzone-picker&gt;</code>, <code>&lt;web-dropzone-list&gt;</code>, and <code>&lt;web-dropzone-indicator&gt;</code> satellite renderers — see <code>ARCHITECTURE.md</code>.</p>
-        </header>
 
         <section class="example-section">
             <h2>AR01 · The topology in one diagram</h2>
@@ -706,7 +694,7 @@ store.addEventListener('files-change', (e) =&gt; {
         <footer>
             <p>Web Dropzone · <a href="https://github.com/keenmate/web-dropzone">GitHub</a> · <a href="ARCHITECTURE.md">ARCHITECTURE.md</a></p>
         </footer>
-    </div>
+
 
     <script type="module">
         // Library exports used by the structural-callback demos below.
@@ -714,7 +702,7 @@ store.addEventListener('files-change', (e) =&gt; {
         // satellite uses for per-row actions — reused here for the
         // floating indicator's control buttons so the visual language is
         // consistent across surfaces.
-        import { ACTION_ICONS, resolveLabel } from '/src/index.ts';
+        import { ACTION_ICONS, resolveLabel } from '/packages/web-dropzone/src/index.ts';
         import { simulateUpload, wireQueueControlButton } from '/examples-shared.js';
 
         // ============================================================
@@ -1332,8 +1320,3 @@ store.addEventListener('files-change', (e) =&gt; {
             });
         }
     </script>
-
-    <script type="module" src="/src/index.ts"></script>
-    <script type="module" src="examples-chapter-nav.js"></script>
-</body>
-</html>

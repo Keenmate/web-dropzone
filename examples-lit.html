@@ -1,10 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lit integration — Web Dropzone</title>
-    <link rel="stylesheet" href="examples-shared.css">
+<meta name="kmwc:title" content="Lit integration">
+<meta name="kmwc:subtitle" content="A <code>LitElement</code> wraps a headless <code>&lt;web-dropzone&gt;</code> store, listens for <code>files-change</code>, and renders its own reactive file list with <code>lit-html</code> templates.">
+
     <style>
         .lit-list {
             display: flex;
@@ -77,14 +73,6 @@
         }
         .lit-summary strong { color: #1e1b4b; }
     </style>
-</head>
-<body>
-    <div class="container">
-        <header>
-            <a href="index.html" class="back-link">← Back to examples</a>
-            <h1>Lit integration</h1>
-            <p class="subtitle">A <code>LitElement</code> wraps a headless <code>&lt;web-dropzone&gt;</code> store, listens for <code>files-change</code>, and renders its own reactive file list with <code>lit-html</code> templates.</p>
-        </header>
 
         <section class="example-section">
             <h2>LT01 · Why Lit + headless mode is a natural fit</h2>
@@ -182,7 +170,7 @@ customElements.define('lit-uploader', LitUploader)</pre>
         <footer>
             <p>Web Dropzone · <a href="https://github.com/keenmate/web-dropzone">GitHub</a> · <a href="examples-architecture.html">Architecture</a></p>
         </footer>
-    </div>
+
 
     <script type="module">
         import { LitElement, html } from 'https://esm.sh/lit@3'
@@ -300,9 +288,3 @@ customElements.define('lit-uploader', LitUploader)</pre>
 
         customElements.define('lit-uploader', LitUploader)
     </script>
-
-    <script type="module" src="/src/index.ts"></script>
-
-    <script type="module" src="examples-chapter-nav.js"></script>
-</body>
-</html>
