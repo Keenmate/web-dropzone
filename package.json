@@ -72,7 +72,17 @@
         "packages/web-dropzone/src/css"
       ],
       "manifest": "packages/web-dropzone/component-variables.manifest.json"
-    }
+    },
+    "packages": [
+      {
+        "path": "packages/web-dropzone",
+        "kind": "component"
+      },
+      {
+        "path": "packages/web-dropzone-core",
+        "kind": "library"
+      }
+    ]
   },
   "devDependencies": {
     "@keenmate/web-components-devkit": "^1.0.0-rc10",
