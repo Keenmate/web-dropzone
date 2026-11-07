@@ -17,7 +17,9 @@ Repo tooling only — neither published package changes: both `dist/` folders ar
 byte-identical to the previous build (same file names, UMD globals `WebDropzone` /
 `WebDropzoneCore`, `dist/style.css`).
 
-- **`@keenmate/web-components-devkit` ^1.0.0-rc10** runs the examples site. The root
+- **`@keenmate/web-components-devkit` ^1.0.0-rc11** runs the examples site (every example page ends with the
+  devkit footer). `package.json#kmwc.packages` lists the two published packages, so `kmwc doctor` packs and
+  checks `packages/web-dropzone` (component) and `packages/web-dropzone-core` (library) separately. The root
   `package.json#kmwc` describes the renderer (`id: web-dropzone`, prefix `dz`) with
   `library: { shouldBuild: false, entry: packages/web-dropzone/src/index.ts }` — the root
   builds only the site — and `cssVariables` pointing at `packages/web-dropzone/`.
