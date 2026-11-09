@@ -344,6 +344,9 @@
   --dz-loader-inline-size: calc(var(--dz-loader-size) * 0.75);
   /* The uploading-row pulse is decoration, not a loader: 0s under reduced motion. */
   --dz-uploading-pulse-duration: 1.5s;
+  /* Minimum tap size of the phone-mode controls (indicator drawer close in the
+     full-screen sheet, responsive-overlay.md D-RO-7). */
+  --dz-touch-target-min: var(--base-touch-target-min, 44px);
 
   /* File Item Remove Button — empty button with × glyph painted via CSS
      mask of --dz-icon-remove on the ::before (matches .dz__badge-remove
@@ -380,6 +383,10 @@
      `grid-layout="natural"` the tile already matches the image ratio, so this
      is forced to `contain` there (no crop, no bars). */
   --dz-preview-item-object-fit: cover;
+  /* Tile width + height of the in-card grid (`files-inside` + grid list
+     appearance). `auto` = the tile sizes to its content (the long-standing
+     behaviour); set a length for fixed square tiles. */
+  --dz-preview-item-size: auto;
   /* Row height for `grid-layout="natural"` — every row is exactly this tall;
      tile widths follow each image's own aspect ratio. */
   --dz-preview-row-height: calc(16 * var(--dz-rem, 10px));
@@ -436,7 +443,7 @@
      POPOVER
      ========================================================================== */
   --dz-popover-width: calc(48 * var(--dz-rem, 10px));
-  --dz-popover-max-width: 90vw;
+  --dz-popover-max-width: 90dvw;
   --dz-popover-max-height: calc(40 * var(--dz-rem, 10px));
   /* Floors for the user-resize handle — drag below these and the box
      stops shrinking. The viewport cap is set dynamically by Floating UI's

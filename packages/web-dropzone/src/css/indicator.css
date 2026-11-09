@@ -1,9 +1,14 @@
-/*
- * <web-dropzone-indicator> — floating status chip + slide-out drawer.
- * Styles live in their own partial because the chip is a satellite-only
- * surface (no equivalent inside the convenience-form <web-dropzone>).
- */
+/* ==============================================================================
+   INDICATOR — <web-dropzone-indicator> floating status chip + slide-out drawer
+   ==============================================================================
+   Styles live in their own partial because the chip is a satellite-only
+   surface (no equivalent inside the convenience-form <web-dropzone>). Loaded
+   by <web-dropzone-indicator> only (next to main.css), NOT imported by
+   main.css — see VALIDATION-NOTES.md → C-CSS-5. */
 
+/* ==========================================================================
+   HOST
+   ========================================================================== */
 :host {
     /* Fixed-edge mode (default): element is zero-size so it doesn't take
        up flow space — the chip + drawer float via position: fixed. Inline
@@ -22,6 +27,9 @@
     display: none;
 }
 
+/* ==========================================================================
+   CHIP
+   ========================================================================== */
 /* Chip — fixed-position by default; switches to inline-flow when the
  * host is in inline mode. Cursor only points when the chip is actually
  * interactive (drawer="auto"); status-only chips look like text. */
@@ -74,6 +82,9 @@
     box-shadow: 0 calc(0.2 * var(--dz-rem, 10px)) calc(0.6 * var(--dz-rem, 10px)) var(--dz-shadow-color);
 }
 
+/* ==========================================================================
+   CHIP STATES
+   ========================================================================== */
 /* State-coloured chip — same priority as the overall progress aggregate
  * (error > uploading > paused > pending > complete). Drives the chip's
  * background + border + text color via the existing dz status palette. */
@@ -101,6 +112,9 @@
     opacity: 0.65;
 }
 
+/* ==========================================================================
+   CHIP BODY SLOTS
+   ========================================================================== */
 /* Slot styles for the default body — three flex children: file-info,
  * label, progress. Each is set as innerHTML / replaceChildren by its
  * callback (or the library default) so the chip's outer button + click
@@ -147,6 +161,9 @@
     justify-content: center;
 }
 
+/* ==========================================================================
+   POSITION ANCHORS
+   ========================================================================== */
 /* Position anchors — each variant pins to its edge with a safe-area offset
  * computed from --dz-rem. */
 :host([data-position='right'])  .dz__indicator-chip { top: 50%; right: calc(1.6 * var(--dz-rem, 10px)); transform: translateY(-50%); }
@@ -159,6 +176,9 @@
 :host([data-position='top'])    .dz__indicator-chip:hover { transform: translateX(-50%) translateY(-1px); }
 :host([data-position='bottom']) .dz__indicator-chip:hover { transform: translateX(-50%) translateY(-1px); }
 
+/* ==========================================================================
+   DRAWER
+   ========================================================================== */
 /* Drawer — fixed-position panel that slides in from the same edge as the
  * chip. Closed by default (translated off-screen + visibility hidden so it
  * doesn't trap focus). */
@@ -177,10 +197,10 @@
 
 /* Per-edge drawer geometry: occupy a strip along the edge, slide off-screen
  * in the closed state. */
-:host([data-position='right'])  .dz__indicator-drawer { top: 0; right: 0; bottom: 0; width: min(40rem, 90vw); transform: translateX(100%); border-right: none; }
-:host([data-position='left'])   .dz__indicator-drawer { top: 0; left: 0; bottom: 0;  width: min(40rem, 90vw); transform: translateX(-100%); border-left: none; }
-:host([data-position='top'])    .dz__indicator-drawer { top: 0; left: 0; right: 0;   height: min(60vh, 50rem); transform: translateY(-100%); border-top: none; }
-:host([data-position='bottom']) .dz__indicator-drawer { bottom: 0; left: 0; right: 0; height: min(60vh, 50rem); transform: translateY(100%); border-bottom: none; }
+:host([data-position='right'])  .dz__indicator-drawer { top: 0; right: 0; bottom: 0; width: min(40rem, 90dvw); transform: translateX(100%); border-right: none; }
+:host([data-position='left'])   .dz__indicator-drawer { top: 0; left: 0; bottom: 0;  width: min(40rem, 90dvw); transform: translateX(-100%); border-left: none; }
+:host([data-position='top'])    .dz__indicator-drawer { top: 0; left: 0; right: 0;   height: min(60dvh, 50rem); transform: translateY(-100%); border-top: none; }
+:host([data-position='bottom']) .dz__indicator-drawer { bottom: 0; left: 0; right: 0; height: min(60dvh, 50rem); transform: translateY(100%); border-bottom: none; }
 
 /* Inline-mode drawer: behaves like a popover anchored to the chip rather
  * than a viewport-edge slab. Drops down below the chip, fades in instead
@@ -194,8 +214,8 @@
     position: absolute;
     top: calc(100% + calc(0.4 * var(--dz-rem, 10px)));
     left: 0;
-    width: min(36rem, 92vw);
-    max-height: min(60vh, 40rem);
+    width: min(36rem, 92dvw);
+    max-height: min(60dvh, 40rem);
     border-radius: calc(0.6 * var(--dz-rem, 10px));
     transform: translateY(calc(-0.4 * var(--dz-rem, 10px)));
 }
@@ -217,6 +237,9 @@
     pointer-events: none;
 }
 
+/* ==========================================================================
+   DRAWER CHROME
+   ========================================================================== */
 .dz__indicator-drawer-header {
     display: flex;
     align-items: center;
@@ -263,5 +286,39 @@
 .dz__indicator-drawer-body {
     flex: 1 1 auto;
     overflow-y: auto;
+    /* A fling at the list edge must not scroll the page behind the drawer. */
+    overscroll-behavior: contain;
     padding: calc(1.2 * var(--dz-rem, 10px)) calc(1.6 * var(--dz-rem, 10px));
+}
+
+/* ==========================================================================
+   PHONE PRESENTATION — the drawer goes edge-to-edge full-screen
+   ==========================================================================
+   responsive-overlay.md (D-RO-2 = A full-screen, D-RO-3 = A 600px, the only
+   phone literal in the package). Every position (edge strips AND the inline
+   chip-anchored drop-down) becomes a fixed 100dvw x 100dvh sheet; the closed
+   state keeps each edge's slide transform, the open state's translate(0, 0)
+   is untouched. box-sizing + four-edge env(safe-area-inset-*) keep the header
+   and rows out of the notch / home indicator / landscape side bars while the
+   background stays full-bleed. Same specificity as the per-position rules
+   above (:host([…]) .class), later in source, so it wins. */
+@media (max-width: 600px) {
+    :host([data-position]) .dz__indicator-drawer {
+        position: fixed;
+        inset: 0;
+        box-sizing: border-box;
+        width: 100dvw;
+        height: 100dvh;
+        max-height: none;
+        padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    /* Touch target (D-RO-7 = A, --dz-touch-target-min → --base-touch-target-min, 44px). */
+    .dz__indicator-drawer-close {
+        min-width: var(--dz-touch-target-min);
+        min-height: var(--dz-touch-target-min);
+    }
 }

@@ -154,6 +154,8 @@
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
+  /* A fling at the list edge must not scroll the page behind the popover. */
+  overscroll-behavior: contain;
   padding: var(--dz-popover-body-padding);
 }
 

@@ -11,6 +11,18 @@ web-dropzone:not(:defined) {
   background: transparent;
 }
 
+/* The four satellites (registered by the same entry point). No min-height:
+   their footprint depends on the page (a picker button, an empty list, a
+   zero-size fixed-edge indicator), so only hide any light-DOM text until the
+   upgrade — no display change, no reflow when they upgrade. */
+web-dropzone-picker:not(:defined),
+web-dropzone-list:not(:defined),
+web-dropzone-indicator:not(:defined),
+web-dropzone-progress:not(:defined) {
+  color: transparent !important;
+  background: transparent;
+}
+
 /* Host container */
 .dz__host {
   position: relative;
