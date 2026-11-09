@@ -180,26 +180,36 @@
 
             <div class="form-group">
                 <label>Bulk uploader</label>
-                <web-dropzone
-                    id="overlay-fullpage"
-                    display-mode="compact"
-                    overlay-icon="⚡"
-                    accept="*/*"
-                    labels='{"overlay": "Drop files anywhere on the page"}'>
-                </web-dropzone>
-                <div class="picked-files" id="fullpage-output">(none picked yet)</div>
+                <kmwc-demo>
+                    <web-dropzone
+                        id="overlay-fullpage"
+                        display-mode="compact"
+                        overlay-icon="⚡"
+                        accept="*/*"
+                        labels='{"overlay": "Drop files anywhere on the page"}'>
+                    </web-dropzone>
+                    <div class="picked-files" id="fullpage-output">(none picked yet)</div>
+                    <script type="module" data-kmwc-show>
+                        const el = document.getElementById('overlay-fullpage')
+                        // Set as a property — accepts an HTMLElement directly (an attribute takes
+                        // an id: overlay-target="my-element"). The setter stashes the element on
+                        // the host even before the underlying store is constructed.
+                        el.overlayTarget = document.body
+
+                        const out = document.getElementById('fullpage-output')
+                        el.addEventListener('change', (e) => {
+                            const files = e.target.files
+                            out.textContent = files.length
+                                ? `${files.length} file(s): ${files.map(f => f.name).join(', ')}`
+                                : '(none picked yet)'
+                        })
+                    </script>
+                </kmwc-demo>
             </div>
 
             <div class="full-page-target">
                 <h3>Drop anywhere on this page</h3>
                 <p>The whole page is the drop target — the overlay covers <code>document.body</code>.</p>
-            </div>
-
-            <div class="code-block">
-                <pre><code>const el = document.getElementById('overlay-fullpage')
-// Set as a property — accepts HTMLElement directly:
-el.overlayTarget = document.body
-// (you can also pass a string id like overlay-target="my-element")</code></pre>
             </div>
         </div>
 
@@ -258,19 +268,5 @@ el.overlayTarget = document.body
                 rejectToast.hidden = true
                 rejectToast.innerHTML = ''
             }, 4000)
-        })
-
-        // Full-page overlay: pass body as an element via the property.
-        // The setter stashes the element on the host even before the
-        // underlying store is constructed — buildConfig picks it up.
-        const fullpage = document.getElementById('overlay-fullpage')
-        fullpage.overlayTarget = document.body
-
-        const out = document.getElementById('fullpage-output')
-        fullpage.addEventListener('change', (e) => {
-            const files = e.target.files
-            out.textContent = files.length
-                ? `${files.length} file(s): ${files.map(f => f.name).join(', ')}`
-                : '(none picked yet)'
         })
     </script>

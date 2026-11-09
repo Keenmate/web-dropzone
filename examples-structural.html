@@ -2,411 +2,10 @@
 <meta name="kmwc:subtitle" content="Override file items, prompts, summaries, and the list wrapper via render callbacks">
 <link rel="stylesheet" href="examples-local.css">
 
-        <!-- INTRO -->
-        <div class="card">
-            <h2>SR01 · Structural mode (<code>render-mode="structural"</code>)</h2>
-            <p>This page covers <strong>mode 2 of 3</strong> — the framework owns when and what to render, you provide the HTML structure via callbacks. The hard-switch <code>render-mode="structural"</code> attribute is required: setting a render callback alone does nothing in the default <code>render-mode="bulk"</code>.</p>
-
-            <div class="code-block">
-                <pre><code>&lt;web-dropzone render-mode="structural" display-mode="detailed" id="x"&gt;&lt;/web-dropzone&gt;
-&lt;script&gt;
-  const el = document.getElementById('x')
-  // Every callback takes ONE ctx (+ ctx.controller / ctx.element)
-  el.renderPromptCallback      = (ctx)                                       =&gt; '...'  // dropzone prompt
-  el.renderFileItemCallback    = ({ file, fileIndex, displayMode, isInPopover }) =&gt; '...'  // one file row
-  el.renderListWrapperCallback = ({ rowsHtml, files })                       =&gt; '...'  // wraps the rows
-  el.renderSummaryCallback     = ({ files })                                 =&gt; '...'  // compact-mode summary
-&lt;/script&gt;</code></pre>
-            </div>
-            <div class="note">
-                <div class="note-title">When to use which mode</div>
-                <ul>
-                    <li><code>render-mode="bulk"</code> (default) — you want the working UI fast; style via CSS variables.</li>
-                    <li><code>render-mode="structural"</code> — you want custom HTML shape (this page).</li>
-                    <li><code>render-mode="headless"</code> — you want pure events + own renderer (see <a href="examples-architecture.html">Architecture</a>).</li>
-                </ul>
-            </div>
-        </div>
-
-        <!-- PROMPT -->
-        <div class="card">
-            <h2>SR02 · Custom Prompt (<code>renderPromptCallback</code>)</h2>
-            <p>Replaces the inner content of the dropzone prompt area.</p>
-
-            <div class="grid">
-                <div class="form-group">
-                    <label>Cloud upload prompt</label>
-                    <web-dropzone id="prompt-cloud" render-mode="structural" display-mode="detailed"></web-dropzone>
-                </div>
-
-                <div class="form-group">
-                    <label>Two-line marketing prompt</label>
-                    <web-dropzone id="prompt-marketing" render-mode="structural" display-mode="detailed"></web-dropzone>
-                </div>
-            </div>
-
-            <div class="code-block">
-                <pre><code>document.getElementById('prompt-cloud').renderPromptCallback = () =&gt; `
-    &lt;div style="display:flex;flex-direction:column;align-items:center;gap:0.5rem;"&gt;
-        &lt;svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#667eea"
-             stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"&gt;
-            &lt;path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/&gt;
-            &lt;polyline points="17 8 12 3 7 8"/&gt;
-            &lt;line x1="12" y1="3" x2="12" y2="15"/&gt;
-        &lt;/svg&gt;
-        &lt;strong&gt;Upload to cloud&lt;/strong&gt;
-        &lt;small style="color:var(--kmwc-text-color-3)"&gt;Drag and drop or click to browse&lt;/small&gt;
-    &lt;/div&gt;
-`</code></pre>
-            </div>
-        </div>
-
-        <!-- FILE ITEM -->
-        <div class="card">
-            <h2>SR03 · Custom File Item (<code>renderFileItemCallback</code>)</h2>
-            <p>Each call receives one <code>ctx</code>: the <code>file</code> (<code>FileState</code>), its render position (<code>fileIndex</code>, <code>displayMode</code>, <code>isInPopover</code>) and <code>controller</code> / <code>element</code>. Return a string or an <code>HTMLElement</code>.</p>
-
-            <div class="form-group">
-                <label>Receipts list with date + currency formatting</label>
-                <web-dropzone
-                    id="item-receipts"
-                    render-mode="structural"
-                    display-mode="list"
-                    accept=".pdf,image/*"
-                    labels='{"prompt": "Drop receipts"}'>
-                </web-dropzone>
-            </div>
-
-            <div class="code-block">
-                <pre><code>el.renderFileItemCallback = ({ file }) =&gt; `
-    &lt;div class="receipt-row" data-file-id="${file.id}"&gt;
-        &lt;span class="receipt-icon"&gt;🧾&lt;/span&gt;
-        &lt;span class="receipt-name"&gt;${file.name}&lt;/span&gt;
-        &lt;span class="receipt-date"&gt;${new Date(file.file.lastModified).toLocaleDateString()}&lt;/span&gt;
-        &lt;span class="receipt-size"&gt;${(file.size/1024).toFixed(1)} KB&lt;/span&gt;
-        &lt;button data-dz-action="remove" data-file-id="${file.id}"&gt;×&lt;/button&gt;
-    &lt;/div&gt;
-`</code></pre>
-            </div>
-
-            <div class="note">
-                <div class="note-title">Required hooks</div>
-                <ul>
-                    <li>Keep <code>data-file-id="${file.id}"</code> on the root element so internal patching can target the row.</li>
-                    <li>For remove buttons, set <code>data-dz-action="remove"</code> and <code>data-file-id="${file.id}"</code> — click handlers are auto-attached.</li>
-                </ul>
-            </div>
-        </div>
-
-        <!-- DOM ELEMENT RETURN -->
-        <div class="card">
-            <h2>SR04 · Returning a live <code>HTMLElement</code></h2>
-            <p>If you'd rather build with the DOM API than concatenate strings, return an element directly. Useful for binding event listeners or attaching data.</p>
-
-            <div class="form-group">
-                <label>Files with click-to-preview links</label>
-                <web-dropzone
-                    id="item-dom"
-                    render-mode="structural"
-                    display-mode="list"
-                    accept="*/*"
-                    labels='{"prompt": "Drop files (click row to preview in new tab)"}'>
-                </web-dropzone>
-            </div>
-
-            <div class="code-block">
-                <pre><code>el.renderFileItemCallback = ({ file }) =&gt; {
-    const row = document.createElement('div')
-    row.className = 'dz__file-item dz__file-item--list'
-    row.dataset.fileId = file.id
-
-    const name = document.createElement('a')
-    name.textContent = file.name
-    name.href = URL.createObjectURL(file.file)
-    name.target = '_blank'
-    name.style.flex = '1'
-    name.style.color = '#667eea'
-    name.style.textDecoration = 'underline'
-    row.appendChild(name)
-
-    const btn = document.createElement('button')
-    btn.textContent = '×'
-    btn.dataset.dzAction = 'remove'
-    btn.dataset.fileId = file.id
-    btn.className = 'dz__file-item-remove'
-    row.appendChild(btn)
-
-    return row
-}</code></pre>
-            </div>
-        </div>
-
-        <!-- SUMMARY -->
-        <div class="card">
-            <h2>SR05 · Custom Compact Summary (<code>renderSummaryCallback</code>)</h2>
-            <p>Replaces the inline summary line that triggers the compact-mode popover. Required: include an element with class <code>dz__summary-line</code> so the popover click handler still binds correctly.</p>
-
-            <div class="form-group">
-                <label>Counter pill with total size</label>
-                <web-dropzone
-                    id="summary-custom"
-                    render-mode="structural"
-                    display-mode="compact"
-                    accept="*/*"
-                    labels='{"prompt": "Drop files"}'>
-                </web-dropzone>
-                <small class="form-text">Click the summary to open the file popover.</small>
-            </div>
-
-            <div class="code-block">
-                <pre><code>el.renderSummaryCallback = ({ files }) =&gt; {
-    const total = files.reduce((s, f) =&gt; s + f.size, 0)
-    return `
-        &lt;div class="dz__summary-line" tabindex="0" role="button"&gt;
-            &lt;span class="pill"&gt;${files.length}&lt;/span&gt;
-            &lt;span&gt;files · ${(total/1024).toFixed(1)} KB&lt;/span&gt;
-        &lt;/div&gt;
-    `
-}
-
-el.getCustomStylesCallback = () =&gt; `
-    .pill {
-        display: inline-block;
-        background: #667eea; color: white;
-        border-radius: 999px;
-        padding: 0.1rem 0.55rem;
-        font-weight: 600; font-size: 0.85em;
-    }
-`</code></pre>
-            </div>
-        </div>
-
-        <!-- LIST WRAPPER -->
-        <div class="card">
-            <h2>SR06 · Custom List Wrapper (<code>renderListWrapperCallback</code>)</h2>
-            <p>Replaces the <code>&lt;div class="dz__file-list"&gt;</code> shell around the rows. Pairs with <code>renderFileItemCallback</code> to build table layouts. The wrapper receives the rows as an HTML string and the files array, returns the surrounding HTML.</p>
-
-            <div class="form-group">
-                <label>File queue as a real &lt;table&gt; — auto-upload, pause/resume/retry per row, completed rows reorder to the bottom</label>
-                <web-dropzone
-                    id="wrapper-table"
-                    render-mode="structural"
-                    display-mode="list"
-                    accept="*/*"
-                    multiple
-                    auto-upload
-                    sink-completed
-                    sink-completed-delay="1200"
-                    labels='{"prompt": "Drop files into the table"}'>
-                </web-dropzone>
-                <small class="form-text">~20% of files randomly fail mid-upload — click 🔄 to retry from where they left off, not from 0.</small>
-            </div>
-
-            <div class="code-block">
-                <pre><code>el.renderListWrapperCallback = ({ rowsHtml }) =&gt; `
-    &lt;table class="receipt-table"&gt;
-        &lt;thead&gt;&lt;tr&gt;
-            &lt;th&gt;Name&lt;/th&gt;&lt;th&gt;Type&lt;/th&gt;&lt;th&gt;Size&lt;/th&gt;&lt;th&gt;&lt;/th&gt;
-        &lt;/tr&gt;&lt;/thead&gt;
-        &lt;tbody&gt;${rowsHtml}&lt;/tbody&gt;
-    &lt;/table&gt;
-`
-el.renderFileItemCallback = ({ file }) =&gt; `
-    &lt;tr data-file-id="${file.id}"&gt;
-        &lt;td&gt;${file.name}&lt;/td&gt;
-        &lt;td&gt;${file.type || '—'}&lt;/td&gt;
-        &lt;td&gt;${(file.size/1024).toFixed(1)} KB&lt;/td&gt;
-        &lt;td&gt;&lt;button data-dz-action="remove" data-file-id="${file.id}"&gt;×&lt;/button&gt;&lt;/td&gt;
-    &lt;/tr&gt;
-`</code></pre>
-            </div>
-
-            <div class="note">
-                <div class="note-title">Caveats</div>
-                <ul>
-                    <li>Keep <code>data-file-id</code> on each row so internal patching can target it.</li>
-                    <li>Combining the wrapper with an <em>HTMLElement</em>-returning row callback (see next section) falls back to the string path — element identity is not preserved through wrapper composition.</li>
-                </ul>
-            </div>
-        </div>
-
-        <!-- ELEMENT-RETURNING ROW + EVENTS -->
-        <div class="card">
-            <h2>SR07 · Event-driven rows (<code>file-row-update</code>)</h2>
-            <p>When <code>renderFileItemCallback</code> returns an <code>HTMLElement</code>, the framework preserves it across state changes — instead of re-rendering, it dispatches a <code>file-row-update</code> CustomEvent on the row. Listeners attached during the initial render survive every tick, so you can wire complex per-row behavior without redoing it on every progress event.</p>
-
-            <div class="form-group">
-                <label>Click a row to ⭐ favorite — the toggle survives every upload tick, pause, resume, retry, and reorder</label>
-                <web-dropzone
-                    id="event-rows"
-                    render-mode="structural"
-                    display-mode="list"
-                    accept="*/*"
-                    multiple
-                    auto-upload
-                    sink-completed
-                    sink-completed-delay="1200"
-                    progress-throttle="120"
-                    labels='{"prompt": "Drop files (click a row to toggle ⭐)"}'>
-                </web-dropzone>
-                <small class="form-text">Simulated upload runs on selection. ⏸ pause / ▶ resume / 🔄 retry buttons appear based on each file's status; the framework's <code>data-dz-action="row-action"</code> convention auto-wires them.</small>
-            </div>
-
-            <div class="code-block">
-                <pre><code>el.renderFileItemCallback = ({ file }) =&gt; {
-    const row = document.createElement('div')
-    row.dataset.fileId = file.id
-    row.innerHTML = `
-        &lt;span class="star"&gt;☆&lt;/span&gt;
-        &lt;span class="name"&gt;${file.name}&lt;/span&gt;
-        &lt;progress class="bar" max="100" value="0"&gt;&lt;/progress&gt;
-        &lt;span class="pct"&gt;0%&lt;/span&gt;
-    `
-    row.querySelector('.star').addEventListener('click', e =&gt; {
-        e.currentTarget.textContent =
-            e.currentTarget.textContent === '☆' ? '⭐' : '☆'
-    })
-    row.addEventListener('file-row-update', e =&gt; {
-        const { file } = e.detail
-        row.querySelector('.bar').value  = file.progress
-        row.querySelector('.pct').textContent = Math.round(file.progress) + '%'
-    })
-    return row
-}</code></pre>
-            </div>
-
-            <div class="note">
-                <div class="note-title">Why the throttle?</div>
-                <p>The <code>progress-throttle="120"</code> attribute caps per-file event emission and DOM patching at one every 120 ms. Without it, a 20-file upload at the default 50 ms tick rate would fire 400 <code>file-row-update</code> events / sec.</p>
-            </div>
-        </div>
-
-        <footer>
-            <p><a href="index.html">← Back to Examples</a></p>
-        </footer>
-
 
     <script type="module">
-        // ---------------------------------------------------------------- prompts
-
-        document.getElementById('prompt-cloud').renderPromptCallback = () => `
-            <div style="display:flex;flex-direction:column;align-items:center;gap:0.5rem;">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#667eea"
-                     stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                    <polyline points="17 8 12 3 7 8"/>
-                    <line x1="12" y1="3" x2="12" y2="15"/>
-                </svg>
-                <strong>Upload to cloud</strong>
-                <small style="color:var(--kmwc-text-color-3)">Drag and drop or click to browse</small>
-            </div>
-        `
-
-        document.getElementById('prompt-marketing').renderPromptCallback = () => `
-            <div style="text-align:center;line-height:1.4">
-                <div style="font-size:2.5rem">🎯</div>
-                <div style="font-size:1.15rem;font-weight:600;color:var(--kmwc-text-color-1)">Get your free analysis</div>
-                <div style="color:var(--kmwc-text-color-3);font-size:0.9rem">Upload your report (PDF or image) and we'll do the rest</div>
-            </div>
-        `
-
-        // ---------------------------------------------------------------- receipt rows
-
-        const receipts = document.getElementById('item-receipts')
-        receipts.getCustomStylesCallback = () => `
-            .receipt-row {
-                display: grid;
-                grid-template-columns: auto 1fr auto auto auto;
-                gap: 0.75rem;
-                align-items: center;
-                padding: 0.6rem 0.9rem;
-                border: 1px solid var(--kmwc-border-color);
-                border-radius: 6px;
-                background: var(--kmwc-main-bg);
-                font-size: 0.9rem;
-            }
-            .receipt-icon { font-size: 1.2rem; }
-            .receipt-name { font-weight: 600; color: var(--kmwc-text-color-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-            .receipt-date { color: var(--kmwc-text-color-3); font-size: 0.8rem; }
-            .receipt-size { color: var(--kmwc-text-color-3); font-size: 0.8rem; }
-            .receipt-row button {
-                background: transparent; border: none; cursor: pointer;
-                font-size: 1.2rem; color: var(--kmwc-text-color-4); padding: 0 0.4rem;
-            }
-            .receipt-row button:hover { color: var(--kmwc-danger-color); }
-        `
-        receipts.renderFileItemCallback = ({ file }) => `
-            <div class="receipt-row" data-file-id="${file.id}">
-                <span class="receipt-icon">🧾</span>
-                <span class="receipt-name">${escapeHtml(file.name)}</span>
-                <span class="receipt-date">${new Date(file.file.lastModified).toLocaleDateString()}</span>
-                <span class="receipt-size">${(file.size/1024).toFixed(1)} KB</span>
-                <button data-dz-action="remove" data-file-id="${file.id}" title="Remove">×</button>
-            </div>
-        `
-
-        // ---------------------------------------------------------------- DOM-element returns
-
-        const itemDom = document.getElementById('item-dom')
-        itemDom.renderFileItemCallback = ({ file }) => {
-            const row = document.createElement('div')
-            row.className = 'dz__file-item dz__file-item--list'
-            row.dataset.fileId = file.id
-            row.style.display = 'flex'
-            row.style.alignItems = 'center'
-            row.style.gap = '0.5rem'
-            row.style.padding = '0.5rem 0.75rem'
-            row.style.border = '1px solid #e5e7eb'
-            row.style.borderRadius = '6px'
-            row.style.background = 'white'
-
-            const link = document.createElement('a')
-            link.textContent = file.name
-            link.href = URL.createObjectURL(file.file)
-            link.target = '_blank'
-            link.style.flex = '1'
-            link.style.color = '#667eea'
-            link.style.textDecoration = 'underline'
-            row.appendChild(link)
-
-            const btn = document.createElement('button')
-            btn.textContent = '×'
-            btn.dataset.dzAction = 'remove'
-            btn.dataset.fileId = file.id
-            btn.style.background = 'transparent'
-            btn.style.border = 'none'
-            btn.style.cursor = 'pointer'
-            btn.style.fontSize = '1.1rem'
-            btn.style.color = '#9ca3af'
-            row.appendChild(btn)
-
-            return row
-        }
-
-        // ---------------------------------------------------------------- compact summary
-
-        const summary = document.getElementById('summary-custom')
-        summary.getCustomStylesCallback = () => `
-            .pill {
-                display: inline-block;
-                background: var(--kmwc-accent-color); color: white;
-                border-radius: 999px;
-                padding: 0.1rem 0.55rem;
-                font-weight: 600; font-size: 0.85em;
-                margin-right: 0.3rem;
-            }
-        `
-        summary.renderSummaryCallback = ({ files }) => {
-            const total = files.reduce((s, f) => s + f.size, 0)
-            return `
-                <div class="dz__summary-line" tabindex="0" role="button" aria-label="View files">
-                    <span class="pill">${files.length}</span>
-                    <span>files · ${(total/1024).toFixed(1)} KB</span>
-                </div>
-            `
-        }
-
-        // ---------------------------------------------------------------- shared upload simulator
+        // Page helpers the demo scripts below call. Module scripts run in document
+        // order, so these are on window before any demo needs them.
 
         // Resume-aware fake upload. `ctx.startPercent` is the file's
         // current progress at the moment uploadFileCallback is (re)invoked
@@ -466,184 +65,475 @@ el.renderFileItemCallback = ({ file }) =&gt; `
             return null
         }
 
-        // ---------------------------------------------------------------- list wrapper (table)
-
-        const wrapperTable = document.getElementById('wrapper-table')
-        wrapperTable.getCustomStylesCallback = () => `
-            .receipt-table { width: 100%; border-collapse: collapse; }
-            .receipt-table th,
-            .receipt-table td {
-                padding: 0.5rem 0.75rem;
-                border-bottom: 1px solid var(--kmwc-border-color);
-                text-align: left;
-                font-size: 0.9rem;
-                vertical-align: middle;
-            }
-            .receipt-table thead th {
-                background: var(--kmwc-elevated-bg);
-                font-weight: 600;
-                color: var(--kmwc-text-color-2);
-            }
-            .receipt-table tbody tr[data-status="complete"] td { color: #16a34a; }
-            .receipt-table tbody tr[data-status="error"] td    { color: var(--kmwc-danger-color); }
-            .receipt-table tbody tr[data-status="paused"] td   { color: #a16207; }
-            .receipt-table .progress-cell { width: 14rem; }
-            .receipt-table progress {
-                width: 100%; height: 0.5rem;
-                appearance: none; -webkit-appearance: none;
-                border: 1px solid var(--kmwc-border-color); border-radius: 999px;
-                background: var(--kmwc-hover-bg);
-            }
-            .receipt-table progress::-webkit-progress-bar { background: transparent; }
-            .receipt-table progress::-webkit-progress-value { background: var(--kmwc-accent-color); border-radius: 999px; }
-            .receipt-table progress::-moz-progress-bar     { background: var(--kmwc-accent-color); border-radius: 999px; }
-            .receipt-table .pct {
-                font-variant-numeric: tabular-nums;
-                font-size: 0.8rem; color: var(--kmwc-text-color-3);
-                margin-left: 0.4rem;
-            }
-            .receipt-table .actions { text-align: right; white-space: nowrap; }
-            .receipt-table .actions button {
-                background: transparent;
-                border: none;
-                cursor: pointer;
-                color: var(--kmwc-text-color-3);
-                font-size: 1rem;
-                padding: 0.1rem 0.3rem;
-                line-height: 1;
-            }
-            .receipt-table .actions button:hover { color: var(--kmwc-text-color-1); }
-            .receipt-table .actions .rm:hover    { color: var(--kmwc-danger-color); }
-        `
-        wrapperTable.renderListWrapperCallback = ({ rowsHtml }) => `
-            <table class="receipt-table">
-                <thead><tr>
-                    <th>Name</th><th>Type</th><th>Size</th><th>Progress</th><th></th>
-                </tr></thead>
-                <tbody>${rowsHtml}</tbody>
-            </table>
-        `
-        wrapperTable.renderFileItemCallback = ({ file }) => {
-            const a = actionIconFor(file.status)
-            const actionBtn = a
-                ? `<button data-dz-action="row-action" data-file-id="${file.id}" title="${a.title}">${a.icon}</button>`
-                : ''
-            return `
-                <tr data-file-id="${file.id}" data-status="${file.status}">
-                    <td>${escapeHtml(file.name)}</td>
-                    <td>${escapeHtml(file.type || '—')}</td>
-                    <td>${(file.size/1024).toFixed(1)} KB</td>
-                    <td class="progress-cell">
-                        <progress max="100" value="${file.progress}"></progress>
-                        <span class="pct">${Math.round(file.progress)}%</span>
-                    </td>
-                    <td class="actions">
-                        ${actionBtn}
-                        <button class="rm" data-dz-action="remove" data-file-id="${file.id}" title="Remove">×</button>
-                    </td>
-                </tr>
-            `
-        }
-        wrapperTable.uploadFileCallback = simulateUpload({ durationMs: 5000, failRate: 0.2 })
-
-        // ---------------------------------------------------------------- event-driven rows
-
-        const eventRows = document.getElementById('event-rows')
-        eventRows.getCustomStylesCallback = () => `
-            .event-row {
-                display: flex;
-                align-items: center;
-                gap: 0.6rem;
-                padding: 0.5rem 0.75rem;
-                border: 1px solid var(--kmwc-border-color);
-                border-radius: 6px;
-                background: var(--kmwc-main-bg);
-                margin-bottom: 0.4rem;
-            }
-            .event-row[data-status="complete"] { border-color: var(--demo-success-border-color); background: var(--demo-success-bg); }
-            .event-row[data-status="error"]    { border-color: var(--demo-danger-border-color); background: var(--demo-danger-bg); }
-            .event-row[data-status="paused"]   { border-color: var(--demo-warning-border-color); background: var(--demo-warning-bg); }
-            .event-row .star {
-                cursor: pointer;
-                font-size: 1.1rem;
-                user-select: none;
-            }
-            .event-row .name {
-                flex: 1;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-            }
-            .event-row progress { width: 6rem; height: 0.6rem; }
-            .event-row .pct {
-                width: 3rem;
-                text-align: right;
-                font-variant-numeric: tabular-nums;
-                color: var(--kmwc-text-color-3);
-                font-size: 0.85rem;
-            }
-            .event-row .action,
-            .event-row .rm {
-                background: transparent;
-                border: none;
-                cursor: pointer;
-                color: var(--kmwc-text-color-3);
-                font-size: 1rem;
-                padding: 0.1rem 0.3rem;
-                line-height: 1;
-            }
-            .event-row .action:hover { color: var(--kmwc-text-color-1); }
-            .event-row .rm:hover     { color: var(--kmwc-danger-color); }
-            .event-row .action[hidden] { display: none; }
-        `
-        eventRows.renderFileItemCallback = ({ file }) => {
-            const row = document.createElement('div')
-            row.className = 'event-row'
-            row.dataset.fileId = file.id
-            row.dataset.status = file.status
-            row.innerHTML = `
-                <span class="star" title="Toggle favorite">☆</span>
-                <span class="name">${escapeHtml(file.name)}</span>
-                <progress class="bar" max="100" value="${file.progress}"></progress>
-                <span class="pct">${Math.round(file.progress)}%</span>
-                <button class="action" data-dz-action="row-action" data-file-id="${file.id}" hidden></button>
-                <button class="rm" data-dz-action="remove" data-file-id="${file.id}" title="Remove">×</button>
-            `
-            const starBtn = row.querySelector('.star')
-            const barEl   = row.querySelector('.bar')
-            const pctEl   = row.querySelector('.pct')
-            const actBtn  = row.querySelector('.action')
-            starBtn.addEventListener('click', (e) => {
-                e.stopPropagation()
-                starBtn.textContent = starBtn.textContent === '☆' ? '⭐' : '☆'
-            })
-            const syncAction = (f) => {
-                const a = actionIconFor(f.status)
-                if (a) {
-                    actBtn.textContent = a.icon
-                    actBtn.title = a.title
-                    actBtn.hidden = false
-                } else {
-                    actBtn.hidden = true
-                }
-            }
-            syncAction(file)
-            row.addEventListener('file-row-update', (e) => {
-                const f = e.detail.file
-                row.dataset.status = f.status
-                barEl.value = f.progress
-                pctEl.textContent = Math.round(f.progress) + '%'
-                syncAction(f)
-            })
-            return row
-        }
-        eventRows.uploadFileCallback = simulateUpload({ durationMs: 5000, failRate: 0.2 })
-
-        // ---------------------------------------------------------------- helpers
-
         function escapeHtml(s) {
             const d = document.createElement('div')
             d.textContent = s
             return d.innerHTML
         }
+
+        Object.assign(window, { escapeHtml, simulateUpload, actionIconFor })
     </script>
+
+        <!-- INTRO -->
+        <div class="card">
+            <h2>SR01 · Structural mode (<code>render-mode="structural"</code>)</h2>
+            <p>This page covers <strong>mode 2 of 3</strong> — the framework owns when and what to render, you provide the HTML structure via callbacks. The hard-switch <code>render-mode="structural"</code> attribute is required: setting a render callback alone does nothing in the default <code>render-mode="bulk"</code>.</p>
+
+            <div class="code-block">
+                <pre><code>&lt;web-dropzone render-mode="structural" display-mode="detailed" id="x"&gt;&lt;/web-dropzone&gt;
+&lt;script&gt;
+  const el = document.getElementById('x')
+  // Every callback takes ONE ctx (+ ctx.controller / ctx.element)
+  el.renderPromptCallback      = (ctx)                                       =&gt; '...'  // dropzone prompt
+  el.renderFileItemCallback    = ({ file, fileIndex, displayMode, isInPopover }) =&gt; '...'  // one file row
+  el.renderListWrapperCallback = ({ rowsHtml, files })                       =&gt; '...'  // wraps the rows
+  el.renderSummaryCallback     = ({ files })                                 =&gt; '...'  // compact-mode summary
+&lt;/script&gt;</code></pre>
+            </div>
+            <div class="note">
+                <div class="note-title">When to use which mode</div>
+                <ul>
+                    <li><code>render-mode="bulk"</code> (default) — you want the working UI fast; style via CSS variables.</li>
+                    <li><code>render-mode="structural"</code> — you want custom HTML shape (this page).</li>
+                    <li><code>render-mode="headless"</code> — you want pure events + own renderer (see <a href="examples-architecture.html">Architecture</a>).</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- PROMPT -->
+        <div class="card">
+            <h2>SR02 · Custom Prompt (<code>renderPromptCallback</code>)</h2>
+            <p>Replaces the inner content of the dropzone prompt area.</p>
+
+            <kmwc-demo>
+                <div class="grid">
+                    <div class="form-group">
+                        <label>Cloud upload prompt</label>
+                        <web-dropzone id="prompt-cloud" render-mode="structural" display-mode="detailed"></web-dropzone>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Two-line marketing prompt</label>
+                        <web-dropzone id="prompt-marketing" render-mode="structural" display-mode="detailed"></web-dropzone>
+                    </div>
+                </div>
+                <script type="module" data-kmwc-show>
+                    document.getElementById('prompt-cloud').renderPromptCallback = () => `
+                        <div style="display:flex;flex-direction:column;align-items:center;gap:0.5rem;">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#667eea"
+                                 stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="17 8 12 3 7 8"/>
+                                <line x1="12" y1="3" x2="12" y2="15"/>
+                            </svg>
+                            <strong>Upload to cloud</strong>
+                            <small style="color:var(--kmwc-text-color-3)">Drag and drop or click to browse</small>
+                        </div>
+                    `
+
+                    document.getElementById('prompt-marketing').renderPromptCallback = () => `
+                        <div style="text-align:center;line-height:1.4">
+                            <div style="font-size:2.5rem">🎯</div>
+                            <div style="font-size:1.15rem;font-weight:600;color:var(--kmwc-text-color-1)">Get your free analysis</div>
+                            <div style="color:var(--kmwc-text-color-3);font-size:0.9rem">Upload your report (PDF or image) and we'll do the rest</div>
+                        </div>
+                    `
+                </script>
+            </kmwc-demo>
+        </div>
+
+        <!-- FILE ITEM -->
+        <div class="card">
+            <h2>SR03 · Custom File Item (<code>renderFileItemCallback</code>)</h2>
+            <p>Each call receives one <code>ctx</code>: the <code>file</code> (<code>FileState</code>), its render position (<code>fileIndex</code>, <code>displayMode</code>, <code>isInPopover</code>) and <code>controller</code> / <code>element</code>. Return a string or an <code>HTMLElement</code>.</p>
+
+            <kmwc-demo>
+                <div class="form-group">
+                    <label>Receipts list with date + currency formatting</label>
+                    <web-dropzone
+                        id="item-receipts"
+                        render-mode="structural"
+                        display-mode="list"
+                        accept=".pdf,image/*"
+                        labels='{"prompt": "Drop receipts"}'>
+                    </web-dropzone>
+                </div>
+                <script type="module" data-kmwc-show>
+                    const receipts = document.getElementById('item-receipts')
+                    receipts.getCustomStylesCallback = () => `
+                        .receipt-row {
+                            display: grid;
+                            grid-template-columns: auto 1fr auto auto auto;
+                            gap: 0.75rem;
+                            align-items: center;
+                            padding: 0.6rem 0.9rem;
+                            border: 1px solid var(--kmwc-border-color);
+                            border-radius: 6px;
+                            background: var(--kmwc-main-bg);
+                            font-size: 0.9rem;
+                        }
+                        .receipt-icon { font-size: 1.2rem; }
+                        .receipt-name { font-weight: 600; color: var(--kmwc-text-color-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+                        .receipt-date { color: var(--kmwc-text-color-3); font-size: 0.8rem; }
+                        .receipt-size { color: var(--kmwc-text-color-3); font-size: 0.8rem; }
+                        .receipt-row button {
+                            background: transparent; border: none; cursor: pointer;
+                            font-size: 1.2rem; color: var(--kmwc-text-color-4); padding: 0 0.4rem;
+                        }
+                        .receipt-row button:hover { color: var(--kmwc-danger-color); }
+                    `
+                    receipts.renderFileItemCallback = ({ file }) => `
+                        <div class="receipt-row" data-file-id="${file.id}">
+                            <span class="receipt-icon">🧾</span>
+                            <span class="receipt-name">${escapeHtml(file.name)}</span>
+                            <span class="receipt-date">${new Date(file.file.lastModified).toLocaleDateString()}</span>
+                            <span class="receipt-size">${(file.size/1024).toFixed(1)} KB</span>
+                            <button data-dz-action="remove" data-file-id="${file.id}" title="Remove">×</button>
+                        </div>
+                    `
+                </script>
+            </kmwc-demo>
+
+            <div class="note">
+                <div class="note-title">Required hooks</div>
+                <ul>
+                    <li>Keep <code>data-file-id="${file.id}"</code> on the root element so internal patching can target the row.</li>
+                    <li>For remove buttons, set <code>data-dz-action="remove"</code> and <code>data-file-id="${file.id}"</code> — click handlers are auto-attached.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- DOM ELEMENT RETURN -->
+        <div class="card">
+            <h2>SR04 · Returning a live <code>HTMLElement</code></h2>
+            <p>If you'd rather build with the DOM API than concatenate strings, return an element directly. Useful for binding event listeners or attaching data.</p>
+
+            <kmwc-demo>
+                <div class="form-group">
+                    <label>Files with click-to-preview links</label>
+                    <web-dropzone
+                        id="item-dom"
+                        render-mode="structural"
+                        display-mode="list"
+                        accept="*/*"
+                        labels='{"prompt": "Drop files (click row to preview in new tab)"}'>
+                    </web-dropzone>
+                </div>
+                <script type="module" data-kmwc-show>
+                    const itemDom = document.getElementById('item-dom')
+                    itemDom.renderFileItemCallback = ({ file }) => {
+                        const row = document.createElement('div')
+                        row.className = 'dz__file-item dz__file-item--list'
+                        row.dataset.fileId = file.id
+                        row.style.display = 'flex'
+                        row.style.alignItems = 'center'
+                        row.style.gap = '0.5rem'
+                        row.style.padding = '0.5rem 0.75rem'
+                        row.style.border = '1px solid #e5e7eb'
+                        row.style.borderRadius = '6px'
+                        row.style.background = 'white'
+
+                        const link = document.createElement('a')
+                        link.textContent = file.name
+                        link.href = URL.createObjectURL(file.file)
+                        link.target = '_blank'
+                        link.style.flex = '1'
+                        link.style.color = '#667eea'
+                        link.style.textDecoration = 'underline'
+                        row.appendChild(link)
+
+                        const btn = document.createElement('button')
+                        btn.textContent = '×'
+                        btn.dataset.dzAction = 'remove'
+                        btn.dataset.fileId = file.id
+                        btn.style.background = 'transparent'
+                        btn.style.border = 'none'
+                        btn.style.cursor = 'pointer'
+                        btn.style.fontSize = '1.1rem'
+                        btn.style.color = '#9ca3af'
+                        row.appendChild(btn)
+
+                        return row
+                    }
+                </script>
+            </kmwc-demo>
+        </div>
+
+        <!-- SUMMARY -->
+        <div class="card">
+            <h2>SR05 · Custom Compact Summary (<code>renderSummaryCallback</code>)</h2>
+            <p>Replaces the inline summary line that triggers the compact-mode popover. Required: include an element with class <code>dz__summary-line</code> so the popover click handler still binds correctly.</p>
+
+            <kmwc-demo>
+                <div class="form-group">
+                    <label>Counter pill with total size</label>
+                    <web-dropzone
+                        id="summary-custom"
+                        render-mode="structural"
+                        display-mode="compact"
+                        accept="*/*"
+                        labels='{"prompt": "Drop files"}'>
+                    </web-dropzone>
+                    <small class="form-text">Click the summary to open the file popover.</small>
+                </div>
+                <script type="module" data-kmwc-show>
+                    const summary = document.getElementById('summary-custom')
+                    summary.getCustomStylesCallback = () => `
+                        .pill {
+                            display: inline-block;
+                            background: var(--kmwc-accent-color); color: white;
+                            border-radius: 999px;
+                            padding: 0.1rem 0.55rem;
+                            font-weight: 600; font-size: 0.85em;
+                            margin-right: 0.3rem;
+                        }
+                    `
+                    summary.renderSummaryCallback = ({ files }) => {
+                        const total = files.reduce((s, f) => s + f.size, 0)
+                        return `
+                            <div class="dz__summary-line" tabindex="0" role="button" aria-label="View files">
+                                <span class="pill">${files.length}</span>
+                                <span>files · ${(total/1024).toFixed(1)} KB</span>
+                            </div>
+                        `
+                    }
+                </script>
+            </kmwc-demo>
+        </div>
+
+        <!-- LIST WRAPPER -->
+        <div class="card">
+            <h2>SR06 · Custom List Wrapper (<code>renderListWrapperCallback</code>)</h2>
+            <p>Replaces the <code>&lt;div class="dz__file-list"&gt;</code> shell around the rows. Pairs with <code>renderFileItemCallback</code> to build table layouts. The wrapper receives the rows as an HTML string and the files array, returns the surrounding HTML.</p>
+
+            <kmwc-demo>
+                <div class="form-group">
+                    <label>File queue as a real &lt;table&gt; — auto-upload, pause/resume/retry per row, completed rows reorder to the bottom</label>
+                    <web-dropzone
+                        id="wrapper-table"
+                        render-mode="structural"
+                        display-mode="list"
+                        accept="*/*"
+                        multiple
+                        auto-upload
+                        sink-completed
+                        sink-completed-delay="1200"
+                        labels='{"prompt": "Drop files into the table"}'>
+                    </web-dropzone>
+                    <small class="form-text">~20% of files randomly fail mid-upload — click 🔄 to retry from where they left off, not from 0.</small>
+                </div>
+                <script type="module" data-kmwc-show>
+                    const wrapperTable = document.getElementById('wrapper-table')
+                    wrapperTable.getCustomStylesCallback = () => `
+                        .receipt-table { width: 100%; border-collapse: collapse; }
+                        .receipt-table th,
+                        .receipt-table td {
+                            padding: 0.5rem 0.75rem;
+                            border-bottom: 1px solid var(--kmwc-border-color);
+                            text-align: left;
+                            font-size: 0.9rem;
+                            vertical-align: middle;
+                        }
+                        .receipt-table thead th {
+                            background: var(--kmwc-elevated-bg);
+                            font-weight: 600;
+                            color: var(--kmwc-text-color-2);
+                        }
+                        .receipt-table tbody tr[data-status="complete"] td { color: #16a34a; }
+                        .receipt-table tbody tr[data-status="error"] td    { color: var(--kmwc-danger-color); }
+                        .receipt-table tbody tr[data-status="paused"] td   { color: #a16207; }
+                        .receipt-table .progress-cell { width: 14rem; }
+                        .receipt-table progress {
+                            width: 100%; height: 0.5rem;
+                            appearance: none; -webkit-appearance: none;
+                            border: 1px solid var(--kmwc-border-color); border-radius: 999px;
+                            background: var(--kmwc-hover-bg);
+                        }
+                        .receipt-table progress::-webkit-progress-bar { background: transparent; }
+                        .receipt-table progress::-webkit-progress-value { background: var(--kmwc-accent-color); border-radius: 999px; }
+                        .receipt-table progress::-moz-progress-bar     { background: var(--kmwc-accent-color); border-radius: 999px; }
+                        .receipt-table .pct {
+                            font-variant-numeric: tabular-nums;
+                            font-size: 0.8rem; color: var(--kmwc-text-color-3);
+                            margin-left: 0.4rem;
+                        }
+                        .receipt-table .actions { text-align: right; white-space: nowrap; }
+                        .receipt-table .actions button {
+                            background: transparent;
+                            border: none;
+                            cursor: pointer;
+                            color: var(--kmwc-text-color-3);
+                            font-size: 1rem;
+                            padding: 0.1rem 0.3rem;
+                            line-height: 1;
+                        }
+                        .receipt-table .actions button:hover { color: var(--kmwc-text-color-1); }
+                        .receipt-table .actions .rm:hover    { color: var(--kmwc-danger-color); }
+                    `
+                    wrapperTable.renderListWrapperCallback = ({ rowsHtml }) => `
+                        <table class="receipt-table">
+                            <thead><tr>
+                                <th>Name</th><th>Type</th><th>Size</th><th>Progress</th><th></th>
+                            </tr></thead>
+                            <tbody>${rowsHtml}</tbody>
+                        </table>
+                    `
+                    wrapperTable.renderFileItemCallback = ({ file }) => {
+                        const a = actionIconFor(file.status)
+                        const actionBtn = a
+                            ? `<button data-dz-action="row-action" data-file-id="${file.id}" title="${a.title}">${a.icon}</button>`
+                            : ''
+                        return `
+                            <tr data-file-id="${file.id}" data-status="${file.status}">
+                                <td>${escapeHtml(file.name)}</td>
+                                <td>${escapeHtml(file.type || '—')}</td>
+                                <td>${(file.size/1024).toFixed(1)} KB</td>
+                                <td class="progress-cell">
+                                    <progress max="100" value="${file.progress}"></progress>
+                                    <span class="pct">${Math.round(file.progress)}%</span>
+                                </td>
+                                <td class="actions">
+                                    ${actionBtn}
+                                    <button class="rm" data-dz-action="remove" data-file-id="${file.id}" title="Remove">×</button>
+                                </td>
+                            </tr>
+                        `
+                    }
+                    wrapperTable.uploadFileCallback = simulateUpload({ durationMs: 5000, failRate: 0.2 })
+                </script>
+            </kmwc-demo>
+
+            <div class="note">
+                <div class="note-title">Caveats</div>
+                <ul>
+                    <li>Keep <code>data-file-id</code> on each row so internal patching can target it.</li>
+                    <li>Combining the wrapper with an <em>HTMLElement</em>-returning row callback (see next section) falls back to the string path — element identity is not preserved through wrapper composition.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- ELEMENT-RETURNING ROW + EVENTS -->
+        <div class="card">
+            <h2>SR07 · Event-driven rows (<code>file-row-update</code>)</h2>
+            <p>When <code>renderFileItemCallback</code> returns an <code>HTMLElement</code>, the framework preserves it across state changes — instead of re-rendering, it dispatches a <code>file-row-update</code> CustomEvent on the row. Listeners attached during the initial render survive every tick, so you can wire complex per-row behavior without redoing it on every progress event.</p>
+
+            <kmwc-demo>
+                <div class="form-group">
+                    <label>Click a row to ⭐ favorite — the toggle survives every upload tick, pause, resume, retry, and reorder</label>
+                    <web-dropzone
+                        id="event-rows"
+                        render-mode="structural"
+                        display-mode="list"
+                        accept="*/*"
+                        multiple
+                        auto-upload
+                        sink-completed
+                        sink-completed-delay="1200"
+                        progress-throttle="120"
+                        labels='{"prompt": "Drop files (click a row to toggle ⭐)"}'>
+                    </web-dropzone>
+                    <small class="form-text">Simulated upload runs on selection. ⏸ pause / ▶ resume / 🔄 retry buttons appear based on each file's status; the framework's <code>data-dz-action="row-action"</code> convention auto-wires them.</small>
+                </div>
+                <script type="module" data-kmwc-show>
+                    const eventRows = document.getElementById('event-rows')
+                    eventRows.getCustomStylesCallback = () => `
+                        .event-row {
+                            display: flex;
+                            align-items: center;
+                            gap: 0.6rem;
+                            padding: 0.5rem 0.75rem;
+                            border: 1px solid var(--kmwc-border-color);
+                            border-radius: 6px;
+                            background: var(--kmwc-main-bg);
+                            margin-bottom: 0.4rem;
+                        }
+                        .event-row[data-status="complete"] { border-color: var(--demo-success-border-color); background: var(--demo-success-bg); }
+                        .event-row[data-status="error"]    { border-color: var(--demo-danger-border-color); background: var(--demo-danger-bg); }
+                        .event-row[data-status="paused"]   { border-color: var(--demo-warning-border-color); background: var(--demo-warning-bg); }
+                        .event-row .star {
+                            cursor: pointer;
+                            font-size: 1.1rem;
+                            user-select: none;
+                        }
+                        .event-row .name {
+                            flex: 1;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                            white-space: nowrap;
+                        }
+                        .event-row progress { width: 6rem; height: 0.6rem; }
+                        .event-row .pct {
+                            width: 3rem;
+                            text-align: right;
+                            font-variant-numeric: tabular-nums;
+                            color: var(--kmwc-text-color-3);
+                            font-size: 0.85rem;
+                        }
+                        .event-row .action,
+                        .event-row .rm {
+                            background: transparent;
+                            border: none;
+                            cursor: pointer;
+                            color: var(--kmwc-text-color-3);
+                            font-size: 1rem;
+                            padding: 0.1rem 0.3rem;
+                            line-height: 1;
+                        }
+                        .event-row .action:hover { color: var(--kmwc-text-color-1); }
+                        .event-row .rm:hover     { color: var(--kmwc-danger-color); }
+                        .event-row .action[hidden] { display: none; }
+                    `
+                    eventRows.renderFileItemCallback = ({ file }) => {
+                        const row = document.createElement('div')
+                        row.className = 'event-row'
+                        row.dataset.fileId = file.id
+                        row.dataset.status = file.status
+                        row.innerHTML = `
+                            <span class="star" title="Toggle favorite">☆</span>
+                            <span class="name">${escapeHtml(file.name)}</span>
+                            <progress class="bar" max="100" value="${file.progress}"></progress>
+                            <span class="pct">${Math.round(file.progress)}%</span>
+                            <button class="action" data-dz-action="row-action" data-file-id="${file.id}" hidden></button>
+                            <button class="rm" data-dz-action="remove" data-file-id="${file.id}" title="Remove">×</button>
+                        `
+                        const starBtn = row.querySelector('.star')
+                        const barEl   = row.querySelector('.bar')
+                        const pctEl   = row.querySelector('.pct')
+                        const actBtn  = row.querySelector('.action')
+                        starBtn.addEventListener('click', (e) => {
+                            e.stopPropagation()
+                            starBtn.textContent = starBtn.textContent === '☆' ? '⭐' : '☆'
+                        })
+                        const syncAction = (f) => {
+                            const a = actionIconFor(f.status)
+                            if (a) {
+                                actBtn.textContent = a.icon
+                                actBtn.title = a.title
+                                actBtn.hidden = false
+                            } else {
+                                actBtn.hidden = true
+                            }
+                        }
+                        syncAction(file)
+                        row.addEventListener('file-row-update', (e) => {
+                            const f = e.detail.file
+                            row.dataset.status = f.status
+                            barEl.value = f.progress
+                            pctEl.textContent = Math.round(f.progress) + '%'
+                            syncAction(f)
+                        })
+                        return row
+                    }
+                    eventRows.uploadFileCallback = simulateUpload({ durationMs: 5000, failRate: 0.2 })
+                </script>
+            </kmwc-demo>
+
+            <div class="note">
+                <div class="note-title">Why the throttle?</div>
+                <p>The <code>progress-throttle="120"</code> attribute caps per-file event emission and DOM patching at one every 120 ms. Without it, a 20-file upload at the default 50 ms tick rate would fire 400 <code>file-row-update</code> events / sec.</p>
+            </div>
+        </div>
+
+        <footer>
+            <p><a href="index.html">← Back to Examples</a></p>
+        </footer>

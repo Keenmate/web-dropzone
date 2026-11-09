@@ -270,22 +270,29 @@
                 <span>Active demo</span>
             </label>
             <p>Nothing new — the existing <code>&lt;web-dropzone&gt;</code> with renderer attributes mounts its own internal picker + list. This is the one-element form that still works unchanged after stage 2 + 3 landed.</p>
-            <div class="demo-area">
-                <web-dropzone
-                    id="dz-classic"
-                    selector-appearance="card"
-                    list-appearance="detailed"
-                    multiple
-                    max-file-count="5"
-                    auto-upload="false"
-                ></web-dropzone>
-                <button id="dz-classic-upload" type="button" class="mt-1">
-                    Upload all
-                </button>
-            </div>
-            <div class="code-block">
-<pre>&lt;web-dropzone selector-appearance="card" list-appearance="detailed" multiple&gt;&lt;/web-dropzone&gt;</pre>
-            </div>
+            <kmwc-demo>
+                <div class="demo-area">
+                    <web-dropzone
+                        id="dz-classic"
+                        selector-appearance="card"
+                        list-appearance="detailed"
+                        multiple
+                        max-file-count="5"
+                        auto-upload="false"
+                    ></web-dropzone>
+                    <button id="dz-classic-upload" type="button" class="mt-1">
+                        Upload all
+                    </button>
+                </div>
+                <script type="module" data-kmwc-show>
+                    import { simulateUpload, wireQueueControlButton } from '/examples-shared.js';
+                    // auto-upload="false" keeps every added file pending until the button is clicked;
+                    // wireQueueControlButton calls uploadAll() and keeps the button in sync with the queue.
+                    const dzClassic = document.getElementById('dz-classic');
+                    dzClassic.uploadFileCallback = simulateUpload({ bucket: 'classic', durationMs: 3500, failRate: 0.2 });
+                    wireQueueControlButton(dzClassic, document.getElementById('dz-classic-upload'));
+                </script>
+            </kmwc-demo>
         </section>
 
         <!-- ============================================================ -->
@@ -421,59 +428,56 @@
             </label>
             <p>One store, one global list, one global indicator — but each picker stamps its own <code>uploadFileCallback</code> + <code>uploadMetadata</code> onto every file it contributes. The store's upload loop picks <code>file.uploadFileCallback ?? config.uploadFileCallback</code> per file, so two pickers feeding the same queue can still route to different endpoints / buckets / tenants.</p>
 
-            <web-dropzone id="dz-modeb" multiple></web-dropzone>
+            <kmwc-demo>
+                <web-dropzone id="dz-modeb" multiple></web-dropzone>
 
-            <div class="mode-b-grid">
-                <div class="satellite-stage">
-                    <div class="stage-label">Picker A — public bucket</div>
-                    <web-dropzone-picker
-                        id="picker-public"
-                        for="dz-modeb"
-                        selector-appearance="card"
-                        card-size="compact"
-                        labels='{"prompt": "Drop public files"}'
-                        icon="🌐"
-                    ></web-dropzone-picker>
+                <div class="mode-b-grid">
+                    <div class="satellite-stage">
+                        <div class="stage-label">Picker A — public bucket</div>
+                        <web-dropzone-picker
+                            id="picker-public"
+                            for="dz-modeb"
+                            selector-appearance="card"
+                            card-size="compact"
+                            labels='{"prompt": "Drop public files"}'
+                            icon="🌐"
+                        ></web-dropzone-picker>
+                    </div>
+                    <div class="satellite-stage">
+                        <div class="stage-label">Picker B — private bucket</div>
+                        <web-dropzone-picker
+                            id="picker-private"
+                            for="dz-modeb"
+                            selector-appearance="card"
+                            card-size="compact"
+                            labels='{"prompt": "Drop private files"}'
+                            icon="🔒"
+                        ></web-dropzone-picker>
+                    </div>
                 </div>
-                <div class="satellite-stage">
-                    <div class="stage-label">Picker B — private bucket</div>
-                    <web-dropzone-picker
-                        id="picker-private"
-                        for="dz-modeb"
-                        selector-appearance="card"
-                        card-size="compact"
-                        labels='{"prompt": "Drop private files"}'
-                        icon="🔒"
-                    ></web-dropzone-picker>
-                </div>
-            </div>
 
-            <div class="stage-label">Shared queue</div>
-            <div class="satellite-stage" data-role="list">
-                <web-dropzone-list for="dz-modeb" list-appearance="detailed"></web-dropzone-list>
-            </div>
+                <div class="stage-label">Shared queue</div>
+                <div class="satellite-stage" data-role="list">
+                    <web-dropzone-list for="dz-modeb" list-appearance="detailed"></web-dropzone-list>
+                </div>
+                <script type="module" data-kmwc-show>
+                    import { simulateUpload } from '/examples-shared.js';
+                    // Mode B wiring — each picker gets its own uploadFileCallback. Files
+                    // contributed by picker-public route to the public bucket; files
+                    // from picker-private to the private one. The store fans events
+                    // out to every satellite regardless of which picker added the file.
+                    const pickerPublic  = document.getElementById('picker-public');
+                    const pickerPrivate = document.getElementById('picker-private');
+                    pickerPublic.uploadFileCallback  = simulateUpload({ bucket: 'public',  durationMs: 3500, failRate: 0.2 });
+                    pickerPrivate.uploadFileCallback = simulateUpload({ bucket: 'private', durationMs: 4500, failRate: 0.2 });
+                    pickerPublic.uploadMetadata  = { bucket: 'public'  };
+                    pickerPrivate.uploadMetadata = { bucket: 'private' };
+                </script>
+            </kmwc-demo>
 
             <div class="stage-label">Substrate event log (store fan-out)</div>
             <div id="store-event-log" class="store-event-log">
                 <div class="store-event-log__empty">Drop files into either picker to see <code>file-add</code> / <code>file-progress</code> / <code>file-status-change</code> dispatched by the store and consumed by every satellite.</div>
-            </div>
-
-            <div class="code-block">
-<pre>&lt;web-dropzone id="uploads"&gt;&lt;/web-dropzone&gt;
-
-&lt;web-dropzone-picker id="picker-public"  for="uploads" labels='{"prompt": "Public"}'&gt;&lt;/web-dropzone-picker&gt;
-&lt;web-dropzone-picker id="picker-private" for="uploads" labels='{"prompt": "Private"}'&gt;&lt;/web-dropzone-picker&gt;
-
-&lt;web-dropzone-list for="uploads"&gt;&lt;/web-dropzone-list&gt;
-
-&lt;script&gt;
-  document.getElementById('picker-public').uploadFileCallback  = ({ file, setProgress, signal }) =&gt; uploadTo('/public',  file, setProgress, signal);
-  document.getElementById('picker-private').uploadFileCallback = ({ file, setProgress, signal }) =&gt; uploadTo('/private', file, setProgress, signal);
-  // Each file remembers which picker contributed it — the store stamps
-  // uploadFileCallback onto FileState at addFiles time. Mode A files inherit
-  // the store-level handler; Mode B files use their own. No store-side
-  // routing logic required.
-&lt;/script&gt;</pre>
             </div>
         </section>
 
@@ -677,31 +681,57 @@ spinner.renderBodyCallback = ({ aggregate }) =&gt; {
             </label>
             <p>The most decoupled story: skip satellites entirely and react to the coalesced <code>files-change</code> CustomEvent. The store fires it once per animation frame with the current snapshot — your renderer (vanilla DOM, Lit, Svelte, anything) diffs and updates whatever UI it owns. Granular events (<code>file-progress</code> / <code>file-status-change</code>) still fire if you want per-tick fidelity instead.</p>
 
-            <web-dropzone id="dz-byo" multiple max-file-count="8"></web-dropzone>
+            <kmwc-demo>
+                <web-dropzone id="dz-byo" multiple max-file-count="8"></web-dropzone>
 
-            <div class="grid mt-1">
-                <div>
-                    <web-dropzone-picker for="dz-byo" selector-appearance="card" labels='{"prompt": "Drop files for BYO renderer"}'></web-dropzone-picker>
+                <div class="grid mt-1">
+                    <div>
+                        <web-dropzone-picker for="dz-byo" selector-appearance="card" labels='{"prompt": "Drop files for BYO renderer"}'></web-dropzone-picker>
+                    </div>
+                    <div>
+                        <strong style="display:block;margin-bottom:0.4rem">Hand-rolled list (no satellite)</strong>
+                        <ul id="byo-list" style="list-style:none;padding:0;margin:0;font-family:ui-monospace,monospace;font-size:0.85rem"></ul>
+                    </div>
                 </div>
-                <div>
-                    <strong style="display:block;margin-bottom:0.4rem">Hand-rolled list (no satellite)</strong>
-                    <ul id="byo-list" style="list-style:none;padding:0;margin:0;font-family:ui-monospace,monospace;font-size:0.85rem"></ul>
-                </div>
-            </div>
-
-            <div class="code-block">
-<pre>const store = document.getElementById('dz-byo')
-const list  = document.getElementById('byo-list')
-
-store.addEventListener('files-change', (e) =&gt; {
-    const { files } = e.detail
-    list.replaceChildren(...files.map(f =&gt; {
-        const li = document.createElement('li')
-        li.textContent = `${f.name} — ${f.status} ${Math.round(f.progress)}%`
-        return li
-    }))
-})</pre>
-            </div>
+                <script type="module" data-kmwc-show>
+                    import { simulateUpload } from '/examples-shared.js';
+                    // The dropzone is a pure store; the #byo-list <ul> is owned by this
+                    // script. One listener, one diff per rAF. No satellites involved.
+                    const dzByo = document.getElementById('dz-byo');
+                    dzByo.uploadFileCallback = simulateUpload({ bucket: 'byo', durationMs: 4000, failRate: 0.2 });
+                    const list = document.getElementById('byo-list');
+                    const colorForStatus = (s) => ({
+                        pending: 'var(--kmwc-text-color-3)', uploading: 'var(--kmwc-accent-color)',
+                        complete: 'var(--kmwc-success-color)', error: 'var(--kmwc-danger-color)', paused: 'var(--kmwc-warning-color)'
+                    })[s] || 'var(--kmwc-text-color-3)';
+                    dzByo.addEventListener('files-change', (e) => {
+                        const items = e.detail.files.map((f) => {
+                            const li = document.createElement('li');
+                            li.style.display = 'flex';
+                            li.style.gap = '0.5rem';
+                            li.style.padding = '0.25rem 0';
+                            li.style.borderBottom = '1px solid var(--kmwc-border-color)';
+                            const name = document.createElement('span');
+                            name.textContent = f.name;
+                            name.style.flex = '1';
+                            name.style.overflow = 'hidden';
+                            name.style.textOverflow = 'ellipsis';
+                            name.style.whiteSpace = 'nowrap';
+                            const status = document.createElement('span');
+                            status.textContent = f.status;
+                            status.style.color = colorForStatus(f.status);
+                            const pct = document.createElement('span');
+                            pct.textContent = Math.round(f.progress) + '%';
+                            pct.style.width = '3rem';
+                            pct.style.textAlign = 'right';
+                            pct.style.color = 'var(--kmwc-text-color-3)';
+                            li.append(name, status, pct);
+                            return li;
+                        });
+                        list.replaceChildren(...items);
+                    });
+                </script>
+            </kmwc-demo>
         </section>
 
         <footer>
@@ -780,26 +810,10 @@ store.addEventListener('files-change', (e) =&gt; {
         // failRate so the demos exercise the error / retry path.
         // ============================================================
 
-        // Mode B wiring — each picker gets its own uploadFileCallback. Files
-        // contributed by picker-public route to the public bucket; files
-        // from picker-private to the private one. The store fans events
-        // out to every satellite regardless of which picker added the file.
-        const pickerPublic  = document.getElementById('picker-public');
-        const pickerPrivate = document.getElementById('picker-private');
-        if (pickerPublic)  pickerPublic.uploadFileCallback  = simulateUpload({ bucket: 'public',  durationMs: 3500, failRate: 0.2 });
-        if (pickerPrivate) pickerPrivate.uploadFileCallback = simulateUpload({ bucket: 'private', durationMs: 4500, failRate: 0.2 });
-        if (pickerPublic)  pickerPublic.uploadMetadata  = { bucket: 'public'  };
-        if (pickerPrivate) pickerPrivate.uploadMetadata = { bucket: 'private' };
-
         // Scenarios 1 / 2 / 3 — staged upload via explicit button.
         // `auto-upload="false"` keeps every added file at pending until the
         // user clicks. `wireUploadButton` calls `store.uploadAll()` and
         // syncs the button's disabled state from files-change events.
-        const dzClassic = document.getElementById('dz-classic');
-        if (dzClassic) {
-            dzClassic.uploadFileCallback = simulateUpload({ bucket: 'classic', durationMs: 3500, failRate: 0.2 });
-            wireQueueControlButton(dzClassic, document.getElementById('dz-classic-upload'));
-        }
         const dzDecoupled = document.getElementById('dz-decoupled');
         if (dzDecoupled) {
             dzDecoupled.uploadFileCallback = simulateUpload({ bucket: 'decoupled', durationMs: 3500, failRate: 0.2 });
@@ -1294,42 +1308,4 @@ store.addEventListener('files-change', (e) =&gt; {
             });
         }
 
-        // --- Use case F: BYO renderer (render-mode=headless + files-change) ---
-        // The dropzone is a pure store; the <ul> below is owned by this
-        // script. One listener, one diff per rAF. No satellites involved.
-        const dzByo = document.getElementById('dz-byo');
-        if (dzByo) {
-            dzByo.uploadFileCallback = simulateUpload({ bucket: 'byo', durationMs: 4000, failRate: 0.2 });
-            const list = document.getElementById('byo-list');
-            const colorForStatus = (s) => ({
-                pending: 'var(--kmwc-text-color-3)', uploading: 'var(--kmwc-accent-color)',
-                complete: 'var(--kmwc-success-color)', error: 'var(--kmwc-danger-color)', paused: 'var(--kmwc-warning-color)'
-            })[s] || 'var(--kmwc-text-color-3)';
-            dzByo.addEventListener('files-change', (e) => {
-                const items = e.detail.files.map((f) => {
-                    const li = document.createElement('li');
-                    li.style.display = 'flex';
-                    li.style.gap = '0.5rem';
-                    li.style.padding = '0.25rem 0';
-                    li.style.borderBottom = '1px solid var(--kmwc-border-color)';
-                    const name = document.createElement('span');
-                    name.textContent = f.name;
-                    name.style.flex = '1';
-                    name.style.overflow = 'hidden';
-                    name.style.textOverflow = 'ellipsis';
-                    name.style.whiteSpace = 'nowrap';
-                    const status = document.createElement('span');
-                    status.textContent = f.status;
-                    status.style.color = colorForStatus(f.status);
-                    const pct = document.createElement('span');
-                    pct.textContent = Math.round(f.progress) + '%';
-                    pct.style.width = '3rem';
-                    pct.style.textAlign = 'right';
-                    pct.style.color = 'var(--kmwc-text-color-3)';
-                    li.append(name, status, pct);
-                    return li;
-                });
-                list.replaceChildren(...items);
-            });
-        }
     </script>

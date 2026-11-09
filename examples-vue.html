@@ -113,179 +113,121 @@
         <section class="example-section">
             <h2>VU02 · Live demo</h2>
             <p>The Vue app below renders the picker, the file list, and a stats grid that updates reactively on every coalesced event tick. Pause / resume / retry buttons call directly into the store's imperative API.</p>
-            <div id="vue-root"></div>
-        </section>
+            <p>The code under the demo is the whole page script — exactly as it runs here.</p>
+            <kmwc-demo>
+                <div id="vue-root"></div>
+                <script type="module" data-kmwc-show>
+                import { createApp, ref, computed, onMounted, onBeforeUnmount } from 'https://esm.sh/vue@3/dist/vue.esm-browser.js'
 
-        <section class="example-section">
-            <h2>VU03 · The whole component</h2>
-            <div class="code-block">
-<pre>import { createApp, ref, computed, onMounted, onBeforeUnmount } from 'https://esm.sh/vue@3/dist/vue.esm-browser.js'
+                function simulateUpload({ durationMs = 4000, failureRate = 0 } = {}) {
+                    return ({ file, setProgress, signal, startPercent }) => new Promise((resolve, reject) => {
+                        const startPct = startPercent
+                        if (startPct >= 100) {
+                            resolve({ metadata: { uploadedAt: new Date().toISOString() } })
+                            return
+                        }
+                        const remainingPct = 100 - startPct
+                        const remainingMs = durationMs * (remainingPct / 100)
+                        const start = performance.now()
+                        let aborted = false
+                        signal?.addEventListener('abort', () => {
+                            aborted = true
+                            reject(new DOMException('Aborted', 'AbortError'))
+                        })
+                        const tick = () => {
+                            if (aborted) return
+                            const elapsed = performance.now() - start
+                            const pct = Math.min(100, startPct + remainingPct * (elapsed / remainingMs))
+                            setProgress(pct)
+                            if (pct >= 100) {
+                                if (Math.random() < failureRate) {
+                                    reject(new Error('Simulated upload failure'))
+                                } else {
+                                    resolve({ metadata: { uploadedAt: new Date().toISOString() } })
+                                }
+                                return
+                            }
+                            requestAnimationFrame(tick)
+                        }
+                        requestAnimationFrame(tick)
+                    })
+                }
 
-const App = {
-    setup() {
-        const storeRef = ref(null)
-        const files = ref([])
+                const iconFor = (status) => ({
+                    pending: '⏳', uploading: '⬆️', paused: '⏸️',
+                    complete: '✅', error: '⚠️'
+                }[status] ?? '·')
 
-        const stats = computed(() =&gt; {
-            const acc = { total: files.value.length, pending: 0, uploading: 0, complete: 0, error: 0 }
-            for (const f of files.value) acc[f.status] = (acc[f.status] ?? 0) + 1
-            return acc
-        })
+                const actionLabel = (status) => ({
+                    uploading: 'Pause', paused: 'Resume', error: 'Retry'
+                }[status])
 
-        const onChange = (e) =&gt; { files.value = e.detail.files }
+                const App = {
+                    setup() {
+                        const storeRef = ref(null)
+                        const files = ref([])
 
-        onMounted(() =&gt; {
-            const s = storeRef.value
-            s.uploadFileCallback = simulateUpload({ durationMs: 4000 })
-            s.addEventListener('files-change', onChange)
-        })
+                        const stats = computed(() => {
+                            const acc = { total: files.value.length, pending: 0, uploading: 0, complete: 0, error: 0, paused: 0 }
+                            for (const f of files.value) acc[f.status] = (acc[f.status] ?? 0) + 1
+                            return acc
+                        })
 
-        onBeforeUnmount(() =&gt; {
-            storeRef.value?.removeEventListener('files-change', onChange)
-        })
+                        const onChange = (e) => { files.value = e.detail.files }
 
-        const rowAction = (f) =&gt; {
-            const s = storeRef.value
-            if (f.status === 'uploading') return s.pauseFile(f.id)
-            if (f.status === 'paused')    return s.resumeFile(f.id)
-            if (f.status === 'error')     return s.retryFile(f.id)
-        }
+                        onMounted(() => {
+                            const s = storeRef.value
+                            s.uploadFileCallback = simulateUpload({ durationMs: 4000 })
+                            s.addEventListener('files-change', onChange)
+                        })
 
-        return { storeRef, files, stats, rowAction, iconFor, actionLabel }
-    },
-    template: `
-        &lt;web-dropzone ref="storeRef" id="vu-store" render-mode="headless" multiple max-file-count="6"&gt;&lt;/web-dropzone&gt;
-        &lt;web-dropzone-picker for="vu-store" selector-appearance="card" :labels="{ prompt: 'Drop files for Vue' }"&gt;&lt;/web-dropzone-picker&gt;
-        &lt;div v-if="files.length === 0" class="vu-empty"&gt;No files yet&lt;/div&gt;
-        &lt;div v-else class="vu-list"&gt;
-            &lt;div v-for="f in files" :key="f.id" class="vu-row"&gt;
-                &lt;span&gt;{{ iconFor(f.status) }}&lt;/span&gt;
-                &lt;span class="vu-row__name"&gt;{{ f.name }}&lt;/span&gt;
-                &lt;span :class="['vu-row__status', 'vu-row__status--' + f.status]"&gt;{{ f.status }}&lt;/span&gt;
-                &lt;span class="vu-row__bar"&gt;&lt;span class="vu-row__bar-fill" :style="{ width: f.progress + '%' }"&gt;&lt;/span&gt;&lt;/span&gt;
-                &lt;button v-if="actionLabel(f.status)" class="vu-row__action" @click="rowAction(f)"&gt;{{ actionLabel(f.status) }}&lt;/button&gt;
-            &lt;/div&gt;
-        &lt;/div&gt;
-    `
-}
+                        onBeforeUnmount(() => {
+                            storeRef.value?.removeEventListener('files-change', onChange)
+                        })
 
-const app = createApp(App)
-app.config.compilerOptions.isCustomElement = (tag) =&gt; tag.startsWith('web-dropzone')
-app.mount('#vue-root')</pre>
-            </div>
+                        const rowAction = (f) => {
+                            const s = storeRef.value
+                            if (f.status === 'uploading') return s.pauseFile(f.id)
+                            if (f.status === 'paused')    return s.resumeFile(f.id)
+                            if (f.status === 'error')     return s.retryFile(f.id)
+                        }
+
+                        return { storeRef, files, stats, rowAction, iconFor, actionLabel }
+                    },
+                    template: `
+                        <web-dropzone ref="storeRef" id="vu-store" render-mode="headless" multiple max-file-count="6"></web-dropzone>
+                        <web-dropzone-picker for="vu-store" selector-appearance="card" :labels="{ prompt: 'Drop files for Vue' }"></web-dropzone-picker>
+
+                        <div v-if="files.length === 0" class="vu-empty">No files yet — drop something above.</div>
+                        <div v-else class="vu-list">
+                            <div v-for="f in files" :key="f.id" class="vu-row">
+                                <span>{{ iconFor(f.status) }}</span>
+                                <span class="vu-row__name">{{ f.name }}</span>
+                                <span :class="['vu-row__status', 'vu-row__status--' + f.status]">{{ f.status }}</span>
+                                <span class="vu-row__bar"><span class="vu-row__bar-fill" :style="{ width: f.progress + '%' }"></span></span>
+                                <span class="vu-row__actions">
+                                    <button v-if="actionLabel(f.status)" class="vu-row__action" @click="rowAction(f)">{{ actionLabel(f.status) }}</button>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="vu-stats">
+                            <div class="vu-stat"><span class="vu-stat__label">Total</span><span class="vu-stat__value">{{ stats.total }}</span></div>
+                            <div class="vu-stat"><span class="vu-stat__label">Uploading</span><span class="vu-stat__value">{{ stats.uploading }}</span></div>
+                            <div class="vu-stat"><span class="vu-stat__label">Paused</span><span class="vu-stat__value">{{ stats.paused }}</span></div>
+                            <div class="vu-stat"><span class="vu-stat__label">Done</span><span class="vu-stat__value">{{ stats.complete }}</span></div>
+                            <div class="vu-stat"><span class="vu-stat__label">Failed</span><span class="vu-stat__value">{{ stats.error }}</span></div>
+                        </div>
+                    `
+                }
+
+                const app = createApp(App)
+                app.config.compilerOptions.isCustomElement = (tag) => tag.startsWith('web-dropzone')
+                app.mount('#vue-root')
+                </script>
+            </kmwc-demo>
         </section>
 
         <footer>
             <p>Web Dropzone · <a href="https://github.com/keenmate/web-dropzone">GitHub</a> · <a href="examples-architecture.html">Architecture</a></p>
         </footer>
-
-
-    <script type="module">
-        import { createApp, ref, computed, onMounted, onBeforeUnmount } from 'https://esm.sh/vue@3/dist/vue.esm-browser.js'
-
-        function simulateUpload({ durationMs = 4000, failureRate = 0 } = {}) {
-            return ({ file, setProgress, signal, startPercent }) => new Promise((resolve, reject) => {
-                const startPct = startPercent
-                if (startPct >= 100) {
-                    resolve({ metadata: { uploadedAt: new Date().toISOString() } })
-                    return
-                }
-                const remainingPct = 100 - startPct
-                const remainingMs = durationMs * (remainingPct / 100)
-                const start = performance.now()
-                let aborted = false
-                signal?.addEventListener('abort', () => {
-                    aborted = true
-                    reject(new DOMException('Aborted', 'AbortError'))
-                })
-                const tick = () => {
-                    if (aborted) return
-                    const elapsed = performance.now() - start
-                    const pct = Math.min(100, startPct + remainingPct * (elapsed / remainingMs))
-                    setProgress(pct)
-                    if (pct >= 100) {
-                        if (Math.random() < failureRate) {
-                            reject(new Error('Simulated upload failure'))
-                        } else {
-                            resolve({ metadata: { uploadedAt: new Date().toISOString() } })
-                        }
-                        return
-                    }
-                    requestAnimationFrame(tick)
-                }
-                requestAnimationFrame(tick)
-            })
-        }
-
-        const iconFor = (status) => ({
-            pending: '⏳', uploading: '⬆️', paused: '⏸️',
-            complete: '✅', error: '⚠️'
-        }[status] ?? '·')
-
-        const actionLabel = (status) => ({
-            uploading: 'Pause', paused: 'Resume', error: 'Retry'
-        }[status])
-
-        const App = {
-            setup() {
-                const storeRef = ref(null)
-                const files = ref([])
-
-                const stats = computed(() => {
-                    const acc = { total: files.value.length, pending: 0, uploading: 0, complete: 0, error: 0, paused: 0 }
-                    for (const f of files.value) acc[f.status] = (acc[f.status] ?? 0) + 1
-                    return acc
-                })
-
-                const onChange = (e) => { files.value = e.detail.files }
-
-                onMounted(() => {
-                    const s = storeRef.value
-                    s.uploadFileCallback = simulateUpload({ durationMs: 4000 })
-                    s.addEventListener('files-change', onChange)
-                })
-
-                onBeforeUnmount(() => {
-                    storeRef.value?.removeEventListener('files-change', onChange)
-                })
-
-                const rowAction = (f) => {
-                    const s = storeRef.value
-                    if (f.status === 'uploading') return s.pauseFile(f.id)
-                    if (f.status === 'paused')    return s.resumeFile(f.id)
-                    if (f.status === 'error')     return s.retryFile(f.id)
-                }
-
-                return { storeRef, files, stats, rowAction, iconFor, actionLabel }
-            },
-            template: `
-                <web-dropzone ref="storeRef" id="vu-store" render-mode="headless" multiple max-file-count="6"></web-dropzone>
-                <web-dropzone-picker for="vu-store" selector-appearance="card" :labels="{ prompt: 'Drop files for Vue' }"></web-dropzone-picker>
-
-                <div v-if="files.length === 0" class="vu-empty">No files yet — drop something above.</div>
-                <div v-else class="vu-list">
-                    <div v-for="f in files" :key="f.id" class="vu-row">
-                        <span>{{ iconFor(f.status) }}</span>
-                        <span class="vu-row__name">{{ f.name }}</span>
-                        <span :class="['vu-row__status', 'vu-row__status--' + f.status]">{{ f.status }}</span>
-                        <span class="vu-row__bar"><span class="vu-row__bar-fill" :style="{ width: f.progress + '%' }"></span></span>
-                        <span class="vu-row__actions">
-                            <button v-if="actionLabel(f.status)" class="vu-row__action" @click="rowAction(f)">{{ actionLabel(f.status) }}</button>
-                        </span>
-                    </div>
-                </div>
-
-                <div class="vu-stats">
-                    <div class="vu-stat"><span class="vu-stat__label">Total</span><span class="vu-stat__value">{{ stats.total }}</span></div>
-                    <div class="vu-stat"><span class="vu-stat__label">Uploading</span><span class="vu-stat__value">{{ stats.uploading }}</span></div>
-                    <div class="vu-stat"><span class="vu-stat__label">Paused</span><span class="vu-stat__value">{{ stats.paused }}</span></div>
-                    <div class="vu-stat"><span class="vu-stat__label">Done</span><span class="vu-stat__value">{{ stats.complete }}</span></div>
-                    <div class="vu-stat"><span class="vu-stat__label">Failed</span><span class="vu-stat__value">{{ stats.error }}</span></div>
-                </div>
-            `
-        }
-
-        const app = createApp(App)
-        app.config.compilerOptions.isCustomElement = (tag) => tag.startsWith('web-dropzone')
-        app.mount('#vue-root')
-    </script>

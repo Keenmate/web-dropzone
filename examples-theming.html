@@ -18,12 +18,6 @@
         #rem-default { --dz-rem: 10px; }
         #rem-large   { --dz-rem: 12px; }
 
-        #custom-vars {
-            --dz-dropzone-text-font-size: 18px;
-            --dz-dropzone-icon-size: 60px;
-            --dz-dropzone-padding: 40px;
-        }
-
         #font-inter      { font-family: 'Inter', sans-serif; }
         #font-fira       { font-family: 'Fira Code', monospace; }
         #font-quicksand  { font-family: 'Quicksand', sans-serif; }
@@ -257,25 +251,26 @@
             <h2>TH03 · Per-variable overrides (<code>--dz-*</code>)</h2>
             <p>For surgical changes, override individual variables instead of <code>--dz-rem</code>.</p>
 
-            <div class="grid">
-                <div class="form-group">
-                    <label>Default</label>
-                    <web-dropzone accept="*/*" display-mode="detailed" labels='{"prompt": "Default size"}'></web-dropzone>
-                </div>
+            <kmwc-demo>
+                <style>
+                    #custom-vars {
+                        --dz-dropzone-text-font-size: 18px;
+                        --dz-dropzone-icon-size: 60px;
+                        --dz-dropzone-padding: 40px;
+                    }
+                </style>
+                <div class="grid">
+                    <div class="form-group">
+                        <label>Default</label>
+                        <web-dropzone accept="*/*" display-mode="detailed" labels='{"prompt": "Default size"}'></web-dropzone>
+                    </div>
 
-                <div class="form-group">
-                    <label>Custom padding + icon size</label>
-                    <web-dropzone id="custom-vars" accept="*/*" display-mode="detailed" labels='{"prompt": "Bigger prompt"}'></web-dropzone>
+                    <div class="form-group">
+                        <label>Custom padding + icon size</label>
+                        <web-dropzone id="custom-vars" accept="*/*" display-mode="detailed" labels='{"prompt": "Bigger prompt"}'></web-dropzone>
+                    </div>
                 </div>
-            </div>
-
-            <div class="code-block">
-                <pre><code>web-dropzone {
-    --dz-dropzone-text-font-size: 18px;
-    --dz-dropzone-icon-size: 60px;
-    --dz-dropzone-padding: 40px;
-}</code></pre>
-            </div>
+            </kmwc-demo>
         </div>
 
         <!-- FONT FAMILY -->
@@ -511,7 +506,7 @@ web-dropzone { --dz-font-family: 'Inter', sans-serif; }</code></pre>
             <h2>TH09 · Building a theme — recipe</h2>
             <p>Combine all three levels. Start broad with <code>--base-*</code>, then override <code>--dz-*</code> for dropzone-only touch-ups, and use <code>--dz-rem</code> if you need a different overall size.</p>
 
-            <div class="code-block">
+            <div class="code-block" data-kmwc-snippet>
                 <pre><code>.app-shell {
     /* Level 1 — cross-component palette */
     --base-primary-color: #818cf8;

@@ -112,23 +112,24 @@
 
             <div class="form-group">
                 <label>Reject filenames containing spaces</label>
-                <web-dropzone
-                    id="custom-validate"
-                    display-mode="detailed"
-                    labels='{"prompt": "Drop files (no spaces in names)"}'>
-                </web-dropzone>
+                <kmwc-demo>
+                    <web-dropzone
+                        id="custom-validate"
+                        display-mode="detailed"
+                        labels='{"prompt": "Drop files (no spaces in names)"}'>
+                    </web-dropzone>
+                    <script type="module" data-kmwc-show>
+                        const el = document.getElementById('custom-validate')
+
+                        el.validateCallback = ({ file, existingFiles }) => {
+                            if (file.name.includes(' ')) {
+                                return { valid: false, error: 'Filename must not contain spaces', code: 'custom' }
+                            }
+                            return { valid: true }
+                        }
+                    </script>
+                </kmwc-demo>
                 <div class="rejected-log" data-log-for="custom-validate"></div>
-            </div>
-
-            <div class="code-block">
-                <pre><code>const el = document.getElementById('custom-validate')
-
-el.validateCallback = ({ file, existingFiles }) => {
-    if (file.name.includes(' ')) {
-        return { valid: false, error: 'Filename must not contain spaces' }
-    }
-    return { valid: true }
-}</code></pre>
             </div>
         </div>
 
@@ -139,30 +140,32 @@ el.validateCallback = ({ file, existingFiles }) => {
 
             <div class="form-group">
                 <label>Confirm-on-add + confirm-on-remove</label>
-                <web-dropzone
-                    id="confirm-gate"
-                    display-mode="detailed"
-                    auto-upload="false"
-                    labels='{"prompt": "Drop a file (you&#39;ll get a confirm dialog)", "hint": "auto-upload is off so X always tests the remove gate (during upload the X cancels instead)"}'>
-                </web-dropzone>
+                <kmwc-demo>
+                    <web-dropzone
+                        id="confirm-gate"
+                        display-mode="detailed"
+                        auto-upload="false"
+                        labels='{"prompt": "Drop a file (you&#39;ll get a confirm dialog)", "hint": "auto-upload is off so X always tests the remove gate (during upload the X cancels instead)"}'>
+                    </web-dropzone>
+                    <script type="module" data-kmwc-show>
+                        const el = document.getElementById('confirm-gate')
+
+                        // One ctx; return false to cancel, a File[] to add those instead, nothing to continue.
+                        // confirm() blocks the await, standing in for an app-rendered modal.
+                        el.beforeFilesAddCallback = async ({ files, existingFiles }) => {
+                            const names = files.map(f => f.name).join(', ')
+                            if (!confirm(`Add ${files.length} file(s)?\n\n${names}`)) return false
+                        }
+
+                        el.beforeFilesRemoveCallback = async ({ files, allFiles }) => {
+                            const question = files.length === 1
+                                ? `Remove "${files[0].name}"?`
+                                : `Remove all ${files.length} files?`
+                            if (!confirm(question)) return false
+                        }
+                    </script>
+                </kmwc-demo>
                 <div class="rejected-log" data-log-for="confirm-gate"></div>
-            </div>
-
-            <div class="code-block">
-                <pre><code>const el = document.getElementById('confirm-gate')
-
-// One ctx; return false to cancel, a File[] to add those instead, nothing to continue.
-el.beforeFilesAddCallback = async ({ files, existingFiles }) =&gt; {
-    const names = files.map(f =&gt; f.name).join(', ')
-    if (!confirm(`Add ${files.length} file(s)?\n\n${names}`)) return false
-}
-
-el.beforeFilesRemoveCallback = async ({ files, allFiles }) =&gt; {
-    const question = files.length === 1
-        ? `Remove "${files[0].name}"?`
-        : `Remove all ${files.length} files?`
-    if (!confirm(question)) return false
-}</code></pre>
             </div>
         </div>
 
@@ -235,15 +238,6 @@ el.beforeFilesRemoveCallback = async ({ files, allFiles }) =&gt; {
             })
         })
 
-        // Custom validator on the no-spaces example.
-        const customEl = document.getElementById('custom-validate')
-        customEl.validateCallback = ({ file }) => {
-            if (file.name.includes(' ')) {
-                return { valid: false, error: 'Filename must not contain spaces', code: 'custom' }
-            }
-            return { valid: true }
-        }
-
         // Combined rules — add a custom rule on top of the declarative ones.
         const combinedEl = document.getElementById('combined')
         combinedEl.validateCallback = ({ file }) => {
@@ -251,21 +245,6 @@ el.beforeFilesRemoveCallback = async ({ files, allFiles }) =&gt; {
                 return { valid: false, error: 'Filenames containing "logo" are not allowed', code: 'custom' }
             }
             return { valid: true }
-        }
-
-        // Async confirmation gates — confirm() blocks the await, simulating an
-        // app-rendered modal. Cancel on add lands the file in file-reject
-        // with code='cancelled' (logged alongside other rejections above).
-        // The console.log lines let you verify in DevTools that the gate fires
-        // (and with what files) — useful when debugging consumer wiring.
-        const gateEl = document.getElementById('confirm-gate')
-        gateEl.beforeFilesAddCallback = async ({ files }) => {
-            const names = files.map(f => f.name).join(', ')
-            if (!confirm(`Add ${files.length} file(s)?\n\n${names}`)) return false
-        }
-        gateEl.beforeFilesRemoveCallback = async ({ files }) => {
-            const question = files.length === 1 ? `Remove "${files[0].name}"?` : `Remove all ${files.length} files?`
-            if (!confirm(question)) return false
         }
 
         function escapeHtml(s) {

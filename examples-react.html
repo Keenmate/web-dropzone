@@ -124,187 +124,135 @@
         <section class="example-section">
             <h2>RC02 · Live demo</h2>
             <p>The React tree below renders the picker, list, and a toolbar with <em>pause all / resume all / retry all / clear</em>. Drop a few files and watch React re-render on every coalesced <code>files-change</code> event.</p>
-            <div id="react-root"></div>
-        </section>
+            <p>The code under the demo is the whole page script (htm flavour) — exactly as it runs here.</p>
+            <kmwc-demo>
+                <div id="react-root"></div>
+                <script type="module" data-kmwc-show>
+                // Bare specifiers (`'react'`, `'react-dom/client'`) would normally be
+                // resolved by a browser importmap, but Vite's dev server runs its own
+                // import-analysis on inline modules and rejects them before the
+                // browser ever sees the importmap. Use full CDN URLs instead so Vite
+                // passes them through untouched.
+                import React, { useEffect, useRef, useState } from 'https://esm.sh/react@18'
+                import { createRoot } from 'https://esm.sh/react-dom@18/client'
+                import htm from 'https://esm.sh/htm@3'
+                const html = htm.bind(React.createElement)
 
-        <section class="example-section">
-            <h2>RC03 · The whole component (htm flavour)</h2>
-            <div class="code-block">
-<pre>import React, { useEffect, useRef, useState } from 'https://esm.sh/react@18'
-import { createRoot } from 'https://esm.sh/react-dom@18/client'
-import htm from 'https://esm.sh/htm@3'
-const html = htm.bind(React.createElement)
+                function simulateUpload({ durationMs = 4000, failureRate = 0 } = {}) {
+                    return ({ file, setProgress, signal, startPercent }) => new Promise((resolve, reject) => {
+                        const startPct = startPercent
+                        if (startPct >= 100) {
+                            resolve({ metadata: { uploadedAt: new Date().toISOString() } })
+                            return
+                        }
+                        const remainingPct = 100 - startPct
+                        const remainingMs = durationMs * (remainingPct / 100)
+                        const start = performance.now()
+                        let aborted = false
+                        signal?.addEventListener('abort', () => {
+                            aborted = true
+                            reject(new DOMException('Aborted', 'AbortError'))
+                        })
+                        const tick = () => {
+                            if (aborted) return
+                            const elapsed = performance.now() - start
+                            const pct = Math.min(100, startPct + remainingPct * (elapsed / remainingMs))
+                            setProgress(pct)
+                            if (pct >= 100) {
+                                if (Math.random() < failureRate) {
+                                    reject(new Error('Simulated upload failure'))
+                                } else {
+                                    resolve({ metadata: { uploadedAt: new Date().toISOString() } })
+                                }
+                                return
+                            }
+                            requestAnimationFrame(tick)
+                        }
+                        requestAnimationFrame(tick)
+                    })
+                }
 
-function Uploader() {
-    const storeRef = useRef(null)
-    const [files, setFiles] = useState([])
+                const iconFor = (status) => ({
+                    pending: '⏳', uploading: '⬆️', paused: '⏸️',
+                    complete: '✅', error: '⚠️'
+                }[status] ?? '·')
 
-    useEffect(() =&gt; {
-        const store = storeRef.current
-        store.uploadFileCallback = simulateUpload({ durationMs: 4000 })
-        const onChange = (e) =&gt; setFiles(e.detail.files)
-        store.addEventListener('files-change', onChange)
-        return () =&gt; store.removeEventListener('files-change', onChange)
-    }, [])
+                const actionLabel = (status) => ({
+                    uploading: 'Pause', paused: 'Resume', error: 'Retry'
+                }[status])
 
-    const rowAction = (f) =&gt; {
-        const s = storeRef.current
-        if (f.status === 'uploading') return s.pauseFile(f.id)
-        if (f.status === 'paused')    return s.resumeFile(f.id)
-        if (f.status === 'error')     return s.retryFile(f.id)
-    }
+                function Uploader() {
+                    const storeRef = useRef(null)
+                    const [files, setFiles] = useState([])
+                    // Diagnostic — counts how many files-change events the listener
+                    // actually receives. If this barely moves during an upload while
+                    // progress visibly changes elsewhere, React is dropping renders.
+                    const [eventCount, setEventCount] = useState(0)
 
-    return html`
-        &lt;web-dropzone ref=${storeRef} id="rx-store" render-mode="headless" multiple max-file-count="6"&gt;&lt;/web-dropzone&gt;
-        &lt;web-dropzone-picker for="rx-store" selector-appearance="card" labels='{"prompt": "Drop files for React"}'&gt;&lt;/web-dropzone-picker&gt;
-        ${files.length === 0
-            ? html`&lt;div className="rx-empty"&gt;No files yet&lt;/div&gt;`
-            : html`&lt;div className="rx-list"&gt;
-                ${files.map((f) =&gt; html`
-                    &lt;div key=${f.id} className="rx-row" style=${{ '--rx-progress': f.progress + '%' }}&gt;
-                        &lt;span&gt;${iconFor(f.status)}&lt;/span&gt;
-                        &lt;span className="rx-row__name"&gt;${f.name}&lt;/span&gt;
-                        &lt;span className=${`rx-row__status rx-row__status--${f.status}`}&gt;${f.status}&lt;/span&gt;
-                        &lt;span className="rx-row__bar"&gt;&lt;span className="rx-row__bar-fill"&gt;&lt;/span&gt;&lt;/span&gt;
-                        &lt;span className="rx-row__pct"&gt;${Math.round(f.progress)}%&lt;/span&gt;
-                        &lt;span className="rx-row__actions"&gt;
-                            ${actionLabel(f.status) &amp;&amp; html`&lt;button className="rx-row__action" onClick=${() =&gt; rowAction(f)}&gt;${actionLabel(f.status)}&lt;/button&gt;`}
-                        &lt;/span&gt;
-                    &lt;/div&gt;
-                `)}
-            &lt;/div&gt;`}
-    `
-}
+                    useEffect(() => {
+                        const store = storeRef.current
+                        store.uploadFileCallback = simulateUpload({ durationMs: 4000 })
+                        const onChange = (e) => {
+                            setFiles(e.detail.files)
+                            setEventCount((c) => c + 1)
+                        }
+                        store.addEventListener('files-change', onChange)
+                        return () => store.removeEventListener('files-change', onChange)
+                    }, [])
 
-createRoot(document.getElementById('react-root')).render(React.createElement(Uploader))</pre>
-            </div>
+                    const rowAction = (f) => {
+                        const s = storeRef.current
+                        if (f.status === 'uploading') return s.pauseFile(f.id)
+                        if (f.status === 'paused')    return s.resumeFile(f.id)
+                        if (f.status === 'error')     return s.retryFile(f.id)
+                    }
+
+                    const callAll = (method) => () => storeRef.current?.[method]?.()
+
+                    const anyUploading = files.some((f) => f.status === 'uploading')
+                    const anyPaused    = files.some((f) => f.status === 'paused')
+                    const anyError     = files.some((f) => f.status === 'error')
+
+                    return html`
+                        <web-dropzone ref=${storeRef} id="rx-store" render-mode="headless" multiple max-file-count="6"></web-dropzone>
+                        <web-dropzone-picker for="rx-store" selector-appearance="card" labels='{"prompt": "Drop files for React"}'></web-dropzone-picker>
+
+                        ${files.length === 0
+                            ? html`<div className="rx-empty">No files yet — drop something above.</div>`
+                            : html`<div className="rx-list">
+                                ${files.map((f) => html`
+                                    <div key=${f.id} className="rx-row" style=${{ '--rx-progress': f.progress + '%' }}>
+                                        <span>${iconFor(f.status)}</span>
+                                        <span className="rx-row__name">${f.name}</span>
+                                        <span className=${`rx-row__status rx-row__status--${f.status}`}>${f.status}</span>
+                                        <span className="rx-row__bar">
+                                            <span className="rx-row__bar-fill"></span>
+                                        </span>
+                                        <span className="rx-row__pct">${f.progress.toFixed(1)}%</span>
+                                        <span className="rx-row__actions">
+                                            ${actionLabel(f.status) && html`<button className="rx-row__action" onClick=${() => rowAction(f)}>${actionLabel(f.status)}</button>`}
+                                        </span>
+                                    </div>
+                                `)}
+                            </div>`}
+
+                        <div className="rx-toolbar">
+                            <button onClick=${callAll('pauseAll')} disabled=${!anyUploading}>Pause all</button>
+                            <button onClick=${callAll('resumeAll')} disabled=${!anyPaused}>Resume all</button>
+                            <button onClick=${callAll('retryAll')} disabled=${!anyError}>Retry all</button>
+                            <button onClick=${callAll('clear')} disabled=${files.length === 0}>Clear</button>
+                            <span style=${{ marginLeft: 'auto', alignSelf: 'center', fontSize: '0.85rem', color: 'var(--kmwc-text-color-2)', fontVariantNumeric: 'tabular-nums' }}>
+                                files-change received: <strong>${eventCount}</strong>
+                            </span>
+                        </div>
+                    `
+                }
+
+                createRoot(document.getElementById('react-root')).render(React.createElement(Uploader))
+                </script>
+            </kmwc-demo>
         </section>
 
         <footer>
             <p>Web Dropzone · <a href="https://github.com/keenmate/web-dropzone">GitHub</a> · <a href="examples-architecture.html">Architecture</a></p>
         </footer>
-
-
-    <script type="module">
-        // Bare specifiers (`'react'`, `'react-dom/client'`) would normally be
-        // resolved by a browser importmap, but Vite's dev server runs its own
-        // import-analysis on inline modules and rejects them before the
-        // browser ever sees the importmap. Use full CDN URLs instead so Vite
-        // passes them through untouched.
-        import React, { useEffect, useRef, useState } from 'https://esm.sh/react@18'
-        import { createRoot } from 'https://esm.sh/react-dom@18/client'
-        import htm from 'https://esm.sh/htm@3'
-        const html = htm.bind(React.createElement)
-
-        function simulateUpload({ durationMs = 4000, failureRate = 0 } = {}) {
-            return ({ file, setProgress, signal, startPercent }) => new Promise((resolve, reject) => {
-                const startPct = startPercent
-                if (startPct >= 100) {
-                    resolve({ metadata: { uploadedAt: new Date().toISOString() } })
-                    return
-                }
-                const remainingPct = 100 - startPct
-                const remainingMs = durationMs * (remainingPct / 100)
-                const start = performance.now()
-                let aborted = false
-                signal?.addEventListener('abort', () => {
-                    aborted = true
-                    reject(new DOMException('Aborted', 'AbortError'))
-                })
-                const tick = () => {
-                    if (aborted) return
-                    const elapsed = performance.now() - start
-                    const pct = Math.min(100, startPct + remainingPct * (elapsed / remainingMs))
-                    setProgress(pct)
-                    if (pct >= 100) {
-                        if (Math.random() < failureRate) {
-                            reject(new Error('Simulated upload failure'))
-                        } else {
-                            resolve({ metadata: { uploadedAt: new Date().toISOString() } })
-                        }
-                        return
-                    }
-                    requestAnimationFrame(tick)
-                }
-                requestAnimationFrame(tick)
-            })
-        }
-
-        const iconFor = (status) => ({
-            pending: '⏳', uploading: '⬆️', paused: '⏸️',
-            complete: '✅', error: '⚠️'
-        }[status] ?? '·')
-
-        const actionLabel = (status) => ({
-            uploading: 'Pause', paused: 'Resume', error: 'Retry'
-        }[status])
-
-        function Uploader() {
-            const storeRef = useRef(null)
-            const [files, setFiles] = useState([])
-            // Diagnostic — counts how many files-change events the listener
-            // actually receives. If this barely moves during an upload while
-            // progress visibly changes elsewhere, React is dropping renders.
-            const [eventCount, setEventCount] = useState(0)
-
-            useEffect(() => {
-                const store = storeRef.current
-                store.uploadFileCallback = simulateUpload({ durationMs: 4000 })
-                const onChange = (e) => {
-                    setFiles(e.detail.files)
-                    setEventCount((c) => c + 1)
-                }
-                store.addEventListener('files-change', onChange)
-                return () => store.removeEventListener('files-change', onChange)
-            }, [])
-
-            const rowAction = (f) => {
-                const s = storeRef.current
-                if (f.status === 'uploading') return s.pauseFile(f.id)
-                if (f.status === 'paused')    return s.resumeFile(f.id)
-                if (f.status === 'error')     return s.retryFile(f.id)
-            }
-
-            const callAll = (method) => () => storeRef.current?.[method]?.()
-
-            const anyUploading = files.some((f) => f.status === 'uploading')
-            const anyPaused    = files.some((f) => f.status === 'paused')
-            const anyError     = files.some((f) => f.status === 'error')
-
-            return html`
-                <web-dropzone ref=${storeRef} id="rx-store" render-mode="headless" multiple max-file-count="6"></web-dropzone>
-                <web-dropzone-picker for="rx-store" selector-appearance="card" labels='{"prompt": "Drop files for React"}'></web-dropzone-picker>
-
-                ${files.length === 0
-                    ? html`<div className="rx-empty">No files yet — drop something above.</div>`
-                    : html`<div className="rx-list">
-                        ${files.map((f) => html`
-                            <div key=${f.id} className="rx-row" style=${{ '--rx-progress': f.progress + '%' }}>
-                                <span>${iconFor(f.status)}</span>
-                                <span className="rx-row__name">${f.name}</span>
-                                <span className=${`rx-row__status rx-row__status--${f.status}`}>${f.status}</span>
-                                <span className="rx-row__bar">
-                                    <span className="rx-row__bar-fill"></span>
-                                </span>
-                                <span className="rx-row__pct">${f.progress.toFixed(1)}%</span>
-                                <span className="rx-row__actions">
-                                    ${actionLabel(f.status) && html`<button className="rx-row__action" onClick=${() => rowAction(f)}>${actionLabel(f.status)}</button>`}
-                                </span>
-                            </div>
-                        `)}
-                    </div>`}
-
-                <div className="rx-toolbar">
-                    <button onClick=${callAll('pauseAll')} disabled=${!anyUploading}>Pause all</button>
-                    <button onClick=${callAll('resumeAll')} disabled=${!anyPaused}>Resume all</button>
-                    <button onClick=${callAll('retryAll')} disabled=${!anyError}>Retry all</button>
-                    <button onClick=${callAll('clear')} disabled=${files.length === 0}>Clear</button>
-                    <span style=${{ marginLeft: 'auto', alignSelf: 'center', fontSize: '0.85rem', color: 'var(--kmwc-text-color-2)', fontVariantNumeric: 'tabular-nums' }}>
-                        files-change received: <strong>${eventCount}</strong>
-                    </span>
-                </div>
-            `
-        }
-
-        createRoot(document.getElementById('react-root')).render(React.createElement(Uploader))
-    </script>
