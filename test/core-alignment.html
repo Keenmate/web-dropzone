@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — core alignment (custom CSS, registry, satellites on BlissElement, read-only)</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-dropzone { display: block; max-width: 360px; }
+    </style>
+    <script>
+        // Page-wide custom CSS for every <web-dropzone>, set BEFORE the
+        // component script loads (registerComponent adopts the entry).
+        window.components = window.components || {};
+        window.components['web-dropzone'] = {
+            customStyles: '.dz__host { outline: 3px solid rgb(255, 0, 0); letter-spacing: 3px; }'
+        };
+    </script>
+</head>
+<body>
+    <h1>Core alignment</h1>
+    <p>Targeted by <code>e2e/core-alignment.spec.ts</code>.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">custom CSS: page layer only / page + instance attribute / callback</div>
+        <web-dropzone id="css-page" accept="*/*" display-mode="list"></web-dropzone>
+        <web-dropzone id="css-inst" accept="*/*" display-mode="list"
+            custom-styles=".dz__host { outline-color: rgb(0, 128, 0); }"></web-dropzone>
+        <web-dropzone id="css-cb" accept="*/*" display-mode="list"
+            custom-styles=".dz__host { outline-color: rgb(0, 128, 0); }"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">read-only / disabled card (focusable vs not)</div>
+        <button id="before-ro" type="button">before</button>
+        <web-dropzone id="ro" readonly accept="*/*" display-mode="list"></web-dropzone>
+        <web-dropzone id="dis" disabled accept="*/*" display-mode="list"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">satellites: two stores, a picker bound by for=, a list, an indicator, a progress strip</div>
+        <web-dropzone id="store-a" render-mode="headless" multiple></web-dropzone>
+        <web-dropzone id="store-b" render-mode="headless" multiple></web-dropzone>
+        <web-dropzone-picker id="pk" for="store-a"></web-dropzone-picker>
+        <web-dropzone-picker id="pk-ro" for="store-a" readonly></web-dropzone-picker>
+        <web-dropzone-picker id="pk-dis" for="store-a" disabled="false"></web-dropzone-picker>
+        <web-dropzone-list id="ls" for="store-a"></web-dropzone-list>
+        <web-dropzone-indicator id="ind" for="store-a" position="inline"></web-dropzone-indicator>
+        <web-dropzone-progress id="prog" for="store-a"></web-dropzone-progress>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">sizes</div>
+        <web-dropzone id="sizes" accept="*/*" display-mode="list" max-file-size="2MiB"></web-dropzone>
+    </div>
+
+    <script type="module">
+        import '/src/index.ts';
+        import { installAddNamed } from './fixture-kit.js';
+        installAddNamed();
+        document.getElementById('css-cb').getCustomStylesCallback = () =>
+            '.dz__host { outline-color: rgb(0, 0, 255); }';
+    </script>
+</body>
+</html>

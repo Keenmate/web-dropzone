@@ -13,7 +13,7 @@
 import type { DropzoneElement } from './web-component';
 import type { DropzoneController, DropzoneContext, DropzoneLabels, LabelFn } from '@keenmate/web-dropzone-core';
 import { createLabelFn } from '@keenmate/web-dropzone-core';
-import { BlissElement, dispatch, toText, withComponentContext, type InputDef } from '@keenmate/web-components-core';
+import { BlissElement, createCustomStyles, dispatch, toFunction, toText, withComponentContext, type CustomStylesHandle, type InputDef } from '@keenmate/web-components-core';
 import { storeControllerOf, STORE_BUILD_EVENT } from './store-link';
 import { labelsConverter } from './inputs';
 
@@ -143,12 +143,16 @@ export function subscribeStoreEvents(
 export const SATELLITE_INPUTS: readonly InputDef[] = [
     { configKey: 'htmlFor', attribute: 'for', converter: toText({ isNullable: true }), shouldReflect: true, on: 'update', type: 'string | null', description: 'Id of the `<web-dropzone>` store this satellite binds to (attribute `for`). Changing it re-binds. Not needed when the store mounts the satellite itself.' },
     { configKey: 'labels', attribute: 'labels', converter: labelsConverter, on: 'update', type: 'Partial<DropzoneLabels> | null', description: 'This satellite\'s own UI strings — a partial `DropzoneLabels` (property, or a JSON attribute), merged per key over the bound store\'s `labels`, then the built-in English. Live.' },
+    { configKey: 'customStyles', attribute: 'custom-styles', converter: toText({ isNullable: true }), on: 'update', type: 'string | null', description: 'Extra CSS for this satellite\'s shadow root (raw CSS — NOT sanitized). Comes after the page-wide `window.components[tag].customStyles`, so it overrides it; `getCustomStylesCallback` wins over it.' },
+    { configKey: 'getCustomStylesCallback', converter: toFunction(), on: 'update', type: '(ctx: object) => string | null | undefined', description: 'Returns extra CSS for this satellite\'s shadow root (raw CSS — NOT sanitized); wins over `customStyles`.' },
 ];
 
 /** The inputs every satellite has (its typed properties). */
 export interface SatelliteElementConfig {
     htmlFor?: string | null;
     labels?: Partial<DropzoneLabels> | null;
+    customStyles?: string | null;
+    getCustomStylesCallback?: ((ctx: object) => string | null | undefined) | null;
 }
 
 /**
@@ -194,6 +198,8 @@ export abstract class SatelliteElement extends BlissElement<Record<string, never
     private cleanupSubscriptions: (() => void) | null = null;
     /** Between core's `connect()` and `disconnect()`. */
     private isActive = false;
+    /** Core's custom-CSS handle (page layer + instance layer), made on the first build. */
+    private customStylesHandle: CustomStylesHandle | null = null;
 
     protected abstract readonly satelliteTagName: string;
 
@@ -222,6 +228,33 @@ export abstract class SatelliteElement extends BlissElement<Record<string, never
         this.store?.getConfig().labels
     ]);
 
+    /**
+     * Build (core `reinit()`): custom CSS, the canonical way (core usage
+     * "Style injection", rulebook C-CA-15) — the page layer
+     * `window.components[tag].customStyles`, then this instance's.
+     */
+    protected override reinit(): void {
+        if (this.customStylesHandle) {
+            this.customStylesHandle.refresh();
+            return;
+        }
+        this.customStylesHandle = createCustomStyles(this, this.shadowRoot!, {
+            cssClass: 'dz-custom-styles',
+            getContext: () => this.withContext({}),
+            getInstanceStyles: () => ({
+                css: this.config.customStyles as string | null,
+                callback: this.config.getCustomStylesCallback as ((ctx: object) => string | null | undefined) | null,
+            }),
+        });
+    }
+
+    /** Final teardown (core `destroy()`): the binding and the custom CSS. */
+    protected override destroyCallback(): void {
+        this.teardownStoreBinding();
+        this.customStylesHandle?.destroy();
+        this.customStylesHandle = null;
+    }
+
     /** Activation (core): resolve the store and bind once it is built. */
     protected override connect(): void {
         this.isActive = true;
@@ -238,6 +271,7 @@ export abstract class SatelliteElement extends BlissElement<Record<string, never
 
     /** Core `update()`: `for` re-binds; everything goes to `inputsChanged()`. */
     protected override update(partial: Record<string, unknown>): void {
+        if ('customStyles' in partial || 'getCustomStylesCallback' in partial) this.customStylesHandle?.refresh();
         if ('htmlFor' in partial && !this.programmaticStoreEl && this.isActive) {
             this.teardownStoreBinding();
             this.bindFromConfig();
