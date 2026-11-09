@@ -122,6 +122,14 @@ rc21 pre-release. No compatibility aliases.
 - Both READMEs follow the rulebook structure, with `docs/` folders; `VALIDATION-NOTES.md` records the
   accepted deviations.
 
+### Fixed (examples, 2026-11-09)
+
+- **Demo:** `examples-display.html` DC15 (now "Disabled / Readonly States") said `disabled="false"`
+  turns `disabled` off — it doesn't: `disabled` / `readonly` are presence booleans like a native
+  input's (any value, `="false"` included, turns them on). The card now shows a prefilled disabled
+  and a prefilled readonly dropzone, and its "Toggle disabled" button sets `el.isDisabled` (it wrote
+  a no-op `el.disabled` expando).
+
 ### Changed (examples site on the devkit, 2026-11-05)
 
 Repo tooling only — neither published package changes: both `dist/` folders are

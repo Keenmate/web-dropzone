@@ -621,20 +621,27 @@ startBtn.addEventListener('click', () =&gt; dz.uploadAll())
 
         <!-- DISABLED -->
         <div class="card">
-            <h2>DC15 · Disabled State</h2>
-            <p>The <code>disabled</code> attribute follows HTML convention: presence enables it, <code>="false"</code> overrides.</p>
+            <h2>DC15 · Disabled / Readonly States</h2>
+            <p><code>disabled</code> / <code>readonly</code> are boolean attributes, like a native input's: presence turns them on &mdash; any value, <code>="false"</code> included. Remove the attribute (or set <code>el.isDisabled</code> / <code>el.isReadonly</code> to <code>false</code>) to turn them off.</p>
 
             <div class="grid">
                 <div class="form-group">
-                    <label>Disabled dropzone</label>
-                    <web-dropzone disabled display-mode="detailed" labels='{"prompt": "This dropzone is disabled"}'></web-dropzone>
+                    <label>Disabled Dropzone</label>
+                    <web-dropzone id="state-disabled" disabled display-mode="detailed"></web-dropzone>
+                    <small>No interaction, not focusable, not submitted with a form</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Readonly Dropzone</label>
+                    <web-dropzone id="state-readonly" readonly display-mode="detailed"></web-dropzone>
+                    <small>The value can't change; still focusable and copyable, submitted with a form</small>
                 </div>
 
                 <div class="form-group">
                     <label>Toggle via JS</label>
                     <web-dropzone id="toggle-disabled" display-mode="detailed"></web-dropzone>
                     <div class="controls" style="margin-top: 0.5rem;">
-                        <button onclick="document.getElementById('toggle-disabled').disabled = !document.getElementById('toggle-disabled').disabled">
+                        <button onclick="document.getElementById('toggle-disabled').isDisabled = !document.getElementById('toggle-disabled').isDisabled">
                             Toggle disabled
                         </button>
                     </div>
@@ -951,6 +958,12 @@ el.getFileIconCallback = ({ file }) =&gt;
             archive: '📦',    // whole category → emoji
         }
         iconDemo.getFileIconCallback = ({ file }) => /^invoice/i.test(file.name) ? '🧾' : null
+
+        // DC15 · Disabled / Readonly States — prefilled through the API (it works under both)
+        for (const id of ['state-disabled', 'state-readonly']) {
+            const mk = (name, type = '') => new File([new Uint8Array(64)], name, { type })
+            document.getElementById(id).addFiles([mk('report.pdf', 'application/pdf'), mk('photo.jpg', 'image/jpeg')])
+        }
 
         window.seedIconDemo = () => {
             const mk = (name, type = '') => new File([new Uint8Array(64)], name, { type })
