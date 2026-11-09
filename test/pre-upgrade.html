@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — properties assigned before the elements are defined</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+</head>
+<body>
+    <h1>Pre-upgrade properties</h1>
+    <p>Targeted by <code>e2e/pre-upgrade.spec.ts</code>. A classic script assigns properties to the
+       not-yet-defined elements; the component script loads afterwards (core lifts them, SPEC §6).</p>
+
+    <web-dropzone id="store" render-mode="headless" multiple></web-dropzone>
+    <web-dropzone-picker id="pk" for="store"></web-dropzone-picker>
+    <web-dropzone-indicator id="ind" for="store" position="inline" drawer="off"></web-dropzone-indicator>
+
+    <script>
+        document.getElementById('pk').uploadMetadata = { folder: 'early' };
+        document.getElementById('pk').selectorAppearance = 'button';
+        document.getElementById('ind').renderBodyCallback = (args) => `<span class="early-body">${args.aggregate.total} early</span>`;
+        document.getElementById('store').maxFileCount = 3;
+    </script>
+    <script type="module">
+        import '/src/index.ts';
+    </script>
+</body>
+</html>

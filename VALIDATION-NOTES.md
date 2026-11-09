@@ -15,6 +15,28 @@ The repo is a monorepo (`packages/web-dropzone` = the `<web-dropzone>`
 renderer + four satellites, `packages/web-dropzone-core` = the headless
 store); the entries below concern `packages/web-dropzone` unless stated.
 
+## C-CST-4 — five element classes sharing render helpers and a satellite base
+
+`packages/web-dropzone/src` holds five custom elements, not one Logic class:
+`<web-dropzone>` (the store + its built-in renderer `dropzone.ts`) and four
+satellites (`web-component-picker / -list / -indicator / -progress.ts`). The
+imports the auto-script pairs as "service → service" are:
+
+- the satellites' shared `BlissElement` base class and binding helpers
+  (`satellite-base.ts`, with the shared input converters in `inputs.ts` and the
+  internal store link in `store-link.ts`) — a base class, not a Service;
+- pure, stateless row / status renderers shared by the store's renderer and the
+  list / indicator satellites (`row-templates.ts`, `row-patching.ts`,
+  `status-surface.ts`) — Side-layer helpers, so the rows look the same in every
+  element;
+- `page-file-drag.ts`, the one shared page-wide drag tracker every armed
+  element subscribes to.
+
+None of these holds per-instance business state; the store's state lives in
+`@keenmate/web-dropzone-core`. Same shape as web-treeview's subsystem split
+(its VALIDATION-NOTES → C-CST-4). PASS with note; the regex can't tell a base
+class or a pure helper from a Service.
+
 ## C-CSS-5 — `indicator.css` is loaded by `<web-dropzone-indicator>` only
 
 `main.css` is inlined into the shadow root of **every** element in the

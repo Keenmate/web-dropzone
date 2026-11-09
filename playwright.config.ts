@@ -1,4 +1,4 @@
-import { definePlaywrightConfig } from '@keenmate/web-components-devkit/playwright';
+import { definePlaywrightConfig, devices } from '@keenmate/web-components-devkit/playwright';
 
 /**
  * Playwright config for end-to-end tests.
@@ -9,10 +9,22 @@ import { definePlaywrightConfig } from '@keenmate/web-components-devkit/playwrig
  * `npm run dev` web server come from package.json#kmwc.ports.dev (the devkit
  * preset), so the port can't drift from the Vite config or the Makefile.
  *
+ * Every spec runs in chromium, firefox and webkit (the component's support
+ * matrix); WebKit on Windows hangs a combined run after its last test, so run
+ * it on its own there (`--project=webkit`).
+ *
  * Commands:
- *   npm run test:e2e:install   # one-time: download chromium browser binary
+ *   npm run test:e2e:install   # one-time: download chromium, firefox and webkit
  *   npm run test:e2e           # headless run
  *   npm run test:e2e:ui        # Playwright Test UI (debugging)
  *   npm run test:e2e:headed    # watch the browser do its thing
  */
-export default definePlaywrightConfig();
+const viewport = { width: 1440, height: 1024 };
+
+export default definePlaywrightConfig({
+    projects: [
+        { name: 'chromium', use: { ...devices['Desktop Chrome'], viewport } },
+        { name: 'firefox', use: { ...devices['Desktop Firefox'], viewport } },
+        { name: 'webkit', use: { ...devices['Desktop Safari'], viewport } },
+    ],
+});

@@ -16,7 +16,7 @@ const PAGE = '/test/core-alignment.html';
 test.beforeEach(async ({ page }) => {
     await page.goto(PAGE);
     await page.waitForFunction(() =>
-        ['css-page', 'css-inst', 'css-cb', 'ro', 'dis', 'store-a', 'store-b', 'pk', 'ls', 'ind', 'prog', 'sizes']
+        ['css-page', 'css-inst', 'css-cb', 'ro', 'dis', 'ro-btn', 'store-a', 'store-b', 'pk', 'ls', 'ind', 'prog', 'sizes']
             .every((id) => (document.getElementById(id) as any)?.isReady)
     );
 });
@@ -78,18 +78,27 @@ test.describe('registration (core registerComponent, rule 8)', () => {
             return ['web-dropzone', 'web-dropzone-picker', 'web-dropzone-list', 'web-dropzone-indicator', 'web-dropzone-progress'].map((tag) => ({
                 tag,
                 hasReset: typeof c[tag]?.logging?.resetLogging,
-                instances: c[tag]?.getInstances().length,
                 defined: !!customElements.get(tag),
             }));
         });
-        // Counts include the satellites a store mounts itself (display-mode="list" → picker + list + progress).
-        expect(info).toEqual([
-            { tag: 'web-dropzone', hasReset: 'function', instances: 8, defined: true },
-            { tag: 'web-dropzone-picker', hasReset: 'function', instances: 9, defined: true },
-            { tag: 'web-dropzone-list', hasReset: 'function', instances: 8, defined: true },
-            { tag: 'web-dropzone-indicator', hasReset: 'function', instances: 1, defined: true },
-            { tag: 'web-dropzone-progress', hasReset: 'function', instances: 7, defined: true },
+                expect(info.map((i) => [i.tag, i.hasReset, i.defined])).toEqual([
+            ['web-dropzone', 'function', true],
+            ['web-dropzone-picker', 'function', true],
+            ['web-dropzone-list', 'function', true],
+            ['web-dropzone-indicator', 'function', true],
+            ['web-dropzone-progress', 'function', true],
         ]);
+        // The standalone elements are among the live instances (core tracks them).
+        const ids = await page.evaluate(() => {
+            const c = (window as any).components;
+            const of = (tag: string) => c[tag].getInstances().map((e: Element) => e.id).filter(Boolean);
+            return { store: of('web-dropzone'), picker: of('web-dropzone-picker'), list: of('web-dropzone-list'), ind: of('web-dropzone-indicator'), prog: of('web-dropzone-progress') };
+        });
+        expect(ids.store).toEqual(expect.arrayContaining(['css-page', 'ro', 'store-a', 'store-b', 'sizes']));
+        expect(ids.picker).toEqual(['pk', 'pk-ro', 'pk-dis']);
+        expect(ids.list).toEqual(['ls']);
+        expect(ids.ind).toEqual(['ind']);
+        expect(ids.prog).toEqual(['prog']);
     });
 
     test('the bundle prints warnings by default (not silenced at load) and follows resetLogging()', async ({ page }) => {
@@ -139,6 +148,22 @@ test.describe('read-only / disabled card (SPEC §6.4 native semantics)', () => {
         await page.keyboard.press('Space');
         await dz(page, 'ro').locator('.dz__dropzone').click();
         await page.waitForTimeout(300);
+        expect(opened).toBe(false);
+    });
+
+    test('read-only button + popover: calls from code still add; the file list still opens, the dialog never', async ({ page }) => {
+        await addNamed(page, 'ro-btn', ['a.txt']);   // calls from code work under readonly (SPEC §6.4)
+        let opened = false;
+        page.on('filechooser', () => { opened = true; });
+        const button = dz(page, 'ro-btn').locator('button.dz__button');
+        await expect(button).toHaveAttribute('aria-disabled', 'true');   // focusable, adds nothing
+        await button.focus();
+        await page.keyboard.press('Enter');
+        await dz(page, 'ro-btn').locator('.dz__summary-line').click();
+        await expect(dz(page, 'ro-btn').locator('.dz__popover')).toBeVisible();
+        await expect(dz(page, 'ro-btn').locator('[data-dz-action="add-more"]')).toHaveCount(0);
+        await page.keyboard.press('Escape');                    // core overlay tree
+        await expect(dz(page, 'ro-btn').locator('.dz__popover')).toHaveCount(0);
         expect(opened).toBe(false);
     });
 
