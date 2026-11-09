@@ -130,7 +130,7 @@ CALLBACK TABLE
 | renderSummaryCallback      | { files }                              | string | HTMLElement (structural)        |
 | renderRolling{Body,FileInfo,Progress}Callback | StatusSurfaceArgs   | string | HTMLElement | false | null    |
 | getCustomStylesCallback    | context only                           | CSS string | null                        |
-| persistStateCallback       | { key, state }                         | void | Promise<void>                     |
+| saveStateCallback          | { key, state }                         | void | Promise<void>                     |
 | loadStateCallback          | { key }                                | DropzoneState | null (may be async)      |
 
 Non-callback object inputs (property-only): retryPolicy, fileIcons.

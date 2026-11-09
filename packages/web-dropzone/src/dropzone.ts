@@ -1868,7 +1868,7 @@ export class WebDropzone extends DropzoneEngine {
         // backed by localStorage (synchronous, just await ms), but the
         // callback flavour may go to the network. Apply width/height once
         // resolved — autoUpdate re-positions on the size change.
-        void this.loadDropzoneState().then(state => {
+        void this.stateStore.load().then(state => {
             if (!this.popover || !state) return;
             if (typeof state.popoverWidth === 'number') {
                 this.popover.style.width = `${state.popoverWidth}px`;
@@ -1966,7 +1966,7 @@ export class WebDropzone extends DropzoneEngine {
         // drag tick; debounce ~250ms so we only write once the user
         // settles. Skipped when persistence is disabled — the observer
         // itself is cheap but the storage round-trip isn't free.
-        if (this.getStorageKey() && typeof ResizeObserver !== 'undefined') {
+        if (this.config.storageKey && typeof ResizeObserver !== 'undefined') {
             this.popoverResizeObserver = new ResizeObserver(() => {
                 if (this.popoverSaveTimer !== null) clearTimeout(this.popoverSaveTimer);
                 this.popoverSaveTimer = window.setTimeout(() => {
@@ -2326,7 +2326,7 @@ export class WebDropzone extends DropzoneEngine {
     private flushPopoverSize(): void {
         if (!this.popover) return;
         const rect = this.popover.getBoundingClientRect();
-        void this.saveDropzoneState({
+        void this.stateStore.save({
             popoverWidth: Math.round(rect.width),
             popoverHeight: Math.round(rect.height)
         });

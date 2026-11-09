@@ -26,8 +26,6 @@ export type {
     BeforeFilesCancelContext,
     FileIconContext,
     FileUploadContext,
-    PersistStateContext,
-    LoadStateContext,
     FileItemRenderContext,
     ListWrapperRenderContext,
     PromptRenderContext,

@@ -555,7 +555,7 @@
         },
         {
           "name": "storage-key",
-          "description": "Opaque key scoping persisted UI state. Unset disables persistence.",
+          "description": "Key of the persisted UI state (popover size; core SPEC §12.17). Unset / empty = off; set = localStorage `km-state:web-dropzone:<key>`, or `loadStateCallback` / `saveStateCallback`.",
           "values": []
         },
         {

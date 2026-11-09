@@ -129,7 +129,9 @@ on, and the summary opens a popover with the list.
 </form>
 ```
 
-`storage-key` remembers the user's popover size (files are never persisted).
+`storage-key` remembers the user's popover size (files are never persisted) — localStorage
+`km-state:web-dropzone:message-attachments`, or the page's own store via `loadStateCallback` /
+`saveStateCallback`.
 
 ## React
 

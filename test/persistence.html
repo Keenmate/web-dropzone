@@ -7,16 +7,16 @@
     <style>web-dropzone { display: block; max-width: 420px; }</style>
 </head>
 <body>
-    <h1>persistence — storage-key / persistStateCallback / loadStateCallback</h1>
+    <h1>persistence — storage-key / saveStateCallback / loadStateCallback</h1>
     <p>Targeted by <code>e2e/persistence.spec.ts</code>. The persisted UI state is the user-resized popover size.</p>
 
     <div class="fixture">
-        <div class="fixture-label">storage-key="docs" → localStorage dz-state:docs</div>
+        <div class="fixture-label">storage-key="docs" → localStorage km-state:web-dropzone:docs</div>
         <web-dropzone id="ls" storage-key="docs" accept="*/*" display-mode="compact"></web-dropzone>
     </div>
 
     <div class="fixture">
-        <div class="fixture-label">storage-key="cb" + persistStateCallback / loadStateCallback (in-memory sink)</div>
+        <div class="fixture-label">storage-key="cb" + saveStateCallback / loadStateCallback (in-memory sink)</div>
         <web-dropzone id="cb" storage-key="cb" accept="*/*" display-mode="compact"></web-dropzone>
     </div>
 
@@ -31,13 +31,14 @@
         installAddNamed();
 
         // In-memory sink for #cb; every call is recorded for the spec.
-        window.__persistCalls = [];
+        window.__saveCalls = [];
         window.__loadCalls = [];
-        window.__sink = { popoverWidth: 333, popoverHeight: 222 };
+        window.__sink = { popoverWidth: 333, popoverHeight: 222, note: 'kept' };
         customElements.whenDefined('web-dropzone').then(() => {
             const cb = document.getElementById('cb');
-            cb.persistStateCallback = ({ key, state }) => {
-                window.__persistCalls.push({ key, state });
+            cb.saveStateCallback = (ctx) => {
+                const { key, state } = ctx;
+                window.__saveCalls.push({ key, state, hasContext: ctx.element === cb && !!ctx.controller });
                 window.__sink = state;
             };
             cb.loadStateCallback = ({ key }) => {

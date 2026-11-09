@@ -7,6 +7,7 @@
 // directly (it never declared it; it was resolving through the renderer's
 // hoisted copy).
 import type { Placement } from '@keenmate/web-components-core/positioning';
+import type { LoadStateCallback, SaveStateCallback } from '@keenmate/web-components-core';
 import type {
     ValidateContext,
     BeforeFilesAddContext,
@@ -14,8 +15,6 @@ import type {
     BeforeFilesCancelContext,
     FileIconContext,
     FileUploadContext,
-    PersistStateContext,
-    LoadStateContext,
     FileItemRenderContext,
     ListWrapperRenderContext,
     PromptRenderContext,
@@ -749,32 +748,29 @@ export interface DropzoneConfig {
     // ========================================================================
 
     /**
-     * Opaque identifier used to scope persisted UI state. When set, user
-     * actions like resizing the popover are saved (to localStorage by
-     * default, or via {@link persistStateCallback} when provided) and
-     * restored on next mount. Two dropzones on the same page need
-     * distinct keys; the empty string / `undefined` disables persistence
-     * entirely.
+     * Opaque identifier used to scope persisted UI state (HTML attr:
+     * `storage-key`; core SPEC §12.17). When set, user actions like resizing
+     * the popover are saved — to `localStorage['km-state:web-dropzone:<key>']`
+     * by default, or via {@link saveStateCallback} — and restored on next
+     * mount. Two dropzones on the same page need distinct keys; unset / the
+     * empty string disables persistence entirely.
      */
-    storageKey?: string;
+    storageKey?: string | null;
     /**
-     * Custom persistence sink — `persistStateCallback({ key, state })`.
-     * Called whenever a piece of state changes (currently: popover
-     * dimensions after the user finishes a resize). The full state object
-     * is passed every time so the implementation can merge / overwrite as
-     * it sees fit. Return a promise if the write is async — failures are
-     * swallowed; the component keeps working with in-memory state. Falls
-     * back to `localStorage` with key `dz-state:${storageKey}` when not set.
+     * Custom persistence sink — `saveStateCallback({ key, state })`. Called
+     * whenever a piece of state changes (currently: popover dimensions after
+     * the user finishes a resize) with the WHOLE {@link DropzoneState}. May be
+     * async; a failure is logged and the component keeps working from memory.
+     * Set both callbacks; either one alone switches localStorage off.
      */
-    persistStateCallback?: ((ctx: PersistStateContext) => void | Promise<void>) | null;
+    saveStateCallback?: SaveStateCallback<DropzoneState> | null;
     /**
-     * Custom persistence source — `loadStateCallback({ key })`. Called
-     * when the popover is about to open, to restore the user's last-known
-     * dimensions. Return `null` or `undefined` when no state exists for the
-     * key. Falls back to `localStorage` lookup at `dz-state:${storageKey}`
-     * when not set.
+     * Custom persistence source — `loadStateCallback({ key })`. Called when
+     * the popover first opens, to restore the user's last-known dimensions.
+     * Return `null` / `undefined` when no state exists for the key. May be
+     * async. Set both callbacks; either one alone switches localStorage off.
      */
-    loadStateCallback?: ((ctx: LoadStateContext) => DropzoneState | null | undefined | Promise<DropzoneState | null | undefined>) | null;
+    loadStateCallback?: LoadStateCallback<DropzoneState> | null;
 
     /**
      * Custom renderer for a single file row —

@@ -70,20 +70,23 @@ The progress strip's Pause/Resume/Cancel all need a store-level handler.
 
 What is persisted: DropzoneState = { popoverWidth?, popoverHeight? } - the
 user's last popover resize (debounced). Restored when the popover opens.
-Default sink: localStorage key `dz-state:<storage-key>`. Unset / empty
+Default sink (core createStateStore, SPEC 12.17): localStorage key
+`km-state:web-dropzone:<storage-key>`. Unset / empty
 storage-key disables persistence. Use distinct keys per dropzone.
 FILES ARE NOT PERSISTED.
 
 Custom sink (e.g. server-side user prefs):
-dz.persistStateCallback = async ({ key, state }) => {
+dz.saveStateCallback = async ({ key, state }) => {
   await fetch(`/api/prefs/${key}`, { method: 'PUT', body: JSON.stringify(state) });
 };
 dz.loadStateCallback = async ({ key }) => {
   const r = await fetch(`/api/prefs/${key}`);
   return r.ok ? r.json() : null;
 };
-persistStateCallback receives the FULL merged state each time. Errors are
-swallowed (logged on DROPZONE:UI); the component keeps in-memory state.
+saveStateCallback receives the WHOLE merged state each time. Set both
+callbacks; either one alone switches localStorage off. Errors are logged (the element's
+logger); the component keeps in-memory state. Types: LoadStateCallback<DropzoneState>
+/ SaveStateCallback<DropzoneState> (re-exported from core).
 
 4. RESUMABLE UPLOADS
 --------------------

@@ -134,7 +134,7 @@ shadow root (`custom-styles` / `getCustomStylesCallback`, page-wide per tag) is 
 | `sink-completed-delay` | `sinkCompletedDelay` | `number` | `1500` | Delay in ms before a completed file reorders. Only meaningful when sink-completed is on. |
 | `progress-mode` | `progressMode` | `'optimistic' \| 'pessimistic'` | `'optimistic'` | Progress reporting contract: optimistic (tick before ACK, snap back on failure) or pessimistic (tick only after ACK). |
 | `keep-alive-when-removed` | `shouldKeepAliveWhenRemoved` | `boolean` | `false` | Keep the store (files, running uploads) when the element is removed from the page. Default: a removal cancels every upload (handlers get their signal + cancel-timeout) and then destroys the store. A DOM move never tears anything down. |
-| `storage-key` | `storageKey` |  |  | Opaque key scoping persisted UI state. Unset disables persistence. |
+| `storage-key` | `storageKey` |  |  | Key of the persisted UI state (popover size; core SPEC §12.17). Unset / empty = off; set = localStorage `km-state:web-dropzone:<key>`, or `loadStateCallback` / `saveStateCallback`. |
 | `custom-styles` | `customStyles` | `string \| null` |  | Extra CSS for the shadow root (raw CSS — NOT sanitized). Comes after the page-wide `window.components['web-dropzone'].customStyles`, so it overrides it; `getCustomStylesCallback` wins over it. An `@import` (an icon font) is also linked once in the document head (core). |
 | `defer` | `shouldDefer` | `boolean` | `false` | Hold the first build (core, SPEC §6.3): while set when the element first connects, nothing is built and every input, callback and listener assigned meanwhile accumulates; `release()` (or removing the attribute) then builds once. Latched after the first build. |
 | `theme-source` | `themeSource` | `string` |  | Where this element reads its theme from instead of the page (core, SPEC §12.10): a CSS selector (nearest matching ancestor, else the first match), `'closest'` (the nearest ancestor carrying a theme signal), or (property only) an `Element`. Unset = the page. |
@@ -167,8 +167,8 @@ Properties with no attribute (objects, callbacks, read-only state). Callbacks ar
 | `renderRollingProgressCallback` | `StatusSurfaceCallback` | Rolling list appearance (structural mode): the progress slot of the current row. `ctx`: `StatusSurfaceArgs`. |
 | `renderLoadingCallback` | `(ctx: LoaderRenderContext) => void \| (() => void)` | Draw the upload loader of the bound `<web-dropzone-indicator>` chip (`ctx.context` = `upload`): fill `ctx.containerElement`, optionally return a cleanup. Beats the page-wide `window.components.renderLoadingCallback`; unset = that, else the default `.dz__loader` (the shared `--base-loader-*` contract). The tiny per-row / summary loaders are CSS-only (`--dz-loader-*` tokens). Read when a loader is drawn. |
 | `getCustomStylesCallback` | `(ctx: CustomStylesContext) => string \| null \| undefined` | Returns extra CSS for the shadow root (raw CSS — NOT sanitized); wins over `customStyles`. Re-run on every build and when `customStyles` / this callback change. `ctx`: context only (`controller`, `element`). |
-| `persistStateCallback` | `(ctx: PersistStateContext) => void \| Promise<void>` | Custom persistence sink (defaults to localStorage). `ctx`: `{ key, state }`. |
-| `loadStateCallback` | `(ctx: LoadStateContext) => DropzoneState \| null \| Promise<DropzoneState \| null>` | Custom persistence source paired with persistStateCallback. `ctx`: `{ key }`. |
+| `loadStateCallback` | `LoadStateCallback<DropzoneState>` | Persisted UI state source (core SPEC §12.17): `(ctx) => DropzoneState \| null \| Promise<…>`, `ctx`: `{ key }` + context. Set both callbacks; either one alone switches `localStorage` off. Read when the popover first opens. |
+| `saveStateCallback` | `SaveStateCallback<DropzoneState>` | Persisted UI state sink (core SPEC §12.17): `ctx`: `{ key, state }` + context, `state` = the WHOLE `DropzoneState` (`{ popoverWidth?, popoverHeight? }`). Set both callbacks; either one alone switches `localStorage` off. Called after the user resizes the popover. |
 | `responsiveCallback` | `ResponsiveCallback \| null` | Instance computed responsive rule (core, SPEC §6.7): `(ctx) => partial config \| null \| undefined`, ctx `{ env, deviceClass, breakpoint, element, component, config }` (`config` = base). Runs after `responsive` (wins key by key); re-runs on environment flips, throttled viewport-width changes, rule and config changes. `null` ignores every page rule. |
 | `isReady` | `boolean` | The first build is live (core, SPEC §6.3) — the `ready` event has fired. (read-only) |
 | `isDestroyed` | `boolean` | `destroy()` ran. (read-only) |
@@ -304,7 +304,7 @@ Every callback takes **one** `ctx` object that also carries `controller` / `elem
 | `renderRolling{Body,FileInfo,Progress}Callback` | `StatusSurfaceArgs` (`currentFile`, `aggregate`, `overallPercent`, …) | `string \| HTMLElement \| false \| null` (structural mode, rolling list) |
 | `getCustomStylesCallback` | context only | CSS string injected into the shadow root |
 | `renderLoadingCallback` | `{ component, context: 'upload', containerElement, element, label }` | fill `containerElement`; optional cleanup function — the indicator chip's upload loader (beats `window.components.renderLoadingCallback`) |
-| `persistStateCallback` / `loadStateCallback` | `{ key, state }` / `{ key }` | — / `DropzoneState \| null` (may be async) |
+| `saveStateCallback` / `loadStateCallback` | `{ key, state }` (the WHOLE state) / `{ key }` | — / `DropzoneState \| null` (may be async) |
 
 ```javascript
 dropzone.beforeFilesAddCallback = async ({ files }) => {

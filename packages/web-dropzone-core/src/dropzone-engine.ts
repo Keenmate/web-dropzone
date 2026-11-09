@@ -20,7 +20,7 @@
  */
 
 import { fileLogger, initLogger, uiLogger } from './logger';
-import { dispatch, runBeforeCallback, withComponentContext } from '@keenmate/web-components-core';
+import { createStateStore, dispatch, runBeforeCallback, withComponentContext, type StateStore } from '@keenmate/web-components-core';
 import { createDropzoneController, type DropzoneController } from './controller';
 import { createLabelFn, countLabel, type LabelFn } from './labels';
 import type {
@@ -72,6 +72,12 @@ export interface DropzoneEngineHost {
     getController(): DropzoneController;
     /** Emit a public event (the element attaches the context). */
     notify<K extends DropzoneEngineEventName>(name: K, detail: EngineEventDetail<K>): void;
+    /**
+     * The persisted-UI-state handle (core `createStateStore()`, SPEC §12.17),
+     * made by the element on itself so it outlives a store rebuild. Without a
+     * host the engine makes its own on `element`.
+     */
+    stateStore?: StateStore<DropzoneState>;
 }
 
 /**
@@ -1749,78 +1755,21 @@ export class DropzoneEngine {
     // PERSISTED UI STATE
     // ========================================================================
 
-    /** Resolve the storage namespace key. Persistence is disabled (everything
-     *  becomes a no-op) when no storage-key is configured. */
-    protected getStorageKey(): string | null {
-        const k = this.config.storageKey;
-        return (typeof k === 'string' && k.length > 0) ? k : null;
-    }
-
-    /** localStorage key paired with the configured storage-key. */
-    protected localStorageKeyFor(storageKey: string): string {
-        return `dz-state:${storageKey}`;
-    }
-
     /**
-     * Load persisted state. Prefers `loadStateCallback` when set; otherwise
-     * falls back to localStorage. Returns null when no state is found OR
-     * when persistence is disabled. Tolerant of corruption (JSON parse
-     * errors) and missing globals (SSR / sandboxed contexts).
+     * Persisted UI state (core `createStateStore()`, SPEC §12.17): the host's
+     * store when there is one, else the engine's own over `element`. Reads
+     * `storageKey` / `loadStateCallback` / `saveStateCallback` from the live
+     * config on every call — unset key = everything is a no-op. Default store:
+     * `localStorage['km-state:<tag>:<storage-key>']`.
      */
-    protected async loadDropzoneState(): Promise<DropzoneState | null> {
-        const key = this.getStorageKey();
-        if (!key) return null;
-
-        if (this.config.loadStateCallback) {
-            try {
-                const result = await this.config.loadStateCallback(this.ctx({ key }));
-                return result ?? null;
-            } catch (err) {
-                uiLogger.warn('loadStateCallback threw, ignoring', err);
-                return null;
-            }
-        }
-
-        try {
-            const raw = globalThis.localStorage?.getItem(this.localStorageKeyFor(key));
-            return raw ? JSON.parse(raw) : null;
-        } catch {
-            // localStorage may be unavailable (private mode, SSR) or the
-            // serialized value may be corrupted. Either way, start fresh.
-            return null;
-        }
+    protected get stateStore(): StateStore<DropzoneState> {
+        if (this.host?.stateStore) return this.host.stateStore;
+        return (this.ownStateStore ??= createStateStore<DropzoneState>(this.element, {
+            getKey: () => this.config.storageKey,
+            getLoadCallback: () => this.config.loadStateCallback,
+            getSaveCallback: () => this.config.saveStateCallback,
+            toContext: (data) => this.ctx(data),
+        }));
     }
-
-    /**
-     * Merge `partial` into the existing state and write it back through
-     * the configured sink (callback or localStorage). The full snapshot is
-     * always passed to `persistStateCallback` — implementations can write
-     * the full object or diff against their own prior view as they prefer.
-     */
-    protected async saveDropzoneState(partial: Partial<DropzoneState>): Promise<void> {
-        const key = this.getStorageKey();
-        if (!key) return;
-
-        const current = (await this.loadDropzoneState()) ?? {};
-        const next = { ...current, ...partial };
-
-        if (this.config.persistStateCallback) {
-            try {
-                await this.config.persistStateCallback(this.ctx({ key, state: next }));
-            } catch (err) {
-                uiLogger.warn('persistStateCallback threw, falling back to in-memory', err);
-            }
-            return;
-        }
-
-        try {
-            globalThis.localStorage?.setItem(
-                this.localStorageKeyFor(key),
-                JSON.stringify(next)
-            );
-        } catch {
-            // localStorage write failures (quota, private mode) are
-            // swallowed — the UI keeps working with in-memory state.
-        }
-    }
+    private ownStateStore: StateStore<DropzoneState> | null = null;
 }

@@ -33,7 +33,7 @@ export { DEFAULT_LABELS, resolveLabel, createLabelFn } from '@keenmate/web-dropz
 export type { DropzoneLabels, DropzoneLabelKey, LabelFn } from '@keenmate/web-dropzone-core';
 export type { RowAction } from '@keenmate/web-dropzone-core';
 // Shared loader (renderLoadingCallback / window.components.renderLoadingCallback)
-export type { LoaderRenderContext, RenderLoaderCallback } from '@keenmate/web-components-core';
+export type { LoaderRenderContext, RenderLoaderCallback, LoadStateCallback, SaveStateCallback } from '@keenmate/web-components-core';
 
 // The renderer class, for standalone use without the custom element (it
 // extends the headless `DropzoneEngine`; `<web-dropzone>` never exposes it —
@@ -70,8 +70,6 @@ export type {
     BeforeFilesCancelContext,
     FileIconContext,
     FileUploadContext,
-    PersistStateContext,
-    LoadStateContext,
     FileItemRenderContext,
     ListWrapperRenderContext,
     PromptRenderContext,

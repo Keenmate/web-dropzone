@@ -110,20 +110,6 @@ export interface FileUploadContext extends DropzoneContext {
     uploadMetadata: Readonly<Record<string, unknown>> | undefined;
 }
 
-/** `persistStateCallback(ctx)` — write the persisted UI state. May be async. */
-export interface PersistStateContext extends DropzoneContext {
-    /** The configured `storage-key`. */
-    key: string;
-    /** The full state object to store. */
-    state: DropzoneState;
-}
-
-/** `loadStateCallback(ctx)` — return the persisted UI state (or `null`). May be async. */
-export interface LoadStateContext extends DropzoneContext {
-    /** The configured `storage-key`. */
-    key: string;
-}
-
 /** `renderFileItemCallback(ctx)` — one file row (structural mode). */
 export interface FileItemRenderContext extends DropzoneContext {
     /** The file to render. */

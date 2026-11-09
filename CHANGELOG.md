@@ -11,6 +11,24 @@ No stable 1.0.0 is published, so the break ships as the next release
 candidate — but `^1.0.0-rc02` consumers will pull it: the event,
 callback and store-access API below is breaking.
 
+### Changed — BREAKING (persisted UI state the core way, SPEC §12.17 / rulebook C-CA-17, 2026-11-09)
+
+Needs core `createStateStore()` (`@keenmate/web-components-core` 1.0.0-rc21). No compatibility aliases.
+
+- **`persistStateCallback` → `saveStateCallback`.** Same `{ key, state }` ctx (plus `controller` /
+  `element`); `state` is the WHOLE `DropzoneState`. `loadStateCallback` and `storage-key` keep their
+  names. Set both callbacks; either one alone switches localStorage off.
+- **localStorage key `dz-state:<storage-key>` → `km-state:web-dropzone:<storage-key>`** (core's
+  default store). Popover sizes saved by earlier versions are not carried over — the popover opens
+  at its default size once.
+- **Types:** `PersistStateContext` / `LoadStateContext` are removed; the callbacks are typed with
+  core's `LoadStateCallback<DropzoneState>` / `SaveStateCallback<DropzoneState>` (re-exported from
+  `@keenmate/web-dropzone`). `DropzoneState` stays.
+- **The engine's own storage code is gone** (`DropzoneEngine` protected `getStorageKey()` /
+  `localStorageKeyFor()` / `loadDropzoneState()` / `saveDropzoneState()`): `<web-dropzone>` makes
+  one core state store on the host and injects it via `DropzoneEngineHost.stateStore`; a standalone
+  engine / renderer makes its own over its element (protected `stateStore`).
+
 ### Changed — BREAKING (core 1.0.0-rc20 / rc21 alignment, 2026-11-09)
 
 Requires `@keenmate/web-components-core` `^1.0.0-rc20` (was `^1.0.0-rc15`); validated against the

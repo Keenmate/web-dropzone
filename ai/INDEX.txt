@@ -153,7 +153,7 @@ overlay-enter / overlay-leave -> display-modes.txt, events-callbacks.txt
 P
 -
 pause / resume -> upload-pipeline.txt
-persistStateCallback / loadStateCallback / storage-key -> advanced-patterns.txt
+saveStateCallback / loadStateCallback / storage-key -> advanced-patterns.txt
 picker (<web-dropzone-picker>) -> satellites.txt
 popover-placement -> display-modes.txt, rtl-support.txt
 progress (<web-dropzone-progress>) -> satellites.txt

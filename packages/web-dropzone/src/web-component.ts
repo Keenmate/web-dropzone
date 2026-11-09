@@ -36,6 +36,7 @@ import {
     BlissElement,
     adoptStyles,
     createCustomStyles,
+    createStateStore,
     toBool,
     toBytes,
     toEnum,
@@ -49,6 +50,8 @@ import {
     type Converter,
     type EventDef,
     type RenderLoaderCallback,
+    type LoadStateCallback,
+    type SaveStateCallback,
 } from '@keenmate/web-components-core';
 import { WebDropzone } from './dropzone';
 import { linkStoreController, linkStoreReorder, announceStoreBuild } from './store-link';
@@ -83,7 +86,8 @@ import type {
     DropzoneControl,
     FileItemPart,
     FileState,
-    DropzoneLabels
+    DropzoneLabels,
+    DropzoneState
 } from '@keenmate/web-dropzone-core';
 
 // Import CSS as inline string for Shadow DOM injection
@@ -212,7 +216,7 @@ const INPUTS: readonly InputDef[] = [
 
 
     // ── Persistence ───────────────────────────────────────────────────────────
-    { configKey: 'storageKey',              attribute: 'storage-key',         converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'Opaque key scoping persisted UI state. Unset disables persistence.' },
+    { configKey: 'storageKey',              attribute: 'storage-key',         converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'Key of the persisted UI state (popover size; core SPEC §12.17). Unset / empty = off; set = localStorage `km-state:web-dropzone:<key>`, or `loadStateCallback` / `saveStateCallback`.' },
 
     // ── Callbacks (property-only) — each takes ONE ctx carrying `controller` + `element` ──
     { configKey: 'validateCallback',              converter: cb(),      on: 'update', type: '(ctx: ValidateContext) => ValidationResult', description: 'Custom per-file validation, after the built-in size / type checks. `ctx`: `{ file, existingFiles }`. Sync.' },
@@ -233,8 +237,8 @@ const INPUTS: readonly InputDef[] = [
     { configKey: 'renderLoadingCallback',         converter: cb(),      on: 'update', type: '(ctx: LoaderRenderContext) => void | (() => void)', description: 'Draw the upload loader of the bound `<web-dropzone-indicator>` chip (`ctx.context` = `upload`): fill `ctx.containerElement`, optionally return a cleanup. Beats the page-wide `window.components.renderLoadingCallback`; unset = that, else the default `.dz__loader` (the shared `--base-loader-*` contract). The tiny per-row / summary loaders are CSS-only (`--dz-loader-*` tokens). Read when a loader is drawn.' },
     { configKey: 'customStyles',            attribute: 'custom-styles',       converter: toText({ isNullable: true }),                                                 on: 'update', type: 'string | null', description: 'Extra CSS for the shadow root (raw CSS — NOT sanitized). Comes after the page-wide `window.components[\'web-dropzone\'].customStyles`, so it overrides it; `getCustomStylesCallback` wins over it. An `@import` (an icon font) is also linked once in the document head (core).' },
     { configKey: 'getCustomStylesCallback',       converter: cb(),      on: 'update', type: '(ctx: CustomStylesContext) => string | null | undefined', description: 'Returns extra CSS for the shadow root (raw CSS — NOT sanitized); wins over `customStyles`. Re-run on every build and when `customStyles` / this callback change. `ctx`: context only (`controller`, `element`).' },
-    { configKey: 'persistStateCallback',          converter: cb(),      on: 'update', type: '(ctx: PersistStateContext) => void | Promise<void>', description: 'Custom persistence sink (defaults to localStorage). `ctx`: `{ key, state }`.' },
-    { configKey: 'loadStateCallback',             converter: cb(),      on: 'update', type: '(ctx: LoadStateContext) => DropzoneState | null | Promise<DropzoneState | null>', description: 'Custom persistence source paired with persistStateCallback. `ctx`: `{ key }`.' },
+    { configKey: 'loadStateCallback',             converter: cb(),      on: 'update', type: 'LoadStateCallback<DropzoneState>', description: 'Persisted UI state source (core SPEC §12.17): `(ctx) => DropzoneState | null | Promise<…>`, `ctx`: `{ key }` + context. Set both callbacks; either one alone switches `localStorage` off. Read when the popover first opens.' },
+    { configKey: 'saveStateCallback',             converter: cb(),      on: 'update', type: 'SaveStateCallback<DropzoneState>', description: 'Persisted UI state sink (core SPEC §12.17): `ctx`: `{ key, state }` + context, `state` = the WHOLE `DropzoneState` (`{ popoverWidth?, popoverHeight? }`). Set both callbacks; either one alone switches `localStorage` off. Called after the user resizes the popover.' },
 ];
 
 /**
@@ -342,8 +346,22 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
      * shares it: `element` / `controller` for every ctx, and `notify` routing
      * engine happenings to `emit()`.
      */
+    /**
+     * Persisted UI state (core SPEC §12.17, rulebook C-CA-17): one handle on
+     * the host — `storage-key` + `loadStateCallback` / `saveStateCallback`,
+     * default localStorage `km-state:web-dropzone:<key>`. Made here (not in
+     * the store) so it outlives a rebuild; injected through the engine host.
+     */
+    readonly #stateStore = createStateStore<DropzoneState>(this, {
+        getKey: () => this.config.storageKey as string | null,
+        getLoadCallback: () => this.config.loadStateCallback as LoadStateCallback<DropzoneState> | null,
+        getSaveCallback: () => this.config.saveStateCallback as SaveStateCallback<DropzoneState> | null,
+        toContext: (data) => this.withContext(data),
+    });
+
     readonly #engineHost: DropzoneEngineHost = {
         element: this,
+        stateStore: this.#stateStore,
         getController: () => this.controller,
         notify: (name, detail) => {
             // Re-stamp the form value before listeners run, so a `change`

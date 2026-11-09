@@ -345,10 +345,10 @@ Every spec runs in three Playwright projects — chromium, firefox and webkit
 
 | Feature                                                       | Status | Spec                 | Fixture            |
 | ------------------------------------------------------------- | :----: | -------------------- | ------------------ |
-| Popover resize writes `dz-state:<key>` to localStorage        | ✓      | `persistence.spec.ts` | `persistence.html` |
+| Popover resize writes `km-state:web-dropzone:<key>` to localStorage        | ✓      | `persistence.spec.ts` | `persistence.html` |
 | Reload restores the popover size                              | ✓      | `persistence.spec.ts` | `persistence.html` |
 | No `storage-key` → nothing written                            | ✓      | `persistence.spec.ts` | `persistence.html` |
-| `persistStateCallback({ key, state })` / `loadStateCallback({ key })` | ✓ | `persistence.spec.ts` | `persistence.html` |
+| `saveStateCallback({ key, state })` (whole state) / `loadStateCallback({ key })`, reload | ✓ | `persistence.spec.ts` | `persistence.html` |
 
 ## 20. Popover (compact)
 

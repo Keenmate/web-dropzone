@@ -1047,7 +1047,7 @@
             },
             {
               "name": "storage-key",
-              "description": "Opaque key scoping persisted UI state. Unset disables persistence.",
+              "description": "Key of the persisted UI state (popover size; core SPEC §12.17). Unset / empty = off; set = localStorage `km-state:web-dropzone:<key>`, or `loadStateCallback` / `saveStateCallback`.",
               "value": { "type": "string" }
             },
             {
@@ -1434,7 +1434,7 @@
               },
               {
                 "name": "storageKey",
-                "description": "Opaque key scoping persisted UI state. Unset disables persistence."
+                "description": "Key of the persisted UI state (popover size; core SPEC §12.17). Unset / empty = off; set = localStorage `km-state:web-dropzone:<key>`, or `loadStateCallback` / `saveStateCallback`."
               },
               {
                 "name": "validateCallback",
@@ -1527,14 +1527,14 @@
                 "type": "(ctx: CustomStylesContext) => string | null | undefined"
               },
               {
-                "name": "persistStateCallback",
-                "description": "Custom persistence sink (defaults to localStorage). `ctx`: `{ key, state }`.",
-                "type": "(ctx: PersistStateContext) => void | Promise<void>"
+                "name": "loadStateCallback",
+                "description": "Persisted UI state source (core SPEC §12.17): `(ctx) => DropzoneState | null | Promise<…>`, `ctx`: `{ key }` + context. Set both callbacks; either one alone switches `localStorage` off. Read when the popover first opens.",
+                "type": "LoadStateCallback<DropzoneState>"
               },
               {
-                "name": "loadStateCallback",
-                "description": "Custom persistence source paired with persistStateCallback. `ctx`: `{ key }`.",
-                "type": "(ctx: LoadStateContext) => DropzoneState | null | Promise<DropzoneState | null>"
+                "name": "saveStateCallback",
+                "description": "Persisted UI state sink (core SPEC §12.17): `ctx`: `{ key, state }` + context, `state` = the WHOLE `DropzoneState` (`{ popoverWidth?, popoverHeight? }`). Set both callbacks; either one alone switches `localStorage` off. Called after the user resizes the popover.",
+                "type": "SaveStateCallback<DropzoneState>"
               },
               {
                 "name": "shouldDefer",

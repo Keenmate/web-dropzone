@@ -79,7 +79,7 @@ STEP 4: CALLBACKS TAKE ONE ctx
 |                                                        |   startPercent, metadata, setMetadata, uploadMetadata }) |
 | picker uploadCallback / FileState.uploadCallback /     | uploadFileCallback (same ctx)                 |
 |   addFiles(files, { uploadCallback })                  |                                               |
-| persistStateCallback(key, state) / loadStateCallback(key) | ({ key, state }) / ({ key })               |
+| persistStateCallback(key, state) / loadStateCallback(key) | saveStateCallback({ key, state }) / loadStateCallback({ key }) |
 | renderFileItemCallback(file, { fileIndex, displayMode, isInPopover }) | ({ file, fileIndex, displayMode, isInPopover }) |
 | renderListWrapperCallback(rowsHtml, files)             | ({ rowsHtml, files })                         |
 | renderPromptCallback() / renderSummaryCallback(files)  | (ctx) / ({ files })                           |

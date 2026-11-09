@@ -168,8 +168,8 @@ FileUploadContext        { file: File; signal: AbortSignal; setProgress(p: numbe
                            metadata: Readonly<Record<string, unknown>> | undefined;
                            setMetadata(patch: Record<string, unknown>): void;
                            uploadMetadata: Readonly<Record<string, unknown>> | undefined }
-PersistStateContext      { key: string; state: DropzoneState }
-LoadStateContext         { key: string }
+LoadStateCallback<DropzoneState>  (ctx: { key }) => DropzoneState | null | Promise<…>   (core type)
+SaveStateCallback<DropzoneState>  (ctx: { key; state: DropzoneState }) => void | Promise<void>   (core type)
 FileItemRenderContext    { file: FileState; fileIndex: number; displayMode: DisplayMode;
                            isInPopover: boolean }
 ListWrapperRenderContext { rowsHtml: string; files: FileState[] }

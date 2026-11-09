@@ -28,7 +28,7 @@ the validation limits (`accept`, `maxFileSize`, `minFileSize`, `maxTotalSize`, `
 `shouldAutoUpload`, `retryPolicy`, `cancelTimeout`, `cancelTimeoutBehavior`, `progressMode`,
 `progressThrottle`), the gates (`validateCallback`, `beforeFilesAddCallback`,
 `beforeFilesRemoveCallback`, `beforeFilesCancelCallback`), `labels`, and persistence (`storageKey`,
-`persistStateCallback`, `loadStateCallback`). Display options are carried too but only a renderer reads
+`saveStateCallback`, `loadStateCallback`). Display options are carried too but only a renderer reads
 them. The meaning of each option is documented once, on the element:
 [`@keenmate/web-dropzone` usage → Attributes](https://github.com/keenmate/web-dropzone/blob/main/packages/web-dropzone/docs/usage.md#attributes).
 
@@ -93,7 +93,7 @@ be async; returning `false` cancels.
 | `beforeFilesRemoveCallback` | `{ files, allFiles }` | `false` vetoes |
 | `beforeFilesCancelCallback` | `{ files, allFiles }` | `false` vetoes |
 | `uploadFileCallback` | `{ file, signal, setProgress, startBytes, startPercent, metadata, setMetadata, uploadMetadata }` | `Promise<void \| FileUploadResult>` |
-| `persistStateCallback` / `loadStateCallback` | `{ key, state }` / `{ key }` | — / `DropzoneState \| null` |
+| `saveStateCallback` / `loadStateCallback` | `{ key, state }` (the WHOLE state) / `{ key }` | — / `DropzoneState \| null` |
 
 ## Helpers and types
 
