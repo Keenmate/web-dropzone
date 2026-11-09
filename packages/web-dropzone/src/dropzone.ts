@@ -43,7 +43,8 @@ import {
     patchProgressText,
     patchStatusIcon,
     patchActionButton as patchRowActionButton,
-    patchCancelButton
+    patchCancelButton,
+    syncRowButtonsDisabled
 } from './row-patching';
 import type {
     DropzoneConfig,
@@ -527,6 +528,15 @@ export class WebDropzone extends DropzoneEngine {
      * The native `<input type="file">` is included in every variant so the
      * file picker dialog can be opened from a click on any of them.
      */
+    /**
+     * ` disabled` for every button the store renders while it is disabled
+     * (`disabled` or a disabled `<fieldset>`): native semantics, core SPEC
+     * §6.4 — no interaction, not focusable. Calls from code still work.
+     */
+    private get disabledAttr(): string {
+        return this.config.isDisabled ? ' disabled' : '';
+    }
+
     /** The user can't add files: `disabled` (input or fieldset) or `readonly`. */
     private get isAddBlocked(): boolean {
         return !!this.config.isDisabled || !!this.config.isReadonly;
@@ -794,7 +804,7 @@ export class WebDropzone extends DropzoneEngine {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const id = btn.dataset.fileId;
-                if (id) void this.cancelFile(id); // asks beforeFilesCancelCallback
+                if (id && !this.config.isDisabled) void this.cancelFile(id); // asks beforeFilesCancelCallback
             });
         });
     }
@@ -840,7 +850,7 @@ export class WebDropzone extends DropzoneEngine {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const id = (btn as HTMLElement).dataset.fileId;
-                if (id) void this.cancelFile(id); // asks beforeFilesCancelCallback
+                if (id && !this.config.isDisabled) void this.cancelFile(id); // asks beforeFilesCancelCallback
             });
         });
     }
@@ -852,6 +862,8 @@ export class WebDropzone extends DropzoneEngine {
      * removed. Cancelling without removing is the row's ⊘ Cancel button.
      */
     private handleUserRemoveClick(id: string): Promise<void> {
+        // No user remove while disabled / read-only (a consumer-rendered row button too).
+        if (this.config.isDisabled || this.config.isReadonly) return Promise.resolve();
         const file = this.files.find(f => f.id === id);
         if (!file || file.status === 'cancelling') return Promise.resolve();
         // User-initiated remove runs the confirm gate (if set). Programmatic
@@ -986,7 +998,8 @@ export class WebDropzone extends DropzoneEngine {
             row.querySelector('[data-dz-action="cancel"]'),
             file,
             'dz__popover-row-action',
-            this.hasUploadHandler(file)
+            this.hasUploadHandler(file),
+            !!this.config.isDisabled
         );
 
         this.syncRemoveButtonHiddenState(
@@ -1113,7 +1126,7 @@ export class WebDropzone extends DropzoneEngine {
             : appearance === 'grid'
                 ? 'dz__preview-item-action'
                 : 'dz__file-item-action';
-        patchCancelButton(row.querySelector('[data-dz-action="cancel"]'), file, actionClass, this.hasUploadHandler(file));
+        patchCancelButton(row.querySelector('[data-dz-action="cancel"]'), file, actionClass, this.hasUploadHandler(file), !!this.config.isDisabled);
 
         const removeSelector = appearance === 'badges'
             ? '.dz__badge-remove'
@@ -1138,7 +1151,7 @@ export class WebDropzone extends DropzoneEngine {
     ): void {
         if (!btn) return;
         // Disabled while a cancel waits for the upload handler to settle.
-        (btn as HTMLButtonElement).disabled = file.status === 'cancelling';
+        (btn as HTMLButtonElement).disabled = file.status === 'cancelling' || !!this.config.isDisabled;
         const hidden = !this.isFileUserRemovable(file);
         btn.classList.toggle(hiddenClass, hidden);
         if (hidden) {
@@ -1366,6 +1379,7 @@ export class WebDropzone extends DropzoneEngine {
             // count fresh + refresh slot callbacks (so a re-render driven
             // by file-status-change picks up the new state).
             this.applyRollingSlots(previousCurrent, args);
+            syncRowButtonsDisabled(previousCurrent, front, !!this.config.isDisabled);
             this.updateRollingQueueButton(targetEl, queueCount, showQueueBtn);
             return;
         }
@@ -1463,6 +1477,7 @@ export class WebDropzone extends DropzoneEngine {
         const countEl = queueBtn.querySelector('.dz__rolling-queue-count');
         if (countEl) countEl.textContent = String(queueCount);
         queueBtn.classList.toggle('dz__rolling-queue--hidden', !showQueueBtn);
+        queueBtn.disabled = !!this.config.isDisabled;
         const queueLabel = this.label('showQueue', { count: queueCount });
         queueBtn.setAttribute('aria-label', queueLabel);
         queueBtn.setAttribute('title', queueLabel);
@@ -1493,17 +1508,18 @@ export class WebDropzone extends DropzoneEngine {
         if (cap <= 0 || this.files.length <= cap) return '';
 
         const isBadges = listAppearance === 'badges';
+        const dis = this.disabledAttr;
 
         if (this.showAllList) {
             return isBadges
-                ? `<button type="button" class="dz__badge dz__badge--more" data-dz-action="toggle-visible" aria-label="${escapeHtml(this.label('showLess'))}">−</button>`
-                : `<button type="button" class="dz__show-more" data-dz-action="toggle-visible">${escapeHtml(this.label('showLess'))}</button>`;
+                ? `<button type="button" class="dz__badge dz__badge--more" data-dz-action="toggle-visible" aria-label="${escapeHtml(this.label('showLess'))}"${dis}>−</button>`
+                : `<button type="button" class="dz__show-more" data-dz-action="toggle-visible"${dis}>${escapeHtml(this.label('showLess'))}</button>`;
         }
 
         const hidden = this.files.length - cap;
         return isBadges
-            ? `<button type="button" class="dz__badge dz__badge--more" data-dz-action="toggle-visible" aria-label="${escapeHtml(this.label('showMore', { count: hidden }))}">+${hidden}</button>`
-            : `<button type="button" class="dz__show-more" data-dz-action="toggle-visible">${escapeHtml(this.label('showMore', { count: hidden }))}</button>`;
+            ? `<button type="button" class="dz__badge dz__badge--more" data-dz-action="toggle-visible" aria-label="${escapeHtml(this.label('showMore', { count: hidden }))}"${dis}>+${hidden}</button>`
+            : `<button type="button" class="dz__show-more" data-dz-action="toggle-visible"${dis}>${escapeHtml(this.label('showMore', { count: hidden }))}</button>`;
     }
 
     /** Attach the "Show more / Show less" click handler within a subtree.
@@ -1588,6 +1604,7 @@ export class WebDropzone extends DropzoneEngine {
      *  paused→resumeFile, error / cancelled→retryFile. Other statuses are
      *  no-ops (the button is rendered inert via `--hidden`). */
     private handleUserActionClick(id: string): void {
+        if (this.config.isDisabled) return; // a consumer-rendered row button too
         const file = this.files.find(f => f.id === id);
         if (!file) return;
         const action = actionForStatus(file.status);
@@ -1620,7 +1637,8 @@ export class WebDropzone extends DropzoneEngine {
             label: this.label,
             hasUploadHandler: this.hasUploadHandler(file),
             cancelIcon: this.config.cancelIcon,
-            removeIcon: this.config.removeIcon
+            removeIcon: this.config.removeIcon,
+            isDisabled: !!this.config.isDisabled
         };
     }
 
@@ -1666,14 +1684,14 @@ export class WebDropzone extends DropzoneEngine {
                     <span class="dz__popover-progress-text">${escapeHtml(RowTemplate.progressLabel(file, this.label))}</span>
                 </td>
                 <td class="dz__popover-cell dz__popover-cell--action">
-                    ${RowTemplate.renderRowActionButton(file, 'dz__popover-row-action', this.label)}
+                    ${RowTemplate.renderRowActionButton(file, 'dz__popover-row-action', this.label, !!this.config.isDisabled)}
                     ${RowTemplate.renderCancelButton(file, 'dz__popover-row-action', this.rowOpts(file, 'popover'))}
                 </td>
                 <td class="dz__popover-cell dz__popover-cell--status">
                     ${RowTemplate.renderStatusPill(file, 'dz__popover-status', this.label)}
                 </td>
                 <td class="dz__popover-cell dz__popover-cell--actions">
-                    ${RowTemplate.renderRemoveButton(file, 'dz__popover-remove', removable, this.config.removeIcon, this.label)}
+                    ${RowTemplate.renderRemoveButton(file, 'dz__popover-remove', removable, this.config.removeIcon, this.label, !!this.config.isDisabled)}
                 </td>
             </tr>
         `;
@@ -1742,7 +1760,7 @@ export class WebDropzone extends DropzoneEngine {
             const text = this.label('summary', { count: this.files.length, size: formatFileSize(totalSize) });
 
             content = `
-                <div class="dz__summary-line" tabindex="0" role="button" aria-label="${escapeHtml(this.label('viewFiles'))}">
+                <div class="dz__summary-line" ${this.config.isDisabled ? 'tabindex="-1" aria-disabled="true"' : 'tabindex="0"'} role="button" aria-label="${escapeHtml(this.label('viewFiles'))}">
                     ${this.renderSummaryIcon()}
                     <span class="dz__summary-text">${escapeHtml(text)}</span>
                 </div>
@@ -1754,8 +1772,11 @@ export class WebDropzone extends DropzoneEngine {
         // Add click handler for popover
         const summaryLine = this.summaryEl.querySelector('.dz__summary-line');
         if (summaryLine) {
-            summaryLine.addEventListener('click', () => this.togglePopover());
+            summaryLine.addEventListener('click', () => {
+                if (!this.config.isDisabled) this.togglePopover();
+            });
             summaryLine.addEventListener('keydown', (e) => {
+                if (this.config.isDisabled) return;
                 if ((e as KeyboardEvent).key === 'Enter' || (e as KeyboardEvent).key === ' ') {
                     e.preventDefault();
                     this.togglePopover();
@@ -1861,8 +1882,8 @@ export class WebDropzone extends DropzoneEngine {
                 <div class="dz__popover-header">
                     <span class="dz__popover-count">${escapeHtml(this.getFileCountLabel())}</span>
                     <div class="dz__popover-actions">
-                        ${this.isAddBlocked ? '' : `<button type="button" class="dz__popover-action" data-dz-action="add-more">${escapeHtml(this.label('addMore'))}</button>`}
-                        ${this.config.isReadonly ? '' : `<button type="button" class="dz__popover-action" data-dz-action="clear">${escapeHtml(this.label('clearAll'))}</button>`}
+                        ${this.isAddBlocked ? '' : `<button type="button" class="dz__popover-action" data-dz-action="add-more"${this.disabledAttr}>${escapeHtml(this.label('addMore'))}</button>`}
+                        ${this.config.isReadonly ? '' : `<button type="button" class="dz__popover-action" data-dz-action="clear"${this.disabledAttr}>${escapeHtml(this.label('clearAll'))}</button>`}
                     </div>
                 </div>
                 <div class="dz__popover-limits">${escapeHtml(this.getLimitsHint())}</div>
@@ -2131,18 +2152,19 @@ export class WebDropzone extends DropzoneEngine {
      */
     private renderOverallActions(o: ReturnType<WebDropzone['getOverallProgress']>): string {
         const pipelineActive = !!this.config.uploadFileCallback;
+        const dis = this.disabledAttr;
         const out: string[] = [];
         if (pipelineActive && o.uploadingCount > 0) {
-            out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="pause-all">${escapeHtml(this.label('pauseAll'))}</button>`);
+            out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="pause-all"${dis}>${escapeHtml(this.label('pauseAll'))}</button>`);
         }
         if (pipelineActive && o.pausedCount > 0) {
-            out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="resume-all">${escapeHtml(this.label('resumeAll'))}</button>`);
+            out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="resume-all"${dis}>${escapeHtml(this.label('resumeAll'))}</button>`);
         }
         if (pipelineActive && o.uploadingCount + o.pendingCount + o.pausedCount > 0) {
-            out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="cancel-all">${escapeHtml(this.label('cancelAll'))}</button>`);
+            out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="cancel-all"${dis}>${escapeHtml(this.label('cancelAll'))}</button>`);
         }
         if (o.failedCount > 0) {
-            out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="retry-all">${escapeHtml(this.label('retryAll'))}</button>`);
+            out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="retry-all"${dis}>${escapeHtml(this.label('retryAll'))}</button>`);
         }
         return out.join('');
     }
@@ -2160,7 +2182,7 @@ export class WebDropzone extends DropzoneEngine {
         const r = pipelineActive && o.pausedCount > 0 ? '1' : '0';
         const c = pipelineActive && o.uploadingCount + o.pendingCount + o.pausedCount > 0 ? '1' : '0';
         const e = o.failedCount > 0 ? '1' : '0';
-        return `${p}${r}${c}${e}`;
+        return `${p}${r}${c}${e}${this.config.isDisabled ? 'd' : ''}`;
     }
 
     /**

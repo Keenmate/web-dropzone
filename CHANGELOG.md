@@ -63,6 +63,18 @@ rc21 pre-release. No compatibility aliases.
   input and the button / minimal / native buttons are `aria-disabled="true"` (were `disabled`), so
   Tab reaches them; activating them never opens the file dialog. `disabled` still removes them from
   the tab order.
+- **`disabled` disables every control** (SPEC §6.4: no interaction, not focusable), not only the
+  selector: the row buttons (pause / resume / retry, cancel, remove — they used to stay clickable and
+  remove / cancel files on a disabled dropzone), Show more / less, the rolling queue button, the
+  popover and bulk actions, and the summary line (`aria-disabled="true"`, out of the tab order). The
+  list, progress strip and indicator chip follow their store's `disabled` the same way. A
+  consumer-rendered row button (`renderFileItemCallback`) does nothing while disabled; its remove does
+  nothing while read-only. Calls from code still work.
+- **`labels` is core `toObject()`** (as in every KeenMate component): `el.labels = null` is refused
+  (`input-rejected`, previous value kept) — `el.labels = undefined` (or removing the attribute) goes
+  back to the built-in English. Applies to the satellites' `labels` too.
+- **`@keenmate/web-dropzone-core`: `parseLabelsAttribute()` removed** — the `labels` JSON attribute
+  is parsed by core `toObject()`; validate a labels object with `isLabelsValue()`.
 - **Compact popover on core `createPopover()`** (overlay tree): an outside click is decided when
   the click ends, Escape closes it and returns focus to its trigger, and opening another KeenMate
   overlay (a dropdown, a menu) closes it. A detached (moved) dropzone keeps its popover until it is

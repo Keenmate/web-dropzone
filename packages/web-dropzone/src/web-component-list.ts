@@ -44,7 +44,8 @@ import {
     patchStatusIcon,
     patchActionButton,
     patchCancelButton,
-    patchRemoveButton
+    patchRemoveButton,
+    syncRowButtonsDisabled
 } from './row-patching';
 import { isStoreFileReorderEligible } from './store-link';
 import {
@@ -278,15 +279,16 @@ export class DropzoneListElement extends SatelliteElement {
     private renderShowMoreToggle(total: number, cap: number, appearance: ListAppearance): string {
         if (cap <= 0 || total <= cap) return '';
         const isBadges = appearance === 'badges';
+        const dis = this.isStoreDisabled ? ' disabled' : '';
         if (this.showAll) {
             return isBadges
-                ? `<button type="button" class="dz__badge dz__badge--more" data-dz-action="toggle-visible" aria-label="${escapeHtml(this.label('showLess'))}">−</button>`
-                : `<button type="button" class="dz__show-more" data-dz-action="toggle-visible">${escapeHtml(this.label('showLess'))}</button>`;
+                ? `<button type="button" class="dz__badge dz__badge--more" data-dz-action="toggle-visible" aria-label="${escapeHtml(this.label('showLess'))}"${dis}>−</button>`
+                : `<button type="button" class="dz__show-more" data-dz-action="toggle-visible"${dis}>${escapeHtml(this.label('showLess'))}</button>`;
         }
         const hidden = total - cap;
         return isBadges
-            ? `<button type="button" class="dz__badge dz__badge--more" data-dz-action="toggle-visible" aria-label="${escapeHtml(this.label('showMore', { count: hidden }))}">+${hidden}</button>`
-            : `<button type="button" class="dz__show-more" data-dz-action="toggle-visible">${escapeHtml(this.label('showMore', { count: hidden }))}</button>`;
+            ? `<button type="button" class="dz__badge dz__badge--more" data-dz-action="toggle-visible" aria-label="${escapeHtml(this.label('showMore', { count: hidden }))}"${dis}>+${hidden}</button>`
+            : `<button type="button" class="dz__show-more" data-dz-action="toggle-visible"${dis}>${escapeHtml(this.label('showMore', { count: hidden }))}</button>`;
     }
 
     /** Bind the toggle button's click handler (only present when the
@@ -335,7 +337,7 @@ export class DropzoneListElement extends SatelliteElement {
 
         this.container.innerHTML = `
             <div class="dz__summary">
-                <div class="dz__summary-line" tabindex="0" role="button" aria-label="${escapeHtml(this.label('viewFiles'))}">
+                <div class="dz__summary-line" ${this.isStoreDisabled ? 'tabindex="-1" aria-disabled="true"' : 'tabindex="0"'} role="button" aria-label="${escapeHtml(this.label('viewFiles'))}">
                     <span class="${iconClass}" data-status="${status}" aria-label="${escapeHtml(this.label('statusAria', { status: statusName }))}"${status === 'uploading' ? ' aria-busy="true"' : ''}>${icon}</span>
                     <span class="dz__summary-text">${escapeHtml(text)}</span>
                 </div>
@@ -344,7 +346,9 @@ export class DropzoneListElement extends SatelliteElement {
 
         const line = this.container.querySelector('.dz__summary-line');
         if (!line) return;
-        const fire = () => dispatchSatelliteEvent(this, this.storeEl, 'summary-activate');
+        const fire = () => {
+            if (!this.isStoreDisabled) dispatchSatelliteEvent(this, this.storeEl, 'summary-activate');
+        };
         line.addEventListener('click', fire);
         line.addEventListener('keydown', (e) => {
             const ke = e as KeyboardEvent;
@@ -376,7 +380,8 @@ export class DropzoneListElement extends SatelliteElement {
             hasUploadHandler: this.hasUploadHandler(file),
             label: this.label,
             cancelIcon: cfg?.cancelIcon,
-            removeIcon: cfg?.removeIcon
+            removeIcon: cfg?.removeIcon,
+            isDisabled: this.isStoreDisabled
         };
         if (appearance === 'badges')   return renderBadgeItem(file, opts);
         if (appearance === 'grid')     return renderGridItem(file, opts);
@@ -388,6 +393,15 @@ export class DropzoneListElement extends SatelliteElement {
     /** The file has an upload handler (store-level or per-file, Mode B). */
     private hasUploadHandler(file: FileState): boolean {
         return !!(file.uploadFileCallback || this.store?.getConfig().uploadFileCallback);
+    }
+
+    /**
+     * The bound store is disabled (its `disabled` or a disabled `<fieldset>`):
+     * every control this list renders is `disabled` — no interaction, not
+     * focusable (core SPEC §6.4 native semantics; the list follows its store).
+     */
+    private get isStoreDisabled(): boolean {
+        return !!this.store?.getConfig().isDisabled;
     }
 
     /** `allow-uploaded-file-removal="false"` hides the remove button on completed rows (layout kept). */
@@ -553,6 +567,7 @@ export class DropzoneListElement extends SatelliteElement {
             // a render driven by file-status-change picks up the new
             // status / progress numbers inside the slot subtrees.
             this.applyRollingSlots(previousCurrent, args);
+            syncRowButtonsDisabled(previousCurrent, front, this.isStoreDisabled);
             this.updateRollingQueueButton(wrapper, queueCount, showQueueBtn);
             return;
         }
@@ -633,6 +648,7 @@ export class DropzoneListElement extends SatelliteElement {
         const countEl = queueBtn.querySelector('.dz__rolling-queue-count');
         if (countEl) countEl.textContent = String(queueCount);
         queueBtn.classList.toggle('dz__rolling-queue--hidden', !showQueueBtn);
+        queueBtn.disabled = this.isStoreDisabled;
         const queueLabel = this.label('showQueue', { count: queueCount });
         queueBtn.setAttribute('aria-label', queueLabel);
         queueBtn.setAttribute('title', queueLabel);
@@ -649,7 +665,8 @@ export class DropzoneListElement extends SatelliteElement {
     }
 
     private handleListClick = (e: Event): void => {
-        if (!this.store) return;
+        // A disabled store: no user action (a consumer-rendered row button too).
+        if (!this.store || this.isStoreDisabled) return;
         const target = e.target as HTMLElement | null;
         if (!target) return;
 
@@ -684,7 +701,7 @@ export class DropzoneListElement extends SatelliteElement {
             const id = removeBtn.getAttribute('data-file-id');
             if (!id) return;
             const file = this.store.getFileById(id);
-            if (!file || file.status === 'cancelling') return;
+            if (!file || file.status === 'cancelling' || this.store.getConfig().isReadonly) return;
             void this.store.removeFile(id, { confirm: true });
         }
     };
@@ -756,9 +773,10 @@ export class DropzoneListElement extends SatelliteElement {
                 row.querySelector<HTMLElement>('[data-dz-action="remove"]'),
                 this.isFileUserRemovable(file),
                 'dz__badge-remove',
-                file.status === 'cancelling'
+                file.status === 'cancelling',
+                this.isStoreDisabled
             );
-            patchCancelButton(row.querySelector<HTMLElement>('[data-dz-action="cancel"]'), file, 'dz__badge-action', this.hasUploadHandler(file));
+            patchCancelButton(row.querySelector<HTMLElement>('[data-dz-action="cancel"]'), file, 'dz__badge-action', this.hasUploadHandler(file), this.isStoreDisabled);
             return;
         }
 
@@ -783,9 +801,10 @@ export class DropzoneListElement extends SatelliteElement {
             row.querySelector<HTMLElement>('[data-dz-action="remove"]'),
             this.isFileUserRemovable(file),
             `${prefix}-remove`,
-            file.status === 'cancelling'
+            file.status === 'cancelling',
+            this.isStoreDisabled
         );
-        patchCancelButton(row.querySelector<HTMLElement>('[data-dz-action="cancel"]'), file, `${prefix}-action`, this.hasUploadHandler(file));
+        patchCancelButton(row.querySelector<HTMLElement>('[data-dz-action="cancel"]'), file, `${prefix}-action`, this.hasUploadHandler(file), this.isStoreDisabled);
     }
 
     // ========================================================================

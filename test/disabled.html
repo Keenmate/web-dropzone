@@ -41,6 +41,23 @@
         <web-dropzone id="ro" readonly name="docs" accept="*/*" display-mode="list"></web-dropzone>
     </form>
 
+    <div class="fixture">
+        <div class="fixture-label">files + live uploads, toggled disabled by the spec (in-class list, popover, satellites)</div>
+        <web-dropzone id="dis-files" accept="*/*" display-mode="list" max-visible-file-count="1"></web-dropzone>
+        <web-dropzone id="dis-pop" accept="*/*" selector-appearance="button" list-appearance="popover"></web-dropzone>
+        <web-dropzone id="dis-store" render-mode="headless" multiple max-visible-file-count="1"></web-dropzone>
+        <web-dropzone-list id="dis-ls" for="dis-store"></web-dropzone-list>
+        <web-dropzone-progress id="dis-prog" for="dis-store"></web-dropzone-progress>
+        <web-dropzone-indicator id="dis-ind" for="dis-store" position="inline"></web-dropzone-indicator>
+    </div>
+
+    <script type="module">
+        // Uploads that never settle: rows stay `uploading` (pause / cancel offered).
+        for (const id of ['dis-files', 'dis-pop', 'dis-store']) {
+            document.getElementById(id).uploadFileCallback = () => new Promise(() => {});
+        }
+    </script>
+
     <script type="module">
         import '/src/index.ts';
         customElements.whenDefined('web-dropzone').then(() => { window.__ready = true; });

@@ -190,19 +190,22 @@ export class DropzoneProgressElement extends SatelliteElement {
     }
 
     private renderActions(o: OverallProgress, pipelineActive: boolean): string {
+        // A disabled store (its `disabled` or a disabled `<fieldset>`) disables
+        // the bulk buttons: no interaction, not focusable (core SPEC §6.4).
+        const dis = this.store?.getConfig().isDisabled ? ' disabled' : '';
         const out: string[] = [];
         if (pipelineActive && o.uploadingCount > 0) {
-            out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="pause-all">${escapeHtml(this.label('pauseAll'))}</button>`);
+            out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="pause-all"${dis}>${escapeHtml(this.label('pauseAll'))}</button>`);
         }
         if (pipelineActive && o.pausedCount > 0) {
-            out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="resume-all">${escapeHtml(this.label('resumeAll'))}</button>`);
+            out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="resume-all"${dis}>${escapeHtml(this.label('resumeAll'))}</button>`);
         }
         // Cancel all — only while something is uploading / queued / paused.
         if (pipelineActive && o.uploadingCount + o.pendingCount + o.pausedCount > 0) {
-            out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="cancel-all">${escapeHtml(this.label('cancelAll'))}</button>`);
+            out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="cancel-all"${dis}>${escapeHtml(this.label('cancelAll'))}</button>`);
         }
         if (o.failedCount > 0) {
-            out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="retry-all">${escapeHtml(this.label('retryAll'))}</button>`);
+            out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="retry-all"${dis}>${escapeHtml(this.label('retryAll'))}</button>`);
         }
         return out.join('');
     }
@@ -212,7 +215,7 @@ export class DropzoneProgressElement extends SatelliteElement {
         const r = pipelineActive && o.pausedCount > 0 ? '1' : '0';
         const c = pipelineActive && o.uploadingCount + o.pendingCount + o.pausedCount > 0 ? '1' : '0';
         const e = o.failedCount > 0 ? '1' : '0';
-        return `${p}${r}${c}${e}`;
+        return `${p}${r}${c}${e}${this.store?.getConfig().isDisabled ? 'd' : ''}`;
     }
 
     private bindActionHandlers(root: ParentNode): void {

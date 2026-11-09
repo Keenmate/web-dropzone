@@ -346,6 +346,11 @@ export class DropzoneIndicatorElement extends SatelliteElement {
         if (this.chipEl.dataset.empty !== nextEmpty) {
             this.chipEl.dataset.empty = nextEmpty;
         }
+        // A disabled store (its `disabled` or a disabled `<fieldset>`) disables
+        // the drawer chip: no interaction, not focusable (core SPEC §6.4).
+        if (this.chipEl instanceof HTMLButtonElement) {
+            this.chipEl.disabled = !!this.store.getConfig().isDisabled;
+        }
 
         // ---- Body callback (or default) ---------------------------------
         const bodyResult = this.bodyCallback

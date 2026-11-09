@@ -100,7 +100,7 @@ shadow root (`custom-styles` / `getCustomStylesCallback`, page-wide per tag) is 
 | `min-file-count` | `minFileCount` | `number` | `0` | Minimum number of files; reflected into the form validity (valueMissing). |
 | `max-visible-file-count` | `maxVisibleFileCount` | `number` | `7` | How many file rows are visible before the list scrolls. |
 | `dedupe-mode` | `dedupeMode` | `'name' \| 'name-size' \| 'none'` | `'name'` | How duplicate files are detected: by name, name+size, or not at all. |
-| `disabled` | `isDisabled` | `boolean` | `false` | Disable the dropzone (like a native control: no clicks / drops; boolean attribute — present = on). An ancestor `<fieldset disabled>` disables it too (core `isEffectivelyDisabled`); `el.isDisabled` keeps the authored value. |
+| `disabled` | `isDisabled` | `boolean` | `false` | Disable the dropzone (like a native control: no clicks / drops, every button — selector, rows, bulk actions, satellites — disabled and out of the tab order; boolean attribute — present = on). An ancestor `<fieldset disabled>` disables it too (core `isEffectivelyDisabled`); `el.isDisabled` keeps the authored value. |
 | `readonly` | `isReadonly` | `boolean` | `false` | Read-only (like a native control): the user cannot change the selection — no add (click / drop / overlay / Add more), no row Remove, no Clear all — but the files stay visible and ARE submitted with the form. Uploads keep running; the programmatic API is unaffected. |
 | `render-mode` | `renderMode` | `'bulk' \| 'structural' \| 'headless' \| null` |  | Render mode — who renders the file list. When absent it is inferred from the presence of renderer-trigger attributes (display-mode / selector-appearance / list-appearance → bulk; none → headless). `structural` is the only way to opt into render callbacks. |
 | `progress-throttle` | `progressThrottle` | `number` | `0` | Throttle interval in ms for file-progress events. 0 = every tick. |
@@ -682,7 +682,7 @@ and a `window.components['web-dropzone-picker']` (etc.) registry entry.
 | Attribute | Property | Type | Default | Description |
 |---|---|---|---|---|
 | `for` | `htmlFor` | `string \| null` |  | Id of the `<web-dropzone>` store to bind to. Changing it re-binds. Not needed when the store mounts the satellite itself. |
-| `labels` | `labels` | `Partial<DropzoneLabels> \| null` |  | The satellite's own UI strings (object, or a JSON attribute), merged per key over the bound store's `labels`, then the built-in English. Live. |
+| `labels` | `labels` | `Partial<DropzoneLabels>` |  | The satellite's own UI strings (object, or a JSON attribute), merged per key over the bound store's `labels`, then the built-in English. Live. |
 | `custom-styles` | `customStyles` | `string \| null` |  | Extra CSS for this satellite's shadow root (raw CSS — NOT sanitized). Comes after the page-wide `window.components[tag].customStyles`, so it overrides it. |
 | — | `getCustomStylesCallback` | `(ctx) => string \| null \| undefined` |  | Returns extra CSS for this satellite's shadow root; wins over `customStyles`. |
 | `defer`, `theme-source`, `motion`, `responsive` | `shouldDefer`, `themeSource`, `motion`, `responsive` (+ `responsiveCallback`) |  |  | Core inputs, as on `<web-dropzone>` (see [Attributes](#attributes)). |

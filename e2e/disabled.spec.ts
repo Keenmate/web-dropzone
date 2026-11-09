@@ -154,3 +154,84 @@ test.describe('readonly host (C5)', () => {
         await expect.poll(() => count(page, 'ro')).toBe(1);
     });
 });
+
+/** Every button / role=button the element renders (its shadow root and the satellites inside it). */
+function controlStates(page: Page, id: string) {
+    return dz(page, id).evaluate((host) => {
+        const out: string[] = [];
+        const walk = (root: ParentNode) => {
+            for (const n of Array.from(root.querySelectorAll<HTMLElement>('*'))) {
+                if (n.matches('button, [role="button"]') && n.getAttribute('aria-hidden') !== 'true') {
+                    const isOff = n instanceof HTMLButtonElement ? n.disabled : n.getAttribute('aria-disabled') === 'true' && n.tabIndex < 0;
+                    out.push(`${n.dataset.dzAction || n.className.split(' ')[0]}:${isOff ? 'off' : 'on'}`);
+                }
+                if (n.shadowRoot) walk(n.shadowRoot);
+            }
+        };
+        walk(host.shadowRoot!);
+        return out;
+    });
+}
+
+test.describe('disabled store with files (SPEC §6.4: no interaction, not focusable)', () => {
+    const IDS = ['dis-files', 'dis-pop', 'dis-store'];
+    const setDisabled = (page: Page, isDisabled: boolean) => page.evaluate(async ({ ids, isDisabled }) => {
+        for (const id of ids) {
+            const el = document.getElementById(id) as any;
+            el.isDisabled = isDisabled;
+            await el.whenSettled();
+        }
+    }, { ids: IDS, isDisabled });
+
+    test.beforeEach(async ({ page }) => {
+        await page.waitForFunction((ids) => ids.every((id) => (document.getElementById(id) as any)?.isReady), [...IDS, 'dis-ls', 'dis-prog', 'dis-ind']);
+        await page.evaluate((ids) => {
+            for (const id of ids) (document.getElementById(id) as any).addFiles([new File(['a'], 'a.txt'), new File(['b'], 'b.txt')]);
+        }, IDS);
+        await expect(dz(page, 'dis-ls').locator('[data-dz-action="remove"]')).toHaveCount(1); // capped at 1 row
+        await expect(dz(page, 'dis-prog').locator('[data-dz-action="cancel-all"]')).toHaveCount(1);
+    });
+
+    test('row, toggle, bulk, summary and chip controls are all off — store and satellites; back on when enabled', async ({ page }) => {
+        const expected = {
+            'dis-files': ['row-action', 'cancel', 'remove', 'toggle-visible', 'pause-all', 'cancel-all'],
+            'dis-pop': ['dz__button', 'dz__summary-line', 'pause-all', 'cancel-all'],
+            'dis-ls': ['row-action', 'cancel', 'remove', 'toggle-visible'],
+            'dis-prog': ['pause-all', 'cancel-all'],
+        } as const;
+        await setDisabled(page, true);
+        for (const [id, names] of Object.entries(expected)) {
+            await expect.poll(() => controlStates(page, id)).toEqual(names.map((n) => `${n}:off`));
+        }
+        await expect(dz(page, 'dis-ind').locator('button.dz__indicator-chip')).toBeDisabled();
+
+        await setDisabled(page, false);
+        for (const [id, names] of Object.entries(expected)) {
+            await expect.poll(() => controlStates(page, id)).toEqual(names.map((n) => `${n}:on`));
+        }
+        await expect(dz(page, 'dis-ind').locator('button.dz__indicator-chip')).toBeEnabled();
+    });
+
+    test('the row remove (store list and satellite list) removes nothing; calls from code still work', async ({ page }) => {
+        await setDisabled(page, true);
+        await dz(page, 'dis-files').locator('[data-dz-action="remove"]').click({ force: true });
+        await dz(page, 'dis-ls').locator('[data-dz-action="remove"]').click({ force: true });
+        await page.waitForTimeout(200);
+        // (an uploading row's remove cancels first — the file would sit in `cancelling`)
+        const statuses = (id: string) => dz(page, id).evaluate((el: any) => el.files.map((f: any) => f.status));
+        expect(await statuses('dis-files')).toEqual(['uploading', 'pending']);
+        expect(await statuses('dis-store')).toEqual(['uploading', 'pending']);
+        await dz(page, 'dis-store').evaluate(async (el: any) => { await el.removeFile(el.files[0].id); });
+        expect(await count(page, 'dis-store')).toBe(1);
+    });
+
+    test('a kept rolling front row follows the flip too', async ({ page }) => {
+        await dz(page, 'dis-files').evaluate(async (el: any) => { el.listAppearance = 'rolling'; await el.whenSettled(); });
+        await expect(dz(page, 'dis-files').locator('.dz__rolling-current [data-dz-action="remove"]')).toBeEnabled();
+        await setDisabled(page, true);
+        for (const action of ['row-action', 'cancel', 'remove']) {
+            await expect(dz(page, 'dis-files').locator(`.dz__rolling-current [data-dz-action="${action}"]`)).toBeDisabled();
+        }
+        await expect(dz(page, 'dis-files').locator('[data-dz-action="open-queue"]')).toBeDisabled();
+    });
+});

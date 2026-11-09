@@ -138,13 +138,16 @@ test.describe('popover header actions', () => {
         expect(await dz(page, 'pop').evaluate((el: any) => el.files.length)).toBe(2);
     });
 
-    test('a disabled dropzone hides Add more but keeps Clear all', async ({ page }) => {
+    test('a disabled dropzone: the summary line is off (SPEC §6.4 no interaction) — no popover, no Clear all', async ({ page }) => {
         await dz(page, 'pop').evaluate(async (el: any) => { el.isDisabled = true; await el.whenSettled(); });
         await addNamed(page, 'pop', ['p1.txt']);
-        await dz(page, 'pop').locator('.dz__summary-line').click();
-        await expect(dz(page, 'pop').locator('.dz__popover')).toBeVisible();
-        await expect(btn(page, 'pop', 'clear')).toBeVisible();
-        await expect(btn(page, 'pop', 'add-more')).toHaveCount(0);
+        const line = dz(page, 'pop').locator('.dz__summary-line');
+        await expect(line).toHaveAttribute('aria-disabled', 'true');
+        await expect(line).toHaveAttribute('tabindex', '-1');
+        await line.click({ force: true });
+        await page.waitForTimeout(200);
+        await expect(dz(page, 'pop').locator('.dz__popover')).toHaveCount(0);
+        expect(await dz(page, 'pop').evaluate((el: any) => el.files.length)).toBe(1);
     });
 
     test('with files, clicking the button selector toggles the popover instead of the file dialog', async ({ page }) => {

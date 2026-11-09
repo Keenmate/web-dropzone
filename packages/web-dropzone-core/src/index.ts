@@ -97,8 +97,7 @@ export {
     statusLabel,
     fileStatusLabel,
     isLabelsValue,
-    countLabel,
-    parseLabelsAttribute
+    countLabel
 } from './labels';
 export type { DropzoneLabels, DropzoneLabelKey, LabelFn, LabelVars, LabelSources, CountedLabelKey } from './labels';
 

@@ -261,20 +261,6 @@ export function countLabel(label: LabelFn, key: CountedLabelKey, count: number):
     return count === 1 ? label(`${key}One` as DropzoneLabelKey, { count }) : label(key, { count });
 }
 
-/**
- * Parse a `labels` JSON attribute value: a JSON object of strings, else
- * `undefined` (malformed — the caller reports it). Absent / empty → `null`.
- */
-export function parseLabelsAttribute(raw: string | null): Partial<DropzoneLabels> | null | undefined {
-    if (raw == null || raw.trim() === '') return null;
-    try {
-        const parsed: unknown = JSON.parse(raw);
-        return isLabelsValue(parsed) ? parsed : undefined;
-    } catch {
-        return undefined;
-    }
-}
-
 const STATUS_KEYS: Record<FileStatus, DropzoneLabelKey> = {
     pending: 'statusPending',
     uploading: 'statusUploading',

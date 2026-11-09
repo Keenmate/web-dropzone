@@ -103,7 +103,7 @@ be async; returning `false` cancels.
 - **Icons** — `STATUS_ICONS`, `ACTION_ICONS`, `actionForStatus()`, `CANCEL_ICON`, `FILE_TYPE_ICONS`,
   `UI_ICONS`, `FILE_ICONS` (Lucide SVG strings).
 - **Labels** — `DEFAULT_LABELS`, `resolveLabel`, `createLabelFn`, `countLabel`, `statusLabel`,
-  `fileStatusLabel`, `parseLabelsAttribute` — the same per-key-merged UI strings the element uses.
+  `fileStatusLabel`, `isLabelsValue` — the same per-key-merged UI strings the element uses.
 - **Status surface** — `StatusSurfaceArgs`, `StatusSurfaceCallback`, `StatusSurfaceResult`,
   `StatusAggregate`: the contract of indicator-style UIs (focal file + aggregate counts + overall percent).
 - **Types** — every callback ctx (`ValidateContext`, `BeforeFilesAddContext`, `FileUploadContext`, …),

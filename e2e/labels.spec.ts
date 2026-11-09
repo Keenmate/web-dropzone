@@ -42,8 +42,18 @@ test('property: per-key merge, placeholders, live re-render', async ({ page }) =
     await expect(row.locator('.dz__file-item-status')).toHaveAttribute('aria-label', 'Stav: Nahrávám');
     await expect(dz(page, 'q').locator('[data-dz-action="cancel-all"]')).toHaveText('Zrušit vše');
     await expect(dz(page, 'q').locator('.dz__dropzone-text')).toHaveText('Sem soubory');
-    // clearing returns to the defaults
-    await dz(page, 'q').evaluate(async (el: any) => { el.labels = null; await el.whenSettled(); });
+    // null is not a labels value (core toObject: refused, input-rejected, previous value kept)
+    const refused = await dz(page, 'q').evaluate(async (el: any) => {
+        const seen: string[] = [];
+        el.addEventListener('input-rejected', (e: any) => seen.push(e.detail.configKey));
+        el.labels = null;
+        await el.whenSettled();
+        return seen;
+    });
+    expect(refused).toEqual(['labels']);
+    await expect(row.locator('[data-dz-action="cancel"]')).toHaveAttribute('aria-label', 'Zrušit a.txt');
+    // undefined resets to the defaults (SPEC §6.1)
+    await dz(page, 'q').evaluate(async (el: any) => { el.labels = undefined; await el.whenSettled(); });
     await expect(row.locator('[data-dz-action="cancel"]')).toHaveAttribute('aria-label', 'Cancel a.txt');
 });
 

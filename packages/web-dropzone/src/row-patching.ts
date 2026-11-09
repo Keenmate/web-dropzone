@@ -92,10 +92,11 @@ export function patchRemoveButton(
     btn: HTMLElement | null,
     removable: boolean,
     baseClass: string,
-    isCancelling = false
+    isCancelling = false,
+    isDisabled = false
 ): void {
     if (!btn) return;
-    (btn as HTMLButtonElement).disabled = isCancelling;
+    (btn as HTMLButtonElement).disabled = isCancelling || isDisabled;
     btn.classList.toggle(`${baseClass}--hidden`, !removable);
     if (removable) {
         btn.removeAttribute('tabindex');
@@ -108,13 +109,14 @@ export function patchRemoveButton(
 
 /**
  * In-place patch the per-row Cancel button: `--hidden` (inert) when there is
- * nothing to cancel, disabled while `cancelling`.
+ * nothing to cancel, disabled while `cancelling` or while the store is disabled.
  */
 export function patchCancelButton(
     btn: HTMLElement | null,
     file: FileState,
     baseClass: string,
-    hasUploadHandler: boolean
+    hasUploadHandler: boolean,
+    isDisabled = false
 ): void {
     if (!btn) return;
     const offered = isCancelOffered(file, hasUploadHandler);
@@ -126,7 +128,7 @@ export function patchCancelButton(
         btn.setAttribute('tabindex', '-1');
         btn.setAttribute('aria-hidden', 'true');
     }
-    (btn as HTMLButtonElement).disabled = file.status === 'cancelling';
+    (btn as HTMLButtonElement).disabled = file.status === 'cancelling' || isDisabled;
 }
 
 /**
@@ -166,4 +168,17 @@ export function patchActionButton(
         btn.tabIndex = -1;
         btn.setAttribute('aria-hidden', 'true');
     }
+}
+
+/**
+ * Re-sync a kept row's action / cancel / remove buttons with the store's
+ * disabled state (a row that survives a config re-render — the rolling front
+ * row). Disabled store → all three `disabled` (core SPEC §6.4); cancel /
+ * remove also stay disabled while the file is `cancelling`.
+ */
+export function syncRowButtonsDisabled(row: ParentNode, file: FileState, isDisabled: boolean): void {
+    row.querySelectorAll<HTMLButtonElement>('[data-dz-action="row-action"]').forEach((btn) => { btn.disabled = isDisabled; });
+    row.querySelectorAll<HTMLButtonElement>('[data-dz-action="cancel"], [data-dz-action="remove"]').forEach((btn) => {
+        btn.disabled = isDisabled || file.status === 'cancelling';
+    });
 }

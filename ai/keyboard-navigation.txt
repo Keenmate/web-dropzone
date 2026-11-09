@@ -69,7 +69,9 @@ ROLES & STATES
 - Cancelling rows: buttons get `disabled` while the cancel waits.
 - Disabled dropzone / picker (disabled attribute - a presence attribute, any
   value - or a disabled <fieldset>): inputs and buttons are disabled (not
-  focusable); drops are ignored.
+  focusable) - selector, row buttons, Show more, popover / bulk actions, and
+  the store's list / progress / indicator satellites; the summary line gets
+  aria-disabled="true" + tabindex="-1"; drops are ignored.
 - Read-only (readonly): the selector controls stay focusable but get
   aria-disabled="true" (not disabled) and never open the file dialog; a
   button that opens the popover list still works. Calls from code still add.

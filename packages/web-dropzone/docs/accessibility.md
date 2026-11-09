@@ -26,8 +26,11 @@ accessible names are localised together with the UI. Color contrast follows the 
 
 The pair follows native form-control semantics (web-components-core SPEC §6.4):
 
-- **`disabled`** (or an ancestor `<fieldset disabled>`) — the selector controls get the native
-  `disabled` attribute: no interaction, not focusable, no drops; the form value isn't submitted.
+- **`disabled`** (or an ancestor `<fieldset disabled>`) — every control gets the native `disabled`
+  attribute: the selector, the row buttons (pause / resume / retry, cancel, remove), Show more / less,
+  the rolling queue button, the popover actions and the bulk buttons (Pause all, Cancel all, …); the
+  summary line (`role="button"`) gets `aria-disabled="true"` and leaves the tab order. No interaction,
+  not focusable, no drops; the form value isn't submitted.
 - **`readonly`** — the user can't change the selection, but the controls stay focusable and are marked
   `aria-disabled="true"` (never the native `disabled`), and they never open the file dialog; the files
   can still be looked at (a button that opens the popover list stays a plain button) and are submitted
@@ -35,7 +38,9 @@ The pair follows native form-control semantics (web-components-core SPEC §6.4):
 
 `<web-dropzone-picker>` has the same pair (`disabled` / `readonly`, presence attributes —
 `disabled="false"` is disabled, like a native control); a disabled or read-only store makes its
-pickers disabled / read-only too.
+pickers disabled / read-only too. The list, progress strip and indicator follow their store: under a
+disabled store their buttons (rows, bulk actions, the drawer chip) are disabled too; under a read-only
+store the list offers no row Remove.
 
 Calls from code (`addFiles()`, `removeFile()`, …) work under both.
 

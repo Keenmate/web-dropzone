@@ -152,7 +152,7 @@ const INPUTS: readonly InputDef[] = [
     { configKey: 'minFileCount',            attribute: 'min-file-count',      converter: toInt({ min: 0, default: 0 }),                                                        shouldReflect: true, on: 'update', description: 'Minimum number of files; reflected into the form validity (valueMissing).' },
     { configKey: 'maxVisibleFileCount',         attribute: 'max-visible-file-count',   converter: toInt({ min: 0, default: 7 }),                                                        shouldReflect: true, on: 'update', description: 'How many file rows are visible before the list scrolls.' },
     { configKey: 'dedupeMode',              attribute: 'dedupe-mode',         converter: toEnum(['name', 'name-size', 'none'] as const, { default: 'name' }),          shouldReflect: true, on: 'update', description: 'How duplicate files are detected: by name, name+size, or not at all.' },
-    { configKey: 'isDisabled',              attribute: 'disabled',            converter: toBool('presence'),                                                           shouldReflect: true, on: 'update', type: 'boolean', description: 'Disable the dropzone (like a native control: no clicks / drops; boolean attribute — present = on). An ancestor `<fieldset disabled>` disables it too (core `isEffectivelyDisabled`); `el.isDisabled` keeps the authored value.' },
+    { configKey: 'isDisabled',              attribute: 'disabled',            converter: toBool('presence'),                                                           shouldReflect: true, on: 'update', type: 'boolean', description: 'Disable the dropzone (like a native control: no clicks / drops, every button — selector, rows, bulk actions, satellites — disabled and out of the tab order; boolean attribute — present = on). An ancestor `<fieldset disabled>` disables it too (core `isEffectivelyDisabled`); `el.isDisabled` keeps the authored value.' },
     { configKey: 'isReadonly',              attribute: 'readonly',            converter: toBool('presence'),                                                           shouldReflect: true, on: 'update', type: 'boolean', description: 'Read-only (like a native control): the user cannot change the selection — no add (click / drop / overlay / Add more), no row Remove, no Clear all — but the files stay visible and ARE submitted with the form. Uploads keep running; the programmatic API is unaffected.' },
 
     // ── Operating mode ────────────────────────────────────────────────────────
@@ -273,8 +273,10 @@ export type DropzoneElementConfig = Omit<
     | 'isHeadless' | 'container' | 'hostElement'
     | 'accept' | 'icon' | 'cancelIcon' | 'removeIcon' | 'overlayIcon' | 'name' | 'storageKey'
     | 'renderMode' | 'selectorAppearance' | 'listAppearance' | 'cardSize' | 'isThumbnailsShown'
-    | 'controls' | 'itemControls'
+    | 'controls' | 'itemControls' | 'labels'
 > & {
+    /** Partial UI strings; `undefined` = the built-in English (`null` is refused). */
+    labels?: Partial<DropzoneLabels>;
     accept?: string | null;
     icon?: string | null;
     cancelIcon?: string | null;
