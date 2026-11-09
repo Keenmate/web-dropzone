@@ -8,12 +8,16 @@
  *
  * Fixture: test/core-alignment.html.
  */
-import { test, expect, dz, addNamed } from './fixtures';
+import { test, expect, dz, addNamed, dragFiles, trackFileChoosers } from './fixtures';
 import type { Page } from '@playwright/test';
 
 const PAGE = '/test/core-alignment.html';
 
+/** Native file dialogs opened so far (tracked from before `goto`, see trackFileChoosers). */
+let choosers: () => number;
+
 test.beforeEach(async ({ page }) => {
+    choosers = trackFileChoosers(page);
     await page.goto(PAGE);
     await page.waitForFunction(() =>
         ['css-page', 'css-inst', 'css-cb', 'ro', 'dis', 'ro-btn', 'store-a', 'store-b', 'pk', 'ls', 'ind', 'prog', 'sizes']
@@ -143,18 +147,14 @@ test.describe('read-only / disabled card (SPEC §6.4 native semantics)', () => {
             return a?.className ?? '';
         });
         expect(focused).toContain('dz__dropzone-input');
-        let opened = false;
-        page.on('filechooser', () => { opened = true; });
         await page.keyboard.press('Space');
         await dz(page, 'ro').locator('.dz__dropzone').click();
         await page.waitForTimeout(300);
-        expect(opened).toBe(false);
+        expect(choosers()).toBe(0);
     });
 
     test('read-only button + popover: calls from code still add; the file list still opens, the dialog never', async ({ page }) => {
         await addNamed(page, 'ro-btn', ['a.txt']);   // calls from code work under readonly (SPEC §6.4)
-        let opened = false;
-        page.on('filechooser', () => { opened = true; });
         const button = dz(page, 'ro-btn').locator('button.dz__button');
         await expect(button).toHaveAttribute('aria-disabled', 'true');   // focusable, adds nothing
         await button.focus();
@@ -164,7 +164,7 @@ test.describe('read-only / disabled card (SPEC §6.4 native semantics)', () => {
         await expect(dz(page, 'ro-btn').locator('[data-dz-action="add-more"]')).toHaveCount(0);
         await page.keyboard.press('Escape');                    // core overlay tree
         await expect(dz(page, 'ro-btn').locator('.dz__popover')).toHaveCount(0);
-        expect(opened).toBe(false);
+        expect(choosers()).toBe(0);
     });
 
     test('disabled: the card input is disabled (not focusable)', async ({ page }) => {
@@ -213,9 +213,16 @@ test.describe('satellites on BlissElement', () => {
         // disabled="false" is still disabled (native presence rule)
         expect(await dz(page, 'pk-dis').evaluate((el: any) => el.isDisabled)).toBe(true);
         await expect(dz(page, 'pk-dis').locator('input.dz__dropzone-input')).toHaveAttribute('disabled', '');
-        // the store stays empty after a click on the read-only picker
+        // a click on the read-only picker opens no file dialog; a drop on it (or on the
+        // disabled one) adds nothing; the plain picker still takes a drop (control)
         await ro.locator('.dz__dropzone').click();
+        await dragFiles(ro.locator('.dz__dropzone'), 'drop', ['ro.txt']);
+        await dragFiles(dz(page, 'pk-dis').locator('.dz__dropzone'), 'drop', ['dis.txt']);
+        await page.waitForTimeout(200);
+        expect(choosers()).toBe(0);
         expect(await dz(page, 'store-a').evaluate((el: any) => el.files.length)).toBe(0);
+        await dragFiles(dz(page, 'pk').locator('.dz__dropzone'), 'drop', ['ok.txt']);
+        await expect.poll(() => dz(page, 'store-a').evaluate((el: any) => el.files.map((f: any) => f.name))).toEqual(['ok.txt']);
     });
 
     test('a list follows its store', async ({ page }) => {
