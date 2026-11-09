@@ -12,6 +12,21 @@
           "doc-url": "",
           "attributes": [
             {
+              "name": "for",
+              "description": "Id of the `<web-dropzone>` store this satellite binds to (attribute `for`). Changing it re-binds. Not needed when the store mounts the satellite itself.",
+              "value": { "type": "string | null" }
+            },
+            {
+              "name": "labels",
+              "description": "This satellite's own UI strings — a partial `DropzoneLabels` (property, or a JSON attribute), merged per key over the bound store's `labels`, then the built-in English. Live.",
+              "value": { "type": "Partial<DropzoneLabels> | null" }
+            },
+            {
+              "name": "custom-styles",
+              "description": "Extra CSS for this satellite's shadow root (raw CSS — NOT sanitized). Comes after the page-wide `window.components[tag].customStyles`, so it overrides it; `getCustomStylesCallback` wins over it.",
+              "value": { "type": "string | null" }
+            },
+            {
               "name": "position",
               "description": "Where the chip sits: fixed to a viewport edge (right, left, top, bottom) or inline in the page flow.",
               "value": {
@@ -60,6 +75,26 @@
           ],
           "js": {
             "properties": [
+              {
+                "name": "htmlFor",
+                "description": "Id of the `<web-dropzone>` store this satellite binds to (attribute `for`). Changing it re-binds. Not needed when the store mounts the satellite itself.",
+                "type": "string | null"
+              },
+              {
+                "name": "labels",
+                "description": "This satellite's own UI strings — a partial `DropzoneLabels` (property, or a JSON attribute), merged per key over the bound store's `labels`, then the built-in English. Live.",
+                "type": "Partial<DropzoneLabels> | null"
+              },
+              {
+                "name": "customStyles",
+                "description": "Extra CSS for this satellite's shadow root (raw CSS — NOT sanitized). Comes after the page-wide `window.components[tag].customStyles`, so it overrides it; `getCustomStylesCallback` wins over it.",
+                "type": "string | null"
+              },
+              {
+                "name": "getCustomStylesCallback",
+                "description": "Returns extra CSS for this satellite's shadow root (raw CSS — NOT sanitized); wins over `customStyles`.",
+                "type": "(ctx: object) => string | null | undefined"
+              },
               {
                 "name": "position",
                 "description": "Where the chip sits: fixed to a viewport edge (right, left, top, bottom) or inline in the page flow.",
@@ -164,6 +199,21 @@
           "doc-url": "",
           "attributes": [
             {
+              "name": "for",
+              "description": "Id of the `<web-dropzone>` store this satellite binds to (attribute `for`). Changing it re-binds. Not needed when the store mounts the satellite itself.",
+              "value": { "type": "string | null" }
+            },
+            {
+              "name": "labels",
+              "description": "This satellite's own UI strings — a partial `DropzoneLabels` (property, or a JSON attribute), merged per key over the bound store's `labels`, then the built-in English. Live.",
+              "value": { "type": "Partial<DropzoneLabels> | null" }
+            },
+            {
+              "name": "custom-styles",
+              "description": "Extra CSS for this satellite's shadow root (raw CSS — NOT sanitized). Comes after the page-wide `window.components[tag].customStyles`, so it overrides it; `getCustomStylesCallback` wins over it.",
+              "value": { "type": "string | null" }
+            },
+            {
               "name": "list-appearance",
               "description": "How the files are shown: list, detailed, grid, badges, rolling (one current file + queue badge) or popover (the summary line; the popover itself is the store's).",
               "value": {
@@ -226,6 +276,26 @@
           "js": {
             "properties": [
               { "name": "className", "type": "string" },
+              {
+                "name": "htmlFor",
+                "description": "Id of the `<web-dropzone>` store this satellite binds to (attribute `for`). Changing it re-binds. Not needed when the store mounts the satellite itself.",
+                "type": "string | null"
+              },
+              {
+                "name": "labels",
+                "description": "This satellite's own UI strings — a partial `DropzoneLabels` (property, or a JSON attribute), merged per key over the bound store's `labels`, then the built-in English. Live.",
+                "type": "Partial<DropzoneLabels> | null"
+              },
+              {
+                "name": "customStyles",
+                "description": "Extra CSS for this satellite's shadow root (raw CSS — NOT sanitized). Comes after the page-wide `window.components[tag].customStyles`, so it overrides it; `getCustomStylesCallback` wins over it.",
+                "type": "string | null"
+              },
+              {
+                "name": "getCustomStylesCallback",
+                "description": "Returns extra CSS for this satellite's shadow root (raw CSS — NOT sanitized); wins over `customStyles`.",
+                "type": "(ctx: object) => string | null | undefined"
+              },
               {
                 "name": "listAppearance",
                 "description": "How the files are shown: list, detailed, grid, badges, rolling (one current file + queue badge) or popover (the summary line; the popover itself is the store's).",
@@ -325,6 +395,21 @@
           "doc-url": "",
           "attributes": [
             {
+              "name": "for",
+              "description": "Id of the `<web-dropzone>` store this satellite binds to (attribute `for`). Changing it re-binds. Not needed when the store mounts the satellite itself.",
+              "value": { "type": "string | null" }
+            },
+            {
+              "name": "labels",
+              "description": "This satellite's own UI strings — a partial `DropzoneLabels` (property, or a JSON attribute), merged per key over the bound store's `labels`, then the built-in English. Live.",
+              "value": { "type": "Partial<DropzoneLabels> | null" }
+            },
+            {
+              "name": "custom-styles",
+              "description": "Extra CSS for this satellite's shadow root (raw CSS — NOT sanitized). Comes after the page-wide `window.components[tag].customStyles`, so it overrides it; `getCustomStylesCallback` wins over it.",
+              "value": { "type": "string | null" }
+            },
+            {
               "name": "selector-appearance",
               "description": "Selector appearance: card (drop area), button, minimal (icon button) or native (file-input look).",
               "value": {
@@ -417,6 +502,26 @@
                 "type": "boolean"
               },
               { "name": "className", "type": "string" },
+              {
+                "name": "htmlFor",
+                "description": "Id of the `<web-dropzone>` store this satellite binds to (attribute `for`). Changing it re-binds. Not needed when the store mounts the satellite itself.",
+                "type": "string | null"
+              },
+              {
+                "name": "labels",
+                "description": "This satellite's own UI strings — a partial `DropzoneLabels` (property, or a JSON attribute), merged per key over the bound store's `labels`, then the built-in English. Live.",
+                "type": "Partial<DropzoneLabels> | null"
+              },
+              {
+                "name": "customStyles",
+                "description": "Extra CSS for this satellite's shadow root (raw CSS — NOT sanitized). Comes after the page-wide `window.components[tag].customStyles`, so it overrides it; `getCustomStylesCallback` wins over it.",
+                "type": "string | null"
+              },
+              {
+                "name": "getCustomStylesCallback",
+                "description": "Returns extra CSS for this satellite's shadow root (raw CSS — NOT sanitized); wins over `customStyles`.",
+                "type": "(ctx: object) => string | null | undefined"
+              },
               {
                 "name": "selectorAppearance",
                 "description": "Selector appearance: card (drop area), button, minimal (icon button) or native (file-input look).",
@@ -551,6 +656,21 @@
           "doc-url": "",
           "attributes": [
             {
+              "name": "for",
+              "description": "Id of the `<web-dropzone>` store this satellite binds to (attribute `for`). Changing it re-binds. Not needed when the store mounts the satellite itself.",
+              "value": { "type": "string | null" }
+            },
+            {
+              "name": "labels",
+              "description": "This satellite's own UI strings — a partial `DropzoneLabels` (property, or a JSON attribute), merged per key over the bound store's `labels`, then the built-in English. Live.",
+              "value": { "type": "Partial<DropzoneLabels> | null" }
+            },
+            {
+              "name": "custom-styles",
+              "description": "Extra CSS for this satellite's shadow root (raw CSS — NOT sanitized). Comes after the page-wide `window.components[tag].customStyles`, so it overrides it; `getCustomStylesCallback` wins over it.",
+              "value": { "type": "string | null" }
+            },
+            {
               "name": "defer",
               "description": "Hold the first build (core, SPEC §6.3): while set when the element first connects, nothing is built and every input, callback and listener assigned meanwhile accumulates; `release()` (or removing the attribute) then builds once. Latched after the first build.",
               "value": { "type": "boolean", "default": "false" }
@@ -587,6 +707,26 @@
           "js": {
             "properties": [
               { "name": "className", "type": "string" },
+              {
+                "name": "htmlFor",
+                "description": "Id of the `<web-dropzone>` store this satellite binds to (attribute `for`). Changing it re-binds. Not needed when the store mounts the satellite itself.",
+                "type": "string | null"
+              },
+              {
+                "name": "labels",
+                "description": "This satellite's own UI strings — a partial `DropzoneLabels` (property, or a JSON attribute), merged per key over the bound store's `labels`, then the built-in English. Live.",
+                "type": "Partial<DropzoneLabels> | null"
+              },
+              {
+                "name": "customStyles",
+                "description": "Extra CSS for this satellite's shadow root (raw CSS — NOT sanitized). Comes after the page-wide `window.components[tag].customStyles`, so it overrides it; `getCustomStylesCallback` wins over it.",
+                "type": "string | null"
+              },
+              {
+                "name": "getCustomStylesCallback",
+                "description": "Returns extra CSS for this satellite's shadow root (raw CSS — NOT sanitized); wins over `customStyles`.",
+                "type": "(ctx: object) => string | null | undefined"
+              },
               {
                 "name": "shouldDefer",
                 "description": "Hold the first build (core, SPEC §6.3): while set when the element first connects, nothing is built and every input, callback and listener assigned meanwhile accumulates; `release()` (or removing the attribute) then builds once. Latched after the first build.",
