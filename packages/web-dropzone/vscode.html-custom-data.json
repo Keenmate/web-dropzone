@@ -407,7 +407,7 @@
         },
         {
           "name": "popover-placement",
-          "description": "Placement of the compact-mode popover relative to the summary (floating-ui placement).",
+          "description": "Placement of the compact-mode popover relative to its trigger (a core /positioning placement; flips when there is no room).",
           "values": [
             { "name": "top" },
             { "name": "top-start" },

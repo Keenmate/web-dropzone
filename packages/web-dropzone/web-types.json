@@ -823,7 +823,7 @@
             },
             {
               "name": "popover-placement",
-              "description": "Placement of the compact-mode popover relative to the summary (floating-ui placement).",
+              "description": "Placement of the compact-mode popover relative to its trigger (a core /positioning placement; flips when there is no room).",
               "value": {
                 "type": "'top' | 'top-start' | 'top-end' | 'bottom' | 'bottom-start' | 'bottom-end' | 'left' | 'left-start' | 'left-end' | 'right' | 'right-start' | 'right-end'",
                 "default": "'bottom-start'"
@@ -1221,7 +1221,7 @@
               },
               {
                 "name": "popoverPlacement",
-                "description": "Placement of the compact-mode popover relative to the summary (floating-ui placement).",
+                "description": "Placement of the compact-mode popover relative to its trigger (a core /positioning placement; flips when there is no room).",
                 "type": "'top' | 'top-start' | 'top-end' | 'bottom' | 'bottom-start' | 'bottom-end' | 'left' | 'left-start' | 'left-end' | 'right' | 'right-start' | 'right-end'"
               },
               {
