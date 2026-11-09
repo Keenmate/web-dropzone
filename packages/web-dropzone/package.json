@@ -77,7 +77,7 @@
   },
   "devDependencies": {
     "@custom-elements-manifest/analyzer": "^0.11.0",
-    "@keenmate/base-css-variables": "^2.0.0-rc06",
+    "@keenmate/base-css-variables": "^2.0.1",
     "custom-element-jet-brains-integration": "^1.8.0",
     "custom-element-vs-code-integration": "^1.5.0",
     "happy-dom": "^15.11.7",

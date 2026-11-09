@@ -1914,7 +1914,7 @@ export class WebDropzone extends DropzoneEngine {
             inheritThemeFrom: false, // inside the shadow root: inherits the host's theme
             placement,
             strategy: 'absolute',
-            offset: 8,
+            // No `offset`: core's default is the page's field → panel gap `--base-dropdown-offset`.
             shift: 8,
             maxHeight: { padding: 8 },
             maxWidth: { padding: 8 },

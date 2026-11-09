@@ -84,6 +84,13 @@ rc21 pre-release. No compatibility aliases.
 - `escapeHtml` (re-exported by both packages) is core's: it takes any value (`null` / `undefined`
   → `''`). `packages/web-dropzone-core/src/dom-utils.ts` is gone.
 
+### Changed (popover gap, 2026-11-09)
+
+- **The compact-mode popover opens 4px from its trigger instead of 8px** — the gap is now the page
+  token `--base-dropdown-offset` (`@keenmate/base-css-variables` ^2.0.1), the one field → panel gap of
+  every KeenMate component; core's anchor reads it on the trigger (no hard-coded offset left). To keep
+  the old look: `web-dropzone { --base-dropdown-offset: 8px; }`.
+
 ### Added (core alignment, 2026-11-09)
 
 - **Custom CSS, the core way** (`createCustomStyles()`, rulebook C-CA-15) on `<web-dropzone>` and

@@ -219,6 +219,13 @@ an edge-to-edge full-screen sheet (`100dvw` × `100dvh`, no border / radius / sh
 `--dz-touch-target-min` (`--base-touch-target-min`, 44px). Its list and the compact-mode popover's
 list use `overscroll-behavior: contain`, so a fling at the list edge doesn't scroll the page behind.
 
+## Popover gap
+
+The compact-mode popover opens `--base-dropdown-offset` away from its trigger (the summary line /
+selector; `@keenmate/base-css-variables` 2.0.1+, `4px` when unset) — the one field → panel gap every
+KeenMate component shares; core reads it on the trigger when the popover opens. Set it page-wide, per
+section, or per component: `web-dropzone { --base-dropdown-offset: 8px; }`.
+
 ## Variable reference
 
 Generated from [`component-variables.manifest.json`](../component-variables.manifest.json) (also exported

@@ -46,6 +46,24 @@ test.describe('placement', () => {
     });
 });
 
+test.describe('gap', () => {
+    test('the trigger → popover gap is --base-dropdown-offset (4 by default, follows the host)', async ({ page }) => {
+        const gap = async () => {
+            const [p, a] = [await popover(page, 'pop').boundingBox(), await anchorBox(page, 'pop')];
+            return Math.round(p!.y - (a!.y + a!.height));
+        };
+        await open(page, 'pop');
+        await expect.poll(gap).toBe(4);
+        await page.keyboard.press('Escape');
+        await expect(popover(page, 'pop')).toHaveCount(0);
+
+        await dz(page, 'pop').evaluate((el) => (el as HTMLElement).style.setProperty('--base-dropdown-offset', '12px'));
+        await summary(page, 'pop').click();
+        await expect(popover(page, 'pop')).toBeVisible();
+        await expect.poll(gap).toBe(12);
+    });
+});
+
 test.describe('dismissal', () => {
     test('Escape closes the popover', async ({ page }) => {
         await open(page, 'pop');
