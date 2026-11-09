@@ -14,22 +14,26 @@ KEY BINDINGS
 | Any row button                 | Enter / Space  | Cancel / Remove / Pause /       |
 |                                |                | Resume / Retry (native button)  |
 | Compact summary line           | Enter / Space  | toggle the popover              |
-| Popover (open)                 | Escape         | close the popover               |
+| Popover (open)                 | Escape         | close the popover; focus returns|
+|                                |                | to its trigger                  |
 | Drag overlay (in-page drag)    | Escape         | remove the overlay              |
 | <web-dropzone-list> summary    | Enter / Space  | fire `summary-activate`         |
 | Indicator chip (drawer="auto") | Enter / Space  | toggle the drawer (<button>)    |
 | Tab / Shift+Tab                |                | move between the controls above |
 
+The compact popover runs on core createPopover(): Escape closes it and
+returns focus to the trigger, an outside click (decided when the click ends)
+closes it, and opening another KeenMate overlay (dropdown, menu) closes it.
 Not implemented: arrow-key navigation between rows, roving tabindex, Delete
-key to remove, Escape for the indicator drawer, focus trap / focus return for
-the popover or drawer. External file drags cannot be cancelled by Escape
+key to remove, Escape for the indicator drawer, a focus trap in the popover
+or drawer. External file drags cannot be cancelled by Escape
 (the OS swallows the key); the overlay closes ~350 ms after the drag stops.
 
 TAB ORDER
 ---------
 One tab stop per selector:
 - card: the visually hidden <input type="file"> is the keyboard control; it is
-  named after the prompt (aria-label = labels.prompt, or the picker's `label`).
+  named after the prompt (aria-label = labels.prompt; a picker's own labels win).
   The card shows a focus ring via :focus-within.
 - button / minimal / native: the visible <button> is the tab stop; the hidden
   input has tabindex="-1" aria-hidden="true".
@@ -50,10 +54,12 @@ Status pill                 labels.statusAria  'Status: {status}'
                             labels.cancelTimeout)
 Bulk buttons                labels.pauseAll / resumeAll / cancelAll / retryAll
 
-Fixed English names (not in labels): summary line "Click to view files"
-(role="button", tabindex="0"), rolling queue button "Show full queue (N files)",
-badges "+N" pill "Show N more" / "Show fewer", indicator chip "Upload status",
-drawer "Upload queue" (role="dialog"), drawer close "Close", spinner "Uploading".
+Summary line (role="button", tabindex="0")  labels.viewFiles
+Rolling queue button        labels.showQueue
+Badges "+N" pill            labels.showMore / showLess
+Indicator chip              labels.indicatorStatus
+Indicator drawer            labels.indicatorQueue (role="dialog"); close: labels.close
+Indicator upload loader     role="status" container (core renderLoader())
 
 ROLES & STATES
 --------------
@@ -61,8 +67,12 @@ ROLES & STATES
   aria-valuemax="100" aria-valuenow (updated per tick).
 - Indicator with drawer="off": <div role="status"> (polite live region semantics).
 - Cancelling rows: buttons get `disabled` while the cancel waits.
-- Disabled dropzone (disabled attribute or disabled <fieldset>): inputs and
-  buttons are disabled; drops are ignored.
+- Disabled dropzone / picker (disabled attribute - a presence attribute, any
+  value - or a disabled <fieldset>): inputs and buttons are disabled (not
+  focusable); drops are ignored.
+- Read-only (readonly): the selector controls stay focusable but get
+  aria-disabled="true" (not disabled) and never open the file dialog; a
+  button that opens the popover list still works. Calls from code still add.
 - There is no aria-live announcement for adds / rejects / completion. Announce
   from events if you need it:
 

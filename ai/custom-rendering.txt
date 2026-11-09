@@ -8,7 +8,7 @@ Three levels of customization, from least to most work:
 
 Plus mode-independent hooks: file icons (fileIcons / getFileIconCallback),
 row button glyphs (cancel-icon / remove-icon), prompt icon (icon),
-overlay icon (overlay-icon), and getCustomStylesCallback.
+overlay icon (overlay-icon), and custom-styles / getCustomStylesCallback.
 
 STRUCTURAL MODE IS REQUIRED
 ---------------------------
@@ -173,18 +173,29 @@ without sanitizing. Sanitize anything user-derived (e.g. DOMPurify).
 
 CUSTOM STYLES INTO THE SHADOW ROOT
 ----------------------------------
+<web-dropzone render-mode="structural" custom-styles=".dz__file-item { border-style: dotted; }"></web-dropzone>
+
+dz.customStyles = '.dz__file-item { border-style: dotted; }';   // same, as a property
 dz.getCustomStylesCallback = () => `
   @import url('https://fonts.example.com/inter.css');
-  .dz__file-item { border-style: dotted; }
+  .dz__file-item-name { font-weight: 600; }
 `;
 
-- Called with ctx (controller / element); return a CSS string or null.
-- Injected as <style id="dz-custom-styles"> PREPENDED to the shadow root, so
-  @import / @font-face work. Re-assigning the property replaces it.
-- Applies to <web-dropzone>'s own shadow root. In bulk mode the picker / list /
-  progress are satellite elements with their OWN shadow roots, so rules for
-  their internals won't reach them - prefer --dz-* variables (they inherit
-  into managed satellites), or use structural mode.
+- Core createCustomStyles(): the page layer
+  window.components['web-dropzone'].customStyles / .getCustomStylesCallback(ctx)
+  first, then the instance's (custom-styles attribute / customStyles property,
+  or getCustomStylesCallback, which wins over customStyles) - so an instance
+  overrides the page rules. Both are live; re-assigning replaces.
+- Callback: called with ctx (controller / element); return a CSS string or null.
+- Raw CSS, NOT sanitized. An @import (icon font) is also linked once in the
+  document <head> (Chromium ignores @font-face inside a shadow root).
+- Applies to <web-dropzone>'s own shadow root only. In bulk mode the picker /
+  list / progress are satellite elements with their OWN shadow roots, so its
+  rules won't reach them - use the per-tag page layer
+  (window.components['web-dropzone-picker'].customStyles, ...-list, ...-progress),
+  --dz-* variables (they inherit into managed satellites), or structural mode.
+  Standalone satellites take their own custom-styles / getCustomStylesCallback.
+- Class names are flat BEM (.dz__file-item-name, not .dz__file-item__name).
 
 LIMITS OF STRUCTURAL MODE
 -------------------------

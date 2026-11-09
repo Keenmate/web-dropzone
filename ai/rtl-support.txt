@@ -51,9 +51,9 @@ host's dir attribute; they inherit `direction` only.
 
 POPOVER
 -------
-The compact popover is positioned with floating-ui. popover-placement
-"bottom-start" means start in the PHYSICAL sense of floating-ui's placement
-(left edge). In RTL you may want:
+The compact popover is positioned by core /positioning (createPopover, on
+floating-ui). popover-placement "bottom-start" means start in the PHYSICAL
+sense of floating-ui's placement (left edge). In RTL you may want:
 
 <web-dropzone dir="rtl" display-mode="compact" popover-placement="bottom-end"></web-dropzone>
 

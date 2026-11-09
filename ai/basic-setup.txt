@@ -21,7 +21,9 @@ REGISTER THE ELEMENTS
 ---------------------
 import '@keenmate/web-dropzone';
 
-This one import defines all five custom elements:
+This one import defines all five custom elements (through core
+registerComponent(), satellites first; importing a single element module
+defines nothing):
   <web-dropzone>            the store (+ built-in UI)
   <web-dropzone-picker>     satellite: file selector
   <web-dropzone-list>       satellite: file list

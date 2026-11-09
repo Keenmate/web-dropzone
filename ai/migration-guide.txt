@@ -213,6 +213,59 @@ QueueOpenEventDetail, DropzoneListEventMap, FileCancelEventDetail,
 FileCancelResult, CancelTimeoutBehavior, BeforeFilesCancelContext,
 DropzoneLabels.
 
+STEP 12: CORE rc20/rc21 ALIGNMENT
+---------------------------------
+Requires @keenmate/web-components-core ^1.0.0-rc20.
+- Flat BEM class names (one element level): .dz__<block>__<element> ->
+  .dz__<block>-<element>; modifiers keep "--". 127 classes, e.g.
+  .dz__file-item__name -> .dz__file-item-name,
+  .dz__file-item__status--complete -> .dz__file-item-status--complete,
+  .dz__preview-item__image -> .dz__preview-item-image,
+  .dz__popover__row -> .dz__popover-row, .dz__summary__line -> .dz__summary-line,
+  .dz__indicator__chip -> .dz__indicator-chip. Rename the same way in
+  customStyles / getCustomStylesCallback CSS and render callbacks.
+- Default loader .dz-loader -> .dz__loader (inline: .dz__loader--inline);
+  dz-loader-spin keyframes and --dz-loader-* tokens unchanged. Page-wide
+  hook: window.components.renderLoadingCallback.
+- Satellites are core BlissElements:
+  * an unknown enum value (position="diagonal", list-appearance="mosaic") is
+    REFUSED (warning + input-rejected, previous value kept) - it used to fall
+    back to the default;
+  * picker `disabled` is a presence attribute: disabled="false" DISABLES it
+    (it used to enable a picker on a disabled store); new picker `readonly`;
+  * `for` is also el.htmlFor; changing it re-binds;
+  * ready / defer + release() / destroy() / motion / theme-source /
+    responsive / custom-styles + a window.components[tag] entry per tag.
+- Registration: tags are defined only by the package entry (core
+  registerComponent(), satellites first). Importing a single module defines
+  nothing - import '@keenmate/web-dropzone'.
+- Logging: the DROPZONE bundle is no longer silenced at load - it prints
+  warnings / errors by default and follows window.components.logging.
+  window.components['web-dropzone'].logging.getCategories() returns bare names
+  ['INIT','FILE','UI','INTERACTION'] (LOGGING_CATEGORIES keeps 'DROPZONE:');
+  new resetLogging(). Silence it: ...logging.disableLogging().
+- Sizes (max-file-size, min-file-size, max-total-size) use core toBytes():
+  "5MB", "1.5GB", "300 kB", "2MiB"; an invalid size is refused
+  (input-rejected) - it used to become 0 (unlimited) silently.
+- controls / item-controls: an unknown token refuses the WHOLE value (was
+  dropped silently).
+- Counts refuse negatives (max-file-count, min-file-count,
+  max-visible-file-count, progress-throttle, sink-completed-delay);
+  concurrency refuses < 1.
+- readonly: selector controls stay focusable (aria-disabled="true", not
+  disabled) and never open the file dialog. Calls from code still work.
+- Compact popover runs on core createPopover(): outside click decided when
+  the click ends, Escape closes it and returns focus to the trigger, opening
+  another KeenMate overlay closes it. popover-placement still auto-flips.
+- DropzoneElementConfig lists exactly the element's inputs: isHeadless /
+  container / hostElement are gone; adds customStyles,
+  shouldKeepAliveWhenRemoved, renderLoadingCallback.
+- escapeHtml is core's (any value; null/undefined -> ''); the core package's
+  dom-utils module is gone.
+- New: custom-styles / customStyles (instance) and
+  window.components[tag].customStyles / .getCustomStylesCallback (page layer)
+  on every tag - see styling-theming.txt.
+
 QUICK SEARCH-AND-REPLACE LIST
 -----------------------------
 'file-added'->'file-add'   'file-removed'->'file-remove'
@@ -224,6 +277,7 @@ beforeFilesAddedCallback->beforeFilesAddCallback
 beforeFilesRemovedCallback->beforeFilesRemoveCallback
 customStylesCallback->getCustomStylesCallback   reorder-completed->sink-completed
 data-action="remove"->data-dz-action="remove"
+.dz__<block>__<element> -> .dz__<block>-<element>   .dz-loader -> .dz__loader
 Then convert every callback to the single-ctx form by hand.
 
 =====================================================================

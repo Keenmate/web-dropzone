@@ -101,13 +101,15 @@ COMPACT / POPOVER
   trigger. With button / minimal selectors the selector itself is the trigger.
 - labels.summary placeholders: {count}, {size}.
 - popover-placement: top|bottom|left|right with optional -start/-end
-  (floating-ui placement; default bottom-start). Positioned via core
-  /positioning (flip + shift + viewport caps, autoUpdate).
+  (default bottom-start). Positioned by core /positioning createPopover()
+  (auto-flips on viewport collisions, shift, viewport caps, autoUpdate).
 - Popover contents: header with "Add more" (hidden while disabled) and
   "Clear all" (goes through beforeFilesRemoveCallback), a limits hint line
   (derived from accept / size / count caps when labels.hint is empty), the
   file table, and a totals footer.
-- Closes on outside click and Escape; closes itself when the last file is removed.
+- Closes on an outside click (decided when the click ends), on Escape (focus
+  returns to the trigger), when another KeenMate overlay opens, and when the
+  last file is removed.
 - User-resizable (--dz-popover-resize: both). With storage-key the size is
   persisted (advanced-patterns.txt).
 - Popover appearance renders nothing while the list is empty.
@@ -124,8 +126,9 @@ replace parts via renderRolling{Body,FileInfo,Progress}Callback
 
 COMPOSITION: controls / item-controls
 -------------------------------------
-Plyr-style comma-separated allowlists. Absent = render everything. Unknown
-tokens are dropped; tokens are case-insensitive.
+Plyr-style comma-separated allowlists. Absent = render everything. Tokens are
+case-insensitive. An unknown token refuses the WHOLE value (warning +
+input-rejected event, previous value kept) - attribute and property alike.
 
 controls (top-level surfaces):
   picker             the selector
@@ -220,7 +223,8 @@ DISABLED
 <web-dropzone disabled ...>  or an ancestor <fieldset disabled>.
 Disabled blocks clicks and drops; dz.isDisabled reports the element's own value.
 <web-dropzone readonly ...>: no user add / Remove / Clear all, files still shown
-and submitted (dz.isReadonly).
+and submitted (dz.isReadonly). The selector controls stay focusable
+(aria-disabled="true", not disabled) and never open the file dialog.
 
 SEE ALSO
 --------

@@ -110,7 +110,15 @@ be async; returning `false` cancels.
   every event detail (`FileAddEventDetail`, `FileProgressEventDetail`, …), and the domain types
   (`DropzoneConfig`, `FileState`, `FileStatus`, `FileUploadHandler`, `FileUploadResult`,
   `OverallProgress`, `ValidationResult`, `RejectedFile`, `RetryPolicy`, …).
-- **Logging** — runtime-controllable log channels (exported from the package entry), plus `escapeHtml`.
+- **Logging** — the `DROPZONE` bundle on web-components-core logging (`logging`, plus `initLogger`,
+  `fileLogger`, `uiLogger`, `interactionLogger`) and its controls: `enableLogging`, `disableLogging`,
+  `resetLogging`, `setLogLevel`, `setCategoryLevel` (`'UI'` or `'DROPZONE:UI'`), `LOGGING_CATEGORIES`
+  (the prefixed names, `'DROPZONE:INIT'` …). Like every KeenMate bundle it prints warnings and errors by
+  default and follows the page-wide `window.components.logging` — nothing is silenced at load;
+  `resetLogging()` returns to the page level. (`@keenmate/web-dropzone` attaches the same bundle to
+  `window.components['web-dropzone'].logging`, whose `getCategories()` lists the bare names.)
+- **`escapeHtml(value)`** — web-components-core's, re-exported: takes any value (`null` / `undefined`
+  → `''`, anything else `String()`-ed).
 
 ## `FileState`
 

@@ -1,5 +1,5 @@
 <meta name="kmwc:title" content="🐛 Logging & Debugging">
-<meta name="kmwc:subtitle" content="Categorized debug output with runtime control — silent by default in production">
+<meta name="kmwc:subtitle" content="Categorized debug output with runtime control — warnings and errors by default, more on demand">
 <link rel="stylesheet" href="examples-local.css">
 
     <style>
@@ -57,7 +57,7 @@
         <!-- INTRO -->
         <div class="card">
             <h2>LG01 · The logging system</h2>
-            <p>Built on <a href="https://www.npmjs.com/package/loglevel" target="_blank">loglevel</a>, the dropzone exposes four log categories that can be enabled independently at any time:</p>
+            <p>Built on the shared <code>@keenmate/web-components-core</code> logging (a <a href="https://www.npmjs.com/package/loglevel" target="_blank">loglevel</a> port), the dropzone family — <code>&lt;web-dropzone&gt;</code> and its four satellites — logs through one bundle with four categories that can be set independently at any time:</p>
 
             <ul style="margin-left:1.5rem;margin-bottom:1rem;">
                 <li><code>DROPZONE:INIT</code> — component initialization, config updates, lifecycle</li>
@@ -66,7 +66,7 @@
                 <li><code>DROPZONE:INTERACTION</code> — user drag/drop, clicks, keyboard input</li>
             </ul>
 
-            <p>All categories start at <code>silent</code> in production builds. Flip them on at runtime via the global API or imported helpers.</p>
+            <p>Like every KeenMate component, every category prints <strong>warnings and errors by default</strong> (level <code>warn</code>) and follows the page-wide switch <code>window.components.logging</code> — nothing is silenced at load. Turn more on (or mute it) at runtime via the global API or the imported helpers; <code>resetLogging()</code> goes back to the page level.</p>
         </div>
 
         <!-- GLOBAL API -->
@@ -88,9 +88,15 @@ window.components['web-dropzone'].logging.setCategoryLevel('DROPZONE:FILE', 'deb
 // Mute everything
 window.components['web-dropzone'].logging.disableLogging()
 
-// List available categories
+// Back to the page level (window.components.logging), else the built-in 'warn'
+window.components['web-dropzone'].logging.resetLogging()
+
+// List available categories (bare names; setCategoryLevel takes 'FILE' or 'DROPZONE:FILE')
 window.components['web-dropzone'].logging.getCategories()
-// -> ['DROPZONE:INIT', 'DROPZONE:FILE', 'DROPZONE:UI', 'DROPZONE:INTERACTION']</code></pre>
+// -> ['INIT', 'FILE', 'UI', 'INTERACTION']
+
+// Page-wide: every KeenMate component on the page
+window.components.logging.enableLogging('debug')</code></pre>
             </div>
         </div>
 
@@ -102,9 +108,9 @@ window.components['web-dropzone'].logging.getCategories()
             <div class="log-controls">
                 <label>DROPZONE:INIT
                     <select data-category="DROPZONE:INIT">
-                        <option value="silent" selected>silent</option>
+                        <option value="silent">silent</option>
                         <option value="error">error</option>
-                        <option value="warn">warn</option>
+                        <option value="warn" selected>warn</option>
                         <option value="info">info</option>
                         <option value="debug">debug</option>
                         <option value="trace">trace</option>
@@ -122,9 +128,9 @@ window.components['web-dropzone'].logging.getCategories()
                 </label>
                 <label>DROPZONE:UI
                     <select data-category="DROPZONE:UI">
-                        <option value="silent" selected>silent</option>
+                        <option value="silent">silent</option>
                         <option value="error">error</option>
-                        <option value="warn">warn</option>
+                        <option value="warn" selected>warn</option>
                         <option value="info">info</option>
                         <option value="debug">debug</option>
                         <option value="trace">trace</option>
@@ -178,7 +184,8 @@ window.components['web-dropzone'].logging.getCategories()
     disableLogging,
     setLogLevel,
     setCategoryLevel,
-    LOGGING_CATEGORIES
+    resetLogging,
+    LOGGING_CATEGORIES   // ['DROPZONE:INIT', 'DROPZONE:FILE', 'DROPZONE:UI', 'DROPZONE:INTERACTION']
 } from '@keenmate/web-dropzone'
 
 // All categories at debug
@@ -188,7 +195,7 @@ enableLogging()
 setCategoryLevel('DROPZONE:FILE', 'info')
 setCategoryLevel('DROPZONE:UI',   'silent')
 
-// In production
+// In production: mute it, or resetLogging() to follow the page level
 disableLogging()</code></pre>
             </div>
         </div>

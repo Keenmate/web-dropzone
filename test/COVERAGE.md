@@ -11,6 +11,9 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 `e2e/` that exercises it, and **Fixture** at the dedicated HTML page under
 `test/` (specs hit no example pages, only fixtures).
 
+Every spec runs in three Playwright projects — chromium, firefox and webkit
+(`playwright.config.ts`); run the webkit project in its own invocation on Windows.
+
 ---
 
 ## 1. Selector appearance
@@ -61,6 +64,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `max-file-size` rejects with code="size"                      | ✓      | `validation.spec.ts` | `validation.html`  |
 | `min-file-size` rejects sub-threshold files                   | ✓      | `validation-rules.spec.ts` | `validation-rules.html` |
 | `max-total-size` aggregate cap                                | ✓      | `validation-rules.spec.ts` | `validation-rules.html` |
+| Size attributes take units (core `toBytes`, binary: `2MiB`, `1.5GB`, `300 kB`); an invalid size is refused (`input-rejected`, previous value kept) | ✓ | `core-alignment.spec.ts` | `core-alignment.html` |
 | `max-file-count` rejects with code="count"                    | ✓      | `validation.spec.ts` | `validation.html`  |
 | `min-file-count` form-validity gate (setValidity)             | ✓      | `validation-rules.spec.ts` | `validation-rules.html` |
 | `accept` MIME / extension filter (code="type")                | ✓      | `validation.spec.ts` | `validation.html`  |
@@ -168,11 +172,18 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `render-mode="headless"` still fires every event                     | ✓      | `architecture.spec.ts` | `architecture.html` |
 | Multiple pickers contribute to one store (Mode A: shared)     | ✓      | `architecture.spec.ts` | `architecture.html` |
 | Multiple independent stores on one page                       | ✓      | `architecture.spec.ts` | `architecture.html` |
-| Picker `label` / `hint` / `selector-appearance` / `disabled` (per picker) | ✓ | `satellites-extra.spec.ts` | `satellites-extra.html` |
+| Picker `labels.prompt` / `labels.hint` / `labels.selectFiles` / `selector-appearance` / `disabled` (per picker) | ✓ | `satellites-extra.spec.ts` | `satellites-extra.html` |
 | Picker `inside="true"` + nested list (files-inside layout)    | ✓      | `satellites-extra.spec.ts` | `satellites-extra.html` |
 | List own `labels.noData`, `list-appearance` (+ live change)     | ✓      | `satellites-extra.spec.ts` | `satellites-extra.html` |
-| Indicator `position` / `drawer` (auto toggles, off = status chip) / `label` | ✓ | `satellites-extra.spec.ts` | `satellites-extra.html` |
+| Indicator `position` / `drawer` (auto toggles, off = status chip) / `labels.indicatorTitle` | ✓ | `satellites-extra.spec.ts` | `satellites-extra.html` |
+| Indicator unknown `position` refused (`input-rejected`, previous value reflected back); live change applies | ✓ | `satellites-extra.spec.ts` | `satellites-extra.html` |
 | Progress `data-empty` / `data-status` (uploading → paused → error → complete) | ✓ | `satellites-extra.spec.ts` | `satellites-extra.html` |
+| Satellites on core `BlissElement`: `ready`, `motion` mirrored (`data-motion`), core theme context (`data-context-theme` from a page `data-theme`) | ✓ | `core-alignment.spec.ts` | `core-alignment.html` |
+| Changing `for` / `htmlFor` re-binds the picker to another store | ✓ | `core-alignment.spec.ts` | `core-alignment.html` |
+| Satellite unknown enum value refused with `input-rejected`; previous value stays | ✓ | `core-alignment.spec.ts` | `core-alignment.html` |
+| Picker `readonly`: focusable, `aria-disabled`, adds nothing; `disabled` is a presence attribute | ✓ | `core-alignment.spec.ts` | `core-alignment.html` |
+| A standalone list follows its store                           | ✓      | `core-alignment.spec.ts` | `core-alignment.html` |
+| Picker `uploadMetadata` set before the upgrade is stamped onto the files it adds | ✓ | `pre-upgrade.spec.ts` | `pre-upgrade.html` |
 
 ## 8. Drag overlay
 
@@ -226,6 +237,10 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Theme context: no page signal → inherits page, no `data-context-theme` | ✓ | `theme-context.spec.ts` | `theme-context.html` |
 | Theme context: `<html data-theme / data-bs-theme / .dark>` → dark (host + satellites) | ✓ | `theme-context.spec.ts` | `theme-context.html` |
 | Theme context: light page signal beats OS dark; per-instance `data-theme` wins; live switch | ✓ | `theme-context.spec.ts` | `theme-context.html` |
+| Custom CSS: page-wide `window.components['web-dropzone'].customStyles` styles every dropzone; the instance layer comes after it | ✓ | `core-alignment.spec.ts` | `core-alignment.html` |
+| `customStyles` live on the property and the attribute; removing it falls back to the page layer | ✓ | `core-alignment.spec.ts` | `core-alignment.html` |
+| Satellites: own page layer per tag (`window.components['web-dropzone-picker']…`) + own `custom-styles` | ✓ | `core-alignment.spec.ts` | `core-alignment.html` |
+| Assigning the page layer later restyles live instances        | ✓      | `core-alignment.spec.ts` | `core-alignment.html` |
 
 
 ## 11. Logging
@@ -237,7 +252,9 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `config.core.{name, version}` exposes both packages           | ✓      | `logging.spec.ts` | `logging.html` |
 | `version()` matches `config.version`                          | ✓      | `logging.spec.ts` | `logging.html` |
 | `getInstances()` returns mounted host elements                | ✓      | `logging.spec.ts` | `logging.html` |
-| `logging.setLogLevel / setCategoryLevel / getCategories`      | ✓      | `logging.spec.ts` | `logging.html` |
+| `logging.setLogLevel / setCategoryLevel / getCategories` (bare names `INIT` / `FILE` / `UI` / `INTERACTION`) | ✓ | `logging.spec.ts` | `logging.html` |
+| Every tag (store + four satellites) has a registry entry with core logging controls and live instances (`registerComponent`) | ✓ | `core-alignment.spec.ts` | `core-alignment.html` |
+| The DROPZONE bundle prints warnings by default (not silenced at load); `resetLogging()` | ✓ | `core-alignment.spec.ts` | `core-alignment.html` |
 
 ## 12. Interaction model (events, twins, controller, ctx)
 
@@ -320,7 +337,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 
 | Feature                                                       | Status | Spec              | Fixture         |
 | ------------------------------------------------------------- | :----: | ----------------- | --------------- |
-| `controls` unset / subset / unknown tokens ignored            | ✓      | `controls.spec.ts` | `controls.html` |
+| `controls` unset / subset; an unknown token refuses the whole value (`input-rejected`, attribute + property) | ✓ | `controls.spec.ts` | `controls.html` |
 | `controls` change after build remounts surfaces               | ✓      | `controls.spec.ts` | `controls.html` |
 | `item-controls` renders only the listed row parts (+ live)    | ✓      | `controls.spec.ts` | `controls.html` |
 
@@ -412,3 +429,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `readonly`: no click / drop add, `--readonly` not `--disabled`  | ✓     | `disabled.spec.ts` | `disabled.html` |
 | `readonly`: programmatic files, Remove hidden, files submitted with the form | ✓ | `disabled.spec.ts` | `disabled.html` |
 | `el.isReadonly = false` unlocks; attribute reflected            | ✓     | `disabled.spec.ts` | `disabled.html` |
+| Read-only card: the input stays focusable, `aria-disabled`, never opens the file dialog | ✓ | `core-alignment.spec.ts` | `core-alignment.html` |
+| Read-only button + popover: calls from code still add; the file list opens, the dialog never | ✓ | `core-alignment.spec.ts` | `core-alignment.html` |
+| Disabled card: the input is `disabled` (not focusable)          | ✓     | `core-alignment.spec.ts` | `core-alignment.html` |
+| Properties set before the upgrade apply (store, picker, indicator `renderBodyCallback`); the accessors are no longer shadowed | ✓ | `pre-upgrade.spec.ts` | `pre-upgrade.html` |

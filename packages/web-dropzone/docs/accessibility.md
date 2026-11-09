@@ -15,7 +15,7 @@ accessible names are localised together with the UI. Color contrast follows the 
 | Row buttons (Cancel ⊘, Remove ✕, pause / resume / retry) | <kbd>Tab</kbd>, <kbd>Enter</kbd> / <kbd>Space</kbd> | Native `<button>`s. A button that doesn't apply to the row's state is hidden with `tabindex="-1"` + `aria-hidden="true"`, so it is never a dead tab stop. |
 | "Show N more" / "Show less", rolling queue button | <kbd>Tab</kbd>, <kbd>Enter</kbd> / <kbd>Space</kbd> | Native `<button>`s. |
 | Compact summary line (`display-mode="compact"`, `list-appearance="popover"`) | <kbd>Tab</kbd>, <kbd>Enter</kbd> / <kbd>Space</kbd> | `role="button"`, `tabindex="0"`: opens the file popover (on `<web-dropzone-list>` alone it fires `summary-activate`). |
-| Compact popover | <kbd>Esc</kbd> | Closes the popover; an outside click closes it too. |
+| Compact popover | <kbd>Esc</kbd> | Closes the popover and returns focus to the trigger; an outside click (decided when the click ends) closes it too, and so does opening another KeenMate overlay (a dropdown, a menu, another popover). |
 | Drag overlay (`overlay-target`) | <kbd>Esc</kbd> | Dismisses the full-viewport drag overlay. |
 | Armed page drag (`highlight-on-page-drag`) | <kbd>Esc</kbd> | Disarms. |
 | Indicator chip (`<web-dropzone-indicator drawer="auto">`) | <kbd>Tab</kbd>, <kbd>Enter</kbd> / <kbd>Space</kbd> | A native `<button>` toggling the drawer. |
@@ -29,8 +29,13 @@ The pair follows native form-control semantics (web-components-core SPEC §6.4):
 - **`disabled`** (or an ancestor `<fieldset disabled>`) — the selector controls get the native
   `disabled` attribute: no interaction, not focusable, no drops; the form value isn't submitted.
 - **`readonly`** — the user can't change the selection, but the controls stay focusable and are marked
-  `aria-disabled="true"`; the files can still be looked at (a button that opens the popover list stays
-  a plain button) and are submitted with the form.
+  `aria-disabled="true"` (never the native `disabled`), and they never open the file dialog; the files
+  can still be looked at (a button that opens the popover list stays a plain button) and are submitted
+  with the form.
+
+`<web-dropzone-picker>` has the same pair (`disabled` / `readonly`, presence attributes —
+`disabled="false"` is disabled, like a native control); a disabled or read-only store makes its
+pickers disabled / read-only too.
 
 Calls from code (`addFiles()`, `removeFile()`, …) work under both.
 

@@ -123,9 +123,46 @@ Any **unlayered** consumer rule beats every rule in `@layer component` — no `!
 
 ## Extra CSS for the shadow root
 
-`custom-styles` (attribute / `customStyles` property) and `getCustomStylesCallback` inject CSS into the
-shadow root, after the page-wide `window.components['web-dropzone'].customStyles`. The value is raw CSS
-and is **not** sanitized — see the XSS notice in [usage.md](./usage.md#html-injection-xss-notice).
+Page CSS can't reach inside a shadow root (except through the `--dz-*` variables and the parts below).
+For anything else, every element of the family takes extra CSS the same way (web-components-core
+`createCustomStyles()`), in two layers — the instance layer comes after the page layer, so it
+overrides it:
+
+| Layer | Where | How |
+|---|---|---|
+| Page (per tag) | every instance of that tag on the page | `window.components['web-dropzone'].customStyles = '…'` or `.getCustomStylesCallback = (ctx) => '…'` |
+| Instance | one element | `custom-styles="…"` attribute / `el.customStyles` property, or `el.getCustomStylesCallback = (ctx) => '…'` |
+
+```js
+// every <web-dropzone> on the page (the compact popover lives in the store's own shadow root)
+window.components['web-dropzone'].customStyles = `.dz__popover { border-radius: 0; }`;
+// every <web-dropzone-picker> (also the ones a <web-dropzone> mounts itself)
+window.components['web-dropzone-picker'].customStyles = `.dz__dropzone-text { font-weight: 600; }`;
+```
+
+```html
+<web-dropzone display-mode="compact" custom-styles=".dz__popover-header { font-weight: 700; }"></web-dropzone>
+<web-dropzone-list for="uploads" custom-styles=".dz__file-item-name { font-style: italic; }"></web-dropzone-list>
+```
+
+- In each layer the callback wins over the string. Both are re-applied on every build and when they
+  change (assigning the page layer later restyles live instances); removing `custom-styles` falls back
+  to the page layer. The callback's `ctx` carries `controller` / `element`.
+- An `@import` (an icon font) is also linked once in the document `<head>`, because Chromium ignores
+  `@font-face` inside a shadow root (`window.components.shouldHoistImports = false` turns that off).
+- The value is raw CSS and is **not** sanitized — see the XSS notice in
+  [usage.md](./usage.md#html-injection-xss-notice).
+- **One shadow root each.** A `<web-dropzone>`'s custom CSS reaches its **own** shadow root only. In
+  bulk mode (the default when display attributes are set) the picker / list / progress it shows are
+  satellite elements it mounts itself, each with its own shadow root — the store's own shadow root
+  holds only the layout container and the compact popover — so the store's `custom-styles` does not
+  style the card or the rows (in `render-mode="structural"` the store renders everything itself, and
+  it does); style those with the
+  satellite tags' page layer — `window.components['web-dropzone-picker'].customStyles`,
+  `['web-dropzone-list']`, `['web-dropzone-progress']` (the indicator's drawer list is a
+  `<web-dropzone-list>` too). The page layer is page-wide: scope a rule to one store by a host
+  attribute if you need to (`:host([managed]) …` targets only mounted satellites).
+- Selectors: the flat BEM classes below (`.dz__file-item-name`, never `.dz__file-item__name`).
 
 ## Shadow parts and BEM hooks
 

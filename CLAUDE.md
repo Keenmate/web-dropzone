@@ -70,7 +70,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A file upload web component with drag-drop support, file previews, validation, and multiple display modes. Published as **two** npm packages from a workspaces monorepo:
 
-- `@keenmate/web-dropzone-core` — headless store, file pipeline, upload loop, events. No DOM rendering, no CSS. ~53KB minified / ~16KB gzipped. One runtime dep: `@keenmate/web-components-core` (for the shared categorized `/logging` — see `logger.ts`).
+- `@keenmate/web-dropzone-core` — headless store, file pipeline, upload loop, events. No DOM rendering, no CSS. ~53KB minified / ~16KB gzipped. One runtime dep: `@keenmate/web-components-core` (the categorized logging bundle — see `logger.ts` — plus `dispatch`, `withComponentContext`, `runBeforeCallback`, `escapeHtml`).
 - `@keenmate/web-dropzone` — the `<web-dropzone>` custom element + four satellites + CSS. Bundles core for self-contained installs; declares `@keenmate/web-dropzone-core: ^1.0.0` as a hard dep for type re-exports.
 
 **Current Status**: At 1.0.0 (the core/renderer split was the marker). Still pre-stable in spirit — breaking API changes remain possible. The component family follows the KM house style (web-multiselect, web-daterangepicker).
@@ -116,18 +116,21 @@ examples-upload.html (`dz-upload-*`). New pages use `attachControlsPersistence`.
 
 ### Core package — `packages/web-dropzone-core/src/`
 
-**dropzone-core.ts**
-- `DropzoneCore` class — the headless store. Owns `FileState[]`, validation, upload worker pool, events.
-- Implements `DropzoneStoreAPI` (the public contract surface).
-- No DOM rendering — emits CustomEvents on the host element and lets renderers react.
+**dropzone-engine.ts**
+- `DropzoneEngine` class — the headless store. Owns `FileState[]`, validation, upload worker pool, persistence, the overall-progress aggregate.
+- No DOM rendering. It NOTIFIES (`notify(name, detail)`); the hosting element EMITS (`<web-dropzone>` → core `this.emit()`: the `on*` twin + a bubbling, non-composed event). A standalone engine dispatches the same non-composed events on its own `element`.
+
+**controller.ts**
+- `DropzoneController` — the public facade (`el.controller`, and the `controller` on every callback ctx / event detail). Built once per host; delegates to the CURRENT engine, so it survives rebuilds. Every satellite (built-in or BYO) depends on it, never on the engine.
+
+**interaction.ts** — callback contexts, event-detail types, `DropzoneEventMap` / `DropzoneListEventMap`.
 
 **store-api.ts**
-- `DropzoneStoreAPI` — TypeScript interface every renderer (built-in or BYO) depends on instead of the concrete class.
 - `StatusSurfaceCallback` + `StatusSurfaceArgs` — universal three-callback contract shared by `<web-dropzone-indicator>` and the rolling-list appearance.
 
 **types.ts**
-- All domain types: `DropzoneConfig`, `FileState`, `ValidationResult`, `RejectedFile`, `FileUploadHandler`, `FileUploadContext`, `FileUploadResult`, `OverallProgress`, `AddFilesOptions`, plus the event-detail types (`FileAddedEventDetail`, `FileProgressEventDetail`, `FileUpdatedEventDetail`, `FilesChangedEventDetail`, …).
-- Boolean config keys use the `is*` prefix internally (`isMultipleEnabled`, `isFilesInsideEnabled`) — external HTML attributes stay bare (`multiple`, `files-inside`).
+- All domain types: `DropzoneConfig`, `FileState`, `ValidationResult`, `RejectedFile`, `FileUploadHandler`, `FileUploadResult`, `OverallProgress`, `AddFilesOptions`, …
+- Boolean config keys use the `is*` / `should*` prefix (`isMultiple`, `isFilesInside`, `shouldAutoUpload`) — HTML attributes stay bare (`multiple`, `files-inside`, `auto-upload`).
 - `FILE_TYPE_ICONS` constant for file-type icons.
 
 **file-pipeline.ts**
@@ -139,36 +142,42 @@ examples-upload.html (`dz-upload-*`). New pages use `attachControlsPersistence`.
 **icons.ts**
 - Shared Lucide SVG family: `STATUS_ICONS`, `STATUS_LABELS`, `ACTION_ICONS`, `ACTION_LABELS`, `actionForStatus()`. (Loaders are drawn by core `renderLoader()` + the `.dz__loader` CSS; `createDropzoneSpinner()` was removed in v2.)
 
-**dom-utils.ts**
-- Two tiny zero-dep DOM primitives: `dispatchComposedEvent`, `escapeHtml`. The only DOM-touching code in the core package — kept here so renderers can rely on them without a renderer → core cycle.
+**labels.ts** — `DropzoneLabels`, `DEFAULT_LABELS`, `resolveLabel` / `createLabelFn` (the `labels` input).
 
 **logger.ts**
-- Debug logging utilities (`initLogger`, `fileLogger`, `uiLogger`, `interactionLogger`).
-- Runtime-controllable via the global API on the renderer side.
+- The `DROPZONE` bundle on core `createLoggers()` (`logging`, exported for `registerComponent({ logging })`) + `initLogger` / `fileLogger` / `uiLogger` / `interactionLogger` and the control functions (`enableLogging`, `disableLogging`, `resetLogging`, `setLogLevel`, `setCategoryLevel`).
+- Like every core bundle it prints warnings / errors by default and follows the page-wide `window.components.logging`; it is NOT silenced at load.
 
 **index.ts**
 - Barrel export — the public surface of `@keenmate/web-dropzone-core`.
 
+`escapeHtml` / `dispatch` / `withComponentContext` come from `@keenmate/web-components-core` (the core package has no DOM helper file of its own).
+
 ### Renderer package — `packages/web-dropzone/src/`
 
 **dropzone.ts**
-- `WebDropzone extends DropzoneCore` — adds the convenience-form rendering (drag-drop zone, inline file list, popover). Inheritance is convenience, not architectural; the back-compat `<web-dropzone>` form is the sole reason for it.
-- Uses Floating UI (`@floating-ui/dom`) for compact-mode popover positioning.
+- `WebDropzone extends DropzoneEngine` — adds the convenience-form rendering (drag-drop zone, inline file list, popover). Inheritance is convenience, not architectural; the back-compat `<web-dropzone>` form is the sole reason for it.
+- The compact-mode popover runs on core `createPopover()` (`@keenmate/web-components-core/positioning`; core owns `@floating-ui/dom` — dropzone never imports it): auto-flip from `popover-placement`, outside click decided when the click ends, Escape closes and returns focus to the trigger, opening another KeenMate overlay closes it.
 
 **web-component.ts**
-- `DropzoneElement` custom element wrapping `WebDropzone`.
-- Form-associated (`static formAssociated = true`) via `ElementInternals`.
-- Shadow DOM with style injection.
-- `ATTRIBUTE_TABLE` drives `observedAttributes`, initial parse, and `attributeChangedCallback`.
-- Live updates call `dropzone.updateConfig(partial)`; returns `true` if applied in-place, `false` triggers a full reinit.
+- `DropzoneElement extends BlissElement` (core) wrapping `WebDropzone`.
+- Form-associated (`static formAssociated = true`) via `ElementInternals` — real `File` blobs through `setFormValue`.
+- Shadow DOM with style injection; custom CSS through core `createCustomStyles()` (page layer `window.components['web-dropzone'].customStyles` / `.getCustomStylesCallback`, then the instance's `customStyles` / `getCustomStylesCallback`).
+- The core input table (`static inputs`, the `INPUTS` rows) drives attributes, properties, parsing, validation and reactivity — no own `observedAttributes` / `attributeChangedCallback`. `DropzoneElementConfig` types exactly those rows.
+- Core hooks: `reinit()` builds the store; `update(partial)` patches it via `dropzone.updateConfig(partial)`; `connect()` / `disconnect()`; `removedCallback()` (graceful teardown unless `keep-alive-when-removed`); `destroyCallback()`.
 
-**web-component-picker.ts** — `<web-dropzone-picker for="…">` satellite. Card / button / minimal / native selector appearances.
-**web-component-list.ts** — `<web-dropzone-list for="…">` satellite. list / detailed / grid / badges appearances.
+**web-component-picker.ts** — `<web-dropzone-picker for="…">` satellite. Card / button / minimal / native selector appearances; `disabled` / `readonly`.
+**web-component-list.ts** — `<web-dropzone-list for="…">` satellite. list / detailed / grid / badges / rolling / popover appearances.
 **web-component-indicator.ts** — `<web-dropzone-indicator for="…">` floating chip + slide-out drawer.
 **web-component-progress.ts** — `<web-dropzone-progress for="…">` standalone overall-progress strip.
 
 **satellite-base.ts**
-- Shared satellite plumbing: `resolveStoreElement(forId)`, `whenStoreReady(el)`, `subscribeStoreEvents(...)`. Centralises the `store-ready` race handling so every satellite uses one resolution path.
+- `SatelliteElement extends BlissElement` — the four satellites' base class: the shared input rows (`SATELLITE_INPUTS`: `for` → `htmlFor` (changing it re-binds), `labels`, `custom-styles` → `customStyles`, `getCustomStylesCallback`), custom CSS via core `createCustomStyles()` (page layer per tag), the store binding (`for=` resolution / `bindToStore()` + the store-ready race: `resolveStoreElement`, `whenStoreReady`, `subscribeStoreEvents`). Each satellite adds its own rows (`DropzonePickerElementConfig`, `DropzoneListElementConfig`, `DropzoneIndicatorElementConfig`; progress has only the shared ones).
+- From core every satellite gets: `ready` attribute / event, `motion`, theme context, `defer` / `release()`, `destroy()`, a per-instance logger, a `window.components[tag]` entry. Unknown enum values are refused (warning + `input-rejected`, previous value kept).
+
+**inputs.ts** — converters shared by the store and the satellites (`labelsConverter`).
+
+**store-link.ts** — the store's satellite-side controller + the internal `dz-store-build` signal.
 
 **status-surface.ts**
 - Renderer-side implementation of the `StatusSurfaceCallback` contract from core (`buildStatusSurfaceArgs`, `applyStatusSurfaceResult`, `computeStatusAggregate`, `pickCurrentFile`). Indicator + rolling-list both go through this.
@@ -177,32 +186,25 @@ examples-upload.html (`dz-upload-*`). New pages use `attachControlsPersistence`.
 - Per-row template strings and in-place patchers for list / detailed / grid / badges / popover modes. The hot path under upload progress ticks.
 
 **index.ts**
-- Public exports — re-exports core types/helpers so consumers can `import { DropzoneStoreAPI, FileState } from '@keenmate/web-dropzone'` without depending on `-core` directly.
-- Wires the `window.components['web-dropzone']` global API.
+- Public exports — re-exports core types/helpers so consumers can `import { DropzoneController, FileState } from '@keenmate/web-dropzone'` without depending on `-core` directly.
+- Defines every tag through core `registerComponent(tag, Class, { config, logging })` — the four satellites first, then `<web-dropzone>` — which also publishes `window.components[tag]` (logging controls, `customStyles`, `responsive`, live instances). Importing a single module defines nothing.
 
 ### CSS — `packages/web-dropzone/src/css/`
 
 Lives only in the renderer package. The core has no CSS.
 
-**main.css** — entry point importing all partials.
-- `_variables.css` — CSS custom properties at `:host` level (for theming).
-- `_base.css` — FOUC prevention + layout containers.
-- `_dropzone.css` — Drag-drop zone styling + files-inside mode.
-- `_file-list.css` — File list container.
-- `_file-item.css` — Individual file items (list, detailed, grid modes).
-- `_progress.css` — Progress bars (for upload tracking).
-- `_popover.css` — Compact mode summary + popover.
-- `_indicator.css` — `<web-dropzone-indicator>` chip + drawer.
-- `_modifiers.css` — State modifiers (disabled, focus, file-status, drag overlay).
-- `_input-dropdown.css` — Selector / dropdown shared styles.
-- `_debug.css` — Debug overlays (off by default).
-- `_rtl.css` — RTL language support.
+**main.css** — entry point; declares `@layer variables, component, overrides;` and imports the partials:
+- `variables.css` — CSS custom properties at `:host` level (`variables` layer).
+- `base.css`, `controls.css`, `floating.css`, `states.css`, `animations.css` — skeleton + canonical concerns (FOUC guard, loader, focus, motion).
+- `dropzone.css`, `file-item.css`, `file-list.css`, `overlay.css`, `popover.css`, `progress.css`, `rtl.css` — feature rules (`component` layer).
+- `dark-mode.css` — `overrides` layer.
+- `indicator.css` — loaded only by `<web-dropzone-indicator>` (drawer chrome stays out of the other shadow roots).
 
 ### Naming Conventions
 
-- **CSS Classes**: `.dz__*` prefix (BEM-like with `__` for elements, `--` for modifiers — e.g., `.dz__dropzone`, `.dz__file-item--detailed`)
+- **CSS Classes**: flat BEM under `.dz__*` — ONE element level (`.dz__block-element`, never `.dz__block__element`), `--` for modifiers — e.g. `.dz__dropzone`, `.dz__file-item-name`, `.dz__file-item--detailed`; the default loader is `.dz__loader` (`.dz__loader--inline`).
 - **CSS Variables**: `--dz-*` prefix (e.g., `--dz-accent-color`, `--dz-dropzone-border-radius`)
-- **Internal config keys**: Boolean options use `is*` / `should*` prefix (`isMultipleEnabled`, `isFilesInsideEnabled`). HTML attributes stay bare (`multiple`, `files-inside`).
+- **Config keys / properties**: Boolean options use `is*` / `should*` prefix (`isMultiple`, `isFilesInside`, `shouldAutoUpload`). HTML attributes stay bare (`multiple`, `files-inside`, `auto-upload`).
 
 ## Key Features
 
@@ -213,7 +215,7 @@ Lives only in the renderer package. The core has no CSS.
 - File type filtering (`accept` attribute)
 
 ### Validation
-- Max file size (`max-file-size` attribute, in bytes)
+- Max / min file size, max total size (`max-file-size`, `min-file-size`, `max-total-size` — core `toBytes()`: bytes or `5MB`, `1.5GB`, `300 kB`, `2MiB`; an invalid size is refused)
 - Allowed types (`accept` attribute, MIME types/extensions)
 - Max file count (`max-file-count` attribute)
 - Custom validation callback
@@ -230,19 +232,14 @@ Lives only in the renderer package. The core has no CSS.
 - Hover overlay with filename
 
 ### Events
-```typescript
-'file-added'      // detail: { file, files }
-'file-removed'    // detail: { file, files }
-'files-rejected'  // detail: { rejectedFiles }
-'change'          // detail: { files }
-```
+See [Event System](#event-system) below.
 
 ### Attributes
 ```html
 <web-dropzone
   accept="image/*,.pdf"
   multiple
-  max-file-size="5242880"
+  max-file-size="5MB"
   max-file-count="10"
   display-mode="detailed"
   name="files"
@@ -251,16 +248,17 @@ Lives only in the renderer package. The core has no CSS.
 
 ## Development Guidelines
 
-### Adding New Attributes
+### Adding New Attributes (inputs)
 
-1. Add an entry to `ATTRIBUTE_TABLE` in `packages/web-dropzone/src/web-component.ts` (specifies attr name, config key, parser, and default).
-2. If the corresponding config key needs to flow into `DropzoneConfig` for the core to consume, add it to `packages/web-dropzone-core/src/types.ts`.
-3. If the change can be applied in-place, handle it in `WebDropzone.updateConfig` (or `DropzoneCore.updateConfig` if it's a core-level concern). Otherwise it falls through to a full reinit.
-4. No need to touch `observedAttributes` or `attributeChangedCallback` — both are driven by the table.
+1. Add a row to the core input table (`INPUTS`, `static inputs`) in `packages/web-dropzone/src/web-component.ts` — `configKey`, kebab `attribute`, a core `to*` converter (it parses the attribute AND validates the property), `on: 'update' | 'reinit' | 'none'`, `shouldReflect`, `description`. For a satellite, add it to that satellite's `INPUTS` (shared satellite rows live in `SATELLITE_INPUTS`, satellite-base.ts).
+2. Add the key to the typed-properties interface (`DropzoneElementConfig` / `Dropzone*ElementConfig`).
+3. If the config key needs to flow into `DropzoneConfig` for the engine, add it to `packages/web-dropzone-core/src/types.ts`.
+4. Apply it in place in `WebDropzone.updateConfig` (or the engine's `updateConfig` for an engine concern), reached from the element's `update(partial)`. Use `on: 'reinit'` only when a rebuild is really needed.
+5. Never touch `observedAttributes` / `attributeChangedCallback` — core derives both from the table. Invalid values are refused by the converter (warning + `input-rejected`, previous value kept). Run `npm run analyze` (CEM) and watch the console for core's table sanity warnings.
 
 ### Adding New CSS Variables
 
-1. Add CSS custom property in `packages/web-dropzone/src/css/_variables.css`.
+1. Add CSS custom property in `packages/web-dropzone/src/css/variables.css` (and `component-variables.manifest.json`).
 2. Use in component CSS without a fallback (the `:host` declaration is the canonical default).
 3. Core has no CSS — all theming lives in the renderer package.
 
@@ -297,8 +295,8 @@ This enables integration with theme-designer's `--base-*` variables:
 These components share patterns:
 - `--*-rem` scaling unit (`--dz-rem`, `--ms-rem`, `--dp-rem`)
 - `--base-*` variable integration for theme-designer
-- BEM-like class naming (`.dz__*`, `.ms__*`)
-- `ATTRIBUTE_TABLE` single-source-of-truth for HTML attribute → config option mapping
+- Flat BEM class naming (`.dz__*`, `.ms__*`)
+- One core input table (`@keenmate/web-components-core` `BlissElement`) per element — attribute ↔ property ↔ config, parse + validate + react
 - `is*` / `should*` prefix on internal boolean config keys
 - Form-association via `ElementInternals` (`static formAssociated = true`)
 
@@ -351,7 +349,7 @@ Each package builds into its own `dist/`:
 
 **`packages/web-dropzone/dist/`**
 - `dropzone.js` — ES module (bundles core in)
-- `dropzone.umd.js` — UMD (bundles core + Floating UI in)
+- `dropzone.umd.js` — UMD (bundles dropzone-core, `@keenmate/web-components-core` and its `@floating-ui/dom` in)
 - `style.css` — compiled styles
 - `*.d.ts` — type declarations (re-exports core types via `from '@keenmate/web-dropzone-core'`)
 
@@ -372,25 +370,30 @@ interface FileState {
   name: string;
   size: number;
   type: string;
-  status: 'pending' | 'uploading' | 'complete' | 'error';
+  status: 'pending' | 'uploading' | 'complete' | 'error' | 'paused' | 'cancelling' | 'cancelled';
   progress: number;
   error?: string;
   previewUrl?: string;
+  downloadUrl?: string;
+  metadata?: Record<string, unknown>;
+  uploadFileCallback?: FileUploadHandler; // per-file handler (e.g. stamped by a picker)
 }
 ```
 
 ## Known Dependencies
 
-- `@floating-ui/dom` - Required for compact mode popover positioning (bundled)
+- `@keenmate/web-components-core` — `BlissElement`, input converters, `registerComponent`, logging, `createCustomStyles`, `/positioning` (`createPopover`; it owns `@floating-ui/dom`, which dropzone never imports)
 - No external CSS frameworks required
 
 ## Event System
 
-Custom events dispatched on the web component:
-- `file-added` - File added (detail: `{ file, files }`)
-- `file-removed` - File removed (detail: `{ file, files }`)
-- `files-rejected` - Validation failures (detail: `{ rejectedFiles }`)
-- `change` - Files changed (detail: `{ files }`)
+Events bubble and are **not composed** (core SPEC §12.5); each has a camelCase `on*` twin receiving the same detail, and every detail carries `controller` / `element` (non-enumerable). On `<web-dropzone>`:
+- `file-add`, `file-remove`, `file-progress`, `file-status-change`, `file-update`, `file-retry`, `file-upload`, `file-delete`, `file-cancel`
+- `change` (`{ files }`), `files-change` (coalesced tick), `file-reject` (`{ rejectedFiles }`)
+- `overlay-enter` / `overlay-leave`
+- `ready` (core: once, after the first build) and core's `input-rejected` (a refused attribute / property value)
+
+`<web-dropzone-list>` fires `summary-activate` / `queue-open`; every satellite fires core's `ready` and `input-rejected`. The full table is in `packages/web-dropzone/docs/usage.md#events`.
 
 ## Form Integration
 

@@ -16,17 +16,14 @@ class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneController>
   readonly controller: DropzoneController       // from BlissElement
   readonly files: FileState[]
   readonly form: HTMLFormElement | null          // from BlissElement
-  multiple, disabled, filesInside, autoUpload, uploadedDeletable: boolean
-  showThumbnails: boolean | undefined
-  displayMode: DisplayMode
-  selectorAppearance: SelectorAppearance | null
-  listAppearance: ListAppearance | null
-  gridLayout: GridLayout | null; gridStatus: GridStatus | null
-  rollingRotation: RollingRotation; cardSize: CardSize | null
-  valueFormat: ValueFormat
-  overlayTarget: HTMLElement | string | null
-  labels: Partial<DropzoneLabels> | null
-  // + one accessor per input configKey (accept, maxFileSize, uploadFileCallback, ...)
+  // + one typed accessor per input row, from DropzoneElementConfig (the
+  //   element interface extends it): isMultiple, isDisabled, isReadonly,
+  //   isFilesInside, shouldAutoUpload, isUploadedFileRemovalAllowed,
+  //   isThumbnailsShown, displayMode, selectorAppearance, listAppearance,
+  //   gridLayout, gridStatus, rollingRotation, cardSize, valueFormat,
+  //   overlayTarget, labels, accept, maxFileSize, customStyles,
+  //   uploadFileCallback, renderLoadingCallback, shouldKeepAliveWhenRemoved, ...
+  //   (unset-by-default inputs are typed `| null`)
   // + on* twins: onFileAdd, onFileRemove, onFilesChange, onChange, onFileReject,
   //   onFileRetry, onFileUpload, onFileDelete, onFileCancel,
   //   onFileProgress, onFileStatusChange, onFileUpdate, onOverlayEnter,
@@ -52,17 +49,28 @@ class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneController>
 Note: element addFiles has no opts; Mode B opts go through
 el.controller.addFiles(files, opts).
 
-IMPORTANT: the per-input accessors (accept, maxFileSize, uploadFileCallback,
-retryPolicy, cancelTimeout, beforeFilesCancelCallback, ...) exist at runtime
-(installed by core from the input table) but are NOT declared on
-DropzoneElement's TypeScript type - only the aliases/enums listed above are.
-In TS, either widen the type or use setAttributes:
+The per-input accessors are typed: DropzoneElement extends
+DropzoneElementConfig (exported from @keenmate/web-dropzone), which lists
+exactly the element's input rows - no isHeadless / container / hostElement.
 
-type DropzoneInputs = Partial<Omit<DropzoneConfig, 'container' | 'hostElement' | 'isHeadless'>>;
-const dz = document.querySelector('web-dropzone') as DropzoneElement & DropzoneInputs;
+import type { DropzoneElementConfig } from '@keenmate/web-dropzone';
+const dz = document.querySelector('web-dropzone')!;   // DropzoneElement (tag map shipped)
 dz.uploadFileCallback = upload;
+dz.setAttributes({ uploadFileCallback: upload, maxFileCount: 5 });
 
-dz.setAttributes({ uploadFileCallback: upload, maxFileCount: 5 });  // untyped record
+SATELLITE ELEMENTS
+------------------
+Each satellite class extends core BlissElement and declares its inputs the
+same way: SatelliteElementConfig (shared: htmlFor, labels, customStyles,
+getCustomStylesCallback), DropzonePickerElementConfig (+ selectorAppearance,
+cardSize, accept, isMultiple, icon, isDisabled, isReadonly, isFilesInside,
+shouldHighlightOnPageDrag, uploadFileCallback, uploadMetadata),
+DropzoneListElementConfig (+ listAppearance, gridLayout, gridStatus,
+isNested), DropzoneIndicatorElementConfig (+ position, drawer,
+renderBodyCallback, renderFileInfoCallback, renderProgressCallback);
+DropzoneProgressElement has only the shared ones. The element classes
+(DropzonePickerElement, ...) carry these as typed properties; the *Config
+interfaces themselves are not re-exported from the package entry.
 
 DropzoneController
 ------------------
@@ -239,8 +247,10 @@ popoverPlacement, overlayTarget, overlayIcon, name, valueFormat, every
 *Callback, fileIcons, concurrency, shouldAutoUpload, progressMode,
 retryPolicy, cancelTimeout, cancelTimeoutBehavior, cancelIcon, removeIcon,
 isUploadedFileRemovalAllowed, shouldSinkCompleted, sinkCompletedDelay,
-storageKey. Internal: isHeadless (derived from renderMode), container, hostElement.
-(shouldKeepAliveWhenRemoved is an element-only input.)
+storageKey. Engine-internal (not element inputs, not in DropzoneElementConfig):
+isHeadless (derived from renderMode), container, hostElement.
+(shouldKeepAliveWhenRemoved, customStyles, renderLoadingCallback are
+element-only inputs.)
 
 TYPING A FRAMEWORK REF
 ----------------------

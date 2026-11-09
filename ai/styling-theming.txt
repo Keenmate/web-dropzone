@@ -175,7 +175,8 @@ SHADOW PARTS & HOST ATTRIBUTES
                           [data-position], [data-drawer], [data-drawer-open]
 <web-dropzone-progress>   ::part(root); [data-status="uploading|paused|error|complete"],
                           [data-empty="true"] when idle
-<web-dropzone>            [ready] + :state(ready) after the first build (FOUC guard)
+<web-dropzone>            [ready] + :state(ready) after the first build (FOUC guard;
+                          the four satellites get the same from core)
 
 web-dropzone-indicator::part(chip) { border: 0; background: none; padding: 0; }
 web-dropzone:not([ready]) { visibility: hidden; }
@@ -188,15 +189,38 @@ Inside each shadow root: @layer variables, component, overrides.
 - A global universal reset in the page doesn't pierce Shadow DOM, but
   inherited properties still flow in.
 
-INJECTING CSS
--------------
-dz.getCustomStylesCallback = () => `
-  .dz__file-item-name { font-family: 'JetBrains Mono', monospace; }
-`;
-Prepended <style> in <web-dropzone>'s shadow root (so @import/@font-face
-work). Bulk-mode satellites have their own shadow roots and do NOT receive it -
-use variables, or structural mode for in-element rows. Class names (.dz__*)
-are internal markup, not a versioned API.
+INJECTING CSS (custom-styles / customStyles / getCustomStylesCallback)
+----------------------------------------------------------------------
+Every tag (<web-dropzone> and each satellite) takes extra CSS for its shadow
+root through core createCustomStyles(), in two layers:
+
+1. Page layer, per tag (all instances of that tag):
+   window.components['web-dropzone'].customStyles = `.dz__popover { border-radius: 0; }`;
+   window.components['web-dropzone'].getCustomStylesCallback = (ctx) => '...';
+   window.components['web-dropzone-picker'].customStyles = '...';  // per satellite tag
+   Assigning later restyles the live instances.
+2. Instance layer, AFTER the page layer (so it overrides it):
+   <web-dropzone display-mode="compact" custom-styles=".dz__popover-header { font-weight: 700; }"></web-dropzone>
+   <web-dropzone-list for="uploads" custom-styles=".dz__file-item-name { font-family: monospace; }"></web-dropzone-list>
+   dz.customStyles = '...';                        // live; removing falls back to the page layer
+   dz.getCustomStylesCallback = (ctx) => '...';    // wins over customStyles
+   ctx = context only (controller, element).
+
+The CSS is raw - NOT sanitized. An @import (e.g. an icon font) is also
+linked once in the document <head>, because @font-face inside a shadow root is
+ignored by Chromium (window.components.shouldHoistImports = false turns that off).
+
+Managed satellites: a <web-dropzone>'s custom CSS reaches ONLY its own shadow
+root (in bulk mode: the layout container + the compact popover; in
+render-mode="structural" everything). The picker / list / progress that bulk
+mode mounts are separate elements with their own shadow roots - style them with the per-tag page layer
+(window.components['web-dropzone-picker' | 'web-dropzone-list' |
+'web-dropzone-progress'].customStyles), or use --dz-* variables, which do
+cascade into them. Standalone satellites also take their own custom-styles.
+
+Class names are flat BEM under dz__ (one element level:
+.dz__file-item-name, .dz__dropzone--card, .dz__loader); they are internal
+markup, not a versioned API.
 
 CSS FILES
 ---------

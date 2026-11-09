@@ -13,6 +13,32 @@ store via `for="<store-id>"`:
 Wiring rule: every satellite has exactly ONE for=. Satellites never reference
 each other; the topology is a star around the store.
 
+Each satellite is a web-components-core BlissElement with its own input table
+(attribute + property per input, same pipeline as <web-dropzone>), so it gets
+core's plumbing for free:
+- an invalid value is REFUSED: warning + the core `input-rejected` event, the
+  previous value stays (e.g. list-appearance="tiles" keeps "list"; unknown enum
+  values no longer fall back to the default). Removing an attribute (or
+  assigning undefined) resets it to its default.
+- `ready` attribute / :state(ready) / `ready` event / isReady / whenReady()
+  after its first build; `defer` + release(); destroy(); `motion` attribute;
+  theme context (data-context-theme, theme-source); setAttributes() / batch().
+- a window.components[tag] registry entry per tag (logging, getInstances(),
+  customStyles) and a per-instance logger (DROPZONE bundle).
+
+SHARED INPUTS (every satellite)
+-------------------------------
+  attribute       property                 what
+  for             htmlFor                  id of the <web-dropzone> store. Reflects.
+                                           Changing it re-binds to the new store.
+  labels          labels                   own UI strings (JSON attribute / object),
+                                           merged per key over the store's labels,
+                                           then built-in English. Live.
+  custom-styles   customStyles             extra CSS for this satellite's shadow
+                                           root (raw, NOT sanitized); after the
+                                           page layer window.components[tag].customStyles
+  -               getCustomStylesCallback  (ctx) => css; wins over customStyles
+
 BASIC DECOUPLED LAYOUT
 ----------------------
 <!-- store only: no display attributes -> render mode inferred "headless" -->
@@ -31,9 +57,11 @@ BASIC DECOUPLED LAYOUT
 Binding:
 - for= is resolved with document.getElementById when the satellite connects;
   the target must be a <web-dropzone> (checked by tag name). A missing store
-  logs a "store not found" warning. Set for= before inserting the satellite.
+  logs a "store not found" warning. Changing for= / el.htmlFor on a connected
+  satellite re-binds it.
 - Order does not matter: a satellite that connects before the store upgrades
-  or builds waits for the store's `ready` event.
+  or builds waits for the store's build (an internal signal fired after every
+  store build; `controller.isReady`).
 - Inside another shadow root (getElementById can't reach), bind in code:
     satellite.bindToStore(storeEl);   // before or after connect
 - satellite.controller -> the bound store's DropzoneController (null until bound).
@@ -43,48 +71,57 @@ Binding:
 
 Bulk-mode <web-dropzone> builds its own UI from these same satellites
 (marked `managed`, so --dz-* set on <web-dropzone> cascades into them).
+A <web-dropzone>'s custom-styles reach only its OWN shadow root, not those
+mounted satellites (separate shadow roots) - style them with the per-tag page
+layer, e.g. window.components['web-dropzone-picker'].customStyles.
 
 <web-dropzone-picker>
 ---------------------
-Attributes:
-  for                  store id
+Attributes (plus the shared inputs above):
   selector-appearance  card (default) | button | minimal | native
   card-size            minimal | compact (default) | big
   accept               file-dialog filter (default: store's accept). The store
                        still validates everything.
-  multiple             "false" = single-file dialog (default: store's setting)
-  labels               the picker's own UI strings (JSON / property), merged per
-                       key over the store's labels: prompt (card / minimal),
-                       selectFiles (button / native / big card), hint,
-                       noFileChosen, filesChosen, dragActive
+  multiple             (isMultiple) "false" = single-file dialog; unset =
+                       the store's setting
+  labels               picker strings: prompt (card / minimal), selectFiles
+                       (button / native / big card), hint, noFileChosen,
+                       filesChosen, dragActive
   icon                 raw HTML icon (default: store's icon)
-  disabled             disables the picker (otherwise follows the store; a
-                       readonly store blocks adding too)
-  inside="true"        files-inside layout: renders a <slot> inside the card;
-                       put a <web-dropzone-list nested="true"> as its child
-  highlight-on-page-drag  arm while files are dragged anywhere over the page
-                       (`armed` attr + :state(armed), picker.isArmed, card bg
-                       --dz-dropzone-bg-armed); default: the store's setting
+  disabled             (isDisabled) presence attribute like a native control:
+                       ANY value disables, disabled="false" included. No clicks /
+                       drops, not focusable. A disabled store disables it too.
+  readonly             (isReadonly) presence attribute: adds no files, but the
+                       controls stay focusable (aria-disabled="true", not
+                       disabled) and never open the file dialog. A read-only
+                       store makes it read-only too. Calls from code still work.
+  inside="true"        (isFilesInside) files-inside layout: renders a <slot>
+                       inside the card; put a <web-dropzone-list nested="true">
+                       as its child
+  highlight-on-page-drag  (shouldHighlightOnPageDrag) arm while files are
+                       dragged anywhere over the page (`armed` attr +
+                       :state(armed), picker.isArmed, card bg
+                       --dz-dropzone-bg-armed); unset = the store's setting
 
 Properties (JS only), Mode B per-picker routing:
   uploadFileCallback   FileUploadHandler stamped on every file this picker adds
   uploadMetadata       object stamped on every file -> ctx.uploadMetadata
 
 Method:
-  openFileDialog()     open the native dialog (no-op while disabled / unbound)
+  openFileDialog()     open the native dialog (no-op while disabled / read-only
+                       / unbound)
 
 The picker never rejects files itself; it calls store.addFiles(files, opts).
 Card drag highlight is scoped to that picker.
 
 <web-dropzone-list>
 -------------------
-Attributes:
-  for              store id
+Attributes (plus the shared inputs; labels e.g. {"noData":"Nothing yet"}):
   list-appearance  list (default) | detailed | grid | badges | rolling | popover
-  grid-layout      uniform | natural
-  grid-status      badge | overlay
-  labels           own UI strings over the store's (e.g. {"noData":"Nothing yet"})
-  nested="true"    files-inside class family (child of a picker with inside="true")
+  grid-layout      uniform (default) | natural
+  grid-status      badge (default) | overlay
+  nested="true"    (isNested) files-inside class family (child of a picker
+                   with inside="true")
 
 Reads from the store config: item-controls, max-visible-file-count,
 sink-completed, show-thumbnails, allow-uploaded-file-removal, labels,
@@ -103,7 +140,7 @@ list.addEventListener('queue-open', () => drawer.show());
 
 <web-dropzone-progress>
 -----------------------
-Attributes: for.
+Attributes: only the shared inputs (for, labels, custom-styles).
 Aggregate bar + counts ("3 of 5 · 1.2 MB / 4.0 MB · 1 paused · 2 failed") +
 percent + bulk buttons:
   Pause all    store has uploadFileCallback and something is uploading
@@ -120,8 +157,7 @@ uploadFileCallback; with Mode B (handlers set only on pickers) they are not show
 
 <web-dropzone-indicator>
 ------------------------
-Attributes:
-  for       store id
+Attributes (plus the shared inputs):
   position  right (default) | left | top | bottom (fixed to a viewport edge) | inline
   drawer    auto (default): the chip is a <button> that toggles a slide-out
             drawer (role="dialog") embedding a <web-dropzone-list>

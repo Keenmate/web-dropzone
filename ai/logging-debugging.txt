@@ -12,7 +12,12 @@ loglevel engine). Namespace DROPZONE, four categories:
   DROPZONE:UI           rendering, popover, overlay, persistence fallbacks
   DROPZONE:INTERACTION  user interaction
 
-The dropzone bundle is SILENT by default (disabled on load).
+Like every core logger bundle, DROPZONE prints warnings and errors by default
+(level 'warn') and follows the page-wide switch (window.components.logging).
+It is attached by core registerComponent({ logging }) to every dropzone tag
+(<web-dropzone> and the four satellites): each element logs through its own
+instance logger (prefixed with the instance), and one element's level can be
+set alone: el.enableLogging('debug') / el.disableLogging() / el.resetLogging().
 
 CONSOLE CONTROL (GLOBAL API)
 ----------------------------
@@ -20,18 +25,20 @@ const log = window.components['web-dropzone'].logging;
 
 log.enableLogging();                              // every category at debug
 log.disableLogging();                             // silent
+log.resetLogging();                               // drop own levels: follow the page level again
 log.setLogLevel('warn');                          // all categories
 log.setCategoryLevel('DROPZONE:FILE', 'debug');   // one category
 log.setCategoryLevel('FILE', 'debug');            // bare name also accepted
-log.getCategories();                              // ['DROPZONE:INIT', ...]
+log.getCategories();                              // ['INIT', 'FILE', 'UI', 'INTERACTION'] (bare)
 
 Levels: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'.
 
 CODE CONTROL
 ------------
 import {
-  enableLogging, disableLogging, setLogLevel, setCategoryLevel,
-  LOGGING_CATEGORIES, initLogger, fileLogger, uiLogger, interactionLogger
+  enableLogging, disableLogging, resetLogging, setLogLevel, setCategoryLevel,
+  LOGGING_CATEGORIES,   // prefixed: ['DROPZONE:INIT', 'DROPZONE:FILE', ...]
+  initLogger, fileLogger, uiLogger, interactionLogger
 } from '@keenmate/web-dropzone';
 
 if (import.meta.env.DEV) setCategoryLevel('DROPZONE:FILE', 'debug');
@@ -40,11 +47,12 @@ The loggers are loglevel-style: .trace/.debug/.info/.warn/.error.
 
 CORE MESSAGES
 -------------
-Messages from web-components-core about the element (invalid attribute values,
-before*Callback throws, twin errors) go to core's CORE bundle (dropzone does
-not register a per-tag bundle with core), which defaults to 'warn' - so they
-show up even while DROPZONE logging is off. Watch the console when authoring
-markup.
+Messages from web-components-core about an element (invalid / refused input
+values -> INIT; before*Callback throws, twin errors, actions -> UI) go through
+that element's own instance logger, i.e. the DROPZONE bundle (registered with
+core per tag). They print by default ('warn'), and disableLogging() silences
+them like everything else. Messages with no element behind them go to core's
+CORE bundle. Watch the console when authoring markup.
 
 Page-wide switch (core, non-enumerable): applies to EVERY bundle on the page,
 CORE and DROPZONE included:
@@ -57,8 +65,9 @@ window.components.logging.getCategories();      // ['CORE:ELEMENT', 'DROPZONE:IN
 A later window.components['web-dropzone'].logging.* call wins for dropzone.
 
 Typical core warnings:
-  invalid attribute value (e.g. max-file-size="lots", labels='not json')
-    -> warned, previous value kept
+  invalid attribute value (e.g. max-file-size="lots", labels='not json',
+  an unknown enum value on a satellite)
+    -> warned, previous value kept, input-rejected event fired
   a before*Callback threw -> logged, treated as a veto
 
 USEFUL DEBUG OUTPUT

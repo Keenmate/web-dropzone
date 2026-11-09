@@ -24,6 +24,7 @@ components' input tables — the same source the runtime uses.
 - [Form integration](#form-integration)
 - [RTL](#rtl)
 - [Satellites](#satellites)
+- [Logging](#logging)
 - [Lifecycle](#lifecycle)
 
 ## Basic usage
@@ -36,7 +37,7 @@ components' input tables — the same source the runtime uses.
 <web-dropzone
   accept="image/*,.pdf"
   multiple
-  max-file-size="5242880"
+  max-file-size="5MB"
   max-file-count="10"
   display-mode="detailed">
 </web-dropzone>
@@ -81,7 +82,12 @@ Attributes of `<web-dropzone>`. Every attribute has a property (the **Property**
 attributes are short (`multiple`, `disabled`, `auto-upload`, …) and their properties carry the
 `is` / `should` name (`el.isMultiple`, `el.isDisabled`, `el.shouldAutoUpload`). Removing an attribute
 (or assigning `undefined`) resets the input to its default; an invalid value is refused with a warning
-and the core `input-rejected` event, keeping the previous value.
+and the core `input-rejected` event, keeping the previous value. That covers: an unknown enum value, a
+size that isn't one (`max-file-size`, `min-file-size`, `max-total-size` take bytes or `5MB`, `1.5GB`,
+`300 kB`, `2MiB` — binary units, core `toBytes()`), a negative count (`concurrency` must be ≥ 1), and a
+`controls` / `item-controls` list with an unknown token (the whole value is refused). Extra CSS for the
+shadow root (`custom-styles` / `getCustomStylesCallback`, page-wide per tag) is described in
+[theming.md](./theming.md#extra-css-for-the-shadow-root).
 
 | Attribute | Property | Type | Default | Description |
 |---|---|---|---|---|
@@ -649,45 +655,74 @@ store). A store with no display attributes infers `render-mode="headless"` and r
 
 Binding:
 
-- `for=` is resolved with `document.getElementById` when the satellite connects; the target must be a
-  `<web-dropzone>`. A missing store logs a "store not found" warning. Set `for=` before inserting the
-  satellite. Order doesn't matter — a satellite that connects before the store builds waits for it.
+- `for=` (property `htmlFor`, the platform's name for a `for` attribute) is resolved with
+  `document.getElementById` when the satellite connects; the target must be a `<web-dropzone>`. A
+  missing store logs a "store not found" warning. Order doesn't matter — a satellite that connects
+  before the store builds waits for it. Changing `for` / `htmlFor` later re-binds to the new store.
 - Inside another shadow root (where `getElementById` can't reach), bind in code:
   `satellite.bindToStore(storeEl)`.
 - `satellite.controller` is the bound store's `DropzoneController` (`null` until bound). Satellites
   follow store rebuilds, and the page theme like the store (`data-context-theme`, `theme-source`).
 - Bulk-mode `<web-dropzone>` builds its own UI from these same satellites (marked `managed`, so
-  `--dz-*` set on `<web-dropzone>` cascades into them — see [theming.md](./theming.md)).
+  `--dz-*` set on `<web-dropzone>` cascades into them — see [theming.md](./theming.md)). They are
+  separate elements with their own shadow roots: the store's `custom-styles` does **not** reach them
+  (see [theming.md → Extra CSS](./theming.md#extra-css-for-the-shadow-root)).
+
+Every satellite is a web-components-core `BlissElement`, so it works exactly like the store: one
+input table per element (attribute ↔ property, parsed and validated in one place, live), removing an
+attribute resets the input to its default, and an invalid value — an unknown enum value such as
+`list-appearance="cards"` — is **refused**: a warning plus the core `input-rejected` event, and the
+previous value stays (there is no silent fallback). From core every satellite also gets the `ready`
+attribute / event / `:state(ready)` / `whenReady()`, `motion`, the theme context (`theme-source`),
+`defer` / `release()`, `setAttributes()` / `batch()`, `destroy()`, a per-instance logger (its own level: `el.enableLogging()`)
+and a `window.components['web-dropzone-picker']` (etc.) registry entry.
+
+#### Shared inputs (every satellite)
+
+| Attribute | Property | Type | Default | Description |
+|---|---|---|---|---|
+| `for` | `htmlFor` | `string \| null` |  | Id of the `<web-dropzone>` store to bind to. Changing it re-binds. Not needed when the store mounts the satellite itself. |
+| `labels` | `labels` | `Partial<DropzoneLabels> \| null` |  | The satellite's own UI strings (object, or a JSON attribute), merged per key over the bound store's `labels`, then the built-in English. Live. |
+| `custom-styles` | `customStyles` | `string \| null` |  | Extra CSS for this satellite's shadow root (raw CSS — NOT sanitized). Comes after the page-wide `window.components[tag].customStyles`, so it overrides it. |
+| — | `getCustomStylesCallback` | `(ctx) => string \| null \| undefined` |  | Returns extra CSS for this satellite's shadow root; wins over `customStyles`. |
+| `defer`, `theme-source`, `motion`, `responsive` | `shouldDefer`, `themeSource`, `motion`, `responsive` (+ `responsiveCallback`) |  |  | Core inputs, as on `<web-dropzone>` (see [Attributes](#attributes)). |
+
+(The first four rows are missing from the generated Custom Elements Manifest — its analyzer can't read
+the imported spread — so IDE completion may not offer them; they work.)
 
 ### `<web-dropzone-picker>`
 
-| Attribute | Values | What |
-|---|---|---|
-| `for` | store id | The store |
-| `selector-appearance` | `card` (default) \| `button` \| `minimal` \| `native` | Selector appearance |
-| `card-size` | `minimal` \| `compact` (default) \| `big` | Card size for the card appearance |
-| `accept` | MIME types / extensions | File-dialog filter (default: the store's `accept`); the store still validates everything |
-| `multiple` | boolean | Single- vs multi-file dialog (default: the store's setting) |
-| `labels` | JSON / property | The picker's own strings, merged per key over the store's: `prompt`, `selectFiles`, `hint`, `noFileChosen`, `filesChosen`, `dragActive` |
-| `icon` | raw HTML | Prompt icon (default: the store's `icon`) — see the [XSS notice](#html-injection-xss-notice) |
-| `disabled` / `readonly` | boolean | Disable this picker / add nothing but stay focusable (a read-only store blocks adding too) |
-| `inside` | boolean | Files-inside layout: the card slots its children — put a `<web-dropzone-list nested>` inside |
-| `highlight-on-page-drag` | boolean | Arm while files are dragged over the page (`armed` + `:state(armed)`, `picker.isArmed`); default: the store's setting |
+The shared inputs, plus:
 
-JS-only (per-picker upload routing): `uploadFileCallback` (stamped on every file this picker adds) and
-`uploadMetadata` (→ `ctx.uploadMetadata`). Method: `openFileDialog()` (no-op while disabled / unbound).
-The picker never rejects files itself; it calls `store.addFiles(files, opts)`.
+| Attribute | Property | Values | Default | What |
+|---|---|---|---|---|
+| `selector-appearance` | `selectorAppearance` | `card` \| `button` \| `minimal` \| `native` | `card` | Selector appearance |
+| `card-size` | `cardSize` | `minimal` \| `compact` \| `big` | `compact` | Card size for the card appearance |
+| `accept` | `accept` | MIME types / extensions | the store's | File-dialog filter; the store still validates every file |
+| `multiple` | `isMultiple` | `true` / `false` (tristate) | the store's | Single- vs multi-file dialog. Absent = follow the store |
+| `icon` | `icon` | raw HTML | the store's | Prompt icon — see the [XSS notice](#html-injection-xss-notice) |
+| `disabled` | `isDisabled` | boolean (presence) | `false` | Disable this picker like a native control: no clicks / drops, not focusable. Presence semantics — `disabled="false"` **is** disabled. A disabled store disables it too |
+| `readonly` | `isReadonly` | boolean (presence) | `false` | Read-only: adds no files, but the control stays focusable (`aria-disabled="true"`) and never opens the file dialog. A read-only store makes it read-only too |
+| `inside` | `isFilesInside` | boolean | `false` | Files-inside layout: the card slots its children — put a `<web-dropzone-list nested>` inside |
+| `highlight-on-page-drag` | `shouldHighlightOnPageDrag` | `true` / `false` (tristate) | the store's | Arm while files are dragged over the page (`armed` + `:state(armed)`, `picker.isArmed`) |
+| — | `uploadFileCallback` | `FileUploadHandler \| null` |  | Mode B: upload handler stamped onto every file this picker adds (wins over the store's for those files) |
+| — | `uploadMetadata` | `Record<string, unknown> \| null` |  | Mode B: metadata stamped onto every file this picker adds (`ctx.uploadMetadata`) |
+
+Picker strings (`labels`): `prompt`, `selectFiles`, `hint`, `noFileChosen`, `filesChosen`,
+`dragActive`. Method: `openFileDialog()` (no-op while disabled / read-only / unbound; calls from code
+such as `picker.controller.addFiles()` still work). The picker never rejects files itself; it calls
+`store.addFiles(files, opts)`.
 
 ### `<web-dropzone-list>`
 
-| Attribute | Values | What |
-|---|---|---|
-| `for` | store id | The store |
-| `list-appearance` | `list` (default) \| `detailed` \| `grid` \| `badges` \| `rolling` \| `popover` | List appearance |
-| `grid-layout` | `uniform` \| `natural` | Tile layout of the grid appearance |
-| `grid-status` | `badge` \| `overlay` | How finished grid tiles are flagged |
-| `labels` | JSON / property | Own strings over the store's (e.g. `{"noData": "Nothing yet"}`) |
-| `nested` | boolean | Files-inside class family (child of a picker with `inside`) |
+The shared inputs, plus:
+
+| Attribute | Property | Values | Default | What |
+|---|---|---|---|---|
+| `list-appearance` | `listAppearance` | `list` \| `detailed` \| `grid` \| `badges` \| `rolling` \| `popover` | `list` | List appearance |
+| `grid-layout` | `gridLayout` | `uniform` \| `natural` | `uniform` | Tile layout of the grid appearance |
+| `grid-status` | `gridStatus` | `badge` \| `overlay` | `badge` | How finished grid tiles are flagged |
+| `nested` | `isNested` | boolean | `false` | Files-inside class family (child of a picker with `inside`) |
 
 Reads from the store: `item-controls`, `max-visible-file-count`, `sink-completed`, `show-thumbnails`,
 `allow-uploaded-file-removal`, `labels`, `cancel-icon` / `remove-icon`, `fileIcons` /
@@ -700,7 +735,7 @@ appearance — the queue button was clicked).
 
 ### `<web-dropzone-progress>`
 
-Attribute: `for`. An aggregate bar + counts ("3 of 5 · 1.2 MB / 4.0 MB · 1 paused · 2 failed") +
+Only the shared inputs. An aggregate bar + counts ("3 of 5 · 1.2 MB / 4.0 MB · 1 paused · 2 failed") +
 percent + bulk buttons: **Pause all** / **Resume all** / **Cancel all** (when the store has an
 `uploadFileCallback` and something is uploading / paused / queued) and **Retry all** (any file failed).
 Hides itself when there is no activity (`data-empty="true"`); host attribute `data-status` =
@@ -708,18 +743,23 @@ Hides itself when there is no activity (`data-empty="true"`); host attribute `da
 
 ### `<web-dropzone-indicator>`
 
-| Attribute | Values | What |
-|---|---|---|
-| `for` | store id | The store |
-| `position` | `right` (default) \| `left` \| `top` \| `bottom` \| `inline` | Fixed to a viewport edge, or inline in the flow |
-| `drawer` | `auto` (default) \| `off` | `auto`: the chip is a button toggling a slide-out drawer (`role="dialog"`) with the file list; `off`: a non-interactive `role="status"` chip |
-| `labels` | JSON / property | Own strings over the store's: `indicatorTitle`, `indicatorIdle`, `indicatorStatus` / `indicatorQueue` (aria), `close`, `indicatorFailed` / `…Uploading` / `…Paused` / `…Queued` / `…Done` |
+The shared inputs, plus:
 
+| Attribute | Property | Values | Default | What |
+|---|---|---|---|---|
+| `position` | `position` | `right` \| `left` \| `top` \| `bottom` \| `inline` | `right` | Fixed to a viewport edge, or inline in the flow |
+| `drawer` | `drawer` | `auto` \| `off` | `auto` | `auto`: the chip is a button toggling a slide-out drawer (`role="dialog"`) with the file list; `off`: a non-interactive `role="status"` chip |
+| — | `renderBodyCallback` | `StatusSurfaceCallback \| null` |  | Replace the whole chip body; `false` hides the chip |
+| — | `renderFileInfoCallback` | `StatusSurfaceCallback \| null` |  | Replace the chip's file-info slot (default body only) |
+| — | `renderProgressCallback` | `StatusSurfaceCallback \| null` |  | Replace the chip's progress slot (default body only) |
+
+Indicator strings (`labels`): `indicatorTitle`, `indicatorIdle`, `indicatorStatus` / `indicatorQueue`
+(aria), `close`, `indicatorFailed` / `…Uploading` / `…Paused` / `…Queued` / `…Done`.
 Host attributes `data-position`, `data-drawer`, `data-drawer-open`; shadow parts `::part(chip)`,
 `::part(drawer)`. The chip hides while a non-inline drawer is open; on a phone-width viewport the
-drawer is a full-screen sheet. Structural callbacks (JS properties, the status-surface contract below):
-`renderBodyCallback` (the whole chip; `false` hides it), `renderFileInfoCallback`,
-`renderProgressCallback`.
+drawer is a full-screen sheet. The drawer embeds a `<web-dropzone-list>` (style it with
+`window.components['web-dropzone-list'].customStyles`). The callbacks follow the status-surface
+contract below.
 
 ### Status-surface contract
 
@@ -731,6 +771,28 @@ cancelled, else the last file), `currentFilePercent`, `currentFileStatus`, `aggr
 `overallPercent` (byte-weighted, rounded), `overallStatus`, `files`, plus `controller` / `element`.
 Returns: `null` / `undefined` = the library default; `false` = hide; a string = `innerHTML` (skipped
 when equal to the last one); an `HTMLElement` = mounted (skipped when already the slot's only child).
+
+## Logging
+
+Every element of the family logs through one categorized bundle, `DROPZONE` (categories `INIT`,
+`FILE`, `UI`, `INTERACTION`; web-components-core logging). Like every KeenMate component it prints
+**warnings and errors by default** and follows the page-wide switch `window.components.logging`;
+nothing is silenced at load. The closest level wins: element → component type → page → `warn`.
+
+```js
+const logging = window.components['web-dropzone'].logging;   // the same bundle on every dropzone tag
+logging.enableLogging();                    // debug, every category
+logging.setCategoryLevel('UI', 'debug');    // one category ('DROPZONE:UI' works too)
+logging.disableLogging();                   // silent
+logging.resetLogging();                     // follow the page level again
+logging.getCategories();                    // ['INIT', 'FILE', 'UI', 'INTERACTION']
+
+window.components.logging.enableLogging('debug');   // every KeenMate component on the page
+dropzone.enableLogging('debug');                    // one element only (closest level wins)
+```
+
+The same controls are exported for bundlers: `enableLogging`, `disableLogging`, `resetLogging`,
+`setLogLevel`, `setCategoryLevel` and `LOGGING_CATEGORIES` (the prefixed names, `'DROPZONE:INIT'` …).
 
 ## Lifecycle
 

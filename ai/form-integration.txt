@@ -80,7 +80,9 @@ READONLY
 <web-dropzone readonly name="docs">: the user can't change the selection (no
 add via click / drop / overlay / Add more, no row Remove, no Clear all), but the
 files stay visible and ARE submitted with the form. Uploads keep running; the
-programmatic API still works. dz.isReadonly (reflected).
+programmatic API still works. dz.isReadonly (reflected). Unlike disabled, the
+selector controls stay focusable (aria-disabled="true") - they just never open
+the file dialog.
 
 el.form
 -------

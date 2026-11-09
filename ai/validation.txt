@@ -30,9 +30,13 @@ INPUTS
 | min-file-count  | minFileCount  | 0       | form validity only (never rejects)       |
 | dedupe-mode     | dedupeMode    | 'name'  | name | name-size | none                  |
 
-Byte sizes accept "5242880", "5MB", "5 mb", "300kB", "1.5GB", "5M", "1024B"
-(units B, K/KB, M/MB, G/GB, T/TB; 1024-based). Invalid -> warning, previous
-value kept.
+Byte sizes go through core toBytes(): "5242880", "5MB", "5 mb", "300 kB",
+"1.5GB", "5M", "2MiB", "1024B" (units B, K/KB/KiB, M/MB/MiB, G/GB/GiB,
+T/TB/TiB, case-insensitive; always 1024-based). An invalid size ("lots",
+"1.2.3mb", a fractional byte count like "1.5b") is REFUSED: warning +
+input-rejected event, previous value kept (it no longer becomes 0 = unlimited).
+Counts refuse negatives (max-file-count, min-file-count); concurrency
+refuses < 1.
 
 <web-dropzone display-mode="detailed"
   accept="image/*,.pdf"

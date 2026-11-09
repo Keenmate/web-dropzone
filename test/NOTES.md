@@ -280,6 +280,9 @@ round-trip, which never escapes quotes) used in attribute contexts everywhere (p
 attribute on the file input.
 
 **Fixed (2026-10-25):** `escapeHtml` escapes `& < > " '`; `renderSelector` escapes `accept`.
+(Since the core rc20/rc21 alignment `dom-utils.ts` is gone: `escapeHtml` is
+`@keenmate/web-components-core`'s — same escaping, takes any value — re-exported by
+`@keenmate/web-dropzone-core`.)
 
 **Test status:** `structural.spec.ts` › selector markup — structural and bulk (picker) paths, green.
 

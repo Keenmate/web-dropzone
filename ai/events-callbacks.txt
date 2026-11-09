@@ -181,6 +181,9 @@ Dispatched on the satellite itself (bubbles, not composed); detail carries the
 BOUND STORE's controller / element:
   <web-dropzone-list> summary-activate   popover appearance: summary line activated
   <web-dropzone-list> queue-open         rolling appearance: queue button clicked
+Every satellite (a core BlissElement) also fires core's `ready` (once, after
+its first build; onReady twin) and `input-rejected` (an invalid value - e.g. an
+unknown enum - was refused; the previous value stays) on itself.
 Structural rows: file-row-update ({ file }) on the element a
 renderFileItemCallback returned.
 

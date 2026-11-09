@@ -543,6 +543,45 @@ web-dropzone { --dz-rem: 11px; }</code></pre>
             </div>
         </div>
 
+        <!-- CUSTOM CSS -->
+        <div class="card">
+            <h2>TH10 · Extra CSS for the shadow root (<code>custom-styles</code>)</h2>
+            <p>Variables cover colors and sizes; for anything else, every element of the family takes extra CSS into its shadow root, in two layers. The <strong>page layer</strong> — <code>window.components['web-dropzone'].customStyles</code> (and one per satellite tag) — styles every instance of that tag on the page; the <strong>instance layer</strong> — the <code>custom-styles</code> attribute / <code>customStyles</code> property — comes after it, so it wins. A <code>getCustomStylesCallback</code> wins over the string in its layer. The CSS is raw, not sanitized.</p>
+            <p>One shadow root each: a <code>&lt;web-dropzone&gt;</code>'s CSS reaches only its own shadow root (the layout container, the compact popover). The card and the rows below are a <code>&lt;web-dropzone-picker&gt;</code> and a <code>&lt;web-dropzone-list&gt;</code> the store mounts itself, with their own shadow roots — style them through their tags' page layer (<code>window.components['web-dropzone-picker'].customStyles</code>, <code>['web-dropzone-list']</code>, <code>['web-dropzone-progress']</code>).</p>
+
+            <div class="controls">
+                <label><input type="checkbox" id="th10-page-layer" checked> Page-wide CSS (both tags)</label>
+            </div>
+
+            <kmwc-demo>
+                <web-dropzone id="th10-store" class="th10-demo" display-mode="detailed" card-size="big" accept="*/*" max-file-count="3"
+                    custom-styles=".dz__container { padding: 0.75rem; border: 2px dashed var(--dz-accent-color); border-radius: 12px; }">
+                </web-dropzone>
+                <script type="module" data-kmwc-show>
+                    // Page layer, one per tag. Scoped to this demo (the .th10-demo store, the big card)
+                    // so the other cards on this page keep their look — drop the :host(…) scope to
+                    // style every instance on the page.
+                    const pageCss = {
+                        'web-dropzone': ':host(.th10-demo) .dz__container { background: var(--dz-accent-color-light); }',
+                        'web-dropzone-picker': ':host([card-size="big"]) .dz__dropzone-text { font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }',
+                    };
+                    const applyPageLayer = (isOn) => {
+                        for (const [tag, css] of Object.entries(pageCss)) {
+                            window.components[tag].customStyles = isOn ? css : null;   // live instances restyle
+                        }
+                    };
+                    const toggle = document.getElementById('th10-page-layer');
+                    toggle.addEventListener('change', () => applyPageLayer(toggle.checked));
+                    applyPageLayer(toggle.checked);
+                </script>
+            </kmwc-demo>
+
+            <div class="note info">
+                <div class="note-title">Selectors</div>
+                <p>The classes inside the shadow roots are flat BEM under <code>dz__</code> (<code>.dz__dropzone--card</code>, <code>.dz__file-item-name</code>, <code>.dz__popover</code>, …). An <code>@import</code> in either layer (an icon font) is also linked once in the document head, because Chromium ignores <code>@font-face</code> inside a shadow root.</p>
+            </div>
+        </div>
+
         <footer>
             <p><a href="index.html">← Back to Examples</a></p>
         </footer>

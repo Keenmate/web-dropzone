@@ -7,7 +7,9 @@ PACKAGES
 @keenmate/web-dropzone-core   headless store (DropzoneEngine), types, helpers
 
 Runtime dependency of both: @keenmate/web-components-core (BlissElement,
-/logging, /positioning, which pulls @floating-ui/dom).
+registerComponent, /logging, /positioning). Dropzone never imports
+@floating-ui/dom itself - core's /positioning module owns it (createPopover /
+anchor for the compact popover).
 
 | You want                                   | Install                      |
 |--------------------------------------------|------------------------------|
@@ -21,9 +23,10 @@ SIDE-EFFECT IMPORT (REGISTERS ELEMENTS)
 import '@keenmate/web-dropzone';
 
 Defines web-dropzone, web-dropzone-picker, web-dropzone-list,
-web-dropzone-indicator, web-dropzone-progress. Registration order is
-handled internally (satellites before the store). Re-importing is a no-op
-(guarded by customElements.get).
+web-dropzone-indicator, web-dropzone-progress - every tag through core
+registerComponent() in the package entry (index.ts), satellites first, then
+the store. Importing an element module on its own (e.g. the class file)
+defines nothing. Re-importing is a no-op (registerComponent is idempotent).
 
 NAMED IMPORTS (ESM)
 -------------------
@@ -47,7 +50,7 @@ import {
   createImagePreview,
 
   // logging
-  setLogLevel, enableLogging, disableLogging, setCategoryLevel,
+  setLogLevel, enableLogging, disableLogging, resetLogging, setCategoryLevel,
   LOGGING_CATEGORIES, initLogger, fileLogger, uiLogger, interactionLogger
 } from '@keenmate/web-dropzone';
 
@@ -108,15 +111,19 @@ dist/dropzone.js ("module"/"import").
 
 GLOBAL API
 ----------
-On load the package publishes window.components['web-dropzone']:
+On load core registerComponent() publishes window.components['web-dropzone']
+(and one entry per satellite tag: 'web-dropzone-picker', 'web-dropzone-list',
+'web-dropzone-indicator', 'web-dropzone-progress' - same shape):
 
 window.components['web-dropzone'].version()      // package version
 window.components['web-dropzone'].config         // { name, version, author, license,
                                                  //   repository, homepage, core:{name,version} }
-window.components['web-dropzone'].logging        // enableLogging, disableLogging,
+window.components['web-dropzone'].logging        // enableLogging, disableLogging, resetLogging,
                                                  // setLogLevel, setCategoryLevel, getCategories
 window.components['web-dropzone'].register()     // define <web-dropzone> if not yet defined
 window.components['web-dropzone'].getInstances() // connected <web-dropzone> elements
+window.components['web-dropzone'].customStyles   // page-wide extra CSS (see styling-theming.txt)
+window.components['web-dropzone'].responsive     // page-wide responsive rules (core)
 
 FRAMEWORKS
 ----------
@@ -146,8 +153,6 @@ TYPESCRIPT ELEMENT TYPING
 -------------------------
 const dz = document.querySelector('web-dropzone') as DropzoneElement;
 
-Or declare it once:
-declare global {
-  interface HTMLElementTagNameMap { 'web-dropzone': DropzoneElement }
-}
-(the package does not ship this augmentation itself)
+The package ships the HTMLElementTagNameMap augmentation for all five tags, so
+document.querySelector('web-dropzone') / createElement('web-dropzone-picker')
+are typed without a cast.

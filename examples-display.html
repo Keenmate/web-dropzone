@@ -518,7 +518,7 @@ startBtn.addEventListener('click', () =&gt; dz.uploadAll())
         <!-- POPOVER PLACEMENT -->
         <div class="card">
             <h2>DC11 · Popover Placement (<code>popover-placement</code>)</h2>
-            <p>Positioning uses <a href="https://floating-ui.com" target="_blank">Floating UI</a>, so it auto-flips on viewport collisions. The attribute sets the preferred initial placement.</p>
+            <p>The popover runs on <code>@keenmate/web-components-core</code>'s positioning (<code>createPopover()</code>, built on <a href="https://floating-ui.com" target="_blank">Floating UI</a>), so it auto-flips on viewport collisions; Escape or an outside click closes it, and opening another KeenMate overlay closes it too. The attribute sets the preferred initial placement.</p>
 
             <div class="placement-grid">
                 <div class="placement-cell">

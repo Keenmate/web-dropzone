@@ -32,19 +32,20 @@ packages/
 │   │   ├── types.ts           ← all domain types + event-detail types
 │   │   ├── icons.ts           ← shared Lucide SVG family
 │   │   ├── dropzone-shared.ts ← DEFAULT_CONFIG + formatFileSize / getFileIcon / …
-│   │   ├── dom-utils.ts       ← escapeHtml (zero-dep DOM primitive)
-│   │   └── logger.ts          ← runtime-controllable log channels
+│   │   ├── labels.ts          ← DropzoneLabels, DEFAULT_LABELS, resolveLabel
+│   │   └── logger.ts          ← the DROPZONE logging bundle (core createLoggers)
 │   └── dist/                  ← core.js (~53KB min / ~16KB gzip), core.umd.js, *.d.ts
 │
 └── web-dropzone/          → @keenmate/web-dropzone
     ├── src/
     │   ├── dropzone.ts                ← WebDropzone extends DropzoneEngine
-    │   ├── web-component.ts           ← <web-dropzone> (store + back-compat picker/list)
+    │   ├── index.ts                   ← exports + registerComponent() for all five tags
+    │   ├── web-component.ts           ← <web-dropzone> (store + back-compat picker/list), core BlissElement
     │   ├── web-component-picker.ts    ← <web-dropzone-picker>
     │   ├── web-component-list.ts      ← <web-dropzone-list>
     │   ├── web-component-indicator.ts ← <web-dropzone-indicator>
     │   ├── web-component-progress.ts  ← <web-dropzone-progress>
-    │   ├── satellite-base.ts          ← shared satellite plumbing (resolveStoreElement, …)
+    │   ├── satellite-base.ts          ← SatelliteElement (BlissElement) + shared inputs + store binding
     │   ├── status-surface.ts          ← three-callback contract impl (uses core types)
     │   ├── row-templates.ts / row-patching.ts
     │   └── css/                       ← all .css partials + main.css entry
@@ -53,9 +54,9 @@ packages/
 
 ### Why split?
 
-1. **Headless consumers don't pay for the renderer.** React / Vue / Lit / Svelte / Solid wrappers that render the file list with the framework's own reactivity import `@keenmate/web-dropzone-core` — no Floating UI, no CSS, no custom elements, no satellites. The core's only "dependency" is its own vendored `loglevel`.
+1. **Headless consumers don't pay for the renderer.** React / Vue / Lit / Svelte / Solid wrappers that render the file list with the framework's own reactivity import `@keenmate/web-dropzone-core` — no positioning, no CSS, no custom elements, no satellites. The core's only dependency is `@keenmate/web-components-core` (logging, `dispatch`, `escapeHtml`, …); the renderer's popover positioning comes from that package's `/positioning` subpath (`createPopover()`, which owns `@floating-ui/dom`) and never enters the core's import graph.
 2. **Satellites are replaceable.** A satellite is anything that depends on `DropzoneController` (`storeEl.controller`) + the store's CustomEvents. A custom satellite written in any framework is a peer of the four built-in ones — none of them have any privileged access path into the core.
-3. **The boundary is enforceable by construction.** The core package has no DOM imports beyond the bare-bones `dom-utils.ts` (`escapeHtml`) and `@keenmate/web-components-core`'s `dispatch` / `withComponentContext`. It is impossible for renderer concerns to leak across the package wall without showing up as a new import in `packages/web-dropzone-core/src/`.
+3. **The boundary is enforceable by construction.** The core package has no DOM code of its own — it only uses `@keenmate/web-components-core`'s `dispatch` / `withComponentContext` / `escapeHtml`. It is impossible for renderer concerns to leak across the package wall without showing up as a new import in `packages/web-dropzone-core/src/`.
 
 ### The boundary contract
 
@@ -122,11 +123,14 @@ Use `host` as the event target — a standalone engine dispatches the same event
 
 `<web-dropzone>` **is the store.** It owns `FileState[]`, config, validation, the upload loop, and persistence. By default it renders nothing — it is the headless source of truth.
 
-Renderers are **satellite elements**, each with its own shadow root, each binding to a store via exactly one `for="<store-id>"` attribute:
+Renderers are **satellite elements**, each with its own shadow root, each binding to a store via exactly one `for="<store-id>"` attribute (property `htmlFor`; changing it re-binds):
 
-- `<web-dropzone-picker for=…>` — drag/click target. Card / button / minimal variants.
+- `<web-dropzone-picker for=…>` — drag/click target. Card / button / minimal / native variants.
 - `<web-dropzone-list for=…>` — list view. `list / detailed / grid / badges / rolling / popover` appearances.
 - `<web-dropzone-indicator for=…>` — floating status chip + slide-out drawer.
+- `<web-dropzone-progress for=…>` — aggregate progress strip + bulk buttons.
+
+Every satellite is a core `BlissElement` (`SatelliteElement`, `satellite-base.ts`) with its own input table — the shared rows `for`, `labels`, `custom-styles` / `customStyles`, `getCustomStylesCallback`, plus its own (the picker's `selector-appearance`, `disabled`, `readonly`, …). So the satellites get the same plumbing as the store: parse / validate / react from one table (an unknown enum value is refused with `input-rejected`), `ready`, `motion`, theme context, `defer` / `release()`, `destroy()`, a per-instance logger and a `window.components[tag]` entry (page-wide `customStyles` per tag). All five tags are defined by core `registerComponent()` in `index.ts`, satellites first.
 
 ```html
 <!-- Headless store -->
@@ -142,7 +146,7 @@ Renderers are **satellite elements**, each with its own shadow root, each bindin
 
 **Back-compat shortcut:** if renderer attributes (`selector-appearance`, `list-appearance`, …) are set directly on `<web-dropzone>`, it also mounts its own internal picker / list. This keeps the one-element convenience form working unchanged.
 
-**Change propagation:** the store dispatches bubbling, non-composed `CustomEvent`s on its own element. Satellites resolve their `for=` on `connectedCallback`, bind to `storeEl.controller` once the store is built (`dz-store-build`), `addEventListener` on the store element for diffs, and unsubscribe on `disconnectedCallback`. The store does not push to renderers — it emits, renderers consume.
+**Change propagation:** the store dispatches bubbling, non-composed `CustomEvent`s on its own element. Satellites resolve their `for=` in core's `connect()` hook, bind to the store's controller once the store is built (`dz-store-build`), `addEventListener` on the store element for diffs, and unsubscribe in `disconnect()`. The store does not push to renderers — it emits, renderers consume.
 
 ## Status surfaces — shared three-callback contract
 
@@ -171,7 +175,7 @@ Each selector is its own world: own picker, own list, own queue, own progress, o
 
 ```html
 <web-dropzone id="avatar"></web-dropzone>
-<web-dropzone-picker for="avatar" max-file-count="1"></web-dropzone-picker>
+<web-dropzone-picker for="avatar" multiple="false"></web-dropzone-picker>
 <web-dropzone-list   for="avatar"></web-dropzone-list>
 
 <web-dropzone id="documents"></web-dropzone>
@@ -185,8 +189,8 @@ One global queue + one global list + one global progress, but each **picker** de
 ```html
 <web-dropzone id="cloud"></web-dropzone>
 
-<web-dropzone-picker for="cloud" selector-appearance="button" label="Add public files"></web-dropzone-picker>
-<web-dropzone-picker for="cloud" selector-appearance="button" label="Add private files"></web-dropzone-picker>
+<web-dropzone-picker for="cloud" selector-appearance="button" labels='{"selectFiles":"Add public files"}'></web-dropzone-picker>
+<web-dropzone-picker for="cloud" selector-appearance="button" labels='{"selectFiles":"Add private files"}'></web-dropzone-picker>
 
 <web-dropzone-list      for="cloud" list-appearance="rolling"></web-dropzone-list>
 <web-dropzone-indicator for="cloud" position="right"></web-dropzone-indicator>

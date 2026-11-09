@@ -57,6 +57,8 @@ beforeFilesCancelCallback -> events-callbacks.txt, upload-pipeline.txt
 beforeFilesAddCallback -> validation.txt, events-callbacks.txt
 beforeFilesRemoveCallback -> events-callbacks.txt
 bindToStore() -> satellites.txt
+htmlFor (for=) -> satellites.txt
+input-rejected (refused values) -> satellites.txt, validation.txt, events-callbacks.txt
 bulk mode -> display-modes.txt
 button / minimal / native selector -> display-modes.txt
 
@@ -109,6 +111,7 @@ form / ElementInternals / name -> form-integration.txt
 G
 -
 getCustomStylesCallback -> custom-rendering.txt, styling-theming.txt
+custom-styles / customStyles (instance + window.components[tag] page layer) -> styling-theming.txt, custom-rendering.txt
 grid-layout / grid-status -> display-modes.txt
 glossary (cancel/abort/remove/delete/clear/destroy) -> upload-pipeline.txt
 
