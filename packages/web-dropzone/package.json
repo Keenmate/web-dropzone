@@ -7,6 +7,8 @@
   "module": "./dist/dropzone.js",
   "types": "./dist/index.d.ts",
   "style": "./dist/style.css",
+  "customElements": "custom-elements.json",
+  "web-types": "web-types.json",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -29,15 +31,20 @@
   "files": [
     "dist",
     "src/css",
-    "component-variables.manifest.json"
+    "component-variables.manifest.json",
+    "custom-elements.json",
+    "web-types.json",
+    "vscode.html-custom-data.json",
+    "vscode.css-custom-data.json"
   ],
   "scripts": {
-    "build": "npm run clean && npm run check:contract && vite build && tsc -b",
+    "build": "npm run clean && npm run check:contract && npm run analyze && vite build && tsc -b",
     "check:contract": "base-contract-check src",
     "build:types": "tsc -b",
     "clean": "rimraf dist tsconfig.tsbuildinfo",
     "test:unit": "vitest run",
-    "test:unit:watch": "vitest"
+    "test:unit:watch": "vitest",
+    "analyze": "cem analyze"
   },
   "keywords": [
     "dropzone",
@@ -49,7 +56,9 @@
     "web-component",
     "custom-element",
     "file-preview",
-    "keenmate"
+    "keenmate",
+    "web-components",
+    "custom-elements"
   ],
   "author": "Keenmate",
   "license": "MIT",
@@ -67,7 +76,10 @@
     "@keenmate/web-dropzone-core": "1.0.0-rc03"
   },
   "devDependencies": {
+    "@custom-elements-manifest/analyzer": "^0.11.0",
     "@keenmate/base-css-variables": "^2.0.0-rc06",
+    "custom-element-jet-brains-integration": "^1.8.0",
+    "custom-element-vs-code-integration": "^1.5.0",
     "happy-dom": "^15.11.7",
     "vite": "^5.4.21",
     "vitest": "^2.1.9"

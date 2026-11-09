@@ -26,6 +26,11 @@ const links = new WeakMap<HTMLElement, DropzoneController>();
  */
 export const STORE_BUILD_EVENT = 'dz-store-build';
 
+/** Fire {@link STORE_BUILD_EVENT} on a store (internal; kept out of the element's public event list). */
+export function announceStoreBuild(storeEl: HTMLElement): void {
+    storeEl.dispatchEvent(new Event(STORE_BUILD_EVENT));
+}
+
 /** Called by `<web-dropzone>` once, at construction. */
 export function linkStoreController(storeEl: HTMLElement, controller: DropzoneController): void {
     links.set(storeEl, controller);

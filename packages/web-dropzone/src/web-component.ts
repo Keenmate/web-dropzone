@@ -51,7 +51,7 @@ import {
     type RenderLoaderCallback,
 } from '@keenmate/web-components-core';
 import { WebDropzone } from './dropzone';
-import { linkStoreController, linkStoreReorder, STORE_BUILD_EVENT } from './store-link';
+import { linkStoreController, linkStoreReorder, announceStoreBuild } from './store-link';
 import { subscribePageFileDrag, isPageFileDragActive, applyArmedState } from './page-file-drag';
 import { initLogger, createDropzoneController, countLabel, defaultLabel } from '@keenmate/web-dropzone-core';
 import { labelsConverter } from './inputs';
@@ -605,7 +605,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
         // are waiting for a store (connected first, or mounted by the store
         // itself during the build) bind on this internal signal; core's public
         // `ready` fires once, after the first build.
-        this.dispatchEvent(new Event(STORE_BUILD_EVENT));
+        announceStoreBuild(this);
 
         initLogger.debug('Dropzone initialized', { config });
     }

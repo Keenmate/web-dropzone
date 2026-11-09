@@ -1,0 +1,6552 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vscode-css-languageservice/main/docs/customData.schema.json",
+  "version": 1.1,
+  "properties": [
+    { "name": "--dz-accent-bg", "description": "accent bg", "values": [] },
+    {
+      "name": "--dz-accent-color",
+      "description": "accent color",
+      "values": []
+    },
+    {
+      "name": "--dz-accent-color-active",
+      "description": "accent color active",
+      "values": []
+    },
+    {
+      "name": "--dz-accent-color-hover",
+      "description": "accent color hover",
+      "values": []
+    },
+    {
+      "name": "--dz-accent-color-light",
+      "description": "accent color light",
+      "values": []
+    },
+    {
+      "name": "--dz-accent-color-light-hover",
+      "description": "accent color light hover",
+      "values": []
+    },
+    { "name": "--dz-background", "description": "background", "values": [] },
+    {
+      "name": "--dz-badge-action-size",
+      "description": "badge action size",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-border-radius",
+      "description": "badge border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-font-size",
+      "description": "badge font size",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-font-weight",
+      "description": "badge font weight",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-height",
+      "description": "badge height",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-icon-bg",
+      "description": "badge icon bg",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-icon-border-radius",
+      "description": "badge icon border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-icon-font-size",
+      "description": "badge icon font size",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-icon-size",
+      "description": "badge icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-max-width",
+      "description": "badge max width",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-more-bg",
+      "description": "badge more bg",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-more-bg-hover",
+      "description": "badge more bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-more-color",
+      "description": "badge more color",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-remove-bg",
+      "description": "badge remove bg",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-remove-bg-hover",
+      "description": "badge remove bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-remove-border",
+      "description": "badge remove border",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-remove-box-shadow-focus",
+      "description": "badge remove box shadow focus",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-remove-color",
+      "description": "badge remove color",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-remove-color-hover",
+      "description": "badge remove color hover",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-remove-icon-size",
+      "description": "badge remove icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-remove-width",
+      "description": "badge remove width",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-status-icon-size",
+      "description": "badge status icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-text-bg",
+      "description": "badge text bg",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-text-bg-hover",
+      "description": "badge text bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-text-border",
+      "description": "badge text border",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-text-color",
+      "description": "badge text color",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-text-color-hover",
+      "description": "badge text color hover",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-text-padding",
+      "description": "badge text padding",
+      "values": []
+    },
+    { "name": "--dz-badges-gap", "description": "badges gap", "values": [] },
+    {
+      "name": "--dz-border-color",
+      "description": "border color",
+      "values": []
+    },
+    {
+      "name": "--dz-border-radius-lg",
+      "description": "border radius lg",
+      "values": []
+    },
+    {
+      "name": "--dz-border-radius-md",
+      "description": "border radius md",
+      "values": []
+    },
+    {
+      "name": "--dz-border-radius-sm",
+      "description": "border radius sm",
+      "values": []
+    },
+    {
+      "name": "--dz-button-badge-border-radius",
+      "description": "button badge border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-button-font-size",
+      "description": "button font size",
+      "values": []
+    },
+    {
+      "name": "--dz-button-padding",
+      "description": "button padding",
+      "values": []
+    },
+    {
+      "name": "--dz-disabled-opacity",
+      "description": "disabled dimming (base: --base-disabled-opacity, 0.65)",
+      "values": []
+    },
+    { "name": "--dz-dropzone-bg", "description": "dropzone bg", "values": [] },
+    {
+      "name": "--dz-dropzone-bg-active",
+      "description": "Drop-target background while dragging over — chains --base-drop-target-bg-active (success 15% light / 30% dark)",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-bg-armed",
+      "description": "Armed drop-target background while files are dragged anywhere over the page (highlight-on-page-drag) — chains --base-drop-target-bg (success 10% light / 20% dark)",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-bg-hover",
+      "description": "dropzone bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-border",
+      "description": "dropzone border",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-border-active",
+      "description": "Drop-target border while dragging over — 2px solid --base-drop-target-border-color (success)",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-border-radius",
+      "description": "dropzone border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-card-big-icon-size",
+      "description": "dropzone card big icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-card-big-min-height",
+      "description": "dropzone card big min height",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-card-big-padding",
+      "description": "dropzone card big padding",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-card-big-text-font-size",
+      "description": "dropzone card big text font size",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-card-minimal-icon-size",
+      "description": "dropzone card minimal icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-card-minimal-min-height",
+      "description": "dropzone card minimal min height",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-card-minimal-padding",
+      "description": "dropzone card minimal padding",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-card-minimal-text-font-size",
+      "description": "dropzone card minimal text font size",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-hint-color",
+      "description": "dropzone hint color",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-hint-font-size",
+      "description": "dropzone hint font size",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-icon-color",
+      "description": "dropzone icon color",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-icon-size",
+      "description": "dropzone icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-min-height",
+      "description": "dropzone min height",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-padding",
+      "description": "dropzone padding",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-text-color",
+      "description": "dropzone text color",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-text-font-size",
+      "description": "dropzone text font size",
+      "values": []
+    },
+    {
+      "name": "--dz-easing-out",
+      "description": "ease-out (base: --base-ease-out) — fade-ins, progress fill",
+      "values": []
+    },
+    {
+      "name": "--dz-easing-snappy",
+      "description": "standard easing (base: --base-ease-standard)",
+      "values": []
+    },
+    { "name": "--dz-empty-color", "description": "empty color", "values": [] },
+    {
+      "name": "--dz-empty-font-size",
+      "description": "empty font size",
+      "values": []
+    },
+    {
+      "name": "--dz-empty-padding",
+      "description": "empty padding",
+      "values": []
+    },
+    { "name": "--dz-error-bg", "description": "error bg", "values": [] },
+    { "name": "--dz-error-color", "description": "error color", "values": [] },
+    {
+      "name": "--dz-file-list-gap",
+      "description": "file list gap",
+      "values": []
+    },
+    {
+      "name": "--dz-file-list-margin-top",
+      "description": "file list margin top",
+      "values": []
+    },
+    {
+      "name": "--dz-file-list-max-height",
+      "description": "inline file-list max height; unset = none (grows with content). Input variable: not declared on :host, read as var(--dz-file-list-max-height, none) so a value on <web-dropzone> reaches the satellite list",
+      "values": []
+    },
+    {
+      "name": "--dz-font-family",
+      "description": "component font family (overrides --base-font-family). Input variable: read as var(--dz-font-family, var(--base-font-family, inherit))",
+      "values": []
+    },
+    {
+      "name": "--dz-font-size-base",
+      "description": "font size base",
+      "values": []
+    },
+    {
+      "name": "--dz-font-size-lg",
+      "description": "font size lg",
+      "values": []
+    },
+    {
+      "name": "--dz-font-size-sm",
+      "description": "font size sm",
+      "values": []
+    },
+    {
+      "name": "--dz-font-size-xs",
+      "description": "font size xs",
+      "values": []
+    },
+    {
+      "name": "--dz-font-weight-medium",
+      "description": "font weight medium",
+      "values": []
+    },
+    {
+      "name": "--dz-font-weight-normal",
+      "description": "font weight normal",
+      "values": []
+    },
+    {
+      "name": "--dz-font-weight-semibold",
+      "description": "font weight semibold",
+      "values": []
+    },
+    { "name": "--dz-hover-bg", "description": "hover bg", "values": [] },
+    { "name": "--dz-icon-remove", "description": "icon remove", "values": [] },
+    {
+      "name": "--dz-item-action-bg",
+      "description": "item action bg",
+      "values": []
+    },
+    {
+      "name": "--dz-item-action-bg-hover",
+      "description": "item action bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-item-action-color",
+      "description": "item action color",
+      "values": []
+    },
+    {
+      "name": "--dz-item-action-color-hover",
+      "description": "item action color hover",
+      "values": []
+    },
+    {
+      "name": "--dz-item-action-icon-size",
+      "description": "item action icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-item-action-size",
+      "description": "item action size",
+      "values": []
+    },
+    { "name": "--dz-item-bg", "description": "item bg", "values": [] },
+    {
+      "name": "--dz-item-bg-hover",
+      "description": "item bg hover",
+      "values": []
+    },
+    { "name": "--dz-item-border", "description": "item border", "values": [] },
+    {
+      "name": "--dz-item-border-radius",
+      "description": "item border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-item-icon-bg",
+      "description": "item icon bg",
+      "values": []
+    },
+    {
+      "name": "--dz-item-icon-color",
+      "description": "item icon color",
+      "values": []
+    },
+    {
+      "name": "--dz-item-icon-font-size",
+      "description": "item icon font size",
+      "values": []
+    },
+    {
+      "name": "--dz-item-icon-size",
+      "description": "item icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-item-meta-color",
+      "description": "item meta color",
+      "values": []
+    },
+    {
+      "name": "--dz-item-meta-font-size",
+      "description": "item meta font size",
+      "values": []
+    },
+    {
+      "name": "--dz-item-name-color",
+      "description": "item name color",
+      "values": []
+    },
+    {
+      "name": "--dz-item-name-font-size",
+      "description": "item name font size",
+      "values": []
+    },
+    {
+      "name": "--dz-item-name-font-weight",
+      "description": "item name font weight",
+      "values": []
+    },
+    {
+      "name": "--dz-item-padding",
+      "description": "item padding",
+      "values": []
+    },
+    {
+      "name": "--dz-item-progress-text-width",
+      "description": "item progress text width",
+      "values": []
+    },
+    {
+      "name": "--dz-item-progress-width",
+      "description": "item progress width",
+      "values": []
+    },
+    {
+      "name": "--dz-item-remove-bg",
+      "description": "item remove bg",
+      "values": []
+    },
+    {
+      "name": "--dz-item-remove-bg-hover",
+      "description": "item remove bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-item-remove-color",
+      "description": "item remove color",
+      "values": []
+    },
+    {
+      "name": "--dz-item-remove-color-hover",
+      "description": "item remove color hover",
+      "values": []
+    },
+    {
+      "name": "--dz-item-remove-icon-size",
+      "description": "item remove icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-item-remove-size",
+      "description": "item remove size",
+      "values": []
+    },
+    {
+      "name": "--dz-item-status-width",
+      "description": "item status width",
+      "values": []
+    },
+    {
+      "name": "--dz-line-height-normal",
+      "description": "line height normal",
+      "values": []
+    },
+    {
+      "name": "--dz-line-height-tight",
+      "description": "line height tight",
+      "values": []
+    },
+    {
+      "name": "--dz-main-bg",
+      "description": "main bg — the contract input surfaces, text levels and borders derive from",
+      "values": []
+    },
+    {
+      "name": "--dz-minimal-icon-size",
+      "description": "minimal icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-minimal-size",
+      "description": "minimal size",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-action-bg-hover",
+      "description": "overall progress action bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-action-border-radius",
+      "description": "overall progress action border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-action-color",
+      "description": "overall progress action color",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-action-font-size",
+      "description": "overall progress action font size",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-action-font-weight",
+      "description": "overall progress action font weight",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-action-padding",
+      "description": "overall progress action padding",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-bar-height",
+      "description": "overall progress bar height",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-gap",
+      "description": "overall progress gap",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-padding",
+      "description": "overall progress padding",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-percent-color",
+      "description": "overall progress percent color",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-percent-font-weight",
+      "description": "overall progress percent font weight",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-percent-min-width",
+      "description": "overall progress percent min width",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-stats-color",
+      "description": "overall progress stats color",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-stats-font-size",
+      "description": "overall progress stats font size",
+      "values": []
+    },
+    { "name": "--dz-overlay-bg", "description": "overlay bg", "values": [] },
+    {
+      "name": "--dz-overlay-border",
+      "description": "overlay border",
+      "values": []
+    },
+    {
+      "name": "--dz-overlay-border-radius",
+      "description": "overlay border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-overlay-color",
+      "description": "overlay color",
+      "values": []
+    },
+    { "name": "--dz-overlay-gap", "description": "overlay gap", "values": [] },
+    {
+      "name": "--dz-overlay-icon-size",
+      "description": "overlay icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-overlay-text-font-size",
+      "description": "overlay text font size",
+      "values": []
+    },
+    {
+      "name": "--dz-overlay-text-font-weight",
+      "description": "overlay text font weight",
+      "values": []
+    },
+    {
+      "name": "--dz-overlay-z-index",
+      "description": "overlay z index",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-action-bg-hover",
+      "description": "popover action bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-action-border-radius",
+      "description": "popover action border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-action-color",
+      "description": "popover action color",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-action-font-size",
+      "description": "popover action font size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-action-font-weight",
+      "description": "popover action font weight",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-action-padding",
+      "description": "popover action padding",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-actions-gap",
+      "description": "popover actions gap",
+      "values": []
+    },
+    { "name": "--dz-popover-bg", "description": "popover bg", "values": [] },
+    {
+      "name": "--dz-popover-body-padding",
+      "description": "popover body padding",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-border",
+      "description": "popover border",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-border-radius",
+      "description": "popover border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-box-shadow",
+      "description": "popover box shadow",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-cell-padding",
+      "description": "popover cell padding",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-footer-bg",
+      "description": "popover footer bg",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-footer-border-top",
+      "description": "popover footer border top",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-footer-color",
+      "description": "popover footer color",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-footer-font-size",
+      "description": "popover footer font size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-footer-padding",
+      "description": "popover footer padding",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-header-bg",
+      "description": "popover header bg",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-header-border-bottom",
+      "description": "popover header border bottom",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-header-color",
+      "description": "popover header color",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-header-font-size",
+      "description": "popover header font size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-header-font-weight",
+      "description": "popover header font weight",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-header-gap",
+      "description": "popover header gap",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-header-padding",
+      "description": "popover header padding",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-icon-bg",
+      "description": "popover icon bg",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-icon-border-radius",
+      "description": "popover icon border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-icon-font-size",
+      "description": "popover icon font size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-icon-size",
+      "description": "popover icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-limits-color",
+      "description": "popover limits color",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-limits-font-size",
+      "description": "popover limits font size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-limits-line-height",
+      "description": "popover limits line height",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-limits-padding",
+      "description": "popover limits padding",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-max-height",
+      "description": "popover max height",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-max-width",
+      "description": "popover max width",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-min-height",
+      "description": "popover min height",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-min-width",
+      "description": "popover min width",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-remove-bg",
+      "description": "popover remove bg",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-remove-bg-hover",
+      "description": "popover remove bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-remove-color",
+      "description": "popover remove color",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-remove-color-hover",
+      "description": "popover remove color hover",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-remove-icon-size",
+      "description": "popover remove icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-remove-size",
+      "description": "popover remove size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-resize",
+      "description": "popover resize",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-row-hover-bg",
+      "description": "popover row hover bg",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-table-font-size",
+      "description": "popover table font size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-width",
+      "description": "popover width",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-z-index",
+      "description": "popover z index",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-action-bg-hover",
+      "description": "preview action bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-action-button-border-radius",
+      "description": "preview action button border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-action-button-size",
+      "description": "preview action button size",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-action-gap",
+      "description": "preview action gap",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-action-icon-size",
+      "description": "preview action icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-grid-columns",
+      "description": "preview grid columns",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-grid-gap",
+      "description": "preview grid gap",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-item-aspect-ratio",
+      "description": "preview item aspect ratio",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-item-bg",
+      "description": "preview item bg",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-item-border",
+      "description": "preview item border",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-item-border-radius",
+      "description": "preview item border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-item-object-fit",
+      "description": "how the thumbnail fills its tile in the uniform grid (cover | contain; forced to contain in grid-layout=\"natural\")",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-item-size",
+      "description": "in-card grid tile width + height (files-inside); auto = sized to content",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-overlay-bg",
+      "description": "preview overlay bg",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-overlay-color",
+      "description": "preview overlay color",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-overlay-font-size",
+      "description": "preview overlay font size",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-overlay-padding",
+      "description": "preview overlay padding",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-remove-bg",
+      "description": "preview remove bg",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-remove-bg-hover",
+      "description": "preview remove bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-remove-color",
+      "description": "preview remove color",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-remove-icon-size",
+      "description": "preview remove icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-remove-offset",
+      "description": "preview remove offset",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-remove-size",
+      "description": "preview remove size",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-row-height",
+      "description": "row height for grid-layout=\"natural\" (tile widths follow each image ratio)",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-scrim-bg",
+      "description": "preview scrim bg",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-status-overlay-bg",
+      "description": "veil over a finished thumbnail in grid-status=\"overlay\"",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-status-overlay-icon-size",
+      "description": "centred status glyph size in grid-status=\"overlay\"",
+      "values": []
+    },
+    { "name": "--dz-primary-bg", "description": "primary bg", "values": [] },
+    {
+      "name": "--dz-primary-bg-hover",
+      "description": "primary bg hover",
+      "values": []
+    },
+    { "name": "--dz-progress-bg", "description": "progress bg", "values": [] },
+    {
+      "name": "--dz-progress-border-radius",
+      "description": "progress border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-progress-fill-bg",
+      "description": "progress fill bg",
+      "values": []
+    },
+    {
+      "name": "--dz-progress-height",
+      "description": "progress height",
+      "values": []
+    },
+    {
+      "name": "--dz-progress-transition",
+      "description": "progress transition",
+      "values": []
+    },
+    {
+      "name": "--dz-rem",
+      "description": "base sizing unit for proportional scaling (default 10px). Input variable: not declared on :host, read as var(--dz-rem, 10px) so a value on <web-dropzone> or any ancestor reaches every satellite",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-animation-duration",
+      "description": "rolling rotation duration (default --dz-transition-slow)",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-bg",
+      "description": "rolling queue bg",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-bg-hover",
+      "description": "rolling queue bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-border",
+      "description": "rolling queue border",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-border-radius",
+      "description": "rolling queue border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-color",
+      "description": "rolling queue color",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-color-hover",
+      "description": "rolling queue color hover",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-count-bg",
+      "description": "rolling queue count bg",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-count-color",
+      "description": "rolling queue count color",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-font-size",
+      "description": "rolling queue font size",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-offset",
+      "description": "rolling queue offset",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-padding",
+      "description": "rolling queue padding",
+      "values": []
+    },
+    {
+      "name": "--dz-shadow-color",
+      "description": "shadow color — popover, drag indicator, overlay hover",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-bg",
+      "description": "show more bg",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-bg-hover",
+      "description": "show more bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-border",
+      "description": "show more border",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-border-radius",
+      "description": "show more border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-color",
+      "description": "show more color",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-font-size",
+      "description": "show more font size",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-font-weight",
+      "description": "show more font weight",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-margin-top",
+      "description": "show more margin top",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-padding",
+      "description": "show more padding",
+      "values": []
+    },
+    {
+      "name": "--dz-status-icon-size",
+      "description": "status icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-loader-icon",
+      "description": "loader shape, a mask image in currentColor (base: --base-loader-icon)",
+      "values": []
+    },
+    {
+      "name": "--dz-loader-rotate",
+      "description": "loader rotation per cycle, 1turn; 0 = the SVG animates itself (base: --base-loader-rotate)",
+      "values": []
+    },
+    {
+      "name": "--dz-loader-duration",
+      "description": "loader cycle 0.8s; 1.5s under reduced motion (base: --base-loader-duration)",
+      "values": []
+    },
+    {
+      "name": "--dz-loader-size",
+      "description": "indicator-chip upload loader size, 1.25em (base: --base-loader-size)",
+      "values": []
+    },
+    {
+      "name": "--dz-loader-inline-size",
+      "description": "tiny per-row / summary loader (0.75x --dz-loader-size)",
+      "values": []
+    },
+    { "name": "--dz-success-bg", "description": "success bg", "values": [] },
+    {
+      "name": "--dz-success-color",
+      "description": "success color",
+      "values": []
+    },
+    { "name": "--dz-summary-bg", "description": "summary bg", "values": [] },
+    {
+      "name": "--dz-summary-bg-hover",
+      "description": "summary bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-summary-border-radius",
+      "description": "summary border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-summary-color",
+      "description": "summary color",
+      "values": []
+    },
+    {
+      "name": "--dz-summary-font-size",
+      "description": "summary font size",
+      "values": []
+    },
+    {
+      "name": "--dz-summary-padding",
+      "description": "summary padding",
+      "values": []
+    },
+    {
+      "name": "--dz-surface-color",
+      "description": "surface color",
+      "values": []
+    },
+    {
+      "name": "--dz-text-color-1",
+      "description": "text color 1",
+      "values": []
+    },
+    {
+      "name": "--dz-text-color-2",
+      "description": "text color 2",
+      "values": []
+    },
+    {
+      "name": "--dz-text-color-3",
+      "description": "text color 3",
+      "values": []
+    },
+    {
+      "name": "--dz-text-color-4",
+      "description": "text color 4",
+      "values": []
+    },
+    {
+      "name": "--dz-text-on-accent",
+      "description": "text on accent",
+      "values": []
+    },
+    {
+      "name": "--dz-touch-target-min",
+      "description": "minimum tap size of phone-mode controls — the indicator drawer close in the full-screen sheet, 44px (base: --base-touch-target-min)",
+      "values": []
+    },
+    {
+      "name": "--dz-transition-fast",
+      "description": "speed fast 0.1s (base: --base-duration-fast); 0s = motion off",
+      "values": []
+    },
+    {
+      "name": "--dz-transition-medium",
+      "description": "speed medium 0.25s (base: --base-duration-medium); 0s = motion off",
+      "values": []
+    },
+    {
+      "name": "--dz-transition-normal",
+      "description": "speed normal 0.15s (base: --base-duration-normal); 0s = motion off",
+      "values": []
+    },
+    {
+      "name": "--dz-transition-slow",
+      "description": "speed slow 0.3s (base: --base-duration-slow); 0s = motion off",
+      "values": []
+    },
+    {
+      "name": "--dz-uploading-pulse-duration",
+      "description": "uploading-row pulse loop (1.5s; 0s under reduced motion)",
+      "values": []
+    },
+    { "name": "--dz-warning-bg", "description": "warning bg", "values": [] },
+    {
+      "name": "--dz-warning-color",
+      "description": "warning color",
+      "values": []
+    },
+    { "name": "--dz-accent-bg", "description": "accent bg", "values": [] },
+    {
+      "name": "--dz-accent-color",
+      "description": "accent color",
+      "values": []
+    },
+    {
+      "name": "--dz-accent-color-active",
+      "description": "accent color active",
+      "values": []
+    },
+    {
+      "name": "--dz-accent-color-hover",
+      "description": "accent color hover",
+      "values": []
+    },
+    {
+      "name": "--dz-accent-color-light",
+      "description": "accent color light",
+      "values": []
+    },
+    {
+      "name": "--dz-accent-color-light-hover",
+      "description": "accent color light hover",
+      "values": []
+    },
+    { "name": "--dz-background", "description": "background", "values": [] },
+    {
+      "name": "--dz-badge-action-size",
+      "description": "badge action size",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-border-radius",
+      "description": "badge border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-font-size",
+      "description": "badge font size",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-font-weight",
+      "description": "badge font weight",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-height",
+      "description": "badge height",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-icon-bg",
+      "description": "badge icon bg",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-icon-border-radius",
+      "description": "badge icon border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-icon-font-size",
+      "description": "badge icon font size",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-icon-size",
+      "description": "badge icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-max-width",
+      "description": "badge max width",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-more-bg",
+      "description": "badge more bg",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-more-bg-hover",
+      "description": "badge more bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-more-color",
+      "description": "badge more color",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-remove-bg",
+      "description": "badge remove bg",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-remove-bg-hover",
+      "description": "badge remove bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-remove-border",
+      "description": "badge remove border",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-remove-box-shadow-focus",
+      "description": "badge remove box shadow focus",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-remove-color",
+      "description": "badge remove color",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-remove-color-hover",
+      "description": "badge remove color hover",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-remove-icon-size",
+      "description": "badge remove icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-remove-width",
+      "description": "badge remove width",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-status-icon-size",
+      "description": "badge status icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-text-bg",
+      "description": "badge text bg",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-text-bg-hover",
+      "description": "badge text bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-text-border",
+      "description": "badge text border",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-text-color",
+      "description": "badge text color",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-text-color-hover",
+      "description": "badge text color hover",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-text-padding",
+      "description": "badge text padding",
+      "values": []
+    },
+    { "name": "--dz-badges-gap", "description": "badges gap", "values": [] },
+    {
+      "name": "--dz-border-color",
+      "description": "border color",
+      "values": []
+    },
+    {
+      "name": "--dz-border-radius-lg",
+      "description": "border radius lg",
+      "values": []
+    },
+    {
+      "name": "--dz-border-radius-md",
+      "description": "border radius md",
+      "values": []
+    },
+    {
+      "name": "--dz-border-radius-sm",
+      "description": "border radius sm",
+      "values": []
+    },
+    {
+      "name": "--dz-button-badge-border-radius",
+      "description": "button badge border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-button-font-size",
+      "description": "button font size",
+      "values": []
+    },
+    {
+      "name": "--dz-button-padding",
+      "description": "button padding",
+      "values": []
+    },
+    {
+      "name": "--dz-disabled-opacity",
+      "description": "disabled dimming (base: --base-disabled-opacity, 0.65)",
+      "values": []
+    },
+    { "name": "--dz-dropzone-bg", "description": "dropzone bg", "values": [] },
+    {
+      "name": "--dz-dropzone-bg-active",
+      "description": "Drop-target background while dragging over — chains --base-drop-target-bg-active (success 15% light / 30% dark)",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-bg-armed",
+      "description": "Armed drop-target background while files are dragged anywhere over the page (highlight-on-page-drag) — chains --base-drop-target-bg (success 10% light / 20% dark)",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-bg-hover",
+      "description": "dropzone bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-border",
+      "description": "dropzone border",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-border-active",
+      "description": "Drop-target border while dragging over — 2px solid --base-drop-target-border-color (success)",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-border-radius",
+      "description": "dropzone border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-card-big-icon-size",
+      "description": "dropzone card big icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-card-big-min-height",
+      "description": "dropzone card big min height",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-card-big-padding",
+      "description": "dropzone card big padding",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-card-big-text-font-size",
+      "description": "dropzone card big text font size",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-card-minimal-icon-size",
+      "description": "dropzone card minimal icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-card-minimal-min-height",
+      "description": "dropzone card minimal min height",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-card-minimal-padding",
+      "description": "dropzone card minimal padding",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-card-minimal-text-font-size",
+      "description": "dropzone card minimal text font size",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-hint-color",
+      "description": "dropzone hint color",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-hint-font-size",
+      "description": "dropzone hint font size",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-icon-color",
+      "description": "dropzone icon color",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-icon-size",
+      "description": "dropzone icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-min-height",
+      "description": "dropzone min height",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-padding",
+      "description": "dropzone padding",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-text-color",
+      "description": "dropzone text color",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-text-font-size",
+      "description": "dropzone text font size",
+      "values": []
+    },
+    {
+      "name": "--dz-easing-out",
+      "description": "ease-out (base: --base-ease-out) — fade-ins, progress fill",
+      "values": []
+    },
+    {
+      "name": "--dz-easing-snappy",
+      "description": "standard easing (base: --base-ease-standard)",
+      "values": []
+    },
+    { "name": "--dz-empty-color", "description": "empty color", "values": [] },
+    {
+      "name": "--dz-empty-font-size",
+      "description": "empty font size",
+      "values": []
+    },
+    {
+      "name": "--dz-empty-padding",
+      "description": "empty padding",
+      "values": []
+    },
+    { "name": "--dz-error-bg", "description": "error bg", "values": [] },
+    { "name": "--dz-error-color", "description": "error color", "values": [] },
+    {
+      "name": "--dz-file-list-gap",
+      "description": "file list gap",
+      "values": []
+    },
+    {
+      "name": "--dz-file-list-margin-top",
+      "description": "file list margin top",
+      "values": []
+    },
+    {
+      "name": "--dz-file-list-max-height",
+      "description": "inline file-list max height; unset = none (grows with content). Input variable: not declared on :host, read as var(--dz-file-list-max-height, none) so a value on <web-dropzone> reaches the satellite list",
+      "values": []
+    },
+    {
+      "name": "--dz-font-family",
+      "description": "component font family (overrides --base-font-family). Input variable: read as var(--dz-font-family, var(--base-font-family, inherit))",
+      "values": []
+    },
+    {
+      "name": "--dz-font-size-base",
+      "description": "font size base",
+      "values": []
+    },
+    {
+      "name": "--dz-font-size-lg",
+      "description": "font size lg",
+      "values": []
+    },
+    {
+      "name": "--dz-font-size-sm",
+      "description": "font size sm",
+      "values": []
+    },
+    {
+      "name": "--dz-font-size-xs",
+      "description": "font size xs",
+      "values": []
+    },
+    {
+      "name": "--dz-font-weight-medium",
+      "description": "font weight medium",
+      "values": []
+    },
+    {
+      "name": "--dz-font-weight-normal",
+      "description": "font weight normal",
+      "values": []
+    },
+    {
+      "name": "--dz-font-weight-semibold",
+      "description": "font weight semibold",
+      "values": []
+    },
+    { "name": "--dz-hover-bg", "description": "hover bg", "values": [] },
+    { "name": "--dz-icon-remove", "description": "icon remove", "values": [] },
+    {
+      "name": "--dz-item-action-bg",
+      "description": "item action bg",
+      "values": []
+    },
+    {
+      "name": "--dz-item-action-bg-hover",
+      "description": "item action bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-item-action-color",
+      "description": "item action color",
+      "values": []
+    },
+    {
+      "name": "--dz-item-action-color-hover",
+      "description": "item action color hover",
+      "values": []
+    },
+    {
+      "name": "--dz-item-action-icon-size",
+      "description": "item action icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-item-action-size",
+      "description": "item action size",
+      "values": []
+    },
+    { "name": "--dz-item-bg", "description": "item bg", "values": [] },
+    {
+      "name": "--dz-item-bg-hover",
+      "description": "item bg hover",
+      "values": []
+    },
+    { "name": "--dz-item-border", "description": "item border", "values": [] },
+    {
+      "name": "--dz-item-border-radius",
+      "description": "item border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-item-icon-bg",
+      "description": "item icon bg",
+      "values": []
+    },
+    {
+      "name": "--dz-item-icon-color",
+      "description": "item icon color",
+      "values": []
+    },
+    {
+      "name": "--dz-item-icon-font-size",
+      "description": "item icon font size",
+      "values": []
+    },
+    {
+      "name": "--dz-item-icon-size",
+      "description": "item icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-item-meta-color",
+      "description": "item meta color",
+      "values": []
+    },
+    {
+      "name": "--dz-item-meta-font-size",
+      "description": "item meta font size",
+      "values": []
+    },
+    {
+      "name": "--dz-item-name-color",
+      "description": "item name color",
+      "values": []
+    },
+    {
+      "name": "--dz-item-name-font-size",
+      "description": "item name font size",
+      "values": []
+    },
+    {
+      "name": "--dz-item-name-font-weight",
+      "description": "item name font weight",
+      "values": []
+    },
+    {
+      "name": "--dz-item-padding",
+      "description": "item padding",
+      "values": []
+    },
+    {
+      "name": "--dz-item-progress-text-width",
+      "description": "item progress text width",
+      "values": []
+    },
+    {
+      "name": "--dz-item-progress-width",
+      "description": "item progress width",
+      "values": []
+    },
+    {
+      "name": "--dz-item-remove-bg",
+      "description": "item remove bg",
+      "values": []
+    },
+    {
+      "name": "--dz-item-remove-bg-hover",
+      "description": "item remove bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-item-remove-color",
+      "description": "item remove color",
+      "values": []
+    },
+    {
+      "name": "--dz-item-remove-color-hover",
+      "description": "item remove color hover",
+      "values": []
+    },
+    {
+      "name": "--dz-item-remove-icon-size",
+      "description": "item remove icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-item-remove-size",
+      "description": "item remove size",
+      "values": []
+    },
+    {
+      "name": "--dz-item-status-width",
+      "description": "item status width",
+      "values": []
+    },
+    {
+      "name": "--dz-line-height-normal",
+      "description": "line height normal",
+      "values": []
+    },
+    {
+      "name": "--dz-line-height-tight",
+      "description": "line height tight",
+      "values": []
+    },
+    {
+      "name": "--dz-main-bg",
+      "description": "main bg — the contract input surfaces, text levels and borders derive from",
+      "values": []
+    },
+    {
+      "name": "--dz-minimal-icon-size",
+      "description": "minimal icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-minimal-size",
+      "description": "minimal size",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-action-bg-hover",
+      "description": "overall progress action bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-action-border-radius",
+      "description": "overall progress action border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-action-color",
+      "description": "overall progress action color",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-action-font-size",
+      "description": "overall progress action font size",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-action-font-weight",
+      "description": "overall progress action font weight",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-action-padding",
+      "description": "overall progress action padding",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-bar-height",
+      "description": "overall progress bar height",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-gap",
+      "description": "overall progress gap",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-padding",
+      "description": "overall progress padding",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-percent-color",
+      "description": "overall progress percent color",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-percent-font-weight",
+      "description": "overall progress percent font weight",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-percent-min-width",
+      "description": "overall progress percent min width",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-stats-color",
+      "description": "overall progress stats color",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-stats-font-size",
+      "description": "overall progress stats font size",
+      "values": []
+    },
+    { "name": "--dz-overlay-bg", "description": "overlay bg", "values": [] },
+    {
+      "name": "--dz-overlay-border",
+      "description": "overlay border",
+      "values": []
+    },
+    {
+      "name": "--dz-overlay-border-radius",
+      "description": "overlay border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-overlay-color",
+      "description": "overlay color",
+      "values": []
+    },
+    { "name": "--dz-overlay-gap", "description": "overlay gap", "values": [] },
+    {
+      "name": "--dz-overlay-icon-size",
+      "description": "overlay icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-overlay-text-font-size",
+      "description": "overlay text font size",
+      "values": []
+    },
+    {
+      "name": "--dz-overlay-text-font-weight",
+      "description": "overlay text font weight",
+      "values": []
+    },
+    {
+      "name": "--dz-overlay-z-index",
+      "description": "overlay z index",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-action-bg-hover",
+      "description": "popover action bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-action-border-radius",
+      "description": "popover action border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-action-color",
+      "description": "popover action color",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-action-font-size",
+      "description": "popover action font size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-action-font-weight",
+      "description": "popover action font weight",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-action-padding",
+      "description": "popover action padding",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-actions-gap",
+      "description": "popover actions gap",
+      "values": []
+    },
+    { "name": "--dz-popover-bg", "description": "popover bg", "values": [] },
+    {
+      "name": "--dz-popover-body-padding",
+      "description": "popover body padding",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-border",
+      "description": "popover border",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-border-radius",
+      "description": "popover border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-box-shadow",
+      "description": "popover box shadow",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-cell-padding",
+      "description": "popover cell padding",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-footer-bg",
+      "description": "popover footer bg",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-footer-border-top",
+      "description": "popover footer border top",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-footer-color",
+      "description": "popover footer color",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-footer-font-size",
+      "description": "popover footer font size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-footer-padding",
+      "description": "popover footer padding",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-header-bg",
+      "description": "popover header bg",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-header-border-bottom",
+      "description": "popover header border bottom",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-header-color",
+      "description": "popover header color",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-header-font-size",
+      "description": "popover header font size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-header-font-weight",
+      "description": "popover header font weight",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-header-gap",
+      "description": "popover header gap",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-header-padding",
+      "description": "popover header padding",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-icon-bg",
+      "description": "popover icon bg",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-icon-border-radius",
+      "description": "popover icon border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-icon-font-size",
+      "description": "popover icon font size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-icon-size",
+      "description": "popover icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-limits-color",
+      "description": "popover limits color",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-limits-font-size",
+      "description": "popover limits font size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-limits-line-height",
+      "description": "popover limits line height",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-limits-padding",
+      "description": "popover limits padding",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-max-height",
+      "description": "popover max height",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-max-width",
+      "description": "popover max width",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-min-height",
+      "description": "popover min height",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-min-width",
+      "description": "popover min width",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-remove-bg",
+      "description": "popover remove bg",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-remove-bg-hover",
+      "description": "popover remove bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-remove-color",
+      "description": "popover remove color",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-remove-color-hover",
+      "description": "popover remove color hover",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-remove-icon-size",
+      "description": "popover remove icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-remove-size",
+      "description": "popover remove size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-resize",
+      "description": "popover resize",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-row-hover-bg",
+      "description": "popover row hover bg",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-table-font-size",
+      "description": "popover table font size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-width",
+      "description": "popover width",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-z-index",
+      "description": "popover z index",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-action-bg-hover",
+      "description": "preview action bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-action-button-border-radius",
+      "description": "preview action button border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-action-button-size",
+      "description": "preview action button size",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-action-gap",
+      "description": "preview action gap",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-action-icon-size",
+      "description": "preview action icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-grid-columns",
+      "description": "preview grid columns",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-grid-gap",
+      "description": "preview grid gap",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-item-aspect-ratio",
+      "description": "preview item aspect ratio",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-item-bg",
+      "description": "preview item bg",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-item-border",
+      "description": "preview item border",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-item-border-radius",
+      "description": "preview item border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-item-object-fit",
+      "description": "how the thumbnail fills its tile in the uniform grid (cover | contain; forced to contain in grid-layout=\"natural\")",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-item-size",
+      "description": "in-card grid tile width + height (files-inside); auto = sized to content",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-overlay-bg",
+      "description": "preview overlay bg",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-overlay-color",
+      "description": "preview overlay color",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-overlay-font-size",
+      "description": "preview overlay font size",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-overlay-padding",
+      "description": "preview overlay padding",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-remove-bg",
+      "description": "preview remove bg",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-remove-bg-hover",
+      "description": "preview remove bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-remove-color",
+      "description": "preview remove color",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-remove-icon-size",
+      "description": "preview remove icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-remove-offset",
+      "description": "preview remove offset",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-remove-size",
+      "description": "preview remove size",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-row-height",
+      "description": "row height for grid-layout=\"natural\" (tile widths follow each image ratio)",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-scrim-bg",
+      "description": "preview scrim bg",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-status-overlay-bg",
+      "description": "veil over a finished thumbnail in grid-status=\"overlay\"",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-status-overlay-icon-size",
+      "description": "centred status glyph size in grid-status=\"overlay\"",
+      "values": []
+    },
+    { "name": "--dz-primary-bg", "description": "primary bg", "values": [] },
+    {
+      "name": "--dz-primary-bg-hover",
+      "description": "primary bg hover",
+      "values": []
+    },
+    { "name": "--dz-progress-bg", "description": "progress bg", "values": [] },
+    {
+      "name": "--dz-progress-border-radius",
+      "description": "progress border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-progress-fill-bg",
+      "description": "progress fill bg",
+      "values": []
+    },
+    {
+      "name": "--dz-progress-height",
+      "description": "progress height",
+      "values": []
+    },
+    {
+      "name": "--dz-progress-transition",
+      "description": "progress transition",
+      "values": []
+    },
+    {
+      "name": "--dz-rem",
+      "description": "base sizing unit for proportional scaling (default 10px). Input variable: not declared on :host, read as var(--dz-rem, 10px) so a value on <web-dropzone> or any ancestor reaches every satellite",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-animation-duration",
+      "description": "rolling rotation duration (default --dz-transition-slow)",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-bg",
+      "description": "rolling queue bg",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-bg-hover",
+      "description": "rolling queue bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-border",
+      "description": "rolling queue border",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-border-radius",
+      "description": "rolling queue border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-color",
+      "description": "rolling queue color",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-color-hover",
+      "description": "rolling queue color hover",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-count-bg",
+      "description": "rolling queue count bg",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-count-color",
+      "description": "rolling queue count color",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-font-size",
+      "description": "rolling queue font size",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-offset",
+      "description": "rolling queue offset",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-padding",
+      "description": "rolling queue padding",
+      "values": []
+    },
+    {
+      "name": "--dz-shadow-color",
+      "description": "shadow color — popover, drag indicator, overlay hover",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-bg",
+      "description": "show more bg",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-bg-hover",
+      "description": "show more bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-border",
+      "description": "show more border",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-border-radius",
+      "description": "show more border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-color",
+      "description": "show more color",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-font-size",
+      "description": "show more font size",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-font-weight",
+      "description": "show more font weight",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-margin-top",
+      "description": "show more margin top",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-padding",
+      "description": "show more padding",
+      "values": []
+    },
+    {
+      "name": "--dz-status-icon-size",
+      "description": "status icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-loader-icon",
+      "description": "loader shape, a mask image in currentColor (base: --base-loader-icon)",
+      "values": []
+    },
+    {
+      "name": "--dz-loader-rotate",
+      "description": "loader rotation per cycle, 1turn; 0 = the SVG animates itself (base: --base-loader-rotate)",
+      "values": []
+    },
+    {
+      "name": "--dz-loader-duration",
+      "description": "loader cycle 0.8s; 1.5s under reduced motion (base: --base-loader-duration)",
+      "values": []
+    },
+    {
+      "name": "--dz-loader-size",
+      "description": "indicator-chip upload loader size, 1.25em (base: --base-loader-size)",
+      "values": []
+    },
+    {
+      "name": "--dz-loader-inline-size",
+      "description": "tiny per-row / summary loader (0.75x --dz-loader-size)",
+      "values": []
+    },
+    { "name": "--dz-success-bg", "description": "success bg", "values": [] },
+    {
+      "name": "--dz-success-color",
+      "description": "success color",
+      "values": []
+    },
+    { "name": "--dz-summary-bg", "description": "summary bg", "values": [] },
+    {
+      "name": "--dz-summary-bg-hover",
+      "description": "summary bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-summary-border-radius",
+      "description": "summary border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-summary-color",
+      "description": "summary color",
+      "values": []
+    },
+    {
+      "name": "--dz-summary-font-size",
+      "description": "summary font size",
+      "values": []
+    },
+    {
+      "name": "--dz-summary-padding",
+      "description": "summary padding",
+      "values": []
+    },
+    {
+      "name": "--dz-surface-color",
+      "description": "surface color",
+      "values": []
+    },
+    {
+      "name": "--dz-text-color-1",
+      "description": "text color 1",
+      "values": []
+    },
+    {
+      "name": "--dz-text-color-2",
+      "description": "text color 2",
+      "values": []
+    },
+    {
+      "name": "--dz-text-color-3",
+      "description": "text color 3",
+      "values": []
+    },
+    {
+      "name": "--dz-text-color-4",
+      "description": "text color 4",
+      "values": []
+    },
+    {
+      "name": "--dz-text-on-accent",
+      "description": "text on accent",
+      "values": []
+    },
+    {
+      "name": "--dz-touch-target-min",
+      "description": "minimum tap size of phone-mode controls — the indicator drawer close in the full-screen sheet, 44px (base: --base-touch-target-min)",
+      "values": []
+    },
+    {
+      "name": "--dz-transition-fast",
+      "description": "speed fast 0.1s (base: --base-duration-fast); 0s = motion off",
+      "values": []
+    },
+    {
+      "name": "--dz-transition-medium",
+      "description": "speed medium 0.25s (base: --base-duration-medium); 0s = motion off",
+      "values": []
+    },
+    {
+      "name": "--dz-transition-normal",
+      "description": "speed normal 0.15s (base: --base-duration-normal); 0s = motion off",
+      "values": []
+    },
+    {
+      "name": "--dz-transition-slow",
+      "description": "speed slow 0.3s (base: --base-duration-slow); 0s = motion off",
+      "values": []
+    },
+    {
+      "name": "--dz-uploading-pulse-duration",
+      "description": "uploading-row pulse loop (1.5s; 0s under reduced motion)",
+      "values": []
+    },
+    { "name": "--dz-warning-bg", "description": "warning bg", "values": [] },
+    {
+      "name": "--dz-warning-color",
+      "description": "warning color",
+      "values": []
+    },
+    { "name": "--dz-accent-bg", "description": "accent bg", "values": [] },
+    {
+      "name": "--dz-accent-color",
+      "description": "accent color",
+      "values": []
+    },
+    {
+      "name": "--dz-accent-color-active",
+      "description": "accent color active",
+      "values": []
+    },
+    {
+      "name": "--dz-accent-color-hover",
+      "description": "accent color hover",
+      "values": []
+    },
+    {
+      "name": "--dz-accent-color-light",
+      "description": "accent color light",
+      "values": []
+    },
+    {
+      "name": "--dz-accent-color-light-hover",
+      "description": "accent color light hover",
+      "values": []
+    },
+    { "name": "--dz-background", "description": "background", "values": [] },
+    {
+      "name": "--dz-badge-action-size",
+      "description": "badge action size",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-border-radius",
+      "description": "badge border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-font-size",
+      "description": "badge font size",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-font-weight",
+      "description": "badge font weight",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-height",
+      "description": "badge height",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-icon-bg",
+      "description": "badge icon bg",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-icon-border-radius",
+      "description": "badge icon border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-icon-font-size",
+      "description": "badge icon font size",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-icon-size",
+      "description": "badge icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-max-width",
+      "description": "badge max width",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-more-bg",
+      "description": "badge more bg",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-more-bg-hover",
+      "description": "badge more bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-more-color",
+      "description": "badge more color",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-remove-bg",
+      "description": "badge remove bg",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-remove-bg-hover",
+      "description": "badge remove bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-remove-border",
+      "description": "badge remove border",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-remove-box-shadow-focus",
+      "description": "badge remove box shadow focus",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-remove-color",
+      "description": "badge remove color",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-remove-color-hover",
+      "description": "badge remove color hover",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-remove-icon-size",
+      "description": "badge remove icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-remove-width",
+      "description": "badge remove width",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-status-icon-size",
+      "description": "badge status icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-text-bg",
+      "description": "badge text bg",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-text-bg-hover",
+      "description": "badge text bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-text-border",
+      "description": "badge text border",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-text-color",
+      "description": "badge text color",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-text-color-hover",
+      "description": "badge text color hover",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-text-padding",
+      "description": "badge text padding",
+      "values": []
+    },
+    { "name": "--dz-badges-gap", "description": "badges gap", "values": [] },
+    {
+      "name": "--dz-border-color",
+      "description": "border color",
+      "values": []
+    },
+    {
+      "name": "--dz-border-radius-lg",
+      "description": "border radius lg",
+      "values": []
+    },
+    {
+      "name": "--dz-border-radius-md",
+      "description": "border radius md",
+      "values": []
+    },
+    {
+      "name": "--dz-border-radius-sm",
+      "description": "border radius sm",
+      "values": []
+    },
+    {
+      "name": "--dz-button-badge-border-radius",
+      "description": "button badge border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-button-font-size",
+      "description": "button font size",
+      "values": []
+    },
+    {
+      "name": "--dz-button-padding",
+      "description": "button padding",
+      "values": []
+    },
+    {
+      "name": "--dz-disabled-opacity",
+      "description": "disabled dimming (base: --base-disabled-opacity, 0.65)",
+      "values": []
+    },
+    { "name": "--dz-dropzone-bg", "description": "dropzone bg", "values": [] },
+    {
+      "name": "--dz-dropzone-bg-active",
+      "description": "Drop-target background while dragging over — chains --base-drop-target-bg-active (success 15% light / 30% dark)",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-bg-armed",
+      "description": "Armed drop-target background while files are dragged anywhere over the page (highlight-on-page-drag) — chains --base-drop-target-bg (success 10% light / 20% dark)",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-bg-hover",
+      "description": "dropzone bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-border",
+      "description": "dropzone border",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-border-active",
+      "description": "Drop-target border while dragging over — 2px solid --base-drop-target-border-color (success)",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-border-radius",
+      "description": "dropzone border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-card-big-icon-size",
+      "description": "dropzone card big icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-card-big-min-height",
+      "description": "dropzone card big min height",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-card-big-padding",
+      "description": "dropzone card big padding",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-card-big-text-font-size",
+      "description": "dropzone card big text font size",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-card-minimal-icon-size",
+      "description": "dropzone card minimal icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-card-minimal-min-height",
+      "description": "dropzone card minimal min height",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-card-minimal-padding",
+      "description": "dropzone card minimal padding",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-card-minimal-text-font-size",
+      "description": "dropzone card minimal text font size",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-hint-color",
+      "description": "dropzone hint color",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-hint-font-size",
+      "description": "dropzone hint font size",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-icon-color",
+      "description": "dropzone icon color",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-icon-size",
+      "description": "dropzone icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-min-height",
+      "description": "dropzone min height",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-padding",
+      "description": "dropzone padding",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-text-color",
+      "description": "dropzone text color",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-text-font-size",
+      "description": "dropzone text font size",
+      "values": []
+    },
+    {
+      "name": "--dz-easing-out",
+      "description": "ease-out (base: --base-ease-out) — fade-ins, progress fill",
+      "values": []
+    },
+    {
+      "name": "--dz-easing-snappy",
+      "description": "standard easing (base: --base-ease-standard)",
+      "values": []
+    },
+    { "name": "--dz-empty-color", "description": "empty color", "values": [] },
+    {
+      "name": "--dz-empty-font-size",
+      "description": "empty font size",
+      "values": []
+    },
+    {
+      "name": "--dz-empty-padding",
+      "description": "empty padding",
+      "values": []
+    },
+    { "name": "--dz-error-bg", "description": "error bg", "values": [] },
+    { "name": "--dz-error-color", "description": "error color", "values": [] },
+    {
+      "name": "--dz-file-list-gap",
+      "description": "file list gap",
+      "values": []
+    },
+    {
+      "name": "--dz-file-list-margin-top",
+      "description": "file list margin top",
+      "values": []
+    },
+    {
+      "name": "--dz-file-list-max-height",
+      "description": "inline file-list max height; unset = none (grows with content). Input variable: not declared on :host, read as var(--dz-file-list-max-height, none) so a value on <web-dropzone> reaches the satellite list",
+      "values": []
+    },
+    {
+      "name": "--dz-font-family",
+      "description": "component font family (overrides --base-font-family). Input variable: read as var(--dz-font-family, var(--base-font-family, inherit))",
+      "values": []
+    },
+    {
+      "name": "--dz-font-size-base",
+      "description": "font size base",
+      "values": []
+    },
+    {
+      "name": "--dz-font-size-lg",
+      "description": "font size lg",
+      "values": []
+    },
+    {
+      "name": "--dz-font-size-sm",
+      "description": "font size sm",
+      "values": []
+    },
+    {
+      "name": "--dz-font-size-xs",
+      "description": "font size xs",
+      "values": []
+    },
+    {
+      "name": "--dz-font-weight-medium",
+      "description": "font weight medium",
+      "values": []
+    },
+    {
+      "name": "--dz-font-weight-normal",
+      "description": "font weight normal",
+      "values": []
+    },
+    {
+      "name": "--dz-font-weight-semibold",
+      "description": "font weight semibold",
+      "values": []
+    },
+    { "name": "--dz-hover-bg", "description": "hover bg", "values": [] },
+    { "name": "--dz-icon-remove", "description": "icon remove", "values": [] },
+    {
+      "name": "--dz-item-action-bg",
+      "description": "item action bg",
+      "values": []
+    },
+    {
+      "name": "--dz-item-action-bg-hover",
+      "description": "item action bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-item-action-color",
+      "description": "item action color",
+      "values": []
+    },
+    {
+      "name": "--dz-item-action-color-hover",
+      "description": "item action color hover",
+      "values": []
+    },
+    {
+      "name": "--dz-item-action-icon-size",
+      "description": "item action icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-item-action-size",
+      "description": "item action size",
+      "values": []
+    },
+    { "name": "--dz-item-bg", "description": "item bg", "values": [] },
+    {
+      "name": "--dz-item-bg-hover",
+      "description": "item bg hover",
+      "values": []
+    },
+    { "name": "--dz-item-border", "description": "item border", "values": [] },
+    {
+      "name": "--dz-item-border-radius",
+      "description": "item border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-item-icon-bg",
+      "description": "item icon bg",
+      "values": []
+    },
+    {
+      "name": "--dz-item-icon-color",
+      "description": "item icon color",
+      "values": []
+    },
+    {
+      "name": "--dz-item-icon-font-size",
+      "description": "item icon font size",
+      "values": []
+    },
+    {
+      "name": "--dz-item-icon-size",
+      "description": "item icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-item-meta-color",
+      "description": "item meta color",
+      "values": []
+    },
+    {
+      "name": "--dz-item-meta-font-size",
+      "description": "item meta font size",
+      "values": []
+    },
+    {
+      "name": "--dz-item-name-color",
+      "description": "item name color",
+      "values": []
+    },
+    {
+      "name": "--dz-item-name-font-size",
+      "description": "item name font size",
+      "values": []
+    },
+    {
+      "name": "--dz-item-name-font-weight",
+      "description": "item name font weight",
+      "values": []
+    },
+    {
+      "name": "--dz-item-padding",
+      "description": "item padding",
+      "values": []
+    },
+    {
+      "name": "--dz-item-progress-text-width",
+      "description": "item progress text width",
+      "values": []
+    },
+    {
+      "name": "--dz-item-progress-width",
+      "description": "item progress width",
+      "values": []
+    },
+    {
+      "name": "--dz-item-remove-bg",
+      "description": "item remove bg",
+      "values": []
+    },
+    {
+      "name": "--dz-item-remove-bg-hover",
+      "description": "item remove bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-item-remove-color",
+      "description": "item remove color",
+      "values": []
+    },
+    {
+      "name": "--dz-item-remove-color-hover",
+      "description": "item remove color hover",
+      "values": []
+    },
+    {
+      "name": "--dz-item-remove-icon-size",
+      "description": "item remove icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-item-remove-size",
+      "description": "item remove size",
+      "values": []
+    },
+    {
+      "name": "--dz-item-status-width",
+      "description": "item status width",
+      "values": []
+    },
+    {
+      "name": "--dz-line-height-normal",
+      "description": "line height normal",
+      "values": []
+    },
+    {
+      "name": "--dz-line-height-tight",
+      "description": "line height tight",
+      "values": []
+    },
+    {
+      "name": "--dz-main-bg",
+      "description": "main bg — the contract input surfaces, text levels and borders derive from",
+      "values": []
+    },
+    {
+      "name": "--dz-minimal-icon-size",
+      "description": "minimal icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-minimal-size",
+      "description": "minimal size",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-action-bg-hover",
+      "description": "overall progress action bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-action-border-radius",
+      "description": "overall progress action border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-action-color",
+      "description": "overall progress action color",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-action-font-size",
+      "description": "overall progress action font size",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-action-font-weight",
+      "description": "overall progress action font weight",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-action-padding",
+      "description": "overall progress action padding",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-bar-height",
+      "description": "overall progress bar height",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-gap",
+      "description": "overall progress gap",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-padding",
+      "description": "overall progress padding",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-percent-color",
+      "description": "overall progress percent color",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-percent-font-weight",
+      "description": "overall progress percent font weight",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-percent-min-width",
+      "description": "overall progress percent min width",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-stats-color",
+      "description": "overall progress stats color",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-stats-font-size",
+      "description": "overall progress stats font size",
+      "values": []
+    },
+    { "name": "--dz-overlay-bg", "description": "overlay bg", "values": [] },
+    {
+      "name": "--dz-overlay-border",
+      "description": "overlay border",
+      "values": []
+    },
+    {
+      "name": "--dz-overlay-border-radius",
+      "description": "overlay border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-overlay-color",
+      "description": "overlay color",
+      "values": []
+    },
+    { "name": "--dz-overlay-gap", "description": "overlay gap", "values": [] },
+    {
+      "name": "--dz-overlay-icon-size",
+      "description": "overlay icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-overlay-text-font-size",
+      "description": "overlay text font size",
+      "values": []
+    },
+    {
+      "name": "--dz-overlay-text-font-weight",
+      "description": "overlay text font weight",
+      "values": []
+    },
+    {
+      "name": "--dz-overlay-z-index",
+      "description": "overlay z index",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-action-bg-hover",
+      "description": "popover action bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-action-border-radius",
+      "description": "popover action border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-action-color",
+      "description": "popover action color",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-action-font-size",
+      "description": "popover action font size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-action-font-weight",
+      "description": "popover action font weight",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-action-padding",
+      "description": "popover action padding",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-actions-gap",
+      "description": "popover actions gap",
+      "values": []
+    },
+    { "name": "--dz-popover-bg", "description": "popover bg", "values": [] },
+    {
+      "name": "--dz-popover-body-padding",
+      "description": "popover body padding",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-border",
+      "description": "popover border",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-border-radius",
+      "description": "popover border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-box-shadow",
+      "description": "popover box shadow",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-cell-padding",
+      "description": "popover cell padding",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-footer-bg",
+      "description": "popover footer bg",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-footer-border-top",
+      "description": "popover footer border top",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-footer-color",
+      "description": "popover footer color",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-footer-font-size",
+      "description": "popover footer font size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-footer-padding",
+      "description": "popover footer padding",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-header-bg",
+      "description": "popover header bg",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-header-border-bottom",
+      "description": "popover header border bottom",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-header-color",
+      "description": "popover header color",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-header-font-size",
+      "description": "popover header font size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-header-font-weight",
+      "description": "popover header font weight",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-header-gap",
+      "description": "popover header gap",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-header-padding",
+      "description": "popover header padding",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-icon-bg",
+      "description": "popover icon bg",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-icon-border-radius",
+      "description": "popover icon border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-icon-font-size",
+      "description": "popover icon font size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-icon-size",
+      "description": "popover icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-limits-color",
+      "description": "popover limits color",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-limits-font-size",
+      "description": "popover limits font size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-limits-line-height",
+      "description": "popover limits line height",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-limits-padding",
+      "description": "popover limits padding",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-max-height",
+      "description": "popover max height",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-max-width",
+      "description": "popover max width",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-min-height",
+      "description": "popover min height",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-min-width",
+      "description": "popover min width",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-remove-bg",
+      "description": "popover remove bg",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-remove-bg-hover",
+      "description": "popover remove bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-remove-color",
+      "description": "popover remove color",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-remove-color-hover",
+      "description": "popover remove color hover",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-remove-icon-size",
+      "description": "popover remove icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-remove-size",
+      "description": "popover remove size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-resize",
+      "description": "popover resize",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-row-hover-bg",
+      "description": "popover row hover bg",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-table-font-size",
+      "description": "popover table font size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-width",
+      "description": "popover width",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-z-index",
+      "description": "popover z index",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-action-bg-hover",
+      "description": "preview action bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-action-button-border-radius",
+      "description": "preview action button border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-action-button-size",
+      "description": "preview action button size",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-action-gap",
+      "description": "preview action gap",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-action-icon-size",
+      "description": "preview action icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-grid-columns",
+      "description": "preview grid columns",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-grid-gap",
+      "description": "preview grid gap",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-item-aspect-ratio",
+      "description": "preview item aspect ratio",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-item-bg",
+      "description": "preview item bg",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-item-border",
+      "description": "preview item border",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-item-border-radius",
+      "description": "preview item border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-item-object-fit",
+      "description": "how the thumbnail fills its tile in the uniform grid (cover | contain; forced to contain in grid-layout=\"natural\")",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-item-size",
+      "description": "in-card grid tile width + height (files-inside); auto = sized to content",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-overlay-bg",
+      "description": "preview overlay bg",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-overlay-color",
+      "description": "preview overlay color",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-overlay-font-size",
+      "description": "preview overlay font size",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-overlay-padding",
+      "description": "preview overlay padding",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-remove-bg",
+      "description": "preview remove bg",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-remove-bg-hover",
+      "description": "preview remove bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-remove-color",
+      "description": "preview remove color",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-remove-icon-size",
+      "description": "preview remove icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-remove-offset",
+      "description": "preview remove offset",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-remove-size",
+      "description": "preview remove size",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-row-height",
+      "description": "row height for grid-layout=\"natural\" (tile widths follow each image ratio)",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-scrim-bg",
+      "description": "preview scrim bg",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-status-overlay-bg",
+      "description": "veil over a finished thumbnail in grid-status=\"overlay\"",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-status-overlay-icon-size",
+      "description": "centred status glyph size in grid-status=\"overlay\"",
+      "values": []
+    },
+    { "name": "--dz-primary-bg", "description": "primary bg", "values": [] },
+    {
+      "name": "--dz-primary-bg-hover",
+      "description": "primary bg hover",
+      "values": []
+    },
+    { "name": "--dz-progress-bg", "description": "progress bg", "values": [] },
+    {
+      "name": "--dz-progress-border-radius",
+      "description": "progress border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-progress-fill-bg",
+      "description": "progress fill bg",
+      "values": []
+    },
+    {
+      "name": "--dz-progress-height",
+      "description": "progress height",
+      "values": []
+    },
+    {
+      "name": "--dz-progress-transition",
+      "description": "progress transition",
+      "values": []
+    },
+    {
+      "name": "--dz-rem",
+      "description": "base sizing unit for proportional scaling (default 10px). Input variable: not declared on :host, read as var(--dz-rem, 10px) so a value on <web-dropzone> or any ancestor reaches every satellite",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-animation-duration",
+      "description": "rolling rotation duration (default --dz-transition-slow)",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-bg",
+      "description": "rolling queue bg",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-bg-hover",
+      "description": "rolling queue bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-border",
+      "description": "rolling queue border",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-border-radius",
+      "description": "rolling queue border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-color",
+      "description": "rolling queue color",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-color-hover",
+      "description": "rolling queue color hover",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-count-bg",
+      "description": "rolling queue count bg",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-count-color",
+      "description": "rolling queue count color",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-font-size",
+      "description": "rolling queue font size",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-offset",
+      "description": "rolling queue offset",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-padding",
+      "description": "rolling queue padding",
+      "values": []
+    },
+    {
+      "name": "--dz-shadow-color",
+      "description": "shadow color — popover, drag indicator, overlay hover",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-bg",
+      "description": "show more bg",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-bg-hover",
+      "description": "show more bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-border",
+      "description": "show more border",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-border-radius",
+      "description": "show more border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-color",
+      "description": "show more color",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-font-size",
+      "description": "show more font size",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-font-weight",
+      "description": "show more font weight",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-margin-top",
+      "description": "show more margin top",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-padding",
+      "description": "show more padding",
+      "values": []
+    },
+    {
+      "name": "--dz-status-icon-size",
+      "description": "status icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-loader-icon",
+      "description": "loader shape, a mask image in currentColor (base: --base-loader-icon)",
+      "values": []
+    },
+    {
+      "name": "--dz-loader-rotate",
+      "description": "loader rotation per cycle, 1turn; 0 = the SVG animates itself (base: --base-loader-rotate)",
+      "values": []
+    },
+    {
+      "name": "--dz-loader-duration",
+      "description": "loader cycle 0.8s; 1.5s under reduced motion (base: --base-loader-duration)",
+      "values": []
+    },
+    {
+      "name": "--dz-loader-size",
+      "description": "indicator-chip upload loader size, 1.25em (base: --base-loader-size)",
+      "values": []
+    },
+    {
+      "name": "--dz-loader-inline-size",
+      "description": "tiny per-row / summary loader (0.75x --dz-loader-size)",
+      "values": []
+    },
+    { "name": "--dz-success-bg", "description": "success bg", "values": [] },
+    {
+      "name": "--dz-success-color",
+      "description": "success color",
+      "values": []
+    },
+    { "name": "--dz-summary-bg", "description": "summary bg", "values": [] },
+    {
+      "name": "--dz-summary-bg-hover",
+      "description": "summary bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-summary-border-radius",
+      "description": "summary border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-summary-color",
+      "description": "summary color",
+      "values": []
+    },
+    {
+      "name": "--dz-summary-font-size",
+      "description": "summary font size",
+      "values": []
+    },
+    {
+      "name": "--dz-summary-padding",
+      "description": "summary padding",
+      "values": []
+    },
+    {
+      "name": "--dz-surface-color",
+      "description": "surface color",
+      "values": []
+    },
+    {
+      "name": "--dz-text-color-1",
+      "description": "text color 1",
+      "values": []
+    },
+    {
+      "name": "--dz-text-color-2",
+      "description": "text color 2",
+      "values": []
+    },
+    {
+      "name": "--dz-text-color-3",
+      "description": "text color 3",
+      "values": []
+    },
+    {
+      "name": "--dz-text-color-4",
+      "description": "text color 4",
+      "values": []
+    },
+    {
+      "name": "--dz-text-on-accent",
+      "description": "text on accent",
+      "values": []
+    },
+    {
+      "name": "--dz-touch-target-min",
+      "description": "minimum tap size of phone-mode controls — the indicator drawer close in the full-screen sheet, 44px (base: --base-touch-target-min)",
+      "values": []
+    },
+    {
+      "name": "--dz-transition-fast",
+      "description": "speed fast 0.1s (base: --base-duration-fast); 0s = motion off",
+      "values": []
+    },
+    {
+      "name": "--dz-transition-medium",
+      "description": "speed medium 0.25s (base: --base-duration-medium); 0s = motion off",
+      "values": []
+    },
+    {
+      "name": "--dz-transition-normal",
+      "description": "speed normal 0.15s (base: --base-duration-normal); 0s = motion off",
+      "values": []
+    },
+    {
+      "name": "--dz-transition-slow",
+      "description": "speed slow 0.3s (base: --base-duration-slow); 0s = motion off",
+      "values": []
+    },
+    {
+      "name": "--dz-uploading-pulse-duration",
+      "description": "uploading-row pulse loop (1.5s; 0s under reduced motion)",
+      "values": []
+    },
+    { "name": "--dz-warning-bg", "description": "warning bg", "values": [] },
+    {
+      "name": "--dz-warning-color",
+      "description": "warning color",
+      "values": []
+    },
+    { "name": "--dz-accent-bg", "description": "accent bg", "values": [] },
+    {
+      "name": "--dz-accent-color",
+      "description": "accent color",
+      "values": []
+    },
+    {
+      "name": "--dz-accent-color-active",
+      "description": "accent color active",
+      "values": []
+    },
+    {
+      "name": "--dz-accent-color-hover",
+      "description": "accent color hover",
+      "values": []
+    },
+    {
+      "name": "--dz-accent-color-light",
+      "description": "accent color light",
+      "values": []
+    },
+    {
+      "name": "--dz-accent-color-light-hover",
+      "description": "accent color light hover",
+      "values": []
+    },
+    { "name": "--dz-background", "description": "background", "values": [] },
+    {
+      "name": "--dz-badge-action-size",
+      "description": "badge action size",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-border-radius",
+      "description": "badge border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-font-size",
+      "description": "badge font size",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-font-weight",
+      "description": "badge font weight",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-height",
+      "description": "badge height",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-icon-bg",
+      "description": "badge icon bg",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-icon-border-radius",
+      "description": "badge icon border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-icon-font-size",
+      "description": "badge icon font size",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-icon-size",
+      "description": "badge icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-max-width",
+      "description": "badge max width",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-more-bg",
+      "description": "badge more bg",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-more-bg-hover",
+      "description": "badge more bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-more-color",
+      "description": "badge more color",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-remove-bg",
+      "description": "badge remove bg",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-remove-bg-hover",
+      "description": "badge remove bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-remove-border",
+      "description": "badge remove border",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-remove-box-shadow-focus",
+      "description": "badge remove box shadow focus",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-remove-color",
+      "description": "badge remove color",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-remove-color-hover",
+      "description": "badge remove color hover",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-remove-icon-size",
+      "description": "badge remove icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-remove-width",
+      "description": "badge remove width",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-status-icon-size",
+      "description": "badge status icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-text-bg",
+      "description": "badge text bg",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-text-bg-hover",
+      "description": "badge text bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-text-border",
+      "description": "badge text border",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-text-color",
+      "description": "badge text color",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-text-color-hover",
+      "description": "badge text color hover",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-text-padding",
+      "description": "badge text padding",
+      "values": []
+    },
+    { "name": "--dz-badges-gap", "description": "badges gap", "values": [] },
+    {
+      "name": "--dz-border-color",
+      "description": "border color",
+      "values": []
+    },
+    {
+      "name": "--dz-border-radius-lg",
+      "description": "border radius lg",
+      "values": []
+    },
+    {
+      "name": "--dz-border-radius-md",
+      "description": "border radius md",
+      "values": []
+    },
+    {
+      "name": "--dz-border-radius-sm",
+      "description": "border radius sm",
+      "values": []
+    },
+    {
+      "name": "--dz-button-badge-border-radius",
+      "description": "button badge border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-button-font-size",
+      "description": "button font size",
+      "values": []
+    },
+    {
+      "name": "--dz-button-padding",
+      "description": "button padding",
+      "values": []
+    },
+    {
+      "name": "--dz-disabled-opacity",
+      "description": "disabled dimming (base: --base-disabled-opacity, 0.65)",
+      "values": []
+    },
+    { "name": "--dz-dropzone-bg", "description": "dropzone bg", "values": [] },
+    {
+      "name": "--dz-dropzone-bg-active",
+      "description": "Drop-target background while dragging over — chains --base-drop-target-bg-active (success 15% light / 30% dark)",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-bg-armed",
+      "description": "Armed drop-target background while files are dragged anywhere over the page (highlight-on-page-drag) — chains --base-drop-target-bg (success 10% light / 20% dark)",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-bg-hover",
+      "description": "dropzone bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-border",
+      "description": "dropzone border",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-border-active",
+      "description": "Drop-target border while dragging over — 2px solid --base-drop-target-border-color (success)",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-border-radius",
+      "description": "dropzone border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-card-big-icon-size",
+      "description": "dropzone card big icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-card-big-min-height",
+      "description": "dropzone card big min height",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-card-big-padding",
+      "description": "dropzone card big padding",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-card-big-text-font-size",
+      "description": "dropzone card big text font size",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-card-minimal-icon-size",
+      "description": "dropzone card minimal icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-card-minimal-min-height",
+      "description": "dropzone card minimal min height",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-card-minimal-padding",
+      "description": "dropzone card minimal padding",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-card-minimal-text-font-size",
+      "description": "dropzone card minimal text font size",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-hint-color",
+      "description": "dropzone hint color",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-hint-font-size",
+      "description": "dropzone hint font size",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-icon-color",
+      "description": "dropzone icon color",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-icon-size",
+      "description": "dropzone icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-min-height",
+      "description": "dropzone min height",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-padding",
+      "description": "dropzone padding",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-text-color",
+      "description": "dropzone text color",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-text-font-size",
+      "description": "dropzone text font size",
+      "values": []
+    },
+    {
+      "name": "--dz-easing-out",
+      "description": "ease-out (base: --base-ease-out) — fade-ins, progress fill",
+      "values": []
+    },
+    {
+      "name": "--dz-easing-snappy",
+      "description": "standard easing (base: --base-ease-standard)",
+      "values": []
+    },
+    { "name": "--dz-empty-color", "description": "empty color", "values": [] },
+    {
+      "name": "--dz-empty-font-size",
+      "description": "empty font size",
+      "values": []
+    },
+    {
+      "name": "--dz-empty-padding",
+      "description": "empty padding",
+      "values": []
+    },
+    { "name": "--dz-error-bg", "description": "error bg", "values": [] },
+    { "name": "--dz-error-color", "description": "error color", "values": [] },
+    {
+      "name": "--dz-file-list-gap",
+      "description": "file list gap",
+      "values": []
+    },
+    {
+      "name": "--dz-file-list-margin-top",
+      "description": "file list margin top",
+      "values": []
+    },
+    {
+      "name": "--dz-file-list-max-height",
+      "description": "inline file-list max height; unset = none (grows with content). Input variable: not declared on :host, read as var(--dz-file-list-max-height, none) so a value on <web-dropzone> reaches the satellite list",
+      "values": []
+    },
+    {
+      "name": "--dz-font-family",
+      "description": "component font family (overrides --base-font-family). Input variable: read as var(--dz-font-family, var(--base-font-family, inherit))",
+      "values": []
+    },
+    {
+      "name": "--dz-font-size-base",
+      "description": "font size base",
+      "values": []
+    },
+    {
+      "name": "--dz-font-size-lg",
+      "description": "font size lg",
+      "values": []
+    },
+    {
+      "name": "--dz-font-size-sm",
+      "description": "font size sm",
+      "values": []
+    },
+    {
+      "name": "--dz-font-size-xs",
+      "description": "font size xs",
+      "values": []
+    },
+    {
+      "name": "--dz-font-weight-medium",
+      "description": "font weight medium",
+      "values": []
+    },
+    {
+      "name": "--dz-font-weight-normal",
+      "description": "font weight normal",
+      "values": []
+    },
+    {
+      "name": "--dz-font-weight-semibold",
+      "description": "font weight semibold",
+      "values": []
+    },
+    { "name": "--dz-hover-bg", "description": "hover bg", "values": [] },
+    { "name": "--dz-icon-remove", "description": "icon remove", "values": [] },
+    {
+      "name": "--dz-item-action-bg",
+      "description": "item action bg",
+      "values": []
+    },
+    {
+      "name": "--dz-item-action-bg-hover",
+      "description": "item action bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-item-action-color",
+      "description": "item action color",
+      "values": []
+    },
+    {
+      "name": "--dz-item-action-color-hover",
+      "description": "item action color hover",
+      "values": []
+    },
+    {
+      "name": "--dz-item-action-icon-size",
+      "description": "item action icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-item-action-size",
+      "description": "item action size",
+      "values": []
+    },
+    { "name": "--dz-item-bg", "description": "item bg", "values": [] },
+    {
+      "name": "--dz-item-bg-hover",
+      "description": "item bg hover",
+      "values": []
+    },
+    { "name": "--dz-item-border", "description": "item border", "values": [] },
+    {
+      "name": "--dz-item-border-radius",
+      "description": "item border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-item-icon-bg",
+      "description": "item icon bg",
+      "values": []
+    },
+    {
+      "name": "--dz-item-icon-color",
+      "description": "item icon color",
+      "values": []
+    },
+    {
+      "name": "--dz-item-icon-font-size",
+      "description": "item icon font size",
+      "values": []
+    },
+    {
+      "name": "--dz-item-icon-size",
+      "description": "item icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-item-meta-color",
+      "description": "item meta color",
+      "values": []
+    },
+    {
+      "name": "--dz-item-meta-font-size",
+      "description": "item meta font size",
+      "values": []
+    },
+    {
+      "name": "--dz-item-name-color",
+      "description": "item name color",
+      "values": []
+    },
+    {
+      "name": "--dz-item-name-font-size",
+      "description": "item name font size",
+      "values": []
+    },
+    {
+      "name": "--dz-item-name-font-weight",
+      "description": "item name font weight",
+      "values": []
+    },
+    {
+      "name": "--dz-item-padding",
+      "description": "item padding",
+      "values": []
+    },
+    {
+      "name": "--dz-item-progress-text-width",
+      "description": "item progress text width",
+      "values": []
+    },
+    {
+      "name": "--dz-item-progress-width",
+      "description": "item progress width",
+      "values": []
+    },
+    {
+      "name": "--dz-item-remove-bg",
+      "description": "item remove bg",
+      "values": []
+    },
+    {
+      "name": "--dz-item-remove-bg-hover",
+      "description": "item remove bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-item-remove-color",
+      "description": "item remove color",
+      "values": []
+    },
+    {
+      "name": "--dz-item-remove-color-hover",
+      "description": "item remove color hover",
+      "values": []
+    },
+    {
+      "name": "--dz-item-remove-icon-size",
+      "description": "item remove icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-item-remove-size",
+      "description": "item remove size",
+      "values": []
+    },
+    {
+      "name": "--dz-item-status-width",
+      "description": "item status width",
+      "values": []
+    },
+    {
+      "name": "--dz-line-height-normal",
+      "description": "line height normal",
+      "values": []
+    },
+    {
+      "name": "--dz-line-height-tight",
+      "description": "line height tight",
+      "values": []
+    },
+    {
+      "name": "--dz-main-bg",
+      "description": "main bg — the contract input surfaces, text levels and borders derive from",
+      "values": []
+    },
+    {
+      "name": "--dz-minimal-icon-size",
+      "description": "minimal icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-minimal-size",
+      "description": "minimal size",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-action-bg-hover",
+      "description": "overall progress action bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-action-border-radius",
+      "description": "overall progress action border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-action-color",
+      "description": "overall progress action color",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-action-font-size",
+      "description": "overall progress action font size",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-action-font-weight",
+      "description": "overall progress action font weight",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-action-padding",
+      "description": "overall progress action padding",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-bar-height",
+      "description": "overall progress bar height",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-gap",
+      "description": "overall progress gap",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-padding",
+      "description": "overall progress padding",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-percent-color",
+      "description": "overall progress percent color",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-percent-font-weight",
+      "description": "overall progress percent font weight",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-percent-min-width",
+      "description": "overall progress percent min width",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-stats-color",
+      "description": "overall progress stats color",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-stats-font-size",
+      "description": "overall progress stats font size",
+      "values": []
+    },
+    { "name": "--dz-overlay-bg", "description": "overlay bg", "values": [] },
+    {
+      "name": "--dz-overlay-border",
+      "description": "overlay border",
+      "values": []
+    },
+    {
+      "name": "--dz-overlay-border-radius",
+      "description": "overlay border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-overlay-color",
+      "description": "overlay color",
+      "values": []
+    },
+    { "name": "--dz-overlay-gap", "description": "overlay gap", "values": [] },
+    {
+      "name": "--dz-overlay-icon-size",
+      "description": "overlay icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-overlay-text-font-size",
+      "description": "overlay text font size",
+      "values": []
+    },
+    {
+      "name": "--dz-overlay-text-font-weight",
+      "description": "overlay text font weight",
+      "values": []
+    },
+    {
+      "name": "--dz-overlay-z-index",
+      "description": "overlay z index",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-action-bg-hover",
+      "description": "popover action bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-action-border-radius",
+      "description": "popover action border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-action-color",
+      "description": "popover action color",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-action-font-size",
+      "description": "popover action font size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-action-font-weight",
+      "description": "popover action font weight",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-action-padding",
+      "description": "popover action padding",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-actions-gap",
+      "description": "popover actions gap",
+      "values": []
+    },
+    { "name": "--dz-popover-bg", "description": "popover bg", "values": [] },
+    {
+      "name": "--dz-popover-body-padding",
+      "description": "popover body padding",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-border",
+      "description": "popover border",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-border-radius",
+      "description": "popover border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-box-shadow",
+      "description": "popover box shadow",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-cell-padding",
+      "description": "popover cell padding",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-footer-bg",
+      "description": "popover footer bg",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-footer-border-top",
+      "description": "popover footer border top",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-footer-color",
+      "description": "popover footer color",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-footer-font-size",
+      "description": "popover footer font size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-footer-padding",
+      "description": "popover footer padding",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-header-bg",
+      "description": "popover header bg",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-header-border-bottom",
+      "description": "popover header border bottom",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-header-color",
+      "description": "popover header color",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-header-font-size",
+      "description": "popover header font size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-header-font-weight",
+      "description": "popover header font weight",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-header-gap",
+      "description": "popover header gap",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-header-padding",
+      "description": "popover header padding",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-icon-bg",
+      "description": "popover icon bg",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-icon-border-radius",
+      "description": "popover icon border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-icon-font-size",
+      "description": "popover icon font size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-icon-size",
+      "description": "popover icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-limits-color",
+      "description": "popover limits color",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-limits-font-size",
+      "description": "popover limits font size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-limits-line-height",
+      "description": "popover limits line height",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-limits-padding",
+      "description": "popover limits padding",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-max-height",
+      "description": "popover max height",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-max-width",
+      "description": "popover max width",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-min-height",
+      "description": "popover min height",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-min-width",
+      "description": "popover min width",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-remove-bg",
+      "description": "popover remove bg",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-remove-bg-hover",
+      "description": "popover remove bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-remove-color",
+      "description": "popover remove color",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-remove-color-hover",
+      "description": "popover remove color hover",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-remove-icon-size",
+      "description": "popover remove icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-remove-size",
+      "description": "popover remove size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-resize",
+      "description": "popover resize",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-row-hover-bg",
+      "description": "popover row hover bg",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-table-font-size",
+      "description": "popover table font size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-width",
+      "description": "popover width",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-z-index",
+      "description": "popover z index",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-action-bg-hover",
+      "description": "preview action bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-action-button-border-radius",
+      "description": "preview action button border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-action-button-size",
+      "description": "preview action button size",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-action-gap",
+      "description": "preview action gap",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-action-icon-size",
+      "description": "preview action icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-grid-columns",
+      "description": "preview grid columns",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-grid-gap",
+      "description": "preview grid gap",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-item-aspect-ratio",
+      "description": "preview item aspect ratio",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-item-bg",
+      "description": "preview item bg",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-item-border",
+      "description": "preview item border",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-item-border-radius",
+      "description": "preview item border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-item-object-fit",
+      "description": "how the thumbnail fills its tile in the uniform grid (cover | contain; forced to contain in grid-layout=\"natural\")",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-item-size",
+      "description": "in-card grid tile width + height (files-inside); auto = sized to content",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-overlay-bg",
+      "description": "preview overlay bg",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-overlay-color",
+      "description": "preview overlay color",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-overlay-font-size",
+      "description": "preview overlay font size",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-overlay-padding",
+      "description": "preview overlay padding",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-remove-bg",
+      "description": "preview remove bg",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-remove-bg-hover",
+      "description": "preview remove bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-remove-color",
+      "description": "preview remove color",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-remove-icon-size",
+      "description": "preview remove icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-remove-offset",
+      "description": "preview remove offset",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-remove-size",
+      "description": "preview remove size",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-row-height",
+      "description": "row height for grid-layout=\"natural\" (tile widths follow each image ratio)",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-scrim-bg",
+      "description": "preview scrim bg",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-status-overlay-bg",
+      "description": "veil over a finished thumbnail in grid-status=\"overlay\"",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-status-overlay-icon-size",
+      "description": "centred status glyph size in grid-status=\"overlay\"",
+      "values": []
+    },
+    { "name": "--dz-primary-bg", "description": "primary bg", "values": [] },
+    {
+      "name": "--dz-primary-bg-hover",
+      "description": "primary bg hover",
+      "values": []
+    },
+    { "name": "--dz-progress-bg", "description": "progress bg", "values": [] },
+    {
+      "name": "--dz-progress-border-radius",
+      "description": "progress border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-progress-fill-bg",
+      "description": "progress fill bg",
+      "values": []
+    },
+    {
+      "name": "--dz-progress-height",
+      "description": "progress height",
+      "values": []
+    },
+    {
+      "name": "--dz-progress-transition",
+      "description": "progress transition",
+      "values": []
+    },
+    {
+      "name": "--dz-rem",
+      "description": "base sizing unit for proportional scaling (default 10px). Input variable: not declared on :host, read as var(--dz-rem, 10px) so a value on <web-dropzone> or any ancestor reaches every satellite",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-animation-duration",
+      "description": "rolling rotation duration (default --dz-transition-slow)",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-bg",
+      "description": "rolling queue bg",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-bg-hover",
+      "description": "rolling queue bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-border",
+      "description": "rolling queue border",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-border-radius",
+      "description": "rolling queue border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-color",
+      "description": "rolling queue color",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-color-hover",
+      "description": "rolling queue color hover",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-count-bg",
+      "description": "rolling queue count bg",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-count-color",
+      "description": "rolling queue count color",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-font-size",
+      "description": "rolling queue font size",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-offset",
+      "description": "rolling queue offset",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-padding",
+      "description": "rolling queue padding",
+      "values": []
+    },
+    {
+      "name": "--dz-shadow-color",
+      "description": "shadow color — popover, drag indicator, overlay hover",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-bg",
+      "description": "show more bg",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-bg-hover",
+      "description": "show more bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-border",
+      "description": "show more border",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-border-radius",
+      "description": "show more border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-color",
+      "description": "show more color",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-font-size",
+      "description": "show more font size",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-font-weight",
+      "description": "show more font weight",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-margin-top",
+      "description": "show more margin top",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-padding",
+      "description": "show more padding",
+      "values": []
+    },
+    {
+      "name": "--dz-status-icon-size",
+      "description": "status icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-loader-icon",
+      "description": "loader shape, a mask image in currentColor (base: --base-loader-icon)",
+      "values": []
+    },
+    {
+      "name": "--dz-loader-rotate",
+      "description": "loader rotation per cycle, 1turn; 0 = the SVG animates itself (base: --base-loader-rotate)",
+      "values": []
+    },
+    {
+      "name": "--dz-loader-duration",
+      "description": "loader cycle 0.8s; 1.5s under reduced motion (base: --base-loader-duration)",
+      "values": []
+    },
+    {
+      "name": "--dz-loader-size",
+      "description": "indicator-chip upload loader size, 1.25em (base: --base-loader-size)",
+      "values": []
+    },
+    {
+      "name": "--dz-loader-inline-size",
+      "description": "tiny per-row / summary loader (0.75x --dz-loader-size)",
+      "values": []
+    },
+    { "name": "--dz-success-bg", "description": "success bg", "values": [] },
+    {
+      "name": "--dz-success-color",
+      "description": "success color",
+      "values": []
+    },
+    { "name": "--dz-summary-bg", "description": "summary bg", "values": [] },
+    {
+      "name": "--dz-summary-bg-hover",
+      "description": "summary bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-summary-border-radius",
+      "description": "summary border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-summary-color",
+      "description": "summary color",
+      "values": []
+    },
+    {
+      "name": "--dz-summary-font-size",
+      "description": "summary font size",
+      "values": []
+    },
+    {
+      "name": "--dz-summary-padding",
+      "description": "summary padding",
+      "values": []
+    },
+    {
+      "name": "--dz-surface-color",
+      "description": "surface color",
+      "values": []
+    },
+    {
+      "name": "--dz-text-color-1",
+      "description": "text color 1",
+      "values": []
+    },
+    {
+      "name": "--dz-text-color-2",
+      "description": "text color 2",
+      "values": []
+    },
+    {
+      "name": "--dz-text-color-3",
+      "description": "text color 3",
+      "values": []
+    },
+    {
+      "name": "--dz-text-color-4",
+      "description": "text color 4",
+      "values": []
+    },
+    {
+      "name": "--dz-text-on-accent",
+      "description": "text on accent",
+      "values": []
+    },
+    {
+      "name": "--dz-touch-target-min",
+      "description": "minimum tap size of phone-mode controls — the indicator drawer close in the full-screen sheet, 44px (base: --base-touch-target-min)",
+      "values": []
+    },
+    {
+      "name": "--dz-transition-fast",
+      "description": "speed fast 0.1s (base: --base-duration-fast); 0s = motion off",
+      "values": []
+    },
+    {
+      "name": "--dz-transition-medium",
+      "description": "speed medium 0.25s (base: --base-duration-medium); 0s = motion off",
+      "values": []
+    },
+    {
+      "name": "--dz-transition-normal",
+      "description": "speed normal 0.15s (base: --base-duration-normal); 0s = motion off",
+      "values": []
+    },
+    {
+      "name": "--dz-transition-slow",
+      "description": "speed slow 0.3s (base: --base-duration-slow); 0s = motion off",
+      "values": []
+    },
+    {
+      "name": "--dz-uploading-pulse-duration",
+      "description": "uploading-row pulse loop (1.5s; 0s under reduced motion)",
+      "values": []
+    },
+    { "name": "--dz-warning-bg", "description": "warning bg", "values": [] },
+    {
+      "name": "--dz-warning-color",
+      "description": "warning color",
+      "values": []
+    },
+    { "name": "--dz-accent-bg", "description": "accent bg", "values": [] },
+    {
+      "name": "--dz-accent-color",
+      "description": "accent color",
+      "values": []
+    },
+    {
+      "name": "--dz-accent-color-active",
+      "description": "accent color active",
+      "values": []
+    },
+    {
+      "name": "--dz-accent-color-hover",
+      "description": "accent color hover",
+      "values": []
+    },
+    {
+      "name": "--dz-accent-color-light",
+      "description": "accent color light",
+      "values": []
+    },
+    {
+      "name": "--dz-accent-color-light-hover",
+      "description": "accent color light hover",
+      "values": []
+    },
+    { "name": "--dz-background", "description": "background", "values": [] },
+    {
+      "name": "--dz-badge-action-size",
+      "description": "badge action size",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-border-radius",
+      "description": "badge border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-font-size",
+      "description": "badge font size",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-font-weight",
+      "description": "badge font weight",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-height",
+      "description": "badge height",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-icon-bg",
+      "description": "badge icon bg",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-icon-border-radius",
+      "description": "badge icon border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-icon-font-size",
+      "description": "badge icon font size",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-icon-size",
+      "description": "badge icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-max-width",
+      "description": "badge max width",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-more-bg",
+      "description": "badge more bg",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-more-bg-hover",
+      "description": "badge more bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-more-color",
+      "description": "badge more color",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-remove-bg",
+      "description": "badge remove bg",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-remove-bg-hover",
+      "description": "badge remove bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-remove-border",
+      "description": "badge remove border",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-remove-box-shadow-focus",
+      "description": "badge remove box shadow focus",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-remove-color",
+      "description": "badge remove color",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-remove-color-hover",
+      "description": "badge remove color hover",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-remove-icon-size",
+      "description": "badge remove icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-remove-width",
+      "description": "badge remove width",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-status-icon-size",
+      "description": "badge status icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-text-bg",
+      "description": "badge text bg",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-text-bg-hover",
+      "description": "badge text bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-text-border",
+      "description": "badge text border",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-text-color",
+      "description": "badge text color",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-text-color-hover",
+      "description": "badge text color hover",
+      "values": []
+    },
+    {
+      "name": "--dz-badge-text-padding",
+      "description": "badge text padding",
+      "values": []
+    },
+    { "name": "--dz-badges-gap", "description": "badges gap", "values": [] },
+    {
+      "name": "--dz-border-color",
+      "description": "border color",
+      "values": []
+    },
+    {
+      "name": "--dz-border-radius-lg",
+      "description": "border radius lg",
+      "values": []
+    },
+    {
+      "name": "--dz-border-radius-md",
+      "description": "border radius md",
+      "values": []
+    },
+    {
+      "name": "--dz-border-radius-sm",
+      "description": "border radius sm",
+      "values": []
+    },
+    {
+      "name": "--dz-button-badge-border-radius",
+      "description": "button badge border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-button-font-size",
+      "description": "button font size",
+      "values": []
+    },
+    {
+      "name": "--dz-button-padding",
+      "description": "button padding",
+      "values": []
+    },
+    {
+      "name": "--dz-disabled-opacity",
+      "description": "disabled dimming (base: --base-disabled-opacity, 0.65)",
+      "values": []
+    },
+    { "name": "--dz-dropzone-bg", "description": "dropzone bg", "values": [] },
+    {
+      "name": "--dz-dropzone-bg-active",
+      "description": "Drop-target background while dragging over — chains --base-drop-target-bg-active (success 15% light / 30% dark)",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-bg-armed",
+      "description": "Armed drop-target background while files are dragged anywhere over the page (highlight-on-page-drag) — chains --base-drop-target-bg (success 10% light / 20% dark)",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-bg-hover",
+      "description": "dropzone bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-border",
+      "description": "dropzone border",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-border-active",
+      "description": "Drop-target border while dragging over — 2px solid --base-drop-target-border-color (success)",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-border-radius",
+      "description": "dropzone border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-card-big-icon-size",
+      "description": "dropzone card big icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-card-big-min-height",
+      "description": "dropzone card big min height",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-card-big-padding",
+      "description": "dropzone card big padding",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-card-big-text-font-size",
+      "description": "dropzone card big text font size",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-card-minimal-icon-size",
+      "description": "dropzone card minimal icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-card-minimal-min-height",
+      "description": "dropzone card minimal min height",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-card-minimal-padding",
+      "description": "dropzone card minimal padding",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-card-minimal-text-font-size",
+      "description": "dropzone card minimal text font size",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-hint-color",
+      "description": "dropzone hint color",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-hint-font-size",
+      "description": "dropzone hint font size",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-icon-color",
+      "description": "dropzone icon color",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-icon-size",
+      "description": "dropzone icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-min-height",
+      "description": "dropzone min height",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-padding",
+      "description": "dropzone padding",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-text-color",
+      "description": "dropzone text color",
+      "values": []
+    },
+    {
+      "name": "--dz-dropzone-text-font-size",
+      "description": "dropzone text font size",
+      "values": []
+    },
+    {
+      "name": "--dz-easing-out",
+      "description": "ease-out (base: --base-ease-out) — fade-ins, progress fill",
+      "values": []
+    },
+    {
+      "name": "--dz-easing-snappy",
+      "description": "standard easing (base: --base-ease-standard)",
+      "values": []
+    },
+    { "name": "--dz-empty-color", "description": "empty color", "values": [] },
+    {
+      "name": "--dz-empty-font-size",
+      "description": "empty font size",
+      "values": []
+    },
+    {
+      "name": "--dz-empty-padding",
+      "description": "empty padding",
+      "values": []
+    },
+    { "name": "--dz-error-bg", "description": "error bg", "values": [] },
+    { "name": "--dz-error-color", "description": "error color", "values": [] },
+    {
+      "name": "--dz-file-list-gap",
+      "description": "file list gap",
+      "values": []
+    },
+    {
+      "name": "--dz-file-list-margin-top",
+      "description": "file list margin top",
+      "values": []
+    },
+    {
+      "name": "--dz-file-list-max-height",
+      "description": "inline file-list max height; unset = none (grows with content). Input variable: not declared on :host, read as var(--dz-file-list-max-height, none) so a value on <web-dropzone> reaches the satellite list",
+      "values": []
+    },
+    {
+      "name": "--dz-font-family",
+      "description": "component font family (overrides --base-font-family). Input variable: read as var(--dz-font-family, var(--base-font-family, inherit))",
+      "values": []
+    },
+    {
+      "name": "--dz-font-size-base",
+      "description": "font size base",
+      "values": []
+    },
+    {
+      "name": "--dz-font-size-lg",
+      "description": "font size lg",
+      "values": []
+    },
+    {
+      "name": "--dz-font-size-sm",
+      "description": "font size sm",
+      "values": []
+    },
+    {
+      "name": "--dz-font-size-xs",
+      "description": "font size xs",
+      "values": []
+    },
+    {
+      "name": "--dz-font-weight-medium",
+      "description": "font weight medium",
+      "values": []
+    },
+    {
+      "name": "--dz-font-weight-normal",
+      "description": "font weight normal",
+      "values": []
+    },
+    {
+      "name": "--dz-font-weight-semibold",
+      "description": "font weight semibold",
+      "values": []
+    },
+    { "name": "--dz-hover-bg", "description": "hover bg", "values": [] },
+    { "name": "--dz-icon-remove", "description": "icon remove", "values": [] },
+    {
+      "name": "--dz-item-action-bg",
+      "description": "item action bg",
+      "values": []
+    },
+    {
+      "name": "--dz-item-action-bg-hover",
+      "description": "item action bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-item-action-color",
+      "description": "item action color",
+      "values": []
+    },
+    {
+      "name": "--dz-item-action-color-hover",
+      "description": "item action color hover",
+      "values": []
+    },
+    {
+      "name": "--dz-item-action-icon-size",
+      "description": "item action icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-item-action-size",
+      "description": "item action size",
+      "values": []
+    },
+    { "name": "--dz-item-bg", "description": "item bg", "values": [] },
+    {
+      "name": "--dz-item-bg-hover",
+      "description": "item bg hover",
+      "values": []
+    },
+    { "name": "--dz-item-border", "description": "item border", "values": [] },
+    {
+      "name": "--dz-item-border-radius",
+      "description": "item border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-item-icon-bg",
+      "description": "item icon bg",
+      "values": []
+    },
+    {
+      "name": "--dz-item-icon-color",
+      "description": "item icon color",
+      "values": []
+    },
+    {
+      "name": "--dz-item-icon-font-size",
+      "description": "item icon font size",
+      "values": []
+    },
+    {
+      "name": "--dz-item-icon-size",
+      "description": "item icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-item-meta-color",
+      "description": "item meta color",
+      "values": []
+    },
+    {
+      "name": "--dz-item-meta-font-size",
+      "description": "item meta font size",
+      "values": []
+    },
+    {
+      "name": "--dz-item-name-color",
+      "description": "item name color",
+      "values": []
+    },
+    {
+      "name": "--dz-item-name-font-size",
+      "description": "item name font size",
+      "values": []
+    },
+    {
+      "name": "--dz-item-name-font-weight",
+      "description": "item name font weight",
+      "values": []
+    },
+    {
+      "name": "--dz-item-padding",
+      "description": "item padding",
+      "values": []
+    },
+    {
+      "name": "--dz-item-progress-text-width",
+      "description": "item progress text width",
+      "values": []
+    },
+    {
+      "name": "--dz-item-progress-width",
+      "description": "item progress width",
+      "values": []
+    },
+    {
+      "name": "--dz-item-remove-bg",
+      "description": "item remove bg",
+      "values": []
+    },
+    {
+      "name": "--dz-item-remove-bg-hover",
+      "description": "item remove bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-item-remove-color",
+      "description": "item remove color",
+      "values": []
+    },
+    {
+      "name": "--dz-item-remove-color-hover",
+      "description": "item remove color hover",
+      "values": []
+    },
+    {
+      "name": "--dz-item-remove-icon-size",
+      "description": "item remove icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-item-remove-size",
+      "description": "item remove size",
+      "values": []
+    },
+    {
+      "name": "--dz-item-status-width",
+      "description": "item status width",
+      "values": []
+    },
+    {
+      "name": "--dz-line-height-normal",
+      "description": "line height normal",
+      "values": []
+    },
+    {
+      "name": "--dz-line-height-tight",
+      "description": "line height tight",
+      "values": []
+    },
+    {
+      "name": "--dz-main-bg",
+      "description": "main bg — the contract input surfaces, text levels and borders derive from",
+      "values": []
+    },
+    {
+      "name": "--dz-minimal-icon-size",
+      "description": "minimal icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-minimal-size",
+      "description": "minimal size",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-action-bg-hover",
+      "description": "overall progress action bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-action-border-radius",
+      "description": "overall progress action border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-action-color",
+      "description": "overall progress action color",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-action-font-size",
+      "description": "overall progress action font size",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-action-font-weight",
+      "description": "overall progress action font weight",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-action-padding",
+      "description": "overall progress action padding",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-bar-height",
+      "description": "overall progress bar height",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-gap",
+      "description": "overall progress gap",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-padding",
+      "description": "overall progress padding",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-percent-color",
+      "description": "overall progress percent color",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-percent-font-weight",
+      "description": "overall progress percent font weight",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-percent-min-width",
+      "description": "overall progress percent min width",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-stats-color",
+      "description": "overall progress stats color",
+      "values": []
+    },
+    {
+      "name": "--dz-overall-progress-stats-font-size",
+      "description": "overall progress stats font size",
+      "values": []
+    },
+    { "name": "--dz-overlay-bg", "description": "overlay bg", "values": [] },
+    {
+      "name": "--dz-overlay-border",
+      "description": "overlay border",
+      "values": []
+    },
+    {
+      "name": "--dz-overlay-border-radius",
+      "description": "overlay border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-overlay-color",
+      "description": "overlay color",
+      "values": []
+    },
+    { "name": "--dz-overlay-gap", "description": "overlay gap", "values": [] },
+    {
+      "name": "--dz-overlay-icon-size",
+      "description": "overlay icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-overlay-text-font-size",
+      "description": "overlay text font size",
+      "values": []
+    },
+    {
+      "name": "--dz-overlay-text-font-weight",
+      "description": "overlay text font weight",
+      "values": []
+    },
+    {
+      "name": "--dz-overlay-z-index",
+      "description": "overlay z index",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-action-bg-hover",
+      "description": "popover action bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-action-border-radius",
+      "description": "popover action border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-action-color",
+      "description": "popover action color",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-action-font-size",
+      "description": "popover action font size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-action-font-weight",
+      "description": "popover action font weight",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-action-padding",
+      "description": "popover action padding",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-actions-gap",
+      "description": "popover actions gap",
+      "values": []
+    },
+    { "name": "--dz-popover-bg", "description": "popover bg", "values": [] },
+    {
+      "name": "--dz-popover-body-padding",
+      "description": "popover body padding",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-border",
+      "description": "popover border",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-border-radius",
+      "description": "popover border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-box-shadow",
+      "description": "popover box shadow",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-cell-padding",
+      "description": "popover cell padding",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-footer-bg",
+      "description": "popover footer bg",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-footer-border-top",
+      "description": "popover footer border top",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-footer-color",
+      "description": "popover footer color",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-footer-font-size",
+      "description": "popover footer font size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-footer-padding",
+      "description": "popover footer padding",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-header-bg",
+      "description": "popover header bg",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-header-border-bottom",
+      "description": "popover header border bottom",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-header-color",
+      "description": "popover header color",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-header-font-size",
+      "description": "popover header font size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-header-font-weight",
+      "description": "popover header font weight",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-header-gap",
+      "description": "popover header gap",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-header-padding",
+      "description": "popover header padding",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-icon-bg",
+      "description": "popover icon bg",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-icon-border-radius",
+      "description": "popover icon border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-icon-font-size",
+      "description": "popover icon font size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-icon-size",
+      "description": "popover icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-limits-color",
+      "description": "popover limits color",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-limits-font-size",
+      "description": "popover limits font size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-limits-line-height",
+      "description": "popover limits line height",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-limits-padding",
+      "description": "popover limits padding",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-max-height",
+      "description": "popover max height",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-max-width",
+      "description": "popover max width",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-min-height",
+      "description": "popover min height",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-min-width",
+      "description": "popover min width",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-remove-bg",
+      "description": "popover remove bg",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-remove-bg-hover",
+      "description": "popover remove bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-remove-color",
+      "description": "popover remove color",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-remove-color-hover",
+      "description": "popover remove color hover",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-remove-icon-size",
+      "description": "popover remove icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-remove-size",
+      "description": "popover remove size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-resize",
+      "description": "popover resize",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-row-hover-bg",
+      "description": "popover row hover bg",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-table-font-size",
+      "description": "popover table font size",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-width",
+      "description": "popover width",
+      "values": []
+    },
+    {
+      "name": "--dz-popover-z-index",
+      "description": "popover z index",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-action-bg-hover",
+      "description": "preview action bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-action-button-border-radius",
+      "description": "preview action button border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-action-button-size",
+      "description": "preview action button size",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-action-gap",
+      "description": "preview action gap",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-action-icon-size",
+      "description": "preview action icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-grid-columns",
+      "description": "preview grid columns",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-grid-gap",
+      "description": "preview grid gap",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-item-aspect-ratio",
+      "description": "preview item aspect ratio",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-item-bg",
+      "description": "preview item bg",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-item-border",
+      "description": "preview item border",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-item-border-radius",
+      "description": "preview item border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-item-object-fit",
+      "description": "how the thumbnail fills its tile in the uniform grid (cover | contain; forced to contain in grid-layout=\"natural\")",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-item-size",
+      "description": "in-card grid tile width + height (files-inside); auto = sized to content",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-overlay-bg",
+      "description": "preview overlay bg",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-overlay-color",
+      "description": "preview overlay color",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-overlay-font-size",
+      "description": "preview overlay font size",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-overlay-padding",
+      "description": "preview overlay padding",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-remove-bg",
+      "description": "preview remove bg",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-remove-bg-hover",
+      "description": "preview remove bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-remove-color",
+      "description": "preview remove color",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-remove-icon-size",
+      "description": "preview remove icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-remove-offset",
+      "description": "preview remove offset",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-remove-size",
+      "description": "preview remove size",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-row-height",
+      "description": "row height for grid-layout=\"natural\" (tile widths follow each image ratio)",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-scrim-bg",
+      "description": "preview scrim bg",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-status-overlay-bg",
+      "description": "veil over a finished thumbnail in grid-status=\"overlay\"",
+      "values": []
+    },
+    {
+      "name": "--dz-preview-status-overlay-icon-size",
+      "description": "centred status glyph size in grid-status=\"overlay\"",
+      "values": []
+    },
+    { "name": "--dz-primary-bg", "description": "primary bg", "values": [] },
+    {
+      "name": "--dz-primary-bg-hover",
+      "description": "primary bg hover",
+      "values": []
+    },
+    { "name": "--dz-progress-bg", "description": "progress bg", "values": [] },
+    {
+      "name": "--dz-progress-border-radius",
+      "description": "progress border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-progress-fill-bg",
+      "description": "progress fill bg",
+      "values": []
+    },
+    {
+      "name": "--dz-progress-height",
+      "description": "progress height",
+      "values": []
+    },
+    {
+      "name": "--dz-progress-transition",
+      "description": "progress transition",
+      "values": []
+    },
+    {
+      "name": "--dz-rem",
+      "description": "base sizing unit for proportional scaling (default 10px). Input variable: not declared on :host, read as var(--dz-rem, 10px) so a value on <web-dropzone> or any ancestor reaches every satellite",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-animation-duration",
+      "description": "rolling rotation duration (default --dz-transition-slow)",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-bg",
+      "description": "rolling queue bg",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-bg-hover",
+      "description": "rolling queue bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-border",
+      "description": "rolling queue border",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-border-radius",
+      "description": "rolling queue border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-color",
+      "description": "rolling queue color",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-color-hover",
+      "description": "rolling queue color hover",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-count-bg",
+      "description": "rolling queue count bg",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-count-color",
+      "description": "rolling queue count color",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-font-size",
+      "description": "rolling queue font size",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-offset",
+      "description": "rolling queue offset",
+      "values": []
+    },
+    {
+      "name": "--dz-rolling-queue-padding",
+      "description": "rolling queue padding",
+      "values": []
+    },
+    {
+      "name": "--dz-shadow-color",
+      "description": "shadow color — popover, drag indicator, overlay hover",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-bg",
+      "description": "show more bg",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-bg-hover",
+      "description": "show more bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-border",
+      "description": "show more border",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-border-radius",
+      "description": "show more border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-color",
+      "description": "show more color",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-font-size",
+      "description": "show more font size",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-font-weight",
+      "description": "show more font weight",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-margin-top",
+      "description": "show more margin top",
+      "values": []
+    },
+    {
+      "name": "--dz-show-more-padding",
+      "description": "show more padding",
+      "values": []
+    },
+    {
+      "name": "--dz-status-icon-size",
+      "description": "status icon size",
+      "values": []
+    },
+    {
+      "name": "--dz-loader-icon",
+      "description": "loader shape, a mask image in currentColor (base: --base-loader-icon)",
+      "values": []
+    },
+    {
+      "name": "--dz-loader-rotate",
+      "description": "loader rotation per cycle, 1turn; 0 = the SVG animates itself (base: --base-loader-rotate)",
+      "values": []
+    },
+    {
+      "name": "--dz-loader-duration",
+      "description": "loader cycle 0.8s; 1.5s under reduced motion (base: --base-loader-duration)",
+      "values": []
+    },
+    {
+      "name": "--dz-loader-size",
+      "description": "indicator-chip upload loader size, 1.25em (base: --base-loader-size)",
+      "values": []
+    },
+    {
+      "name": "--dz-loader-inline-size",
+      "description": "tiny per-row / summary loader (0.75x --dz-loader-size)",
+      "values": []
+    },
+    { "name": "--dz-success-bg", "description": "success bg", "values": [] },
+    {
+      "name": "--dz-success-color",
+      "description": "success color",
+      "values": []
+    },
+    { "name": "--dz-summary-bg", "description": "summary bg", "values": [] },
+    {
+      "name": "--dz-summary-bg-hover",
+      "description": "summary bg hover",
+      "values": []
+    },
+    {
+      "name": "--dz-summary-border-radius",
+      "description": "summary border radius",
+      "values": []
+    },
+    {
+      "name": "--dz-summary-color",
+      "description": "summary color",
+      "values": []
+    },
+    {
+      "name": "--dz-summary-font-size",
+      "description": "summary font size",
+      "values": []
+    },
+    {
+      "name": "--dz-summary-padding",
+      "description": "summary padding",
+      "values": []
+    },
+    {
+      "name": "--dz-surface-color",
+      "description": "surface color",
+      "values": []
+    },
+    {
+      "name": "--dz-text-color-1",
+      "description": "text color 1",
+      "values": []
+    },
+    {
+      "name": "--dz-text-color-2",
+      "description": "text color 2",
+      "values": []
+    },
+    {
+      "name": "--dz-text-color-3",
+      "description": "text color 3",
+      "values": []
+    },
+    {
+      "name": "--dz-text-color-4",
+      "description": "text color 4",
+      "values": []
+    },
+    {
+      "name": "--dz-text-on-accent",
+      "description": "text on accent",
+      "values": []
+    },
+    {
+      "name": "--dz-touch-target-min",
+      "description": "minimum tap size of phone-mode controls — the indicator drawer close in the full-screen sheet, 44px (base: --base-touch-target-min)",
+      "values": []
+    },
+    {
+      "name": "--dz-transition-fast",
+      "description": "speed fast 0.1s (base: --base-duration-fast); 0s = motion off",
+      "values": []
+    },
+    {
+      "name": "--dz-transition-medium",
+      "description": "speed medium 0.25s (base: --base-duration-medium); 0s = motion off",
+      "values": []
+    },
+    {
+      "name": "--dz-transition-normal",
+      "description": "speed normal 0.15s (base: --base-duration-normal); 0s = motion off",
+      "values": []
+    },
+    {
+      "name": "--dz-transition-slow",
+      "description": "speed slow 0.3s (base: --base-duration-slow); 0s = motion off",
+      "values": []
+    },
+    {
+      "name": "--dz-uploading-pulse-duration",
+      "description": "uploading-row pulse loop (1.5s; 0s under reduced motion)",
+      "values": []
+    },
+    { "name": "--dz-warning-bg", "description": "warning bg", "values": [] },
+    {
+      "name": "--dz-warning-color",
+      "description": "warning color",
+      "values": []
+    }
+  ],
+  "pseudoElements": []
+}
