@@ -179,6 +179,11 @@ test.describe('satellites on BlissElement', () => {
         }
         await dz(page, 'pk').evaluate((el: any) => { el.motion = 'none'; });
         await expect(dz(page, 'pk')).toHaveAttribute('data-motion', 'none');
+        // core's theme context (no own observeThemeContext any more): a page scheme reaches every satellite
+        await page.evaluate(() => document.documentElement.setAttribute('data-theme', 'dark'));
+        for (const id of ['pk', 'ls', 'ind', 'prog']) {
+            await expect(dz(page, id)).toHaveAttribute('data-context-theme', 'dark');
+        }
     });
 
     test('changing `for` (htmlFor) re-binds the picker to another store', async ({ page }) => {

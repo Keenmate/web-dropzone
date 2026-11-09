@@ -63,7 +63,7 @@ import type { FileState, GridLayout, GridStatus, ListAppearance, RollingRotation
 
 // Appearances this satellite implements. `none` deliberately omitted —
 // it means "no list visible at all", which is best handled by simply
-// not mounting the satellite. The popover wrapper (Floating UI, resize,
+// not mounting the satellite. The popover wrapper (core createPopover, resize,
 // persistence) still lives in `<web-dropzone>`'s in-class code; the
 // satellite renders the summary anchor only.
 const SUPPORTED_APPEARANCES = [

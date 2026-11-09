@@ -34,7 +34,7 @@ import { escapeHtml, formatFileSize } from '@keenmate/web-dropzone-core';
 import type { DropzoneElement } from './web-component';
 import type { OverallProgress } from '@keenmate/web-dropzone-core';
 
-/** `<web-dropzone-progress>` inputs: only the shared `for` + `labels`. */
+/** `<web-dropzone-progress>` inputs: only the shared satellite rows (`for`, `labels`, `custom-styles`, `getCustomStylesCallback`). */
 const INPUTS: readonly InputDef[] = [...SATELLITE_INPUTS];
 
 export class DropzoneProgressElement extends SatelliteElement {

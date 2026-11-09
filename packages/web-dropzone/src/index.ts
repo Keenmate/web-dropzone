@@ -134,6 +134,10 @@ import type { ResponsiveMap, ResponsiveCallback } from '@keenmate/web-components
 
 /** Every `<web-dropzone>` input, keyed by `configKey` (the element's typed properties). */
 export type { DropzoneElementConfig } from './web-component';
+export type { SatelliteElementConfig } from './satellite-base';
+export type { DropzonePickerElementConfig } from './web-component-picker';
+export type { DropzoneListElementConfig } from './web-component-list';
+export type { DropzoneIndicatorElementConfig } from './web-component-indicator';
 import type { DropzoneElementConfig } from './web-component';
 
 /** Responsive rules map for `<web-dropzone>` (core SPEC §6.7): device class → partial config. */

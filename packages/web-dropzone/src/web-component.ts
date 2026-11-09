@@ -177,7 +177,7 @@ const INPUTS: readonly InputDef[] = [
     { configKey: 'labels',                  attribute: 'labels',              converter: labelsConverter,                                                              on: 'update', type: 'Partial<DropzoneLabels>', description: 'Every UI string (see `DropzoneLabels` / `DEFAULT_LABELS`), merged per key over the built-in English; `{name}` / `{count}` / `{size}` / … placeholders: prompt, hint, empty, summary, status names, row + bulk buttons, popover, limits line, progress strip, validation messages. Satellites inherit them (and take their own `labels` on top). Property (object) or JSON attribute. Live.' },
 
     // ── Compact mode ──────────────────────────────────────────────────────────
-    { configKey: 'popoverPlacement',        attribute: 'popover-placement',   converter: toEnum(PLACEMENTS, { default: 'bottom-start' }),                              shouldReflect: true, on: 'update', description: 'Placement of the compact-mode popover relative to the summary (floating-ui placement).' },
+    { configKey: 'popoverPlacement',        attribute: 'popover-placement',   converter: toEnum(PLACEMENTS, { default: 'bottom-start' }),                              shouldReflect: true, on: 'update', description: 'Placement of the compact-mode popover relative to its trigger (a core /positioning placement; flips when there is no room).' },
 
     // ── Drag overlay ──────────────────────────────────────────────────────────
     { configKey: 'overlayTarget',           attribute: 'overlay-target',      converter: toCustom<HTMLElement | string | null>(
