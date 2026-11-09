@@ -288,13 +288,13 @@ test.describe('satellites', () => {
             await store.whenSettled();
         });
         await addNamed(page, 'sat-store', ['after-1.txt', 'after-2.txt']);
-        await expect(page.locator('#sat-summary .dz__summary__text')).toContainText('2');
+        await expect(page.locator('#sat-summary .dz__summary-text')).toContainText('2');
     });
 
     test('summary-activate / queue-open: not composed, carry the store controller / element', async ({ page }) => {
         await addNamed(page, 'sat-store', ['q1.txt', 'q2.txt']);
-        await page.locator('#sat-summary .dz__summary__line').click();
-        await page.locator('#sat-rolling .dz__rolling__queue').click();
+        await page.locator('#sat-summary .dz__summary-line').click();
+        await page.locator('#sat-rolling .dz__rolling-queue').click();
         const log = await logOf(page);
         expect(log).toContain('sat-summary:summary-activate composed=false');
         expect(log).toContain('sat-rolling:queue-open composed=false');

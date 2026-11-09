@@ -96,9 +96,9 @@ shape in `currentColor`.
 | `--dz-loader-inline-size` | `calc(var(--dz-loader-size) * 0.75)` — the tiny per-row / summary loader |
 
 The indicator chip's upload loader is drawn by core `renderLoader()` into a `role="status"` container:
-the store's `renderLoadingCallback`, else the page-wide `window.components.renderLoaderCallback`, else
-the default `<span class="dz-loader">` (`ctx.context` = `'upload'`). The per-row status and the summary
-icon show the CSS-only `.dz-loader--inline` while uploading (the row carries `aria-busy="true"`).
+the store's `renderLoadingCallback`, else the page-wide `window.components.renderLoadingCallback`, else
+the default `<span class="dz__loader">` (`ctx.context` = `'upload'`). The per-row status and the summary
+icon show the CSS-only `.dz__loader--inline` while uploading (the row carries `aria-busy="true"`).
 
 ## Component variables (`--dz-*`)
 

@@ -8,31 +8,31 @@
   flex-direction: row-reverse;
 }
 
-:host([dir="rtl"]) .dz__file-item__info {
+:host([dir="rtl"]) .dz__file-item-info {
   text-align: right;
 }
 
-:host([dir="rtl"]) .dz__file-item__meta {
+:host([dir="rtl"]) .dz__file-item-meta {
   flex-direction: row-reverse;
 }
 
-:host([dir="rtl"]) .dz__preview-item__remove {
+:host([dir="rtl"]) .dz__preview-item-remove {
   right: auto;
   left: var(--dz-preview-remove-offset);
 }
 
-:host([dir="rtl"]) .dz__popover__header {
+:host([dir="rtl"]) .dz__popover-header {
   flex-direction: row-reverse;
 }
 
-:host([dir="rtl"]) .dz__popover__cell--name {
+:host([dir="rtl"]) .dz__popover-cell--name {
   text-align: right;
 }
 
-:host([dir="rtl"]) .dz__popover__cell--size {
+:host([dir="rtl"]) .dz__popover-cell--size {
   text-align: left;
 }
 
-:host([dir="rtl"]) .dz__summary__line {
+:host([dir="rtl"]) .dz__summary-line {
   flex-direction: row-reverse;
 }

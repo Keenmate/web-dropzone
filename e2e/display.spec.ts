@@ -21,7 +21,7 @@ test.describe('selector-appearance="card" (default)', () => {
 
     test('exposes a hidden <input type="file"> for the click fallback', async ({ page }) => {
         const card = dz(page, 'card');
-        await expect(card.locator('input[type="file"].dz__dropzone__input')).toHaveCount(1);
+        await expect(card.locator('input[type="file"].dz__dropzone-input')).toHaveCount(1);
     });
 });
 
@@ -29,7 +29,7 @@ test.describe('selector-appearance="button"', () => {
     test('renders the accent button with the labels.selectFiles label', async ({ page }) => {
         const btn = dz(page, 'button');
         await expect(btn.locator('.dz__button')).toBeVisible();
-        await expect(btn.locator('.dz__button__label')).toHaveText('Pick files');
+        await expect(btn.locator('.dz__button-label')).toHaveText('Pick files');
     });
 
     test('does NOT render the card drop-zone surface', async ({ page }) => {
@@ -42,12 +42,12 @@ test.describe('selector-appearance="minimal"', () => {
     test('renders the icon-only button', async ({ page }) => {
         const min = dz(page, 'minimal');
         await expect(min.locator('.dz__minimal')).toBeVisible();
-        await expect(min.locator('.dz__minimal__icon')).toHaveText('📎');
+        await expect(min.locator('.dz__minimal-icon')).toHaveText('📎');
     });
 
     test('badge is hidden when no files', async ({ page }) => {
         const min = dz(page, 'minimal');
-        await expect(min.locator('.dz__minimal__badge')).toHaveCount(0);
+        await expect(min.locator('.dz__minimal-badge')).toHaveCount(0);
     });
 });
 
@@ -55,8 +55,8 @@ test.describe('selector-appearance="native"', () => {
     test('renders button + plain-text label', async ({ page }) => {
         const nat = dz(page, 'native');
         await expect(nat.locator('.dz__dropzone--native')).toBeVisible();
-        await expect(nat.locator('.dz__native__button')).toHaveText('Choose Files');
-        await expect(nat.locator('.dz__native__label')).toHaveText('No file chosen');
+        await expect(nat.locator('.dz__native-button')).toHaveText('Choose Files');
+        await expect(nat.locator('.dz__native-label')).toHaveText('No file chosen');
     });
 
     test('label updates after programmatic add', async ({ page }) => {
@@ -64,7 +64,7 @@ test.describe('selector-appearance="native"', () => {
         await nat.evaluate((el: any) => {
             el.addFiles([new File(['x'], 'report.pdf', { type: 'application/pdf' })]);
         });
-        await expect(nat.locator('.dz__native__label')).toHaveText('report.pdf');
+        await expect(nat.locator('.dz__native-label')).toHaveText('report.pdf');
     });
 
     test('multi-file label uses "N files chosen"', async ({ page }) => {
@@ -76,15 +76,15 @@ test.describe('selector-appearance="native"', () => {
                 new File(['z'], 'c.txt')
             ]);
         });
-        await expect(nat.locator('.dz__native__label')).toHaveText('3 files chosen');
+        await expect(nat.locator('.dz__native-label')).toHaveText('3 files chosen');
     });
 });
 
 test.describe('native + labels.noFileChosen', () => {
     test('renders the localized empty-state label', async ({ page }) => {
         const i18n = dz(page, 'native-i18n');
-        await expect(i18n.locator('.dz__native__button')).toHaveText('Vybrat soubory');
-        await expect(i18n.locator('.dz__native__label')).toHaveText('Žádný soubor');
+        await expect(i18n.locator('.dz__native-button')).toHaveText('Vybrat soubory');
+        await expect(i18n.locator('.dz__native-label')).toHaveText('Žádný soubor');
     });
 });
 
@@ -118,11 +118,11 @@ test.describe('text inputs', () => {
         dz(page, id).evaluate(async (el: any, { name, value }) => { el.setAttribute(name, value); await el.whenSettled(); }, { name, value });
 
     test('labels.prompt / labels.hint render in the card; live changes re-render', async ({ page }) => {
-        await expect(card(page).locator('.dz__dropzone__text')).toHaveText('Drag reports here');
-        await expect(card(page).locator('.dz__dropzone__hint')).toHaveText('Max 10 MB');
+        await expect(card(page).locator('.dz__dropzone-text')).toHaveText('Drag reports here');
+        await expect(card(page).locator('.dz__dropzone-hint')).toHaveText('Max 10 MB');
         await setAttr(page, 'texts', 'labels', JSON.stringify({ prompt: 'Drop invoices', hint: 'PDF only' }));
-        await expect(card(page).locator('.dz__dropzone__text')).toHaveText('Drop invoices');
-        await expect(card(page).locator('.dz__dropzone__hint')).toHaveText('PDF only');
+        await expect(card(page).locator('.dz__dropzone-text')).toHaveText('Drop invoices');
+        await expect(card(page).locator('.dz__dropzone-hint')).toHaveText('PDF only');
     });
 
     test('labels.noData renders while empty; a live change re-renders', async ({ page }) => {
@@ -138,14 +138,14 @@ test.describe('text inputs', () => {
 
     test('labels.overlay / overlay-icon render in the overlay; live changes apply to the next drag', async ({ page }) => {
         await dragFiles(page.locator('body'), 'dragenter');
-        await expect(page.locator('.dz__overlay__text')).toHaveText('Drop to attach');
-        await expect(page.locator('.dz__overlay__icon')).toHaveText('📥');
+        await expect(page.locator('.dz__overlay-text')).toHaveText('Drop to attach');
+        await expect(page.locator('.dz__overlay-icon')).toHaveText('📥');
         await page.keyboard.press('Escape');
         await expect(page.locator('.dz__overlay')).toHaveCount(0);
 
         await dz(page, 'ov').evaluate(async (el: any) => { el.labels = { overlay: 'Release!' }; await el.whenSettled(); });
         await dragFiles(page.locator('body'), 'dragenter');
-        await expect(page.locator('.dz__overlay__text')).toHaveText('Release!');
+        await expect(page.locator('.dz__overlay-text')).toHaveText('Release!');
     });
 });
 

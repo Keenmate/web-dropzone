@@ -16,7 +16,7 @@ const PAGE = '/test/icons.html';
 const add = (page: Page, id: string, specs: { name: string; type?: string }[]) =>
     page.evaluate(({ id, specs }) => (window as any).__addTyped(id, specs), { id, specs });
 const icon = (page: Page, id: string, name: string) =>
-    dz(page, id).locator(`.dz__file-item:has(.dz__file-item__name:text-is("${name}")) .dz__file-item__icon`);
+    dz(page, id).locator(`.dz__file-item:has(.dz__file-item-name:text-is("${name}")) .dz__file-item-icon`);
 
 test.beforeEach(async ({ page }) => {
     await page.goto(PAGE);
@@ -25,8 +25,8 @@ test.beforeEach(async ({ page }) => {
 
 test('default: the icon slot carries the category modifier and built-in markup', async ({ page }) => {
     await add(page, 'plain', [{ name: 'a.pdf', type: 'application/pdf' }, { name: 'b.txt', type: 'text/plain' }]);
-    await expect(icon(page, 'plain', 'a.pdf')).toHaveClass(/dz__file-item__icon--pdf/);
-    await expect(icon(page, 'plain', 'b.txt')).toHaveClass(/dz__file-item__icon--text/);
+    await expect(icon(page, 'plain', 'a.pdf')).toHaveClass(/dz__file-item-icon--pdf/);
+    await expect(icon(page, 'plain', 'b.txt')).toHaveClass(/dz__file-item-icon--text/);
     expect((await icon(page, 'plain', 'a.pdf').innerHTML()).trim().length).toBeGreaterThan(0);
 });
 

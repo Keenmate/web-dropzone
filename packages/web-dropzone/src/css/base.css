@@ -70,10 +70,10 @@ web-dropzone:not(:defined) {
 /* ==============================================================================
    LOADER — the shared loader contract (--base-loader-*), drawn verbatim.
    The indicator's upload loader is drawn by core renderLoader() (default
-   <span class="dz-loader">); the tiny per-row / summary loaders are the
+   <span class="dz__loader">); the tiny per-row / summary loaders are the
    `--inline` variant, CSS only (the row carries aria-busy).
    ============================================================================== */
-.dz-loader {
+.dz__loader {
   display: inline-block;
   flex: none;
   inline-size: var(--dz-loader-size);
@@ -82,7 +82,7 @@ web-dropzone:not(:defined) {
   background: currentColor;
   animation: dz-loader-spin var(--dz-loader-duration) linear infinite;
 }
-.dz-loader--inline {
+.dz__loader--inline {
   inline-size: var(--dz-loader-inline-size);
   block-size: var(--dz-loader-inline-size);
 }

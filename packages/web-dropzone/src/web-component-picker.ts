@@ -186,7 +186,7 @@ export class DropzonePickerElement extends SatelliteElement {
 
         const inputHtml = `
             <input type="file"
-                class="dz__dropzone__input"
+                class="dz__dropzone-input"
                 ${inputA11yAttrs}
                 ${multipleAttr ? 'multiple' : ''}
                 ${acceptAttr ? `accept="${escapeHtml(acceptAttr)}"` : ''}
@@ -199,10 +199,10 @@ export class DropzonePickerElement extends SatelliteElement {
         // this satellite internally) keeps its count chip on those selectors.
         const fileCount = this.store.getFiles().length;
         const countBadge = fileCount > 0
-            ? `<span class="dz__button__badge">${fileCount}</span>`
+            ? `<span class="dz__button-badge">${fileCount}</span>`
             : '';
         const minimalBadge = fileCount > 0
-            ? `<span class="dz__minimal__badge">${fileCount}</span>`
+            ? `<span class="dz__minimal-badge">${fileCount}</span>`
             : '';
 
         let inner = '';
@@ -211,7 +211,7 @@ export class DropzonePickerElement extends SatelliteElement {
                 <div class="dz__dropzone dz__dropzone--button ${stateClass}">
                     ${inputHtml}
                     <button type="button" class="dz__button" ${disabled ? 'disabled' : ''}>
-                        <span class="dz__button__label">${escapeHtml(label)}</span>
+                        <span class="dz__button-label">${escapeHtml(label)}</span>
                         ${countBadge}
                     </button>
                 </div>
@@ -222,7 +222,7 @@ export class DropzonePickerElement extends SatelliteElement {
                 <div class="dz__dropzone dz__dropzone--minimal ${stateClass}">
                     ${inputHtml}
                     <button type="button" class="dz__minimal" aria-label="${escapeHtml(ariaLabel)}" ${disabled ? 'disabled' : ''}>
-                        <span class="dz__minimal__icon">${icon}</span>
+                        <span class="dz__minimal-icon">${icon}</span>
                         ${minimalBadge}
                     </button>
                 </div>
@@ -238,8 +238,8 @@ export class DropzonePickerElement extends SatelliteElement {
             inner = `
                 <div class="dz__dropzone dz__dropzone--native ${stateClass}">
                     ${inputHtml}
-                    <button type="button" class="dz__native__button" ${disabled ? 'disabled' : ''}>${escapeHtml(label)}</button>
-                    <span class="dz__native__label" title="${escapeHtml(labelText)}">${escapeHtml(labelText)}</span>
+                    <button type="button" class="dz__native-button" ${disabled ? 'disabled' : ''}>${escapeHtml(label)}</button>
+                    <span class="dz__native-label" title="${escapeHtml(labelText)}">${escapeHtml(labelText)}</span>
                 </div>
             `;
         } else {
@@ -248,10 +248,10 @@ export class DropzonePickerElement extends SatelliteElement {
                 ? this.label('dragActive')
                 : promptText;
             const hintHtml = hint
-                ? `<div class="dz__dropzone__hint">${escapeHtml(hint)}</div>`
+                ? `<div class="dz__dropzone-hint">${escapeHtml(hint)}</div>`
                 : '';
             const browseBtn = cardSize === 'big'
-                ? `<button type="button" class="dz__card__action">${escapeHtml(label)}</button>`
+                ? `<button type="button" class="dz__card-action">${escapeHtml(label)}</button>`
                 : '';
             // `inside="true"` enables the files-inside layout — the file
             // list satellite slots into the card via the `<slot>` below,
@@ -272,9 +272,9 @@ export class DropzonePickerElement extends SatelliteElement {
             inner = `
                 <div class="${classes}">
                     ${inputHtml}
-                    <div class="dz__dropzone__content">
-                        <div class="dz__dropzone__icon">${icon}</div>
-                        <div class="dz__dropzone__text">${escapeHtml(text)}</div>
+                    <div class="dz__dropzone-content">
+                        <div class="dz__dropzone-icon">${icon}</div>
+                        <div class="dz__dropzone-text">${escapeHtml(text)}</div>
                         ${browseBtn}
                         ${hintHtml}
                     </div>
@@ -284,7 +284,7 @@ export class DropzonePickerElement extends SatelliteElement {
         }
 
         this.container.innerHTML = inner;
-        this.inputEl = this.container.querySelector('input.dz__dropzone__input');
+        this.inputEl = this.container.querySelector('input.dz__dropzone-input');
         this.attachInteractionHandlers();
         this.syncPageDrag();
     }
@@ -469,7 +469,7 @@ export class DropzonePickerElement extends SatelliteElement {
         const dz = this.container.querySelector('.dz__dropzone--card') as HTMLElement | null;
         if (!dz) { this.render(); return; }
         dz.classList.toggle('dz__dropzone--active', active);
-        const textEl = dz.querySelector('.dz__dropzone__text');
+        const textEl = dz.querySelector('.dz__dropzone-text');
         if (textEl) {
             textEl.textContent = active
                 ? this.label('dragActive')

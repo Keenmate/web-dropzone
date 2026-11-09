@@ -116,12 +116,12 @@ dz.renderPromptCallback = ({ controller }) => `
   <div class="my-prompt">Drop invoices (${controller.getFiles().length} so far)</div>`;
 
 dz.renderSummaryCallback = ({ files }) => `
-  <div class="dz__summary__line" tabindex="0" role="button">
+  <div class="dz__summary-line" tabindex="0" role="button">
     ${files.length} attachment(s)
   </div>`;
 
 renderSummaryCallback (compact / popover): keep an element with class
-dz__summary__line - the popover's click/keyboard handler binds to it.
+dz__summary-line - the popover's click/keyboard handler binds to it.
 
 ROLLING LIST PARTS
 ------------------
@@ -140,7 +140,7 @@ Return rules: null/undefined = default part; false = hide; string = innerHTML
 (skipped if identical to the previous string); HTMLElement = mounted (skipped if
 it is already the slot's only child - cache elements/loaders outside the
 callback to keep animations running). For a loader in a custom part use the
-shared CSS loader: <span class="dz-loader"> (--dz-loader-* tokens).
+shared CSS loader: <span class="dz__loader"> (--dz-loader-* tokens).
 
 FILE ICONS (ANY MODE)
 ---------------------

@@ -310,8 +310,8 @@ export class DropzoneListElement extends SatelliteElement {
             ? UI_ICONS.paperclip
             : statusGlyph(status as FileStatus);
         const iconClass = status === 'pending'
-            ? 'dz__summary__icon'
-            : `dz__summary__icon dz__summary__icon--${status}`;
+            ? 'dz__summary-icon'
+            : `dz__summary-icon dz__summary-icon--${status}`;
         const statusName = statusLabel(this.label, status as FileStatus);
 
         const totalSize = files.reduce((sum, f) => sum + f.size, 0);
@@ -319,14 +319,14 @@ export class DropzoneListElement extends SatelliteElement {
 
         this.container.innerHTML = `
             <div class="dz__summary">
-                <div class="dz__summary__line" tabindex="0" role="button" aria-label="${escapeHtml(this.label('viewFiles'))}">
+                <div class="dz__summary-line" tabindex="0" role="button" aria-label="${escapeHtml(this.label('viewFiles'))}">
                     <span class="${iconClass}" data-status="${status}" aria-label="${escapeHtml(this.label('statusAria', { status: statusName }))}"${status === 'uploading' ? ' aria-busy="true"' : ''}>${icon}</span>
-                    <span class="dz__summary__text">${escapeHtml(text)}</span>
+                    <span class="dz__summary-text">${escapeHtml(text)}</span>
                 </div>
             </div>
         `;
 
-        const line = this.container.querySelector('.dz__summary__line');
+        const line = this.container.querySelector('.dz__summary-line');
         if (!line) return;
         const fire = () => dispatchSatelliteEvent(this, this.storeEl, 'summary-activate');
         line.addEventListener('click', fire);
@@ -527,7 +527,7 @@ export class DropzoneListElement extends SatelliteElement {
         // the right thing to compare against to decide whether the front
         // actually changed.
         const previousCurrent = wrapper.querySelector<HTMLElement>(
-            '.dz__rolling__current:not(.dz__rolling__current--leaving)'
+            '.dz__rolling-current:not(.dz__rolling-current--leaving)'
         );
         const previousFrontId = previousCurrent?.dataset.frontId;
 
@@ -542,7 +542,7 @@ export class DropzoneListElement extends SatelliteElement {
         }
 
         const newCurrentEl = document.createElement('div');
-        newCurrentEl.className = 'dz__rolling__current';
+        newCurrentEl.className = 'dz__rolling-current';
         newCurrentEl.dataset.frontId = front.id;
         newCurrentEl.innerHTML = renderListItem(front);
         // Slot memoization is stale — the new slot's DOM is fresh; the
@@ -553,7 +553,7 @@ export class DropzoneListElement extends SatelliteElement {
         if (previousCurrent && rotation !== 'slide-in') {
             // True rotation — outgoing slot keeps mounted so its keyframe
             // (translateX/Y out) plays in parallel with the incoming one.
-            previousCurrent.classList.add('dz__rolling__current--leaving');
+            previousCurrent.classList.add('dz__rolling-current--leaving');
             wrapper.insertBefore(newCurrentEl, previousCurrent);
             const toRemove = previousCurrent;
             // ~200ms over the 0.3s (--dz-transition-slow) animation; spare margin so we
@@ -569,8 +569,8 @@ export class DropzoneListElement extends SatelliteElement {
 
     /**
      * Apply the rolling file-info + progress callbacks (if set) into the
-     * row inside `currentEl`. The list-item template's `.dz__file-item__name`
-     * span hosts the file-info slot; `.dz__file-item__progress` hosts the
+     * row inside `currentEl`. The list-item template's `.dz__file-item-name`
+     * span hosts the file-info slot; `.dz__file-item-progress` hosts the
      * progress slot. Routed through the shared memoizer so cached element
      * returns (e.g. WAAPI spinners) survive across ticks.
      */
@@ -579,13 +579,13 @@ export class DropzoneListElement extends SatelliteElement {
         if (!cfg) return;
 
         const fileInfoCb = cfg.renderRollingFileInfoCallback;
-        const fileInfoSlot = currentEl.querySelector<HTMLElement>('.dz__file-item__name');
+        const fileInfoSlot = currentEl.querySelector<HTMLElement>('.dz__file-item-name');
         if (fileInfoCb && fileInfoSlot) {
             this.rollingSurface.applyFileInfo(fileInfoSlot, fileInfoCb(args));
         }
 
         const progressCb = cfg.renderRollingProgressCallback;
-        const progressSlot = currentEl.querySelector<HTMLElement>('.dz__file-item__progress');
+        const progressSlot = currentEl.querySelector<HTMLElement>('.dz__file-item-progress');
         if (progressCb && progressSlot) {
             this.rollingSurface.applyProgress(progressSlot, progressCb(args));
         }
@@ -601,22 +601,22 @@ export class DropzoneListElement extends SatelliteElement {
      * their own).
      */
     private updateRollingQueueButton(wrapper: HTMLElement, queueCount: number, showQueueBtn: boolean): void {
-        let queueBtn = wrapper.querySelector<HTMLButtonElement>('.dz__rolling__queue');
+        let queueBtn = wrapper.querySelector<HTMLButtonElement>('.dz__rolling-queue');
         if (!queueBtn) {
             queueBtn = document.createElement('button');
             queueBtn.type = 'button';
-            queueBtn.className = 'dz__rolling__queue';
+            queueBtn.className = 'dz__rolling-queue';
             queueBtn.dataset.dzAction = 'open-queue';
-            queueBtn.innerHTML = '<span class="dz__rolling__queue-count"></span>';
+            queueBtn.innerHTML = '<span class="dz__rolling-queue-count"></span>';
             queueBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 dispatchSatelliteEvent(this, this.storeEl, 'queue-open');
             });
             wrapper.appendChild(queueBtn);
         }
-        const countEl = queueBtn.querySelector('.dz__rolling__queue-count');
+        const countEl = queueBtn.querySelector('.dz__rolling-queue-count');
         if (countEl) countEl.textContent = String(queueCount);
-        queueBtn.classList.toggle('dz__rolling__queue--hidden', !showQueueBtn);
+        queueBtn.classList.toggle('dz__rolling-queue--hidden', !showQueueBtn);
         const queueLabel = this.label('showQueue', { count: queueCount });
         queueBtn.setAttribute('aria-label', queueLabel);
         queueBtn.setAttribute('title', queueLabel);
@@ -695,10 +695,10 @@ export class DropzoneListElement extends SatelliteElement {
         if (!row) return;
 
         if (appearance === 'grid') {
-            const placeholder = row.querySelector('.dz__preview-item__placeholder');
+            const placeholder = row.querySelector('.dz__preview-item-placeholder');
             if (!placeholder) return; // already swapped to <img>
             const img = document.createElement('img');
-            img.className = 'dz__preview-item__image';
+            img.className = 'dz__preview-item-image';
             img.src = file.previewUrl;
             img.alt = file.name;
             placeholder.replaceWith(img);
@@ -707,7 +707,7 @@ export class DropzoneListElement extends SatelliteElement {
 
         // badges + detailed both hold `renderPlaceholderInner` in an icon slot.
         const slot = row.querySelector(
-            appearance === 'badges' ? '.dz__badge-icon' : '.dz__file-item__icon'
+            appearance === 'badges' ? '.dz__badge-icon' : '.dz__file-item-icon'
         );
         if (!slot || slot.querySelector('img')) return; // no icon part, or already patched
         const img = document.createElement('img');
@@ -752,24 +752,24 @@ export class DropzoneListElement extends SatelliteElement {
         // is always in the DOM; we just toggle classes + glyphs.
         row.dataset.status = file.status;
         const prefix = appearance === 'grid' ? 'dz__preview-item' : 'dz__file-item';
-        patchProgressFill(row, `${prefix}__progress-fill`, file.progress);
+        patchProgressFill(row, `${prefix}-progress-fill`, file.progress);
         if (appearance !== 'grid') {
-            patchProgressText(row, `${prefix}__progress-text`, file, this.label);
+            patchProgressText(row, `${prefix}-progress-text`, file, this.label);
         }
-        patchStatusIcon(row, `${prefix}__status`, file, this.label);
+        patchStatusIcon(row, `${prefix}-status`, file, this.label);
         patchActionButton(
             row.querySelector<HTMLElement>('[data-dz-action="row-action"]'),
             file,
-            `${prefix}__action`,
+            `${prefix}-action`,
             this.label
         );
         patchRemoveButton(
             row.querySelector<HTMLElement>('[data-dz-action="remove"]'),
             this.isFileUserRemovable(file),
-            `${prefix}__remove`,
+            `${prefix}-remove`,
             file.status === 'cancelling'
         );
-        patchCancelButton(row.querySelector<HTMLElement>('[data-dz-action="cancel"]'), file, `${prefix}__action`, this.hasUploadHandler(file));
+        patchCancelButton(row.querySelector<HTMLElement>('[data-dz-action="cancel"]'), file, `${prefix}-action`, this.hasUploadHandler(file));
     }
 
     // ========================================================================
@@ -789,10 +789,10 @@ export class DropzoneListElement extends SatelliteElement {
                 file.previewUrl = url;
                 const row = this.container.querySelector<HTMLElement>(`[data-file-id="${file.id}"]`);
                 if (!row) return;
-                const placeholder = row.querySelector('.dz__preview-item__placeholder');
+                const placeholder = row.querySelector('.dz__preview-item-placeholder');
                 if (placeholder) {
                     const img = document.createElement('img');
-                    img.className = 'dz__preview-item__image';
+                    img.className = 'dz__preview-item-image';
                     img.src = url;
                     img.alt = file.name;
                     placeholder.replaceWith(img);

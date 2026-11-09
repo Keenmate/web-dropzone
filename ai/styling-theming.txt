@@ -120,7 +120,7 @@ Loader                --dz-loader-icon/-rotate/-duration/-size (-> --base-loader
                       --dz-loader-inline-size (0.75x; per-row / summary, CSS only,
                       row gets aria-busy). Indicator chip upload loader = core
                       renderLoader: store el.renderLoadingCallback >
-                      window.components.renderLoaderCallback > <span class="dz-loader">.
+                      window.components.renderLoadingCallback > <span class="dz__loader">.
                       ❌ --dz-status-spin-duration → ✅ --dz-loader-duration
                       Motion off = CSS only: these 0s, or --base-duration-*: 0s
                       page-wide; prefers-reduced-motion does it automatically
@@ -191,7 +191,7 @@ Inside each shadow root: @layer variables, component, overrides.
 INJECTING CSS
 -------------
 dz.getCustomStylesCallback = () => `
-  .dz__file-item__name { font-family: 'JetBrains Mono', monospace; }
+  .dz__file-item-name { font-family: 'JetBrains Mono', monospace; }
 `;
 Prepended <style> in <web-dropzone>'s shadow root (so @import/@font-face
 work). Bulk-mode satellites have their own shadow roots and do NOT receive it -

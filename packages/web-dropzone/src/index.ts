@@ -36,7 +36,7 @@ export { STATUS_ICONS, ACTION_ICONS, CANCEL_ICON, actionForStatus } from '@keenm
 export { DEFAULT_LABELS, resolveLabel, createLabelFn } from '@keenmate/web-dropzone-core';
 export type { DropzoneLabels, DropzoneLabelKey, LabelFn } from '@keenmate/web-dropzone-core';
 export type { RowAction } from '@keenmate/web-dropzone-core';
-// Shared loader (renderLoadingCallback / window.components.renderLoaderCallback)
+// Shared loader (renderLoadingCallback / window.components.renderLoadingCallback)
 export type { LoaderRenderContext, RenderLoaderCallback } from '@keenmate/web-components-core';
 
 // The renderer class, for standalone use without the custom element (it

@@ -10,7 +10,7 @@
   display: inline-flex;
 }
 
-.dz__summary__line {
+.dz__summary-line {
   display: inline-flex;
   align-items: center;
   gap: calc(0.6 * var(--dz-rem, 10px));
@@ -23,11 +23,11 @@
   transition: background-color var(--dz-transition-normal) var(--dz-easing-snappy);
 }
 
-.dz__summary__line:hover {
+.dz__summary-line:hover {
   background: var(--dz-summary-bg-hover);
 }
 
-.dz__summary__icon {
+.dz__summary-icon {
   font-size: inherit;
   display: inline-flex;
   align-items: center;
@@ -41,7 +41,7 @@
 /* Every summary state is now a Lucide SVG (idle paperclip + per-status
    glyphs), each sized to the same slot as the per-row status icons so the
    summary line doesn't jitter as the aggregate state changes. */
-.dz__summary__icon > svg {
+.dz__summary-icon > svg {
   width: var(--dz-status-icon-size);
   height: var(--dz-status-icon-size);
   display: block;
@@ -50,12 +50,12 @@
 /* Aggregate state — mirrors the per-row colour rules so the summary
    reads "blue=uploading, orange=paused, green=done, red=error" without
    the user opening the popover. */
-.dz__summary__icon--uploading { color: var(--dz-accent-color); }
-.dz__summary__icon--paused    { color: var(--dz-warning-color); }
-.dz__summary__icon--complete  { color: var(--dz-success-color); }
-.dz__summary__icon--error     { color: var(--dz-error-color); }
+.dz__summary-icon--uploading { color: var(--dz-accent-color); }
+.dz__summary-icon--paused    { color: var(--dz-warning-color); }
+.dz__summary-icon--complete  { color: var(--dz-success-color); }
+.dz__summary-icon--error     { color: var(--dz-error-color); }
 
-.dz__summary__text {
+.dz__summary-text {
   white-space: nowrap;
 }
 
@@ -87,14 +87,14 @@
 
 /* Popover sticky-top wrapper — groups header + limits hint so both share a
    single background block at the top of the popover. */
-.dz__popover__sticky-top {
+.dz__popover-sticky-top {
   background: var(--dz-popover-header-bg);
   border-bottom: var(--dz-popover-header-border-bottom);
   border-radius: var(--dz-popover-border-radius) var(--dz-popover-border-radius) 0 0;
 }
 
 /* Popover header — file count on the left, action buttons on the right. */
-.dz__popover__header {
+.dz__popover-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -102,19 +102,19 @@
   padding: var(--dz-popover-header-padding);
 }
 
-.dz__popover__count {
+.dz__popover-count {
   font-size: var(--dz-popover-header-font-size);
   font-weight: var(--dz-popover-header-font-weight);
   color: var(--dz-popover-header-color);
 }
 
-.dz__popover__actions {
+.dz__popover-actions {
   display: flex;
   gap: var(--dz-popover-actions-gap);
 }
 
 /* Flat text-button used for "Add more" and "Clear all" in the popover header. */
-.dz__popover__action {
+.dz__popover-action {
   padding: var(--dz-popover-action-padding);
   font-size: var(--dz-popover-action-font-size);
   font-weight: var(--dz-popover-action-font-weight);
@@ -126,31 +126,31 @@
   transition: background-color var(--dz-transition-normal) var(--dz-easing-snappy);
 }
 
-.dz__popover__action:hover:not(:disabled) {
+.dz__popover-action:hover:not(:disabled) {
   background: var(--dz-popover-action-bg-hover);
 }
 
-.dz__popover__action:disabled {
+.dz__popover-action:disabled {
   opacity: var(--dz-disabled-opacity);
   cursor: not-allowed;
 }
 
 /* One-liner sitting under the header that restates accept / max-size /
    max-files. Hidden when there's nothing to show. */
-.dz__popover__limits {
+.dz__popover-limits {
   padding: var(--dz-popover-limits-padding);
   font-size: var(--dz-popover-limits-font-size);
   color: var(--dz-popover-limits-color);
   line-height: var(--dz-popover-limits-line-height);
 }
 
-.dz__popover__limits:empty {
+.dz__popover-limits:empty {
   display: none;
 }
 
 /* Popover body — flexes between the (fixed) sticky-top and footer. min-height:0
    is required so its overflow:auto kicks in inside the flex column container. */
-.dz__popover__body {
+.dz__popover-body {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
@@ -160,7 +160,7 @@
 /* Popover footer — totals (count + total size), optionally with an aggregate
    progress strip stacked above. Stays at the bottom of the popover frame;
    the body scrolls between header and footer. */
-.dz__popover__footer {
+.dz__popover-footer {
   display: flex;
   flex-direction: column;
   gap: calc(0.6 * var(--dz-rem, 10px));
@@ -172,13 +172,13 @@
   color: var(--dz-popover-footer-color);
 }
 
-.dz__popover__footer:empty {
+.dz__popover-footer:empty {
   display: none;
 }
 
 /* Totals row inside the popover footer — count on the left, total size on the
    right. Lives below the optional aggregate progress strip. */
-.dz__popover__footer__totals {
+.dz__popover-footer-totals {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -186,26 +186,26 @@
 }
 
 /* Popover table */
-.dz__popover__table {
+.dz__popover-table {
   width: 100%;
   border-collapse: collapse;
   font-size: var(--dz-popover-table-font-size);
 }
 
-.dz__popover__row {
+.dz__popover-row {
   transition: background-color var(--dz-transition-normal) var(--dz-easing-snappy);
 }
 
-.dz__popover__row:hover {
+.dz__popover-row:hover {
   background: var(--dz-popover-row-hover-bg);
 }
 
-.dz__popover__cell {
+.dz__popover-cell {
   padding: var(--dz-popover-cell-padding);
   vertical-align: middle;
 }
 
-.dz__popover__cell--icon {
+.dz__popover-cell--icon {
   width: var(--dz-popover-icon-size);
   text-align: center;
   padding-right: 0;
@@ -213,7 +213,7 @@
 
 /* Popover row's icon / thumbnail slot — a fixed square inside the icon cell.
    Set --dz-popover-icon-size to 0 to hide both the slot and the cell. */
-.dz__popover__placeholder {
+.dz__popover-placeholder {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -227,17 +227,17 @@
   vertical-align: middle;
 }
 
-.dz__popover__placeholder img {
+.dz__popover-placeholder img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.dz__popover__placeholder:empty {
+.dz__popover-placeholder:empty {
   display: none;
 }
 
-.dz__popover__cell--name {
+.dz__popover-cell--name {
   color: var(--dz-text-color-1);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -246,7 +246,7 @@
   width: 100%;
 }
 
-.dz__popover__cell--size {
+.dz__popover-cell--size {
   color: var(--dz-text-color-3);
   white-space: nowrap;
   text-align: right;
@@ -255,33 +255,33 @@
 /* Action + status sit next to each other on the right edge — tighten the
    horizontal padding on both cells so the pause/retry button doesn't
    read as "stranded" two columns over from the status pill. */
-.dz__popover__cell--action {
+.dz__popover-cell--action {
   width: var(--dz-item-action-size);
   text-align: center;
   padding-left: 0;
   padding-right: calc(0.2 * var(--dz-rem, 10px));
 }
 
-.dz__popover__cell--status {
+.dz__popover-cell--status {
   padding-left: 0.3rem;
   padding-right: 0.3rem;
 }
 
-.dz__popover__cell--actions {
+.dz__popover-cell--actions {
   width: calc(3.2 * var(--dz-rem, 10px));
   text-align: center;
   padding-left: 0;
   padding-right: 0;
 }
 
-/* Per-row pause / resume / retry button. Mirrors .dz__file-item__action —
+/* Per-row pause / resume / retry button. Mirrors .dz__file-item-action —
    same hit area, same Lucide stroke, same accent-on-hover. Lives in its
    own dedicated cell so the column width stays reserved even when the
    button is in the `--hidden` slot. Icon size matches the status pill
    (1.6rem) so the two glyphs read as a paired control. Distinct class
-   from the header text-button .dz__popover__action (Add more / Clear
+   from the header text-button .dz__popover-action (Add more / Clear
    all) so the two don't cross-cascade. */
-.dz__popover__row-action {
+.dz__popover-row-action {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -296,26 +296,26 @@
               color var(--dz-transition-normal) var(--dz-easing-snappy);
 }
 
-.dz__popover__row-action:hover {
+.dz__popover-row-action:hover {
   background: var(--dz-item-action-bg-hover);
   color: var(--dz-item-action-color-hover);
 }
 
-.dz__popover__row-action > svg {
+.dz__popover-row-action > svg {
   width: var(--dz-status-icon-size);
   height: var(--dz-status-icon-size);
   display: block;
 }
 
-.dz__popover__row-action--hidden {
+.dz__popover-row-action--hidden {
   visibility: hidden;
   pointer-events: none;
 }
 
-/* Popover remove button — same mask glyph pattern as .dz__file-item__remove
+/* Popover remove button — same mask glyph pattern as .dz__file-item-remove
    and .dz__badge-remove (and .ms__badge-remove). The × comes from the
    --dz-icon-remove SVG mask, painted in the button's current color. */
-.dz__popover__remove {
+.dz__popover-remove {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -329,7 +329,7 @@
               color var(--dz-transition-normal) var(--dz-easing-snappy);
 }
 
-.dz__popover__remove::before {
+.dz__popover-remove::before {
   content: "";
   display: block;
   width: var(--dz-popover-remove-icon-size);
@@ -339,14 +339,14 @@
           mask: var(--dz-icon-remove) center / contain no-repeat;
 }
 
-.dz__popover__remove:hover {
+.dz__popover-remove:hover {
   background: var(--dz-popover-remove-bg-hover);
   color: var(--dz-popover-remove-color-hover);
 }
 
 /* See note in _file-item.css — keeps the action cell's footprint intact
    while making the button inert and invisible. */
-.dz__popover__remove--hidden {
+.dz__popover-remove--hidden {
   visibility: hidden;
   pointer-events: none;
 }
@@ -354,12 +354,12 @@
 /* ==========================================================================
    PROGRESS COLUMN
    ========================================================================== */
-.dz__popover__cell--progress {
+.dz__popover-cell--progress {
   width: calc(10 * var(--dz-rem, 10px));
   white-space: nowrap;
 }
 
-.dz__popover__progress-bar {
+.dz__popover-progress-bar {
   display: inline-block;
   width: calc(6 * var(--dz-rem, 10px));
   height: calc(0.6 * var(--dz-rem, 10px));
@@ -369,14 +369,14 @@
   vertical-align: middle;
 }
 
-.dz__popover__progress-fill {
+.dz__popover-progress-fill {
   height: 100%;
   background: var(--dz-progress-fill-bg);
   border-radius: var(--dz-progress-border-radius);
   transition: width var(--dz-transition-normal) var(--dz-easing-out);
 }
 
-.dz__popover__progress-text {
+.dz__popover-progress-text {
   display: inline-block;
   width: calc(3 * var(--dz-rem, 10px));
   text-align: right;
@@ -389,18 +389,18 @@
 /* ==========================================================================
    STATUS COLUMN
    ========================================================================== */
-.dz__popover__cell--status {
+.dz__popover-cell--status {
   width: calc(2.4 * var(--dz-rem, 10px));
   text-align: center;
 }
 
-/* Row height in the popover is dominated by `.dz__popover__placeholder`
+/* Row height in the popover is dominated by `.dz__popover-placeholder`
    (the icon/thumbnail slot, fixed at --dz-popover-icon-size). Inline-flex
    spans on the right — status pill, per-row action, remove × — sit on
    the text baseline by default, so their glyphs read a few pixels above
    the placeholder's vertical centre. Forcing each to the same height
    with align-items:center lines all five icons up on the same centerline. */
-.dz__popover__status {
+.dz__popover-status {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -409,21 +409,21 @@
   color: var(--dz-text-color-3);
 }
 
-.dz__popover__status > svg {
+.dz__popover-status > svg {
   width: var(--dz-status-icon-size);
   height: var(--dz-status-icon-size);
   display: block;
 }
 
-.dz__popover__status--pending   { color: var(--dz-text-color-3); }
-.dz__popover__status--uploading { color: var(--dz-accent-color); }
-.dz__popover__status--complete  { color: var(--dz-success-color); }
-.dz__popover__status--error     { color: var(--dz-error-color); }
-.dz__popover__status--paused    { color: var(--dz-warning-color); }
-.dz__popover__status--cancelled { color: var(--dz-text-color-3); }
+.dz__popover-status--pending   { color: var(--dz-text-color-3); }
+.dz__popover-status--uploading { color: var(--dz-accent-color); }
+.dz__popover-status--complete  { color: var(--dz-success-color); }
+.dz__popover-status--error     { color: var(--dz-error-color); }
+.dz__popover-status--paused    { color: var(--dz-warning-color); }
+.dz__popover-status--cancelled { color: var(--dz-text-color-3); }
 
 /* Uploading row animation */
-.dz__popover__row--uploading {
+.dz__popover-row--uploading {
   animation: dz-popover-pulse var(--dz-uploading-pulse-duration) var(--dz-easing-snappy) infinite;
 }
 

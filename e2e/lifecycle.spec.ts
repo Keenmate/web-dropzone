@@ -58,18 +58,18 @@ test.describe('re-parent keeps the popover (D1)', () => {
 
     test('an open popover stays open across a move and still closes on Escape / outside click', async ({ page }) => {
         await addNamed(page, 'lc-pop', ['p1.txt', 'p2.txt']);
-        await dz(page, 'lc-pop').locator('.dz__summary__line').click();
+        await dz(page, 'lc-pop').locator('.dz__summary-line').click();
         await expect(popover(page)).toBeVisible();
 
         await move(page, 'lc-pop', 'pop-away');
         await expect(page.locator('#pop-away #lc-pop')).toHaveCount(1);
         await expect(popover(page)).toBeVisible();
-        await expect(popover(page).locator('.dz__popover__count')).toHaveText('2 files');
+        await expect(popover(page).locator('.dz__popover-count')).toHaveText('2 files');
 
         await page.keyboard.press('Escape');
         await expect(popover(page)).toHaveCount(0);
 
-        await dz(page, 'lc-pop').locator('.dz__summary__line').click();
+        await dz(page, 'lc-pop').locator('.dz__summary-line').click();
         await expect(popover(page)).toBeVisible();
         await move(page, 'lc-pop', 'pop-home');
         await page.locator('h1').click();
@@ -78,7 +78,7 @@ test.describe('re-parent keeps the popover (D1)', () => {
 
     test('a detached dropzone stops listening — Escape while removed does not close its popover', async ({ page }) => {
         await addNamed(page, 'lc-pop', ['p1.txt']);
-        await dz(page, 'lc-pop').locator('.dz__summary__line').click();
+        await dz(page, 'lc-pop').locator('.dz__summary-line').click();
         await expect(popover(page)).toBeVisible();
         const isOpenAfter = await page.evaluate(() => {
             const el = document.getElementById('lc-pop')!;

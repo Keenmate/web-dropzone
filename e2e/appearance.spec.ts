@@ -29,7 +29,7 @@ test.describe('card-size variants', () => {
     test('big carries dz__dropzone--card-big AND renders the Browse button', async ({ page }) => {
         const big = dz(page, 'card-big');
         await expect(big.locator('.dz__dropzone--card-big')).toBeVisible();
-        await expect(big.locator('.dz__card__action')).toHaveText('Browse');
+        await expect(big.locator('.dz__card-action')).toHaveText('Browse');
     });
 });
 
@@ -59,7 +59,7 @@ test.describe('display-mode shorthand', () => {
     test('compact → card + popover (summary line)', async ({ page }) => {
         const d = dz(page, 'dm-compact');
         await addNamed(page, 'dm-compact', ['a.txt', 'b.txt']);
-        await expect(d.locator('.dz__summary__line')).toBeVisible();
+        await expect(d.locator('.dz__summary-line')).toBeVisible();
     });
 });
 
@@ -78,22 +78,22 @@ test.describe('button selector count badge', () => {
     test('badge appears after files are added and reflects the count', async ({ page }) => {
         const b = dz(page, 'button-badge');
         // Empty state: no badge
-        await expect(b.locator('.dz__button__badge')).toHaveCount(0);
+        await expect(b.locator('.dz__button-badge')).toHaveCount(0);
 
         await addNamed(page, 'button-badge', ['a.txt', 'b.txt', 'c.txt']);
-        await expect(b.locator('.dz__button__badge')).toHaveText('3');
+        await expect(b.locator('.dz__button-badge')).toHaveText('3');
     });
 });
 
 test.describe('minimal selector count badge', () => {
     test('badge appears after add, follows removals, disappears when empty', async ({ page }) => {
         const m = dz(page, 'minimal-badge');
-        await expect(m.locator('.dz__minimal__badge')).toHaveCount(0);
+        await expect(m.locator('.dz__minimal-badge')).toHaveCount(0);
         await addNamed(page, 'minimal-badge', ['a.txt', 'b.txt']);
-        await expect(m.locator('.dz__minimal__badge')).toHaveText('2');
+        await expect(m.locator('.dz__minimal-badge')).toHaveText('2');
         await m.evaluate((el: any) => el.removeFile(el.files[0].id));
-        await expect(m.locator('.dz__minimal__badge')).toHaveText('1');
+        await expect(m.locator('.dz__minimal-badge')).toHaveText('1');
         await m.evaluate((el: any) => el.clear());
-        await expect(m.locator('.dz__minimal__badge')).toHaveCount(0);
+        await expect(m.locator('.dz__minimal-badge')).toHaveCount(0);
     });
 });

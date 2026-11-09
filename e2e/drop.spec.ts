@@ -49,11 +49,11 @@ test.describe('drag feedback', () => {
 
     test('labels.dragActive replaces the prompt while a drag is over the card', async ({ page }) => {
         const c = page.locator(card('drop'));
-        await expect(c.locator('.dz__dropzone__text')).toHaveText('Drop here');
+        await expect(c.locator('.dz__dropzone-text')).toHaveText('Drop here');
         await dragFiles(c, 'dragenter');
-        await expect(c.locator('.dz__dropzone__text')).toHaveText('Release to add');
+        await expect(c.locator('.dz__dropzone-text')).toHaveText('Release to add');
         await dragFiles(c, 'dragleave');
-        await expect(c.locator('.dz__dropzone__text')).toHaveText('Drop here');
+        await expect(c.locator('.dz__dropzone-text')).toHaveText('Drop here');
     });
 });
 

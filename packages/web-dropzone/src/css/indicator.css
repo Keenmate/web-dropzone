@@ -25,7 +25,7 @@
 /* Chip — fixed-position by default; switches to inline-flow when the
  * host is in inline mode. Cursor only points when the chip is actually
  * interactive (drawer="auto"); status-only chips look like text. */
-.dz__indicator__chip {
+.dz__indicator-chip {
     position: fixed;
     z-index: 100000;
     display: inline-flex;
@@ -48,15 +48,15 @@
  * `chipEl.hidden = true` from the body callback's `return false` path
  * wouldn't hide the box without this. Same goes for the host element
  * when it's been promoted to inline-block via `data-position='inline'`. */
-.dz__indicator__chip[hidden] { display: none; }
+.dz__indicator-chip[hidden] { display: none; }
 :host([hidden]) { display: none; }
-:host([data-drawer='auto']) .dz__indicator__chip { cursor: pointer; }
-:host([data-drawer='off'])  .dz__indicator__chip { cursor: default; }
-:host([data-drawer='auto']) .dz__indicator__chip:hover {
+:host([data-drawer='auto']) .dz__indicator-chip { cursor: pointer; }
+:host([data-drawer='off'])  .dz__indicator-chip { cursor: default; }
+:host([data-drawer='auto']) .dz__indicator-chip:hover {
     transform: translateY(-1px);
     box-shadow: 0 calc(0.5 * var(--dz-rem, 10px)) calc(2 * var(--dz-rem, 10px)) var(--dz-shadow-color);
 }
-.dz__indicator__chip:focus-visible {
+.dz__indicator-chip:focus-visible {
     outline: 2px solid var(--dz-accent-color);
     outline-offset: 2px;
 }
@@ -65,11 +65,11 @@
  * feel like a sibling of the surrounding content, not a floating widget.
  * Reset the hover transform too (no need to lift a chip that isn't
  * floating off the page). */
-:host([data-position='inline']) .dz__indicator__chip {
+:host([data-position='inline']) .dz__indicator-chip {
     position: static;
     box-shadow: none;
 }
-:host([data-position='inline'][data-drawer='auto']) .dz__indicator__chip:hover {
+:host([data-position='inline'][data-drawer='auto']) .dz__indicator-chip:hover {
     transform: none;
     box-shadow: 0 calc(0.2 * var(--dz-rem, 10px)) calc(0.6 * var(--dz-rem, 10px)) var(--dz-shadow-color);
 }
@@ -77,27 +77,27 @@
 /* State-coloured chip — same priority as the overall progress aggregate
  * (error > uploading > paused > pending > complete). Drives the chip's
  * background + border + text color via the existing dz status palette. */
-.dz__indicator__chip[data-status='error'] {
+.dz__indicator-chip[data-status='error'] {
     background: var(--dz-error-bg);
     border-color: var(--dz-error-color);
     color: var(--dz-error-color);
 }
-.dz__indicator__chip[data-status='uploading'] {
+.dz__indicator-chip[data-status='uploading'] {
     background: var(--dz-accent-bg);
     border-color: var(--dz-accent-color);
     color: var(--dz-accent-color);
 }
-.dz__indicator__chip[data-status='paused'] {
+.dz__indicator-chip[data-status='paused'] {
     background: var(--dz-warning-bg);
     border-color: var(--dz-warning-color);
     color: var(--dz-warning-color);
 }
-.dz__indicator__chip[data-status='complete'] {
+.dz__indicator-chip[data-status='complete'] {
     background: var(--dz-success-bg);
     border-color: var(--dz-success-color);
     color: var(--dz-success-color);
 }
-.dz__indicator__chip[data-empty='true'] {
+.dz__indicator-chip[data-empty='true'] {
     opacity: 0.65;
 }
 
@@ -105,43 +105,43 @@
  * label, progress. Each is set as innerHTML / replaceChildren by its
  * callback (or the library default) so the chip's outer button + click
  * handler are never disturbed by inner content swaps. */
-.dz__indicator__file-info {
+.dz__indicator-file-info {
     display: inline-flex;
     align-items: center;
     line-height: 1;
 }
-.dz__indicator__file-info:empty {
+.dz__indicator-file-info:empty {
     /* Suppress flex gap when no current file — the chip looks like
      * `[Label] [Percent]` instead of `[ ] [Label] [Percent]`. */
     display: none;
 }
-.dz__indicator__file-info__icon {
+.dz__indicator-file-info-icon {
     display: inline-flex;
     width: 1em;
     height: 1em;
 }
-.dz__indicator__file-info__icon svg {
+.dz__indicator-file-info-icon svg {
     width: 100%;
     height: 100%;
 }
-.dz__indicator__label {
+.dz__indicator-label {
     font-weight: 500;
 }
-.dz__indicator__progress {
+.dz__indicator-progress {
     display: inline-flex;
     align-items: center;
     font-variant-numeric: tabular-nums;
     line-height: 1;
 }
-.dz__indicator__progress:empty {
+.dz__indicator-progress:empty {
     display: none;
 }
-.dz__indicator__percent {
+.dz__indicator-percent {
     opacity: 0.85;
 }
 /* The upload loader container (core renderLoader, role="status"): the
- * default .dz-loader or whatever a render hook drew. */
-.dz__indicator__loader {
+ * default .dz__loader or whatever a render hook drew. */
+.dz__indicator-loader {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -149,20 +149,20 @@
 
 /* Position anchors — each variant pins to its edge with a safe-area offset
  * computed from --dz-rem. */
-:host([data-position='right'])  .dz__indicator__chip { top: 50%; right: calc(1.6 * var(--dz-rem, 10px)); transform: translateY(-50%); }
-:host([data-position='left'])   .dz__indicator__chip { top: 50%; left:  calc(1.6 * var(--dz-rem, 10px)); transform: translateY(-50%); }
-:host([data-position='top'])    .dz__indicator__chip { top: calc(1.6 * var(--dz-rem, 10px)); left: 50%;   transform: translateX(-50%); }
-:host([data-position='bottom']) .dz__indicator__chip { bottom: calc(1.6 * var(--dz-rem, 10px)); left: 50%; transform: translateX(-50%); }
+:host([data-position='right'])  .dz__indicator-chip { top: 50%; right: calc(1.6 * var(--dz-rem, 10px)); transform: translateY(-50%); }
+:host([data-position='left'])   .dz__indicator-chip { top: 50%; left:  calc(1.6 * var(--dz-rem, 10px)); transform: translateY(-50%); }
+:host([data-position='top'])    .dz__indicator-chip { top: calc(1.6 * var(--dz-rem, 10px)); left: 50%;   transform: translateX(-50%); }
+:host([data-position='bottom']) .dz__indicator-chip { bottom: calc(1.6 * var(--dz-rem, 10px)); left: 50%; transform: translateX(-50%); }
 
-:host([data-position='right'])  .dz__indicator__chip:hover { transform: translateY(calc(-50% - 1px)); }
-:host([data-position='left'])   .dz__indicator__chip:hover { transform: translateY(calc(-50% - 1px)); }
-:host([data-position='top'])    .dz__indicator__chip:hover { transform: translateX(-50%) translateY(-1px); }
-:host([data-position='bottom']) .dz__indicator__chip:hover { transform: translateX(-50%) translateY(-1px); }
+:host([data-position='right'])  .dz__indicator-chip:hover { transform: translateY(calc(-50% - 1px)); }
+:host([data-position='left'])   .dz__indicator-chip:hover { transform: translateY(calc(-50% - 1px)); }
+:host([data-position='top'])    .dz__indicator-chip:hover { transform: translateX(-50%) translateY(-1px); }
+:host([data-position='bottom']) .dz__indicator-chip:hover { transform: translateX(-50%) translateY(-1px); }
 
 /* Drawer — fixed-position panel that slides in from the same edge as the
  * chip. Closed by default (translated off-screen + visibility hidden so it
  * doesn't trap focus). */
-.dz__indicator__drawer {
+.dz__indicator-drawer {
     position: fixed;
     z-index: 99999;
     background: var(--dz-surface-color);
@@ -177,10 +177,10 @@
 
 /* Per-edge drawer geometry: occupy a strip along the edge, slide off-screen
  * in the closed state. */
-:host([data-position='right'])  .dz__indicator__drawer { top: 0; right: 0; bottom: 0; width: min(40rem, 90vw); transform: translateX(100%); border-right: none; }
-:host([data-position='left'])   .dz__indicator__drawer { top: 0; left: 0; bottom: 0;  width: min(40rem, 90vw); transform: translateX(-100%); border-left: none; }
-:host([data-position='top'])    .dz__indicator__drawer { top: 0; left: 0; right: 0;   height: min(60vh, 50rem); transform: translateY(-100%); border-top: none; }
-:host([data-position='bottom']) .dz__indicator__drawer { bottom: 0; left: 0; right: 0; height: min(60vh, 50rem); transform: translateY(100%); border-bottom: none; }
+:host([data-position='right'])  .dz__indicator-drawer { top: 0; right: 0; bottom: 0; width: min(40rem, 90vw); transform: translateX(100%); border-right: none; }
+:host([data-position='left'])   .dz__indicator-drawer { top: 0; left: 0; bottom: 0;  width: min(40rem, 90vw); transform: translateX(-100%); border-left: none; }
+:host([data-position='top'])    .dz__indicator-drawer { top: 0; left: 0; right: 0;   height: min(60vh, 50rem); transform: translateY(-100%); border-top: none; }
+:host([data-position='bottom']) .dz__indicator-drawer { bottom: 0; left: 0; right: 0; height: min(60vh, 50rem); transform: translateY(100%); border-bottom: none; }
 
 /* Inline-mode drawer: behaves like a popover anchored to the chip rather
  * than a viewport-edge slab. Drops down below the chip, fades in instead
@@ -190,7 +190,7 @@
 :host([data-position='inline']) {
     position: relative;
 }
-:host([data-position='inline']) .dz__indicator__drawer {
+:host([data-position='inline']) .dz__indicator-drawer {
     position: absolute;
     top: calc(100% + calc(0.4 * var(--dz-rem, 10px)));
     left: 0;
@@ -200,7 +200,7 @@
     transform: translateY(calc(-0.4 * var(--dz-rem, 10px)));
 }
 
-:host([data-drawer-open='true']) .dz__indicator__drawer {
+:host([data-drawer-open='true']) .dz__indicator-drawer {
     transform: translate(0, 0);
     visibility: visible;
     opacity: 1;
@@ -211,20 +211,20 @@
  * z-index than the drawer, so leaving it up floats the status badge on top of
  * the open panel. Hide it while the drawer is open. Inline mode is exempt: its
  * drawer is anchored to the chip, so the chip must stay to hold the anchor. */
-:host([data-drawer-open='true']:not([data-position='inline'])) .dz__indicator__chip {
+:host([data-drawer-open='true']:not([data-position='inline'])) .dz__indicator-chip {
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
 }
 
-.dz__indicator__drawer-header {
+.dz__indicator-drawer-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: calc(1.2 * var(--dz-rem, 10px)) calc(1.6 * var(--dz-rem, 10px));
     border-bottom: 1px solid var(--dz-border-color);
 }
-.dz__indicator__drawer-title {
+.dz__indicator-drawer-title {
     font-weight: 600;
     font-size: calc(1.5 * var(--dz-rem, 10px));
 }
@@ -232,7 +232,7 @@
  * rows and web-multiselect's .ms__badge-remove use, rendered via a currentColor
  * mask so it themes from one place. Previously a raw "×" text character, which
  * read as a different, heavier glyph than the rest of the component. */
-.dz__indicator__drawer-close {
+.dz__indicator-drawer-close {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -248,7 +248,7 @@
     transition: background-color var(--dz-transition-normal) var(--dz-easing-snappy),
                 color var(--dz-transition-normal) var(--dz-easing-snappy);
 }
-.dz__indicator__drawer-close::before {
+.dz__indicator-drawer-close::before {
     content: "";
     display: block;
     width: calc(1.6 * var(--dz-rem, 10px));
@@ -257,10 +257,10 @@
     -webkit-mask: var(--dz-icon-remove) center / contain no-repeat;
             mask: var(--dz-icon-remove) center / contain no-repeat;
 }
-.dz__indicator__drawer-close:hover {
+.dz__indicator-drawer-close:hover {
     background: var(--dz-hover-bg);
 }
-.dz__indicator__drawer-body {
+.dz__indicator-drawer-body {
     flex: 1 1 auto;
     overflow-y: auto;
     padding: calc(1.2 * var(--dz-rem, 10px)) calc(1.6 * var(--dz-rem, 10px));

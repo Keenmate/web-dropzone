@@ -15,7 +15,7 @@
   }
 }
 
-/* The loader's rotation (shared loader contract, see .dz-loader in base.css). */
+/* The loader's rotation (shared loader contract, see .dz__loader in base.css). */
 @keyframes dz-loader-spin {
   to { transform: rotate(var(--dz-loader-rotate)); }
 }

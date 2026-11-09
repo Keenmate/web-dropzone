@@ -245,11 +245,11 @@
             function wireHoverHint(hostId, getEnterText, baseText) {
                 const host = document.getElementById(hostId);
                 host.addEventListener('overlay-enter', (e) => {
-                    const textEl = e.detail.overlayElement.querySelector('.dz__overlay__text');
+                    const textEl = e.detail.overlayElement.querySelector('.dz__overlay-text');
                     if (textEl) textEl.textContent = getEnterText(e.target.files);
                 });
                 host.addEventListener('overlay-leave', (e) => {
-                    const textEl = e.detail.overlayElement.querySelector('.dz__overlay__text');
+                    const textEl = e.detail.overlayElement.querySelector('.dz__overlay-text');
                     if (textEl) textEl.textContent = baseText;
                 });
             }

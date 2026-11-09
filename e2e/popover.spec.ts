@@ -12,7 +12,7 @@ import { test, expect, dz, addNamed, type Page } from './fixtures';
 const PAGE = '/test/popover.html';
 
 const popover = (page: Page, id: string) => dz(page, id).locator('.dz__popover');
-const summary = (page: Page, id: string) => dz(page, id).locator('.dz__summary__line');
+const summary = (page: Page, id: string) => dz(page, id).locator('.dz__summary-line');
 
 async function open(page: Page, id: string) {
     await addNamed(page, id, ['a.txt', 'b.txt']);
@@ -55,7 +55,7 @@ test.describe('dismissal', () => {
 
     test('a click outside closes it; a click inside does not', async ({ page }) => {
         await open(page, 'pop');
-        await popover(page, 'pop').locator('.dz__popover__count').click();
+        await popover(page, 'pop').locator('.dz__popover-count').click();
         await expect(popover(page, 'pop')).toBeVisible();
         await page.locator('#outside').click();
         await expect(popover(page, 'pop')).toHaveCount(0);
@@ -74,15 +74,15 @@ test.describe('dismissal', () => {
 test.describe('labels.summary', () => {
     test('{count} and {size} are filled in and follow the selection', async ({ page }) => {
         await addNamed(page, 'pop', ['a.txt']);
-        await expect(summary(page, 'pop').locator('.dz__summary__text')).toHaveText('1 docs · 64 B');
+        await expect(summary(page, 'pop').locator('.dz__summary-text')).toHaveText('1 docs · 64 B');
         await addNamed(page, 'pop', ['b.txt']);
-        await expect(summary(page, 'pop').locator('.dz__summary__text')).toHaveText('2 docs · 128 B');
+        await expect(summary(page, 'pop').locator('.dz__summary-text')).toHaveText('2 docs · 128 B');
     });
 
     test('the default template is "{count} file(s), {size}"; a live change re-renders', async ({ page }) => {
         await addNamed(page, 'top', ['a.txt']);
-        await expect(summary(page, 'top').locator('.dz__summary__text')).toHaveText('1 file(s), 64 B');
+        await expect(summary(page, 'top').locator('.dz__summary-text')).toHaveText('1 file(s), 64 B');
         await dz(page, 'top').evaluate(async (el: any) => { el.labels = { summary: 'Files: {count}' }; await el.whenSettled(); });
-        await expect(summary(page, 'top').locator('.dz__summary__text')).toHaveText('Files: 1');
+        await expect(summary(page, 'top').locator('.dz__summary-text')).toHaveText('Files: 1');
     });
 });

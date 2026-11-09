@@ -156,7 +156,7 @@ Any "status surface" (the indicator chip, the rolling list appearance, future on
 
 All three share the `StatusSurfaceCallback` shape: `(args: StatusSurfaceArgs) => string | HTMLElement | false | null` — one ctx that also carries the store's `controller` / `element`. On `<web-dropzone>` (rolling list, structural mode) they are the `renderRollingBodyCallback` / `renderRollingFileInfoCallback` / `renderRollingProgressCallback` inputs; on `<web-dropzone-indicator>` they keep the short names (the indicator has only one surface). String returns are skipped when equal to the previous string; element returns are skipped when the returned node is already the slot's only child — cache your spinner or element outside the callback and you get a true no-op across ticks (WAAPI animations don't restart, focus / transitions in flight survive).
 
-Polished OOB rendering uses the same callbacks internally with library defaults — every part is replaceable independently. For a loader in a custom part, return the shared CSS loader `<span class="dz-loader">` (themed by the `--dz-loader-*` tokens).
+Polished OOB rendering uses the same callbacks internally with library defaults — every part is replaceable independently. For a loader in a custom part, return the shared CSS loader `<span class="dz__loader">` (themed by the `--dz-loader-*` tokens).
 
 **Surface implementations today:**
 - `<web-dropzone-indicator>` — exposes the three callbacks directly on the element.

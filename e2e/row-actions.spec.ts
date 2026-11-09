@@ -16,7 +16,7 @@ import { test, expect, dz, addNamed, pendingNames, resolveUpload, logLines, type
 const PAGE = '/test/row-actions.html';
 
 const row = (page: Page, id: string, name: string) =>
-    dz(page, id).locator(`.dz__file-item:has(.dz__file-item__name:text-is("${name}"))`);
+    dz(page, id).locator(`.dz__file-item:has(.dz__file-item-name:text-is("${name}"))`);
 const action = (page: Page, id: string, name: string) => row(page, id, name).locator('[data-dz-action="row-action"]');
 const removeBtn = (page: Page, id: string, name: string) => row(page, id, name).locator('[data-dz-action="remove"]');
 const cancelBtn = (page: Page, id: string, name: string) => row(page, id, name).locator('[data-dz-action="cancel"]');
@@ -189,7 +189,7 @@ test.describe('remove ✕', () => {
 
     test('list satellite: ⊘ cancels (row stays), ✕ removes', async ({ page }) => {
         await addNamed(page, 'sat-store', ['s1.txt', 's2.txt']);
-        const satRow = (name: string) => page.locator('#sat-list').locator(`.dz__file-item:has(.dz__file-item__name:text-is("${name}"))`);
+        const satRow = (name: string) => page.locator('#sat-list').locator(`.dz__file-item:has(.dz__file-item-name:text-is("${name}"))`);
         await expect.poll(() => status(page, 'sat-store', 's1.txt')).toBe('uploading');
         await expect(satRow('s1.txt').locator('[data-dz-action="cancel"]')).toHaveAttribute('aria-label', 'Cancel s1.txt');
         await satRow('s1.txt').locator('[data-dz-action="cancel"]').click();
@@ -203,8 +203,8 @@ test.describe('remove ✕', () => {
     test('popover rows: ⊘ cancels, ✕ removes', async ({ page }) => {
         await addNamed(page, 'pop', ['o1.txt', 'o2.txt']);
         await expect.poll(() => status(page, 'pop', 'o1.txt')).toBe('uploading');
-        await dz(page, 'pop').locator('.dz__summary__line').click();
-        const popRow = (name: string) => dz(page, 'pop').locator(`tr.dz__popover__row:has(.dz__popover__cell--name:text-is("${name}"))`);
+        await dz(page, 'pop').locator('.dz__summary-line').click();
+        const popRow = (name: string) => dz(page, 'pop').locator(`tr.dz__popover-row:has(.dz__popover-cell--name:text-is("${name}"))`);
         await popRow('o1.txt').locator('[data-dz-action="cancel"]').click();
         await expect.poll(() => status(page, 'pop', 'o1.txt')).toBe('cancelled');
         await popRow('o2.txt').locator('[data-dz-action="remove"]').click();

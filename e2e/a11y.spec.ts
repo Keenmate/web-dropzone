@@ -32,7 +32,7 @@ test.beforeEach(async ({ page }) => {
 test.describe('card', () => {
     test('Tab reaches the card; it shows the focus ring; Enter and Space open the file dialog', async ({ page }) => {
         await page.keyboard.press('Tab');
-        expect(await focused(page)).toContain('dz__dropzone__input');
+        expect(await focused(page)).toContain('dz__dropzone-input');
         expect(await dz(page, 'card').locator('.dz__dropzone--card').evaluate((el) => el.matches(':focus-within'))).toBe(true);
         await page.keyboard.press('Enter');
         await expect.poll(choosers).toBe(1);
@@ -85,7 +85,7 @@ test.describe('row controls', () => {
         await addNamed(page, 'card', ['report.pdf']);
         const row = dz(page, 'card').locator('.dz__file-item');
         await expect(row.locator('[data-dz-action="remove"]')).toHaveAccessibleName('Remove report.pdf');
-        await expect(row.locator('.dz__file-item__status')).toHaveAttribute('aria-label', /^Status: /);
+        await expect(row.locator('.dz__file-item-status')).toHaveAttribute('aria-label', /^Status: /);
     });
 
     test('Enter on a focused row ✕ removes the file', async ({ page }) => {

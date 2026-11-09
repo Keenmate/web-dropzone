@@ -210,9 +210,9 @@ Show a full overlay over another element while files are dragged over it:
 overlay-enter use:
 dz.onOverlayEnter = ({ overlayElement, controller }) => {
   const left = 5 - controller.getFiles().length;
-  overlayElement.querySelector('.dz__overlay__text').textContent = `${left} slots left`;
+  overlayElement.querySelector('.dz__overlay-text').textContent = `${left} slots left`;
 };
-(overlay markup: .dz__overlay__content > .dz__overlay__icon + .dz__overlay__text -
+(overlay markup: .dz__overlay-content > .dz__overlay-icon + .dz__overlay-text -
 internal class names, not a versioned API)
 
 DISABLED

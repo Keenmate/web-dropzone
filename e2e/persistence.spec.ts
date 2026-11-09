@@ -15,7 +15,7 @@ const PAGE = '/test/persistence.html';
 
 async function openPopover(page: Page, id: string) {
     await addNamed(page, id, ['a.txt']);
-    await dz(page, id).locator('.dz__summary__line').click();
+    await dz(page, id).locator('.dz__summary-line').click();
     await expect(dz(page, id).locator('.dz__popover')).toBeVisible();
 }
 

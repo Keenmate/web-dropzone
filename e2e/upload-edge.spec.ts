@@ -243,7 +243,7 @@ test.describe('allow-uploaded-file-removal="false"', () => {
         await expect.poll(() => pendingNames(page)).toContain('nd.txt');
         await resolveUpload(page, 'nd.txt', 'ok');
         await expect.poll(() => dz(page, 'nodelete').evaluate((el: any) => el.files[0].status)).toBe('complete');
-        await expect(removeBtn(page, 'nd.txt')).toHaveClass(/dz__file-item__remove--hidden/, { timeout: 1000 });
+        await expect(removeBtn(page, 'nd.txt')).toHaveClass(/dz__file-item-remove--hidden/, { timeout: 1000 });
         await expect(removeBtn(page, 'nd.txt')).toHaveAttribute('aria-hidden', 'true');
     });
 
@@ -262,7 +262,7 @@ test.describe('sink-completed-delay', () => {
     const visualOrder = (page: import('@playwright/test').Page) =>
         dz(page, 'reorder-delay').locator('.dz__file-item').evaluateAll((rows) =>
             rows
-                .map((r) => ({ y: r.getBoundingClientRect().top, name: r.querySelector('.dz__file-item__name')?.textContent?.trim() }))
+                .map((r) => ({ y: r.getBoundingClientRect().top, name: r.querySelector('.dz__file-item-name')?.textContent?.trim() }))
                 .sort((a, b) => a.y - b.y)
                 .map((r) => r.name));
 

@@ -62,7 +62,7 @@ test.describe('list-appearance="popover"', () => {
     test('renders a summary line; full list lives behind the popover trigger', async ({ page }) => {
         await stage(page, 'popover', 5);
         const p = dz(page, 'popover');
-        await expect(p.locator('.dz__summary__line')).toBeVisible();
+        await expect(p.locator('.dz__summary-line')).toBeVisible();
         // The full list is NOT inline — it lives in a popover that opens on
         // click. Inline file rows should be absent until that happens.
         await expect(p.locator('.dz__file-item--list')).toHaveCount(0);

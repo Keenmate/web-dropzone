@@ -168,7 +168,7 @@ string = innerHTML, skipped when equal to the last string; HTMLElement =
 mounted, skipped when already the slot's only child.
 
 const loader = document.createElement('span');   // cache it
-loader.className = 'dz-loader';                   // shared CSS loader (--dz-loader-*)
+loader.className = 'dz__loader';                   // shared CSS loader (--dz-loader-*)
 indicator.renderFileInfoCallback = ({ currentFile }) =>
   currentFile?.status === 'uploading' ? loader : null;
 indicator.renderProgressCallback = ({ aggregate, overallPercent }) =>

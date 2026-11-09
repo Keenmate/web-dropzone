@@ -118,7 +118,7 @@ can win:
 
 The host element is intentionally transparent (no `:host { background }`).
 The visible surface (`.dz__dropzone--card`, `.dz__file-item`,
-`.dz__indicator__chip`) paints itself. In `render-mode="headless"` and on the four
+`.dz__indicator-chip`) paints itself. In `render-mode="headless"` and on the four
 satellites the host is meant to sit inline in the consumer layout without
 adding a background rectangle. Documented exception to the
 [theme-container.md](https://github.com/keenmate/BlissFramework/blob/main/guidelines/web-components/theme-container.md)

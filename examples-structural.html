@@ -133,7 +133,7 @@
     btn.textContent = '×'
     btn.dataset.dzAction = 'remove'
     btn.dataset.fileId = file.id
-    btn.className = 'dz__file-item__remove'
+    btn.className = 'dz__file-item-remove'
     row.appendChild(btn)
 
     return row
@@ -144,7 +144,7 @@
         <!-- SUMMARY -->
         <div class="card">
             <h2>SR05 · Custom Compact Summary (<code>renderSummaryCallback</code>)</h2>
-            <p>Replaces the inline summary line that triggers the compact-mode popover. Required: include an element with class <code>dz__summary__line</code> so the popover click handler still binds correctly.</p>
+            <p>Replaces the inline summary line that triggers the compact-mode popover. Required: include an element with class <code>dz__summary-line</code> so the popover click handler still binds correctly.</p>
 
             <div class="form-group">
                 <label>Counter pill with total size</label>
@@ -162,7 +162,7 @@
                 <pre><code>el.renderSummaryCallback = ({ files }) =&gt; {
     const total = files.reduce((s, f) =&gt; s + f.size, 0)
     return `
-        &lt;div class="dz__summary__line" tabindex="0" role="button"&gt;
+        &lt;div class="dz__summary-line" tabindex="0" role="button"&gt;
             &lt;span class="pill"&gt;${files.length}&lt;/span&gt;
             &lt;span&gt;files · ${(total/1024).toFixed(1)} KB&lt;/span&gt;
         &lt;/div&gt;
@@ -399,7 +399,7 @@ el.renderFileItemCallback = ({ file }) =&gt; `
         summary.renderSummaryCallback = ({ files }) => {
             const total = files.reduce((s, f) => s + f.size, 0)
             return `
-                <div class="dz__summary__line" tabindex="0" role="button" aria-label="View files">
+                <div class="dz__summary-line" tabindex="0" role="button" aria-label="View files">
                     <span class="pill">${files.length}</span>
                     <span>files · ${(total/1024).toFixed(1)} KB</span>
                 </div>

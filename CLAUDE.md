@@ -137,7 +137,7 @@ examples-upload.html (`dz-upload-*`). New pages use `attachControlsPersistence`.
 - `DEFAULT_CONFIG` + pure helpers: `formatFileSize`, `getFileTypeCategory`, `getFileIcon`, `isImageFile`, `createImagePreview`, `generateFileId`, `FILE_ICONS`.
 
 **icons.ts**
-- Shared Lucide SVG family: `STATUS_ICONS`, `STATUS_LABELS`, `ACTION_ICONS`, `ACTION_LABELS`, `actionForStatus()`. (Loaders are drawn by core `renderLoader()` + the `.dz-loader` CSS; `createDropzoneSpinner()` was removed in v2.)
+- Shared Lucide SVG family: `STATUS_ICONS`, `STATUS_LABELS`, `ACTION_ICONS`, `ACTION_LABELS`, `actionForStatus()`. (Loaders are drawn by core `renderLoader()` + the `.dz__loader` CSS; `createDropzoneSpinner()` was removed in v2.)
 
 **dom-utils.ts**
 - Two tiny zero-dep DOM primitives: `dispatchComposedEvent`, `escapeHtml`. The only DOM-touching code in the core package — kept here so renderers can rely on them without a renderer → core cycle.

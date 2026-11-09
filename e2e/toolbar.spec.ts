@@ -102,7 +102,7 @@ test.describe('overall-progress bulk actions', () => {
 test.describe('popover header actions', () => {
     async function openPopover(page: Page) {
         await addNamed(page, 'pop', ['p1.txt', 'p2.txt']);
-        await dz(page, 'pop').locator('.dz__summary__line').click();
+        await dz(page, 'pop').locator('.dz__summary-line').click();
         await expect(dz(page, 'pop').locator('.dz__popover')).toBeVisible();
     }
 
@@ -141,7 +141,7 @@ test.describe('popover header actions', () => {
     test('a disabled dropzone hides Add more but keeps Clear all', async ({ page }) => {
         await dz(page, 'pop').evaluate(async (el: any) => { el.isDisabled = true; await el.whenSettled(); });
         await addNamed(page, 'pop', ['p1.txt']);
-        await dz(page, 'pop').locator('.dz__summary__line').click();
+        await dz(page, 'pop').locator('.dz__summary-line').click();
         await expect(dz(page, 'pop').locator('.dz__popover')).toBeVisible();
         await expect(btn(page, 'pop', 'clear')).toBeVisible();
         await expect(btn(page, 'pop', 'add-more')).toHaveCount(0);

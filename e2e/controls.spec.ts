@@ -58,7 +58,7 @@ test.describe('item-controls', () => {
         await addNamed(page, 'all', ['a.txt']);
         const row = dz(page, 'all').locator('.dz__file-item');
         for (const part of ['icon', 'name', 'size', 'type', 'progress', 'status', 'remove']) {
-            await expect(row.locator(`.dz__file-item__${part}`), part).toHaveCount(1);
+            await expect(row.locator(`.dz__file-item-${part}`), part).toHaveCount(1);
         }
         await expect(row.locator('[data-dz-action="row-action"]'), 'action').toHaveCount(1);
         await expect(row.locator('[data-dz-action="cancel"]'), 'cancel').toHaveCount(1);
@@ -67,10 +67,10 @@ test.describe('item-controls', () => {
     test('item-controls="name,remove" → only those parts', async ({ page }) => {
         await addNamed(page, 'parts', ['a.txt']);
         const row = dz(page, 'parts').locator('.dz__file-item');
-        await expect(row.locator('.dz__file-item__name')).toHaveText('a.txt');
-        await expect(row.locator('.dz__file-item__remove')).toHaveCount(1);
+        await expect(row.locator('.dz__file-item-name')).toHaveText('a.txt');
+        await expect(row.locator('.dz__file-item-remove')).toHaveCount(1);
         for (const part of ['icon', 'size', 'type', 'progress', 'status', 'action']) {
-            await expect(row.locator(`.dz__file-item__${part}`), part).toHaveCount(0);
+            await expect(row.locator(`.dz__file-item-${part}`), part).toHaveCount(0);
         }
     });
 
@@ -78,7 +78,7 @@ test.describe('item-controls', () => {
         await addNamed(page, 'parts', ['a.txt']);
         await dz(page, 'parts').evaluate(async (el: any) => { el.setAttribute('item-controls', 'size'); await el.whenSettled(); });
         const row = dz(page, 'parts').locator('.dz__file-item');
-        await expect(row.locator('.dz__file-item__size')).toHaveCount(1);
-        await expect(row.locator('.dz__file-item__name')).toHaveCount(0);
+        await expect(row.locator('.dz__file-item-size')).toHaveCount(1);
+        await expect(row.locator('.dz__file-item-name')).toHaveCount(0);
     });
 });

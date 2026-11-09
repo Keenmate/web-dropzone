@@ -141,7 +141,7 @@ test.describe('readonly host (C5)', () => {
     test('programmatic files show without a Remove button and ARE submitted with the form', async ({ page }) => {
         await dz(page, 'ro').evaluate((el: any) => el.addFiles([new File(['x'], 'r.txt', { type: 'text/plain' })]));
         await expect.poll(() => count(page, 'ro')).toBe(1);
-        await expect(page.locator('#ro .dz__file-item__remove')).toHaveClass(/--hidden/);
+        await expect(page.locator('#ro .dz__file-item-remove')).toHaveClass(/--hidden/);
         const submitted = await page.locator('#ro-form').evaluate((form: HTMLFormElement) =>
             new FormData(form).getAll('docs').map((f: any) => f.name));
         expect(submitted).toEqual(['r.txt']);

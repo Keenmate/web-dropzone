@@ -179,7 +179,7 @@
             const cp = document.getElementById('compact');
             cp.renderSummaryCallback = (ctx) => {
                 check('renderSummary', ctx, cp);
-                return `<div class="dz__summary__line im-summary" tabindex="0" role="button">${ctx.files.length} staged</div>`;
+                return `<div class="dz__summary-line im-summary" tabindex="0" role="button">${ctx.files.length} staged</div>`;
             };
             cp.loadStateCallback = (ctx) => {
                 check('loadState', ctx, cp);

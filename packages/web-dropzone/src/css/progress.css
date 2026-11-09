@@ -8,7 +8,7 @@
   margin-top: calc(0.4 * var(--dz-rem, 10px));
 }
 
-.dz__progress__bar {
+.dz__progress-bar {
   width: 100%;
   height: var(--dz-progress-height);
   background: var(--dz-progress-bg);
@@ -16,7 +16,7 @@
   overflow: hidden;
 }
 
-.dz__progress__fill {
+.dz__progress-fill {
   height: 100%;
   background: var(--dz-progress-fill-bg);
   border-radius: var(--dz-progress-border-radius);
@@ -24,26 +24,26 @@
 }
 
 /* Progress states */
-.dz__progress--complete .dz__progress__fill {
+.dz__progress--complete .dz__progress-fill {
   background: var(--dz-success-color);
 }
 
-.dz__progress--error .dz__progress__fill {
+.dz__progress--error .dz__progress-fill {
   background: var(--dz-error-color);
 }
 
 /* Status text */
-.dz__progress__status {
+.dz__progress-status {
   margin-top: calc(0.2 * var(--dz-rem, 10px));
   font-size: var(--dz-font-size-xs);
   color: var(--dz-text-color-3);
 }
 
-.dz__progress__status--complete {
+.dz__progress-status--complete {
   color: var(--dz-success-color);
 }
 
-.dz__progress__status--error {
+.dz__progress-status--error {
   color: var(--dz-error-color);
 }
 
@@ -65,7 +65,7 @@
   display: none;
 }
 
-.dz__overall-progress__bar {
+.dz__overall-progress-bar {
   width: 100%;
   height: var(--dz-overall-progress-bar-height);
   background: var(--dz-progress-bg);
@@ -73,7 +73,7 @@
   overflow: hidden;
 }
 
-.dz__overall-progress__fill {
+.dz__overall-progress-fill {
   height: 100%;
   background: var(--dz-progress-fill-bg);
   border-radius: var(--dz-progress-border-radius);
@@ -85,12 +85,12 @@
    error > uploading > paused > complete. The error case ALSO tints
    the track so a hidden errored file (off-screen badge, scrolled-out
    list row) can't hide behind a "97% green, almost done" reading. */
-.dz__overall-progress[data-status="complete"]  .dz__overall-progress__fill { background: var(--dz-success-color); }
-.dz__overall-progress[data-status="paused"]    .dz__overall-progress__fill { background: var(--dz-warning-color); }
-.dz__overall-progress[data-status="error"]     .dz__overall-progress__fill { background: var(--dz-error-color); }
-.dz__overall-progress[data-status="error"]     .dz__overall-progress__bar  { background: color-mix(in srgb, var(--dz-error-color) 18%, transparent); }
+.dz__overall-progress[data-status="complete"]  .dz__overall-progress-fill { background: var(--dz-success-color); }
+.dz__overall-progress[data-status="paused"]    .dz__overall-progress-fill { background: var(--dz-warning-color); }
+.dz__overall-progress[data-status="error"]     .dz__overall-progress-fill { background: var(--dz-error-color); }
+.dz__overall-progress[data-status="error"]     .dz__overall-progress-bar  { background: color-mix(in srgb, var(--dz-error-color) 18%, transparent); }
 
-.dz__overall-progress__stats {
+.dz__overall-progress-stats {
   display: flex;
   align-items: center;
   gap: calc(0.8 * var(--dz-rem, 10px));
@@ -104,7 +104,7 @@
 /* Counts span consumes leftover width and pushes the actions group + percent
    to the right edge. min-width: 0 lets text-overflow: ellipsis work inside
    a flex parent. */
-.dz__overall-progress__counts {
+.dz__overall-progress-counts {
   flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
@@ -112,32 +112,32 @@
   white-space: nowrap;
 }
 
-.dz__overall-progress__failed {
+.dz__overall-progress-failed {
   color: var(--dz-error-color);
 }
 
-.dz__overall-progress__paused {
+.dz__overall-progress-paused {
   color: var(--dz-warning-color);
 }
 
 /* Bulk-action button group ("Pause all", "Resume all", "Retry all"). Always
    in the DOM for layout stability; :empty collapses it when no actions
    apply so the gap doesn't show. */
-.dz__overall-progress__actions {
+.dz__overall-progress-actions {
   display: flex;
   align-items: center;
   gap: calc(0.2 * var(--dz-rem, 10px));
   flex: 0 0 auto;
 }
 
-.dz__overall-progress__actions:empty {
+.dz__overall-progress-actions:empty {
   display: none;
 }
 
 /* Reserved width — "100%" is the widest the percent ever gets, so locking
    to that width via min-width keeps the percent's right edge stable as
    buttons appear / disappear and as digits roll over. */
-.dz__overall-progress__percent {
+.dz__overall-progress-percent {
   flex: 0 0 auto;
   min-width: var(--dz-overall-progress-percent-min-width);
   text-align: right;
@@ -147,7 +147,7 @@
 
 /* Bulk action button ("Retry all") inside the stats line. Sits between the
    counts and the percent, only visible when any file is in the error state. */
-.dz__overall-progress__action {
+.dz__overall-progress-action {
   padding: var(--dz-overall-progress-action-padding);
   font-size: var(--dz-overall-progress-action-font-size);
   font-weight: var(--dz-overall-progress-action-font-weight);
@@ -160,6 +160,6 @@
   transition: background-color var(--dz-transition-normal) var(--dz-easing-snappy);
 }
 
-.dz__overall-progress__action:hover {
+.dz__overall-progress-action:hover {
   background: var(--dz-overall-progress-action-bg-hover);
 }

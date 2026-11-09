@@ -51,14 +51,14 @@
   height: var(--dz-preview-row-height, calc(16 * var(--dz-rem, 10px)));
   width: auto;                                             /* shrink-to-fit the image */
 }
-.dz__file-list--grid[data-grid-layout="natural"] .dz__preview-item__image {
+.dz__file-list--grid[data-grid-layout="natural"] .dz__preview-item-image {
   width: auto;                                             /* natural ratio drives width */
   height: 100%;
   object-fit: contain;                                     /* box == image ratio → no crop */
 }
 /* Non-image tiles have no intrinsic ratio; give them a square footprint so
    they don't collapse to zero width in the flex row. */
-.dz__file-list--grid[data-grid-layout="natural"] .dz__preview-item__placeholder {
+.dz__file-list--grid[data-grid-layout="natural"] .dz__preview-item-placeholder {
   aspect-ratio: 1;
   height: 100%;
   width: auto;
@@ -109,7 +109,7 @@
    ROLLING APPEARANCE — stable container with rotating front-file slot
    ==========================================================================
    The container is the popover anchor (visible "current file" rectangle).
-   Inside, one or two `.dz__rolling__current` slots share a single CSS-grid
+   Inside, one or two `.dz__rolling-current` slots share a single CSS-grid
    cell so they overlap during a transition: the outgoing slot animates
    out while the incoming one animates in, no layout shift. The queue
    count badge floats in the top-right corner as an absolute overlay.
@@ -137,7 +137,7 @@
    that's what lets them overlap during a transition. The cell auto-sizes
    to the tallest child so the container is naturally as tall as one file
    row, and the popover anchor (= container) has a sensible rectangle. */
-.dz__rolling__current {
+.dz__rolling-current {
   grid-area: 1 / 1;
   min-width: 0;
   /* Reserve room on the right for the corner badge so the file-item's
@@ -148,28 +148,28 @@
 
 /* Slide-in (default): only the incoming slot is mounted; old one was
    replaced in-place by JS. */
-.dz__file-list--rolling[data-rotation="slide-in"]   .dz__rolling__current,
-.dz__files-inside--rolling[data-rotation="slide-in"] .dz__rolling__current {
+.dz__file-list--rolling[data-rotation="slide-in"]   .dz__rolling-current,
+.dz__files-inside--rolling[data-rotation="slide-in"] .dz__rolling-current {
   animation: dz-roll-in-from-right var(--dz-rolling-animation-duration) var(--dz-easing-snappy) both;
 }
 
 /* Horizontal conveyor: incoming from the right, outgoing to the left. */
-.dz__file-list--rolling[data-rotation="horizontal"]   .dz__rolling__current,
-.dz__files-inside--rolling[data-rotation="horizontal"] .dz__rolling__current {
+.dz__file-list--rolling[data-rotation="horizontal"]   .dz__rolling-current,
+.dz__files-inside--rolling[data-rotation="horizontal"] .dz__rolling-current {
   animation: dz-roll-in-from-right var(--dz-rolling-animation-duration) var(--dz-easing-snappy) both;
 }
-.dz__file-list--rolling[data-rotation="horizontal"]   .dz__rolling__current--leaving,
-.dz__files-inside--rolling[data-rotation="horizontal"] .dz__rolling__current--leaving {
+.dz__file-list--rolling[data-rotation="horizontal"]   .dz__rolling-current--leaving,
+.dz__files-inside--rolling[data-rotation="horizontal"] .dz__rolling-current--leaving {
   animation: dz-roll-out-to-left var(--dz-rolling-animation-duration) var(--dz-easing-snappy) both;
 }
 
 /* Vertical stack: incoming rises from below, outgoing exits at the top. */
-.dz__file-list--rolling[data-rotation="vertical"]   .dz__rolling__current,
-.dz__files-inside--rolling[data-rotation="vertical"] .dz__rolling__current {
+.dz__file-list--rolling[data-rotation="vertical"]   .dz__rolling-current,
+.dz__files-inside--rolling[data-rotation="vertical"] .dz__rolling-current {
   animation: dz-roll-in-from-bottom var(--dz-rolling-animation-duration) var(--dz-easing-snappy) both;
 }
-.dz__file-list--rolling[data-rotation="vertical"]   .dz__rolling__current--leaving,
-.dz__files-inside--rolling[data-rotation="vertical"] .dz__rolling__current--leaving {
+.dz__file-list--rolling[data-rotation="vertical"]   .dz__rolling-current--leaving,
+.dz__files-inside--rolling[data-rotation="vertical"] .dz__rolling-current--leaving {
   animation: dz-roll-out-to-top var(--dz-rolling-animation-duration) var(--dz-easing-snappy) both;
 }
 
@@ -193,7 +193,7 @@
 /* Queue badge — small count pill in the top-right corner of the container.
    Always-mounted (we toggle `--hidden` for the 1-file case) so the
    container's hit area stays stable. */
-.dz__rolling__queue {
+.dz__rolling-queue {
   position: absolute;
   top: var(--dz-rolling-queue-offset);
   right: var(--dz-rolling-queue-offset);
@@ -214,17 +214,17 @@
               color var(--dz-transition-normal) var(--dz-easing-snappy);
 }
 
-.dz__rolling__queue:hover {
+.dz__rolling-queue:hover {
   background: var(--dz-rolling-queue-bg-hover);
   color: var(--dz-rolling-queue-color-hover);
 }
 
-.dz__rolling__queue--hidden {
+.dz__rolling-queue--hidden {
   visibility: hidden;
   pointer-events: none;
 }
 
-.dz__rolling__queue-count {
+.dz__rolling-queue-count {
   display: inline-flex;
   align-items: center;
   justify-content: center;

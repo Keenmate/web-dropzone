@@ -35,7 +35,7 @@ test.describe('<web-dropzone-indicator>', () => {
         await addNamed(page, 'store-ind', ['a.txt', 'b.txt']);
         // The indicator's shadow renders an inner chip surface; locate one
         // of its known structural classes.
-        const chip = page.locator('#ind').locator('.dz__indicator__chip');
+        const chip = page.locator('#ind').locator('.dz__indicator-chip');
         await expect(chip).toBeVisible();
     });
 });
@@ -64,16 +64,16 @@ const satFiles = (page: Page) => dz(page, 'sat').evaluate((el: any) => el.files.
 test.describe('<web-dropzone-picker> attributes', () => {
     test('card: labels.prompt replaces the prompt, labels.hint renders', async ({ page }) => {
         const card = dz(page, 'pick-card').locator('.dz__dropzone--card');
-        await expect(card.locator('.dz__dropzone__text')).toHaveText('Drop invoices');
-        await expect(card.locator('.dz__dropzone__hint')).toHaveText('PDF only');
+        await expect(card.locator('.dz__dropzone-text')).toHaveText('Drop invoices');
+        await expect(card.locator('.dz__dropzone-hint')).toHaveText('PDF only');
     });
 
     test('selector-appearance="button" + label; drops on it reach the store', async ({ page }) => {
-        await expect(dz(page, 'pick-btn').locator('.dz__button__label')).toHaveText('Browse');
+        await expect(dz(page, 'pick-btn').locator('.dz__button-label')).toHaveText('Browse');
         await dragFiles(dz(page, 'pick-btn').locator('.dz__dropzone'), 'drop', ['b.txt']);
         await expect.poll(() => satFiles(page)).toEqual(['b.txt']);
         // Count badge on every button picker bound to the store.
-        await expect(dz(page, 'pick-btn').locator('.dz__button__badge')).toHaveText('1');
+        await expect(dz(page, 'pick-btn').locator('.dz__button-badge')).toHaveText('1');
     });
 
     test('disabled picker: button disabled, drops ignored — the store and other pickers stay enabled', async ({ page }) => {
@@ -119,18 +119,18 @@ test.describe('<web-dropzone-indicator> attributes', () => {
 
     test('drawer="auto": the chip is a button that toggles the drawer (title = labels.indicatorTitle)', async ({ page }) => {
         const ind = dz(page, 'ind-left');
-        await expect(ind.locator('button.dz__indicator__chip')).toHaveCount(1);
-        await expect(ind.locator('.dz__indicator__drawer-title')).toHaveText('Queue');
-        await ind.locator('.dz__indicator__chip').click();
+        await expect(ind.locator('button.dz__indicator-chip')).toHaveCount(1);
+        await expect(ind.locator('.dz__indicator-drawer-title')).toHaveText('Queue');
+        await ind.locator('.dz__indicator-chip').click();
         await expect(ind).toHaveAttribute('data-drawer-open', 'true');
-        await ind.locator('.dz__indicator__drawer-close').click();
+        await ind.locator('.dz__indicator-drawer-close').click();
         await expect(ind).toHaveAttribute('data-drawer-open', 'false');
     });
 
     test('drawer="off": a non-interactive status chip, no drawer', async ({ page }) => {
         const ind = dz(page, 'ind-off');
-        await expect(ind.locator('div.dz__indicator__chip[role="status"]')).toHaveCount(1);
-        await expect(ind.locator('.dz__indicator__drawer')).toHaveCount(0);
+        await expect(ind.locator('div.dz__indicator-chip[role="status"]')).toHaveCount(1);
+        await expect(ind.locator('.dz__indicator-drawer')).toHaveCount(0);
     });
 
     test('an unknown position falls back to "right"; live change applies', async ({ page }) => {
@@ -176,15 +176,15 @@ test.describe('shared loader', () => {
     const ind = (page: Page) => dz(page, 'ind-off');
     const start = (page: Page) => dz(page, 'sat').evaluate((el: any) => { void el.uploadAll(); });
 
-    test('indicator: default .dz-loader in a role=status container; rows: CSS inline loader + aria-busy', async ({ page }) => {
+    test('indicator: default .dz__loader in a role=status container; rows: CSS inline loader + aria-busy', async ({ page }) => {
         await addNamed(page, 'sat', ['a.txt']);
         await start(page);
         await expect.poll(() => pendingNames(page)).toContain('a.txt');
 
-        const container = ind(page).locator('.dz__indicator__loader');
+        const container = ind(page).locator('.dz__indicator-loader');
         await expect(container).toHaveAttribute('role', 'status');
         await expect(container).toHaveAttribute('aria-label', 'Uploading');
-        const spin = container.locator('.dz-loader');
+        const spin = container.locator('.dz__loader');
         await expect(spin).toHaveCount(1);
         const anim = await spin.evaluate((s) => {
             const cs = getComputedStyle(s);
@@ -196,34 +196,34 @@ test.describe('shared loader', () => {
         // The per-row loader is CSS only: no role=status, the row is aria-busy.
         const row = dz(page, 'list-empty').locator('.dz__file-item');
         await expect(row).toHaveAttribute('aria-busy', 'true');
-        await expect(row.locator('.dz-loader--inline')).toHaveCount(1);
+        await expect(row.locator('.dz__loader--inline')).toHaveCount(1);
         await expect(row.locator('[role="status"]')).toHaveCount(0);
 
         await resolveUpload(page, 'a.txt');
-        await expect(ind(page).locator('.dz__indicator__loader')).toHaveCount(0);
+        await expect(ind(page).locator('.dz__indicator-loader')).toHaveCount(0);
         await expect(row).not.toHaveAttribute('aria-busy', /./);
-        await expect(row.locator('.dz-loader')).toHaveCount(0);
+        await expect(row.locator('.dz__loader')).toHaveCount(0);
     });
 
-    test('window.components.renderLoaderCallback replaces the default upload loader', async ({ page }) => {
+    test('window.components.renderLoadingCallback replaces the default upload loader', async ({ page }) => {
         await page.evaluate(() => {
-            (window as any).components.renderLoaderCallback = ({ component, context, containerElement }: any) => {
+            (window as any).components.renderLoadingCallback = ({ component, context, containerElement }: any) => {
                 containerElement.innerHTML = `<i class="page-dots" data-component="${component}" data-context="${context}"></i>`;
             };
         });
         await addNamed(page, 'sat', ['a.txt']);
         await start(page);
         await expect.poll(() => pendingNames(page)).toContain('a.txt');
-        const dots = ind(page).locator('.dz__indicator__loader .page-dots');
+        const dots = ind(page).locator('.dz__indicator-loader .page-dots');
         await expect(dots).toHaveAttribute('data-component', 'web-dropzone-indicator');
         await expect(dots).toHaveAttribute('data-context', 'upload');
-        await expect(ind(page).locator('.dz__indicator__loader .dz-loader')).toHaveCount(0);
+        await expect(ind(page).locator('.dz__indicator-loader .dz__loader')).toHaveCount(0);
     });
 
     test("the store's renderLoadingCallback beats the page hook; the cleanup runs when the upload ends", async ({ page }) => {
         await page.evaluate(() => {
             (window as any).__cleanups = 0;
-            (window as any).components.renderLoaderCallback = ({ containerElement }: any) => {
+            (window as any).components.renderLoadingCallback = ({ containerElement }: any) => {
                 containerElement.innerHTML = '<i class="page-dots"></i>';
             };
         });
@@ -238,7 +238,7 @@ test.describe('shared loader', () => {
         await addNamed(page, 'sat', ['a.txt']);
         await start(page);
         await expect.poll(() => pendingNames(page)).toContain('a.txt');
-        await expect(ind(page).locator('.dz__indicator__loader .own-loader')).toHaveCount(1);
+        await expect(ind(page).locator('.dz__indicator-loader .own-loader')).toHaveCount(1);
         await expect(ind(page).locator('.page-dots')).toHaveCount(0);
 
         await resolveUpload(page, 'a.txt');
@@ -256,10 +256,10 @@ test.describe('satellite labels', () => {
         await dz(page, 'list-empty').evaluate((el) => el.removeAttribute('labels'));
         await expect(dz(page, 'list-empty').locator('.dz__empty')).toHaveText('Store empty');
         // The card keeps its own prompt; the hint key is its own too.
-        await expect(dz(page, 'pick-card').locator('.dz__dropzone__text')).toHaveText('Drop invoices');
+        await expect(dz(page, 'pick-card').locator('.dz__dropzone-text')).toHaveText('Drop invoices');
         await dz(page, 'pick-card').evaluate((el: any) => { el.labels = { hint: 'Only PDF' }; });
-        await expect(dz(page, 'pick-card').locator('.dz__dropzone__text')).toHaveText('Store prompt');
-        await expect(dz(page, 'pick-card').locator('.dz__dropzone__hint')).toHaveText('Only PDF');
+        await expect(dz(page, 'pick-card').locator('.dz__dropzone-text')).toHaveText('Store prompt');
+        await expect(dz(page, 'pick-card').locator('.dz__dropzone-hint')).toHaveText('Only PDF');
     });
 
     test('a malformed labels attribute keeps the previous value', async ({ page }) => {

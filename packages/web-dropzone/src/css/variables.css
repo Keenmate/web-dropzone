@@ -38,7 +38,7 @@
 
      `background` is INTENTIONALLY omitted. The dropzone host is a frame,
      not a surface — the visible chrome (`.dz__dropzone--card`,
-     `.dz__file-item`, `.dz__indicator__chip`) paints its own background.
+     `.dz__file-item`, `.dz__indicator-chip`) paints its own background.
      In `render-mode="headless"` and on the four satellites the host is meant to
      be transparent so it can sit inline in a consumer layout. Documented
      exception to theme-container.md → "Default background". */
@@ -335,7 +335,7 @@
   /* Loader — the shared loader contract (--base-loader-*): a single-colour mask
      shape in currentColor. It keeps turning under reduced motion (the contract
      slows it to 1.5s). The upload loader of the indicator chip goes through
-     renderLoadingCallback / window.components.renderLoaderCallback; the tiny
+     renderLoadingCallback / window.components.renderLoadingCallback; the tiny
      per-row / summary loaders are CSS only (--dz-loader-inline-size). */
   --dz-loader-icon: var(--base-loader-icon, url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M21 12a9 9 0 1 1-6.219-8.56%22/%3E%3C/svg%3E"));
   --dz-loader-rotate: var(--base-loader-rotate, 1turn);
@@ -499,7 +499,7 @@
   --dz-popover-icon-bg: transparent;
   --dz-popover-icon-border-radius: calc(0.3 * var(--dz-rem, 10px));
 
-  /* Popover row remove button — same mask glyph as .dz__file-item__remove. */
+  /* Popover row remove button — same mask glyph as .dz__file-item-remove. */
   --dz-popover-remove-size: calc(2 * var(--dz-rem, 10px));
   --dz-popover-remove-icon-size: calc(1 * var(--dz-rem, 10px));
   --dz-popover-remove-bg: transparent;

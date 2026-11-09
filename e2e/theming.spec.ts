@@ -39,7 +39,7 @@ test.describe('--dz-rem scaling', () => {
         // now reach the picker satellite instead of being masked by its
         // :host rule.
         async function iconFontSize(id: string): Promise<number> {
-            return dz(page, id).locator('.dz__dropzone__icon').evaluate((el) =>
+            return dz(page, id).locator('.dz__dropzone-icon').evaluate((el) =>
                 parseFloat(getComputedStyle(el).fontSize)
             );
         }
@@ -126,6 +126,6 @@ test.describe('motion + disabled dimming follow the contract', () => {
     test('disabled card dims once by --base-disabled-opacity (0.65 standalone)', async ({ page }) => {
         const card = dz(page, 'disabled-dz').locator('.dz__dropzone').first();
         expect(await card.evaluate((el) => getComputedStyle(el).opacity)).toBe('0.65');
-        expect(await card.locator('.dz__dropzone__content').first().evaluate((el) => getComputedStyle(el).opacity)).toBe('1');
+        expect(await card.locator('.dz__dropzone-content').first().evaluate((el) => getComputedStyle(el).opacity)).toBe('1');
     });
 });

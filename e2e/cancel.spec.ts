@@ -150,7 +150,7 @@ test.describe('cancel rule', () => {
         const done = dz(page, 'stubborn').evaluate((el: any) => el.cancelFile(el.files[0].id).then(() => 'done'));
         await expect.poll(() => statusOf(page, 'stubborn', 's.txt')).toBe('cancelling');
         const row = dz(page, 'stubborn').locator('.dz__file-item[data-status="cancelling"]');
-        await expect(row.locator('.dz__file-item__progress-text')).toHaveText('Cancelling…');
+        await expect(row.locator('.dz__file-item-progress-text')).toHaveText('Cancelling…');
         await expect(row.locator('[data-dz-action="remove"]')).toBeDisabled();
         expect(await callsOf(page, 'next.txt')).toBe(0); // slot still held
         expect(await done).toBe('done');

@@ -127,11 +127,11 @@ export class DropzoneProgressElement extends SatelliteElement {
         const pipelineActive = !!this.store.getConfig().uploadFileCallback;
         const sig = this.overallActionsSignature(overall, pipelineActive);
 
-        const fillEl = this.container.querySelector('.dz__overall-progress__fill') as HTMLElement | null;
-        const barEl = this.container.querySelector('.dz__overall-progress__bar') as HTMLElement | null;
-        const countsEl = this.container.querySelector('.dz__overall-progress__counts') as HTMLElement | null;
-        const percentEl = this.container.querySelector('.dz__overall-progress__percent') as HTMLElement | null;
-        const actionsEl = this.container.querySelector('.dz__overall-progress__actions') as HTMLElement | null;
+        const fillEl = this.container.querySelector('.dz__overall-progress-fill') as HTMLElement | null;
+        const barEl = this.container.querySelector('.dz__overall-progress-bar') as HTMLElement | null;
+        const countsEl = this.container.querySelector('.dz__overall-progress-counts') as HTMLElement | null;
+        const percentEl = this.container.querySelector('.dz__overall-progress-percent') as HTMLElement | null;
+        const actionsEl = this.container.querySelector('.dz__overall-progress-actions') as HTMLElement | null;
 
         // First render — install the whole structure.
         if (!fillEl || !countsEl || !percentEl || !actionsEl) {
@@ -160,23 +160,23 @@ export class DropzoneProgressElement extends SatelliteElement {
     private renderMarkup(o: OverallProgress, totalFileCount: number, pipelineActive: boolean): string {
         const pct = Math.round(o.percent);
         return `
-            <div class="dz__overall-progress__bar" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100">
-                <div class="dz__overall-progress__fill" style="width: ${o.percent}%"></div>
+            <div class="dz__overall-progress-bar" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100">
+                <div class="dz__overall-progress-fill" style="width: ${o.percent}%"></div>
             </div>
-            <div class="dz__overall-progress__stats">
-                <span class="dz__overall-progress__counts">${this.renderCountsInner(o, totalFileCount)}</span>
-                <div class="dz__overall-progress__actions">${this.renderActions(o, pipelineActive)}</div>
-                <span class="dz__overall-progress__percent">${pct}%</span>
+            <div class="dz__overall-progress-stats">
+                <span class="dz__overall-progress-counts">${this.renderCountsInner(o, totalFileCount)}</span>
+                <div class="dz__overall-progress-actions">${this.renderActions(o, pipelineActive)}</div>
+                <span class="dz__overall-progress-percent">${pct}%</span>
             </div>
         `;
     }
 
     private renderCountsInner(o: OverallProgress, totalFileCount: number): string {
         const pausedSegment = o.pausedCount > 0
-            ? ` · <span class="dz__overall-progress__paused">${escapeHtml(this.label('progressPaused', { count: o.pausedCount }))}</span>`
+            ? ` · <span class="dz__overall-progress-paused">${escapeHtml(this.label('progressPaused', { count: o.pausedCount }))}</span>`
             : '';
         const failedSegment = o.failedCount > 0
-            ? ` · <span class="dz__overall-progress__failed">${escapeHtml(this.label('progressFailed', { count: o.failedCount }))}</span>`
+            ? ` · <span class="dz__overall-progress-failed">${escapeHtml(this.label('progressFailed', { count: o.failedCount }))}</span>`
             : '';
         const counts = this.label('progressCounts', {
             completed: o.completedCount,
@@ -190,17 +190,17 @@ export class DropzoneProgressElement extends SatelliteElement {
     private renderActions(o: OverallProgress, pipelineActive: boolean): string {
         const out: string[] = [];
         if (pipelineActive && o.uploadingCount > 0) {
-            out.push(`<button type="button" class="dz__overall-progress__action" data-dz-action="pause-all">${escapeHtml(this.label('pauseAll'))}</button>`);
+            out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="pause-all">${escapeHtml(this.label('pauseAll'))}</button>`);
         }
         if (pipelineActive && o.pausedCount > 0) {
-            out.push(`<button type="button" class="dz__overall-progress__action" data-dz-action="resume-all">${escapeHtml(this.label('resumeAll'))}</button>`);
+            out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="resume-all">${escapeHtml(this.label('resumeAll'))}</button>`);
         }
         // Cancel all — only while something is uploading / queued / paused.
         if (pipelineActive && o.uploadingCount + o.pendingCount + o.pausedCount > 0) {
-            out.push(`<button type="button" class="dz__overall-progress__action" data-dz-action="cancel-all">${escapeHtml(this.label('cancelAll'))}</button>`);
+            out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="cancel-all">${escapeHtml(this.label('cancelAll'))}</button>`);
         }
         if (o.failedCount > 0) {
-            out.push(`<button type="button" class="dz__overall-progress__action" data-dz-action="retry-all">${escapeHtml(this.label('retryAll'))}</button>`);
+            out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="retry-all">${escapeHtml(this.label('retryAll'))}</button>`);
         }
         return out.join('');
     }

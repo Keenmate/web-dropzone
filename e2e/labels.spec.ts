@@ -15,17 +15,17 @@ test.beforeEach(async ({ page }) => {
 });
 
 const rowOf = (page: import('@playwright/test').Page, id: string, name: string) =>
-    dz(page, id).locator(`.dz__file-item:has(.dz__file-item__name:text-is("${name}"))`);
+    dz(page, id).locator(`.dz__file-item:has(.dz__file-item-name:text-is("${name}"))`);
 
 test('defaults: built-in English (prompt, row buttons, status, bulk)', async ({ page }) => {
-    await expect(dz(page, 'q').locator('.dz__dropzone__text')).toHaveText('Drop files here or click to browse');
+    await expect(dz(page, 'q').locator('.dz__dropzone-text')).toHaveText('Drop files here or click to browse');
     await addNamed(page, 'q', ['a.txt']);
     await expect.poll(() => pendingNames(page)).toContain('a.txt');
     const row = rowOf(page, 'q', 'a.txt');
     await expect(row.locator('[data-dz-action="cancel"]')).toHaveAttribute('aria-label', 'Cancel a.txt');
     await expect(row.locator('[data-dz-action="remove"]')).toHaveAttribute('aria-label', 'Remove a.txt');
     await expect(row.locator('[data-dz-action="row-action"]')).toHaveAttribute('aria-label', 'Pause a.txt');
-    await expect(row.locator('.dz__file-item__status')).toHaveAttribute('aria-label', 'Status: Uploading');
+    await expect(row.locator('.dz__file-item-status')).toHaveAttribute('aria-label', 'Status: Uploading');
     await expect(dz(page, 'q').locator('[data-dz-action="cancel-all"]')).toHaveText('Cancel all');
 });
 
@@ -39,9 +39,9 @@ test('property: per-key merge, placeholders, live re-render', async ({ page }) =
     const row = rowOf(page, 'q', 'a.txt');
     await expect(row.locator('[data-dz-action="cancel"]')).toHaveAttribute('aria-label', 'Zrušit a.txt');
     await expect(row.locator('[data-dz-action="remove"]')).toHaveAttribute('aria-label', 'Remove a.txt'); // not overridden
-    await expect(row.locator('.dz__file-item__status')).toHaveAttribute('aria-label', 'Stav: Nahrávám');
+    await expect(row.locator('.dz__file-item-status')).toHaveAttribute('aria-label', 'Stav: Nahrávám');
     await expect(dz(page, 'q').locator('[data-dz-action="cancel-all"]')).toHaveText('Zrušit vše');
-    await expect(dz(page, 'q').locator('.dz__dropzone__text')).toHaveText('Sem soubory');
+    await expect(dz(page, 'q').locator('.dz__dropzone-text')).toHaveText('Sem soubory');
     // clearing returns to the defaults
     await dz(page, 'q').evaluate(async (el: any) => { el.labels = null; await el.whenSettled(); });
     await expect(row.locator('[data-dz-action="cancel"]')).toHaveAttribute('aria-label', 'Cancel a.txt');
@@ -52,7 +52,7 @@ test('JSON attribute; a malformed one warns and keeps the previous value', async
         el.setAttribute('labels', JSON.stringify({ prompt: 'Přetáhněte soubory' }));
         await el.whenSettled();
     });
-    await expect(dz(page, 'q').locator('.dz__dropzone__text')).toHaveText('Přetáhněte soubory');
+    await expect(dz(page, 'q').locator('.dz__dropzone-text')).toHaveText('Přetáhněte soubory');
     const warned: string[] = [];
     page.on('console', (m) => { if (m.type() === 'warning') warned.push(m.text()); });
     const kept = await dz(page, 'q').evaluate(async (el: any) => {
@@ -61,7 +61,7 @@ test('JSON attribute; a malformed one warns and keeps the previous value', async
         return el.labels;
     });
     expect(kept).toEqual({ prompt: 'Přetáhněte soubory' });
-    await expect(dz(page, 'q').locator('.dz__dropzone__text')).toHaveText('Přetáhněte soubory');
+    await expect(dz(page, 'q').locator('.dz__dropzone-text')).toHaveText('Přetáhněte soubory');
     await expect.poll(() => warned.some((w) => w.includes('labels'))).toBe(true);
 });
 
@@ -71,9 +71,9 @@ test('"Cancelling…" and the cancel-timeout status come from labels', async ({ 
     await dz(page, 'stubborn').evaluate((el: any) => { el.labels = { cancelling: 'Ruším…', cancelTimeout: 'Zrušení vypršelo' }; });
     const done = dz(page, 'stubborn').evaluate((el: any) => el.cancelFile(el.files[0].id));
     const row = rowOf(page, 'stubborn', 's.txt');
-    await expect(row.locator('.dz__file-item__progress-text')).toHaveText('Ruším…');
+    await expect(row.locator('.dz__file-item-progress-text')).toHaveText('Ruším…');
     await done;
-    await expect(row.locator('.dz__file-item__status')).toHaveAttribute('title', 'Zrušení vypršelo');
+    await expect(row.locator('.dz__file-item-status')).toHaveAttribute('title', 'Zrušení vypršelo');
 });
 
 test('satellites (list + progress) follow the store labels, live', async ({ page }) => {
@@ -83,7 +83,7 @@ test('satellites (list + progress) follow the store labels, live', async ({ page
         el.labels = { cancelFile: 'Stop {name}', cancelAll: 'Stop everything' };
         await el.whenSettled();
     });
-    const satRow = page.locator('#list-sat').locator('.dz__file-item:has(.dz__file-item__name:text-is("x.txt"))');
+    const satRow = page.locator('#list-sat').locator('.dz__file-item:has(.dz__file-item-name:text-is("x.txt"))');
     await expect(satRow.locator('[data-dz-action="cancel"]')).toHaveAttribute('aria-label', 'Stop x.txt');
     await expect(page.locator('#progress-sat').locator('[data-dz-action="cancel-all"]')).toHaveText('Stop everything');
 });

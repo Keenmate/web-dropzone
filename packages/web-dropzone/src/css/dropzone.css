@@ -56,7 +56,7 @@
 }
 
 /* Hidden file input */
-.dz__dropzone__input {
+.dz__dropzone-input {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -69,7 +69,7 @@
 }
 
 /* Dropzone content wrapper */
-.dz__dropzone__content {
+.dz__dropzone-content {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -80,7 +80,7 @@
 /* Dropzone icon */
 /* Lucide drop glyph sizes to the icon font-size (1em). Centred via inline-flex
    so the SVG's baseline doesn't add descender space under the prompt text. */
-.dz__dropzone__icon {
+.dz__dropzone-icon {
   font-size: var(--dz-dropzone-icon-size);
   line-height: 1;
   color: var(--dz-dropzone-icon-color);
@@ -88,25 +88,25 @@
   align-items: center;
   justify-content: center;
 }
-.dz__dropzone__icon > svg {
+.dz__dropzone-icon > svg {
   width: 1em;
   height: 1em;
   display: block;
 }
 
 /* Dropzone text */
-.dz__dropzone__text {
+.dz__dropzone-text {
   font-size: var(--dz-dropzone-text-font-size);
   color: var(--dz-dropzone-text-color);
   line-height: var(--dz-line-height-normal);
 }
 
-.dz__dropzone__text strong {
+.dz__dropzone-text strong {
   font-weight: var(--dz-font-weight-semibold);
 }
 
 /* Dropzone hint */
-.dz__dropzone__hint {
+.dz__dropzone-hint {
   font-size: var(--dz-dropzone-hint-font-size);
   color: var(--dz-dropzone-hint-color);
   line-height: var(--dz-line-height-tight);
@@ -124,16 +124,16 @@
   min-height: var(--dz-dropzone-card-minimal-min-height);
   padding: var(--dz-dropzone-card-minimal-padding);
 }
-.dz__dropzone--card-minimal .dz__dropzone__content {
+.dz__dropzone--card-minimal .dz__dropzone-content {
   flex-direction: row;
   flex-wrap: wrap;
   gap: calc(0.6 * var(--dz-rem, 10px)) calc(1 * var(--dz-rem, 10px));
   justify-content: center;
 }
-.dz__dropzone--card-minimal .dz__dropzone__icon {
+.dz__dropzone--card-minimal .dz__dropzone-icon {
   font-size: var(--dz-dropzone-card-minimal-icon-size);
 }
-.dz__dropzone--card-minimal .dz__dropzone__text {
+.dz__dropzone--card-minimal .dz__dropzone-text {
   font-size: var(--dz-dropzone-card-minimal-text-font-size);
 }
 
@@ -144,19 +144,19 @@
   min-height: var(--dz-dropzone-card-big-min-height);
   padding: var(--dz-dropzone-card-big-padding);
 }
-.dz__dropzone--card-big .dz__dropzone__content {
+.dz__dropzone--card-big .dz__dropzone-content {
   gap: calc(1.2 * var(--dz-rem, 10px));
 }
-.dz__dropzone--card-big .dz__dropzone__icon {
+.dz__dropzone--card-big .dz__dropzone-icon {
   font-size: var(--dz-dropzone-card-big-icon-size);
 }
-.dz__dropzone--card-big .dz__dropzone__text {
+.dz__dropzone--card-big .dz__dropzone-text {
   font-size: var(--dz-dropzone-card-big-text-font-size);
   font-weight: var(--dz-font-weight-semibold);
 }
 
 /* Explicit Browse button shown only at card-size=big */
-.dz__card__action {
+.dz__card-action {
   pointer-events: auto;
   display: inline-flex;
   align-items: center;
@@ -170,7 +170,7 @@
   cursor: pointer;
   transition: background-color var(--dz-transition-normal) var(--dz-easing-snappy);
 }
-.dz__card__action:hover {
+.dz__card-action:hover {
   background: var(--dz-accent-color-hover);
 }
 
@@ -216,7 +216,7 @@
    echoes the overall-progress bar's state palette — that way a hidden
    errored file still surfaces as a red badge on the closed button.
    Falls back to the darker accent when no upload activity has started. */
-.dz__button__badge {
+.dz__button-badge {
   position: absolute;
   top: calc(-0.4 * var(--dz-rem, 10px));
   right: calc(-0.4 * var(--dz-rem, 10px));
@@ -237,10 +237,10 @@
   transition: background-color var(--dz-transition-normal) var(--dz-easing-snappy);
 }
 
-.dz__button__badge[data-status="uploading"] { background: var(--dz-accent-color); }
-.dz__button__badge[data-status="paused"]    { background: var(--dz-warning-color); }
-.dz__button__badge[data-status="error"]     { background: var(--dz-error-color); }
-.dz__button__badge[data-status="complete"]  { background: var(--dz-success-color); }
+.dz__button-badge[data-status="uploading"] { background: var(--dz-accent-color); }
+.dz__button-badge[data-status="paused"]    { background: var(--dz-warning-color); }
+.dz__button-badge[data-status="error"]     { background: var(--dz-error-color); }
+.dz__button-badge[data-status="complete"]  { background: var(--dz-success-color); }
 
 /* ==========================================================================
    MINIMAL SELECTOR (selectorAppearance='minimal')
@@ -276,17 +276,17 @@
   opacity: var(--dz-disabled-opacity);
   cursor: not-allowed;
 }
-.dz__minimal__icon {
+.dz__minimal-icon {
   font-size: var(--dz-minimal-icon-size);
   line-height: 1;
   display: inline-flex;
 }
-.dz__minimal__icon > svg {
+.dz__minimal-icon > svg {
   width: 1em;
   height: 1em;
   display: block;
 }
-.dz__minimal__badge {
+.dz__minimal-badge {
   position: absolute;
   top: calc(-0.4 * var(--dz-rem, 10px));
   right: calc(-0.4 * var(--dz-rem, 10px));
@@ -320,7 +320,7 @@
   align-self: start;
   cursor: default;
 }
-.dz__native__button {
+.dz__native-button {
   display: inline-flex;
   align-items: center;
   padding: calc(0.4 * var(--dz-rem, 10px)) calc(1 * var(--dz-rem, 10px));
@@ -335,15 +335,15 @@
               border-color var(--dz-transition-normal) var(--dz-easing-snappy);
   flex-shrink: 0;
 }
-.dz__native__button:hover:not(:disabled) {
+.dz__native-button:hover:not(:disabled) {
   background: var(--dz-primary-bg-hover);
   border-color: var(--dz-accent-color);
 }
-.dz__native__button:disabled {
+.dz__native-button:disabled {
   opacity: var(--dz-disabled-opacity);
   cursor: not-allowed;
 }
-.dz__native__label {
+.dz__native-label {
   font-size: var(--dz-font-size-sm);
   color: var(--dz-text-color-3);
   overflow: hidden;
@@ -361,7 +361,7 @@
   padding-bottom: calc(1.6 * var(--dz-rem, 10px));
 }
 
-.dz__dropzone--files-inside.dz__dropzone--has-files .dz__dropzone__content {
+.dz__dropzone--files-inside.dz__dropzone--has-files .dz__dropzone-content {
   margin-bottom: calc(1.2 * var(--dz-rem, 10px));
 }
 

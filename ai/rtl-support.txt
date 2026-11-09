@@ -23,13 +23,13 @@ renders correctly for your appearance.
 WHAT rtl.css FLIPS
 ------------------
 .dz__file-item--list / --detailed   flex-direction: row-reverse
-.dz__file-item__info                text-align: right
-.dz__file-item__meta                flex-direction: row-reverse
-.dz__preview-item__remove           moves from the right to the left corner
-.dz__popover__header                flex-direction: row-reverse
-.dz__popover__cell--name            text-align: right
-.dz__popover__cell--size            text-align: left
-.dz__summary__line                  flex-direction: row-reverse
+.dz__file-item-info                text-align: right
+.dz__file-item-meta                flex-direction: row-reverse
+.dz__preview-item-remove           moves from the right to the left corner
+.dz__popover-header                flex-direction: row-reverse
+.dz__popover-cell--name            text-align: right
+.dz__popover-cell--size            text-align: left
+.dz__summary-line                  flex-direction: row-reverse
 
 Note: row-reverse on top of an inherited RTL `direction` reverses twice
 (back to LTR order) for those containers. If rows look mirrored the wrong

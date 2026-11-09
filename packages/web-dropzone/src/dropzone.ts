@@ -559,7 +559,7 @@ export class WebDropzone extends DropzoneEngine {
             : 'tabindex="-1" aria-hidden="true"';
         const input = `
             <input type="file"
-                class="dz__dropzone__input"
+                class="dz__dropzone-input"
                 ${inputA11yAttrs}
                 ${this.config.isMultiple ? 'multiple' : ''}
                 ${this.config.accept ? `accept="${escapeHtml(this.config.accept)}"` : ''}
@@ -574,8 +574,8 @@ export class WebDropzone extends DropzoneEngine {
                 <div class="dz__dropzone dz__dropzone--button ${disabled}">
                     ${input}
                     <button type="button" class="dz__button" ${this.isAddBlocked ? 'disabled' : ''}>
-                        <span class="dz__button__label">${label}</span>
-                        ${count > 0 ? `<span class="dz__button__badge">${count}</span>` : ''}
+                        <span class="dz__button-label">${label}</span>
+                        ${count > 0 ? `<span class="dz__button-badge">${count}</span>` : ''}
                     </button>
                 </div>
             `;
@@ -589,8 +589,8 @@ export class WebDropzone extends DropzoneEngine {
                 <div class="dz__dropzone dz__dropzone--minimal ${disabled}">
                     ${input}
                     <button type="button" class="dz__minimal" aria-label="${ariaLabel}" ${this.isAddBlocked ? 'disabled' : ''}>
-                        <span class="dz__minimal__icon">${icon}</span>
-                        ${count > 0 ? `<span class="dz__minimal__badge">${count}</span>` : ''}
+                        <span class="dz__minimal-icon">${icon}</span>
+                        ${count > 0 ? `<span class="dz__minimal-badge">${count}</span>` : ''}
                     </button>
                 </div>
             `;
@@ -607,8 +607,8 @@ export class WebDropzone extends DropzoneEngine {
             return `
                 <div class="dz__dropzone dz__dropzone--native ${disabled}">
                     ${input}
-                    <button type="button" class="dz__native__button" ${this.isAddBlocked ? 'disabled' : ''}>${label}</button>
-                    <span class="dz__native__label" title="${escapeHtml(labelText)}">${escapeHtml(labelText)}</span>
+                    <button type="button" class="dz__native-button" ${this.isAddBlocked ? 'disabled' : ''}>${label}</button>
+                    <span class="dz__native-label" title="${escapeHtml(labelText)}">${escapeHtml(labelText)}</span>
                 </div>
             `;
         }
@@ -643,20 +643,20 @@ export class WebDropzone extends DropzoneEngine {
         const icon = this.config.icon || DEFAULT_CONFIG.icon;
         const hintText = this.label('hint');
         const hint = hintText
-            ? `<div class="dz__dropzone__hint">${escapeHtml(hintText)}</div>`
+            ? `<div class="dz__dropzone-hint">${escapeHtml(hintText)}</div>`
             : '';
 
         // Big card optionally exposes a dedicated Browse button. For minimal/
         // compact, the whole card is the click target — so no explicit button
         // is needed (avoids visual noise on dense layouts).
         const browseBtn = cardSize === 'big'
-            ? `<button type="button" class="dz__card__action">${escapeHtml(this.label('selectFiles'))}</button>`
+            ? `<button type="button" class="dz__card-action">${escapeHtml(this.label('selectFiles'))}</button>`
             : '';
 
         return `
-            <div class="dz__dropzone__content">
-                <div class="dz__dropzone__icon">${icon}</div>
-                <div class="dz__dropzone__text">${escapeHtml(text)}</div>
+            <div class="dz__dropzone-content">
+                <div class="dz__dropzone-icon">${icon}</div>
+                <div class="dz__dropzone-text">${escapeHtml(text)}</div>
                 ${browseBtn}
                 ${hint}
             </div>
@@ -914,7 +914,7 @@ export class WebDropzone extends DropzoneEngine {
             // Cheap to check: just compare the stored front-id against
             // getFrontFile(). Re-render only when they actually diverge.
             if (listAppearance === 'rolling') {
-                const currentFrontEl = targetEl.querySelector('.dz__rolling__current') as HTMLElement | null;
+                const currentFrontEl = targetEl.querySelector('.dz__rolling-current') as HTMLElement | null;
                 const desiredFront = this.getFrontFile();
                 if (desiredFront && currentFrontEl?.dataset.frontId !== desiredFront.id) {
                     this.renderFileList();
@@ -963,28 +963,28 @@ export class WebDropzone extends DropzoneEngine {
         // list's delay window. reorderPopoverRows is invoked from the
         // timer's apply() callback.
         row.dataset.status = file.status;
-        row.classList.toggle('dz__popover__row--uploading', file.status === 'uploading');
+        row.classList.toggle('dz__popover-row--uploading', file.status === 'uploading');
 
-        patchProgressFill(row, 'dz__popover__progress-fill', file.progress);
-        patchProgressText(row, 'dz__popover__progress-text', file, this.label);
-        patchStatusIcon(row, 'dz__popover__status', file, this.label);
+        patchProgressFill(row, 'dz__popover-progress-fill', file.progress);
+        patchProgressText(row, 'dz__popover-progress-text', file, this.label);
+        patchStatusIcon(row, 'dz__popover-status', file, this.label);
         patchRowActionButton(
-            row.querySelector('.dz__popover__row-action[data-dz-action="row-action"]'),
+            row.querySelector('.dz__popover-row-action[data-dz-action="row-action"]'),
             file,
-            'dz__popover__row-action',
+            'dz__popover-row-action',
                 this.label
         );
         patchCancelButton(
             row.querySelector('[data-dz-action="cancel"]'),
             file,
-            'dz__popover__row-action',
+            'dz__popover-row-action',
             this.hasUploadHandler(file)
         );
 
         this.syncRemoveButtonHiddenState(
-            row.querySelector('.dz__popover__remove'),
+            row.querySelector('.dz__popover-remove'),
             file,
-            'dz__popover__remove--hidden'
+            'dz__popover-remove--hidden'
         );
     }
 
@@ -997,7 +997,7 @@ export class WebDropzone extends DropzoneEngine {
      */
     private reorderPopoverRows(): void {
         if (!this.popover) return;
-        const tbody = this.popover.querySelector('.dz__popover__table tbody') as HTMLTableSectionElement | null;
+        const tbody = this.popover.querySelector('.dz__popover-table tbody') as HTMLTableSectionElement | null;
         if (!tbody) return;
         for (const f of this.getOrderedFiles()) {
             const tr = tbody.querySelector(`tr[data-file-id="${f.id}"]`) as HTMLTableRowElement | null;
@@ -1059,41 +1059,41 @@ export class WebDropzone extends DropzoneEngine {
         // the same patch path: progress fill width, percent text, status
         // pill, action button.
         if (appearance === 'list' || appearance === 'detailed' || appearance === 'rolling') {
-            patchProgressFill(row, 'dz__file-item__progress-fill', file.progress);
-            patchProgressText(row, 'dz__file-item__progress-text', file, this.label);
-            patchStatusIcon(row, 'dz__file-item__status', file, this.label);
+            patchProgressFill(row, 'dz__file-item-progress-fill', file.progress);
+            patchProgressText(row, 'dz__file-item-progress-text', file, this.label);
+            patchStatusIcon(row, 'dz__file-item-status', file, this.label);
             patchRowActionButton(
-                row.querySelector('.dz__file-item__action[data-dz-action="row-action"]'),
+                row.querySelector('.dz__file-item-action[data-dz-action="row-action"]'),
                 file,
-                'dz__file-item__action',
+                'dz__file-item-action',
                 this.label
             );
             // Detailed is the only file-item shape that honors thumbnails
             // (list / rolling templates are icon-only). Swap on previewUrl.
             if (appearance === 'detailed' && this.shouldShowThumbnails('detailed')) {
-                this.swapPreviewIcon(row.querySelector('.dz__file-item__icon'), file);
+                this.swapPreviewIcon(row.querySelector('.dz__file-item-icon'), file);
             }
         }
 
         if (appearance === 'grid') {
             // Grid tiles get a bottom-edge progress bar and a corner status pill.
-            patchProgressFill(row, 'dz__preview-item__progress-fill', file.progress);
-            patchStatusIcon(row, 'dz__preview-item__status', file, this.label);
+            patchProgressFill(row, 'dz__preview-item-progress-fill', file.progress);
+            patchStatusIcon(row, 'dz__preview-item-status', file, this.label);
             patchRowActionButton(
-                row.querySelector('.dz__preview-item__action[data-dz-action="row-action"]'),
+                row.querySelector('.dz__preview-item-action[data-dz-action="row-action"]'),
                 file,
-                'dz__preview-item__action',
+                'dz__preview-item-action',
                 this.label
             );
 
             // One-shot placeholder → <img> swap when previewUrl arrives.
             if (file.previewUrl) {
-                const placeholder = row.querySelector('.dz__preview-item__placeholder');
+                const placeholder = row.querySelector('.dz__preview-item-placeholder');
                 if (placeholder) {
                     const img = document.createElement('img');
                     img.src = file.previewUrl;
                     img.alt = file.name;
-                    img.className = 'dz__preview-item__image';
+                    img.className = 'dz__preview-item-image';
                     placeholder.replaceWith(img);
                     row.classList.add('dz__preview-item--image');
                 }
@@ -1103,15 +1103,15 @@ export class WebDropzone extends DropzoneEngine {
         const actionClass = appearance === 'badges'
             ? 'dz__badge-action'
             : appearance === 'grid'
-                ? 'dz__preview-item__action'
-                : 'dz__file-item__action';
+                ? 'dz__preview-item-action'
+                : 'dz__file-item-action';
         patchCancelButton(row.querySelector('[data-dz-action="cancel"]'), file, actionClass, this.hasUploadHandler(file));
 
         const removeSelector = appearance === 'badges'
             ? '.dz__badge-remove'
             : appearance === 'grid'
-                ? '.dz__preview-item__remove'
-                : '.dz__file-item__remove';
+                ? '.dz__preview-item-remove'
+                : '.dz__file-item-remove';
         const hiddenClass = removeSelector.slice(1) + '--hidden';
         this.syncRemoveButtonHiddenState(
             row.querySelector(removeSelector),
@@ -1348,7 +1348,7 @@ export class WebDropzone extends DropzoneEngine {
         // This is what we compare against to decide whether the front
         // file actually changed.
         const previousCurrent = targetEl.querySelector(
-            '.dz__rolling__current:not(.dz__rolling__current--leaving)'
+            '.dz__rolling-current:not(.dz__rolling-current--leaving)'
         ) as HTMLElement | null;
         const previousFrontId = previousCurrent?.dataset.frontId;
 
@@ -1364,7 +1364,7 @@ export class WebDropzone extends DropzoneEngine {
 
         // Build the new current slot.
         const newCurrentEl = document.createElement('div');
-        newCurrentEl.className = 'dz__rolling__current';
+        newCurrentEl.className = 'dz__rolling-current';
         newCurrentEl.dataset.frontId = front.id;
         newCurrentEl.innerHTML = this.renderListItem(front);
         // After the row HTML is in place, swap the file-info / progress
@@ -1378,7 +1378,7 @@ export class WebDropzone extends DropzoneEngine {
             // True rotation — the outgoing slot stays mounted so its keyframe
             // can play (translateX/Y out) in parallel with the incoming one.
             // Both share the same grid cell, so they overlap visually.
-            previousCurrent.classList.add('dz__rolling__current--leaving');
+            previousCurrent.classList.add('dz__rolling-current--leaving');
             targetEl.insertBefore(newCurrentEl, previousCurrent);
             const toRemove = previousCurrent;
             // Slightly longer than the animation (0.3s, --dz-transition-slow) so
@@ -1402,8 +1402,8 @@ export class WebDropzone extends DropzoneEngine {
     /**
      * Apply the rolling file-info + progress callbacks (if set) into the
      * row inside `currentEl`. The row template's existing
-     * `.dz__file-item__name` span hosts the file-info slot; the
-     * `.dz__file-item__progress` block hosts the progress slot. Each is
+     * `.dz__file-item-name` span hosts the file-info slot; the
+     * `.dz__file-item-progress` block hosts the progress slot. Each is
      * routed through the shared memoizer so cached element returns
      * (e.g. WAAPI spinners) survive across ticks.
      *
@@ -1412,13 +1412,13 @@ export class WebDropzone extends DropzoneEngine {
      * generated — no DOM write.
      */
     private applyRollingSlots(currentEl: HTMLElement, args: StatusSurfaceArgs): void {
-        // File-info slot — replace `.dz__file-item__name` with the callback's
+        // File-info slot — replace `.dz__file-item-name` with the callback's
         // content. No fallback: a null result leaves the row template's
         // pre-rendered name span alone (covers the common case where users
         // only want to customize progress).
         const structural = this.isStructuralMode();
         const fileInfoCb = structural ? this.config.renderRollingFileInfoCallback : null;
-        const fileInfoSlot = currentEl.querySelector<HTMLElement>('.dz__file-item__name');
+        const fileInfoSlot = currentEl.querySelector<HTMLElement>('.dz__file-item-name');
         if (fileInfoCb && fileInfoSlot) {
             this.rollingSurface.applyFileInfo(fileInfoSlot, fileInfoCb(args));
         }
@@ -1426,7 +1426,7 @@ export class WebDropzone extends DropzoneEngine {
         // Progress slot — same pattern. Default is the bar + percent text
         // that came out of renderListItem.
         const progressCb = structural ? this.config.renderRollingProgressCallback : null;
-        const progressSlot = currentEl.querySelector<HTMLElement>('.dz__file-item__progress');
+        const progressSlot = currentEl.querySelector<HTMLElement>('.dz__file-item-progress');
         if (progressCb && progressSlot) {
             this.rollingSurface.applyProgress(progressSlot, progressCb(args));
         }
@@ -1439,22 +1439,22 @@ export class WebDropzone extends DropzoneEngine {
      * flicker during a front-file swap).
      */
     private updateRollingQueueButton(targetEl: HTMLElement, queueCount: number, showQueueBtn: boolean): void {
-        let queueBtn = targetEl.querySelector('.dz__rolling__queue') as HTMLButtonElement | null;
+        let queueBtn = targetEl.querySelector('.dz__rolling-queue') as HTMLButtonElement | null;
         if (!queueBtn) {
             queueBtn = document.createElement('button');
             queueBtn.type = 'button';
-            queueBtn.className = 'dz__rolling__queue';
+            queueBtn.className = 'dz__rolling-queue';
             queueBtn.dataset.dzAction = 'open-queue';
-            queueBtn.innerHTML = '<span class="dz__rolling__queue-count"></span>';
+            queueBtn.innerHTML = '<span class="dz__rolling-queue-count"></span>';
             queueBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.togglePopover();
             });
             targetEl.appendChild(queueBtn);
         }
-        const countEl = queueBtn.querySelector('.dz__rolling__queue-count');
+        const countEl = queueBtn.querySelector('.dz__rolling-queue-count');
         if (countEl) countEl.textContent = String(queueCount);
-        queueBtn.classList.toggle('dz__rolling__queue--hidden', !showQueueBtn);
+        queueBtn.classList.toggle('dz__rolling-queue--hidden', !showQueueBtn);
         const queueLabel = this.label('showQueue', { count: queueCount });
         queueBtn.setAttribute('aria-label', queueLabel);
         queueBtn.setAttribute('title', queueLabel);
@@ -1635,7 +1635,7 @@ export class WebDropzone extends DropzoneEngine {
     private renderCompactItem(file: FileState): string {
         const useThumbnail = this.shouldShowThumbnails('popover');
         const inner = RowTemplate.renderPlaceholderInner(file, useThumbnail, this.config);
-        const statusClass = `dz__popover__status--${file.status}`;
+        const statusClass = `dz__popover-status--${file.status}`;
         const isUploading = file.status === 'uploading';
         const removable = this.isFileUserRemovable(file);
 
@@ -1647,25 +1647,25 @@ export class WebDropzone extends DropzoneEngine {
         // reserved but the user can't click it; removeFile(id) still works
         // programmatically.
         return `
-            <tr class="dz__popover__row ${isUploading ? 'dz__popover__row--uploading' : ''}" data-file-id="${file.id}"${isUploading ? ' aria-busy="true"' : ''}>
-                <td class="dz__popover__cell dz__popover__cell--icon"><span class="dz__popover__placeholder">${inner}</span></td>
-                <td class="dz__popover__cell dz__popover__cell--name">${escapeHtml(file.name)}</td>
-                <td class="dz__popover__cell dz__popover__cell--size">${formatFileSize(file.size)}</td>
-                <td class="dz__popover__cell dz__popover__cell--progress">
-                    <div class="dz__popover__progress-bar">
-                        <div class="dz__popover__progress-fill" style="width: ${file.progress}%"></div>
+            <tr class="dz__popover-row ${isUploading ? 'dz__popover-row--uploading' : ''}" data-file-id="${file.id}"${isUploading ? ' aria-busy="true"' : ''}>
+                <td class="dz__popover-cell dz__popover-cell--icon"><span class="dz__popover-placeholder">${inner}</span></td>
+                <td class="dz__popover-cell dz__popover-cell--name">${escapeHtml(file.name)}</td>
+                <td class="dz__popover-cell dz__popover-cell--size">${formatFileSize(file.size)}</td>
+                <td class="dz__popover-cell dz__popover-cell--progress">
+                    <div class="dz__popover-progress-bar">
+                        <div class="dz__popover-progress-fill" style="width: ${file.progress}%"></div>
                     </div>
-                    <span class="dz__popover__progress-text">${escapeHtml(RowTemplate.progressLabel(file, this.label))}</span>
+                    <span class="dz__popover-progress-text">${escapeHtml(RowTemplate.progressLabel(file, this.label))}</span>
                 </td>
-                <td class="dz__popover__cell dz__popover__cell--action">
-                    ${RowTemplate.renderRowActionButton(file, 'dz__popover__row-action', this.label)}
-                    ${RowTemplate.renderCancelButton(file, 'dz__popover__row-action', this.rowOpts(file, 'popover'))}
+                <td class="dz__popover-cell dz__popover-cell--action">
+                    ${RowTemplate.renderRowActionButton(file, 'dz__popover-row-action', this.label)}
+                    ${RowTemplate.renderCancelButton(file, 'dz__popover-row-action', this.rowOpts(file, 'popover'))}
                 </td>
-                <td class="dz__popover__cell dz__popover__cell--status">
-                    ${RowTemplate.renderStatusPill(file, 'dz__popover__status', this.label)}
+                <td class="dz__popover-cell dz__popover-cell--status">
+                    ${RowTemplate.renderStatusPill(file, 'dz__popover-status', this.label)}
                 </td>
-                <td class="dz__popover__cell dz__popover__cell--actions">
-                    ${RowTemplate.renderRemoveButton(file, 'dz__popover__remove', removable, this.config.removeIcon, this.label)}
+                <td class="dz__popover-cell dz__popover-cell--actions">
+                    ${RowTemplate.renderRemoveButton(file, 'dz__popover-remove', removable, this.config.removeIcon, this.label)}
                 </td>
             </tr>
         `;
@@ -1681,12 +1681,12 @@ export class WebDropzone extends DropzoneEngine {
     private renderSummaryIcon(): string {
         const overall = this.getOverallProgress();
         if (!overall.hasActivity) {
-            return `<span class="dz__summary__icon" data-status="pending">${UI_ICONS.paperclip}</span>`;
+            return `<span class="dz__summary-icon" data-status="pending">${UI_ICONS.paperclip}</span>`;
         }
         const s = overall.aggregateStatus;
         const aria = escapeHtml(this.label('statusAria', { status: statusLabel(this.label, s) }));
         const busy = s === 'uploading' ? ' aria-busy="true"' : '';
-        return `<span class="dz__summary__icon dz__summary__icon--${s}" data-status="${s}" aria-label="${aria}"${busy}>${RowTemplate.statusGlyph(s)}</span>`;
+        return `<span class="dz__summary-icon dz__summary-icon--${s}" data-status="${s}" aria-label="${aria}"${busy}>${RowTemplate.statusGlyph(s)}</span>`;
     }
 
     /**
@@ -1697,7 +1697,7 @@ export class WebDropzone extends DropzoneEngine {
      */
     private patchSummaryIcon(): void {
         if (!this.summaryEl) return;
-        const iconEl = this.summaryEl.querySelector('.dz__summary__icon') as HTMLElement | null;
+        const iconEl = this.summaryEl.querySelector('.dz__summary-icon') as HTMLElement | null;
         if (!iconEl) return;
         const overall = this.getOverallProgress();
         const newStatus = overall.hasActivity ? overall.aggregateStatus : 'pending';
@@ -1734,9 +1734,9 @@ export class WebDropzone extends DropzoneEngine {
             const text = this.label('summary', { count: this.files.length, size: formatFileSize(totalSize) });
 
             content = `
-                <div class="dz__summary__line" tabindex="0" role="button" aria-label="${escapeHtml(this.label('viewFiles'))}">
+                <div class="dz__summary-line" tabindex="0" role="button" aria-label="${escapeHtml(this.label('viewFiles'))}">
                     ${this.renderSummaryIcon()}
-                    <span class="dz__summary__text">${escapeHtml(text)}</span>
+                    <span class="dz__summary-text">${escapeHtml(text)}</span>
                 </div>
             `;
         }
@@ -1744,7 +1744,7 @@ export class WebDropzone extends DropzoneEngine {
         this.summaryEl.innerHTML = content;
 
         // Add click handler for popover
-        const summaryLine = this.summaryEl.querySelector('.dz__summary__line');
+        const summaryLine = this.summaryEl.querySelector('.dz__summary-line');
         if (summaryLine) {
             summaryLine.addEventListener('click', () => this.togglePopover());
             summaryLine.addEventListener('keydown', (e) => {
@@ -1781,8 +1781,8 @@ export class WebDropzone extends DropzoneEngine {
         const text = showProgress ? `${completedCount}/${count}` : String(count);
 
         for (const [hostClass, badgeClass] of [
-            ['dz__minimal', 'dz__minimal__badge'],
-            ['dz__button',  'dz__button__badge']
+            ['dz__minimal', 'dz__minimal-badge'],
+            ['dz__button',  'dz__button-badge']
         ] as const) {
             const host = this.dropzoneEl.querySelector(`.${hostClass}`);
             if (!host) continue;
@@ -1797,7 +1797,7 @@ export class WebDropzone extends DropzoneEngine {
                 }
                 badge.textContent = text;
                 // data-status drives the badge's background colour via CSS
-                // attribute selectors (see .dz__button__badge[data-status=…]).
+                // attribute selectors (see .dz__button-badge[data-status=…]).
                 if (hasActivity) badge.dataset.status = aggregateStatus;
                 else delete badge.dataset.status;
             } else if (badge) {
@@ -1849,24 +1849,24 @@ export class WebDropzone extends DropzoneEngine {
             }
         });
         this.popover.innerHTML = `
-            <div class="dz__popover__sticky-top">
-                <div class="dz__popover__header">
-                    <span class="dz__popover__count">${escapeHtml(this.getFileCountLabel())}</span>
-                    <div class="dz__popover__actions">
-                        ${this.isAddBlocked ? '' : `<button type="button" class="dz__popover__action" data-dz-action="add-more">${escapeHtml(this.label('addMore'))}</button>`}
-                        ${this.config.isReadonly ? '' : `<button type="button" class="dz__popover__action" data-dz-action="clear">${escapeHtml(this.label('clearAll'))}</button>`}
+            <div class="dz__popover-sticky-top">
+                <div class="dz__popover-header">
+                    <span class="dz__popover-count">${escapeHtml(this.getFileCountLabel())}</span>
+                    <div class="dz__popover-actions">
+                        ${this.isAddBlocked ? '' : `<button type="button" class="dz__popover-action" data-dz-action="add-more">${escapeHtml(this.label('addMore'))}</button>`}
+                        ${this.config.isReadonly ? '' : `<button type="button" class="dz__popover-action" data-dz-action="clear">${escapeHtml(this.label('clearAll'))}</button>`}
                     </div>
                 </div>
-                <div class="dz__popover__limits">${escapeHtml(this.getLimitsHint())}</div>
+                <div class="dz__popover-limits">${escapeHtml(this.getLimitsHint())}</div>
             </div>
-            <div class="dz__popover__body">
-                <table class="dz__popover__table">
+            <div class="dz__popover-body">
+                <table class="dz__popover-table">
                     <tbody>
                         ${this.getOrderedFiles().map((f) => this.renderCompactItem(f)).join('')}
                     </tbody>
                 </table>
             </div>
-            <div class="dz__popover__footer">${this.getFooterContent()}</div>
+            <div class="dz__popover-footer">${this.getFooterContent()}</div>
         `;
 
         container.appendChild(this.popover);
@@ -1906,7 +1906,7 @@ export class WebDropzone extends DropzoneEngine {
         // refreshOverallProgress builds the markup and binds the action
         // handlers, so we don't need to call bindOverallProgressHandlers
         // separately here.
-        const footerOverall = this.popover.querySelector('.dz__popover__footer .dz__overall-progress') as HTMLElement | null;
+        const footerOverall = this.popover.querySelector('.dz__popover-footer .dz__overall-progress') as HTMLElement | null;
         if (footerOverall) this.refreshOverallProgress(footerOverall);
 
         // Single canonical binder used for every popover X click — initial
@@ -2010,9 +2010,9 @@ export class WebDropzone extends DropzoneEngine {
         // refreshOverallProgress() after this markup is mounted.
         return `
             <div class="dz__overall-progress"></div>
-            <div class="dz__popover__footer__totals">
-                <span class="dz__popover__footer__count">${escapeHtml(this.getFileCountLabel())}</span>
-                <span class="dz__popover__footer__bytes">${escapeHtml(formatFileSize(totalBytes))}</span>
+            <div class="dz__popover-footer-totals">
+                <span class="dz__popover-footer-count">${escapeHtml(this.getFileCountLabel())}</span>
+                <span class="dz__popover-footer-bytes">${escapeHtml(formatFileSize(totalBytes))}</span>
             </div>
         `;
     }
@@ -2026,7 +2026,7 @@ export class WebDropzone extends DropzoneEngine {
      */
     private refreshPopoverFooter(includeTotals: boolean): void {
         if (!this.popover) return;
-        const footer = this.popover.querySelector('.dz__popover__footer') as HTMLElement | null;
+        const footer = this.popover.querySelector('.dz__popover-footer') as HTMLElement | null;
         if (!footer) return;
 
         // Empty selection collapses the footer entirely (matches the :empty
@@ -2045,9 +2045,9 @@ export class WebDropzone extends DropzoneEngine {
         if (inner) this.refreshOverallProgress(inner);
 
         if (includeTotals) {
-            const countEl = footer.querySelector('.dz__popover__footer__count');
+            const countEl = footer.querySelector('.dz__popover-footer-count');
             if (countEl) countEl.textContent = this.getFileCountLabel();
-            const bytesEl = footer.querySelector('.dz__popover__footer__bytes');
+            const bytesEl = footer.querySelector('.dz__popover-footer-bytes');
             if (bytesEl) {
                 const totalBytes = this.files.reduce((s, f) => s + f.size, 0);
                 bytesEl.textContent = formatFileSize(totalBytes);
@@ -2070,13 +2070,13 @@ export class WebDropzone extends DropzoneEngine {
         // so 9%/99%/100% all take the same horizontal space — no jitter as
         // the upload progresses). Matches FluentUI's footer-stats layout.
         return `
-            <div class="dz__overall-progress__bar" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100">
-                <div class="dz__overall-progress__fill" style="width: ${o.percent}%"></div>
+            <div class="dz__overall-progress-bar" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100">
+                <div class="dz__overall-progress-fill" style="width: ${o.percent}%"></div>
             </div>
-            <div class="dz__overall-progress__stats">
-                <span class="dz__overall-progress__counts">${this.renderOverallCountsInner(o)}</span>
-                <div class="dz__overall-progress__actions">${this.renderOverallActions(o)}</div>
-                <span class="dz__overall-progress__percent">${pct}%</span>
+            <div class="dz__overall-progress-stats">
+                <span class="dz__overall-progress-counts">${this.renderOverallCountsInner(o)}</span>
+                <div class="dz__overall-progress-actions">${this.renderOverallActions(o)}</div>
+                <span class="dz__overall-progress-percent">${pct}%</span>
             </div>
         `;
     }
@@ -2088,10 +2088,10 @@ export class WebDropzone extends DropzoneEngine {
      */
     private renderOverallCountsInner(o: ReturnType<WebDropzone['getOverallProgress']>): string {
         const pausedSegment = o.pausedCount > 0
-            ? ` · <span class="dz__overall-progress__paused">${escapeHtml(this.label('progressPaused', { count: o.pausedCount }))}</span>`
+            ? ` · <span class="dz__overall-progress-paused">${escapeHtml(this.label('progressPaused', { count: o.pausedCount }))}</span>`
             : '';
         const failedSegment = o.failedCount > 0
-            ? ` · <span class="dz__overall-progress__failed">${escapeHtml(this.label('progressFailed', { count: o.failedCount }))}</span>`
+            ? ` · <span class="dz__overall-progress-failed">${escapeHtml(this.label('progressFailed', { count: o.failedCount }))}</span>`
             : '';
         const counts = this.label('progressCounts', {
             completed: o.completedCount,
@@ -2112,16 +2112,16 @@ export class WebDropzone extends DropzoneEngine {
         const pipelineActive = !!this.config.uploadFileCallback;
         const out: string[] = [];
         if (pipelineActive && o.uploadingCount > 0) {
-            out.push(`<button type="button" class="dz__overall-progress__action" data-dz-action="pause-all">${escapeHtml(this.label('pauseAll'))}</button>`);
+            out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="pause-all">${escapeHtml(this.label('pauseAll'))}</button>`);
         }
         if (pipelineActive && o.pausedCount > 0) {
-            out.push(`<button type="button" class="dz__overall-progress__action" data-dz-action="resume-all">${escapeHtml(this.label('resumeAll'))}</button>`);
+            out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="resume-all">${escapeHtml(this.label('resumeAll'))}</button>`);
         }
         if (pipelineActive && o.uploadingCount + o.pendingCount + o.pausedCount > 0) {
-            out.push(`<button type="button" class="dz__overall-progress__action" data-dz-action="cancel-all">${escapeHtml(this.label('cancelAll'))}</button>`);
+            out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="cancel-all">${escapeHtml(this.label('cancelAll'))}</button>`);
         }
         if (o.failedCount > 0) {
-            out.push(`<button type="button" class="dz__overall-progress__action" data-dz-action="retry-all">${escapeHtml(this.label('retryAll'))}</button>`);
+            out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="retry-all">${escapeHtml(this.label('retryAll'))}</button>`);
         }
         return out.join('');
     }
@@ -2210,11 +2210,11 @@ export class WebDropzone extends DropzoneEngine {
         }
 
         const sig = this.overallActionsSignature(overall);
-        const fillEl = container.querySelector('.dz__overall-progress__fill') as HTMLElement | null;
-        const barEl = container.querySelector('.dz__overall-progress__bar') as HTMLElement | null;
-        const countsEl = container.querySelector('.dz__overall-progress__counts') as HTMLElement | null;
-        const percentEl = container.querySelector('.dz__overall-progress__percent') as HTMLElement | null;
-        const actionsEl = container.querySelector('.dz__overall-progress__actions') as HTMLElement | null;
+        const fillEl = container.querySelector('.dz__overall-progress-fill') as HTMLElement | null;
+        const barEl = container.querySelector('.dz__overall-progress-bar') as HTMLElement | null;
+        const countsEl = container.querySelector('.dz__overall-progress-counts') as HTMLElement | null;
+        const percentEl = container.querySelector('.dz__overall-progress-percent') as HTMLElement | null;
+        const actionsEl = container.querySelector('.dz__overall-progress-actions') as HTMLElement | null;
 
         // Aggregate-state attribute drives the bar's fill & track color
         // via CSS selectors. Errors win so a hidden errored badge can't
@@ -2293,13 +2293,13 @@ export class WebDropzone extends DropzoneEngine {
 
     /**
      * Resolve the popover's anchor element. The current rendering surface
-     * exposes a `.dz__summary__line` when selectorAppearance='card' (since the
+     * exposes a `.dz__summary-line` when selectorAppearance='card' (since the
      * summary line is the click trigger), and falls back to the inline
      * selector button (button or minimal modes) where the selector itself is
      * the click trigger.
      */
     private getPopoverAnchor(): HTMLElement | null {
-        const summaryLine = this.summaryEl?.querySelector('.dz__summary__line') as HTMLElement | null;
+        const summaryLine = this.summaryEl?.querySelector('.dz__summary-line') as HTMLElement | null;
         if (summaryLine) return summaryLine;
         // Rolling appearance: anchor to the container itself (the visible
         // "current file" rectangle) rather than the queue badge inside it.
@@ -2359,10 +2359,10 @@ export class WebDropzone extends DropzoneEngine {
         // footer. The limits hint includes dynamic "X left" segments for
         // max-total-size / max-file-count, so it has to re-render on every
         // files change just like the count and footer.
-        const countEl = this.popover.querySelector('.dz__popover__count');
+        const countEl = this.popover.querySelector('.dz__popover-count');
         if (countEl) countEl.textContent = this.getFileCountLabel();
 
-        const limitsEl = this.popover.querySelector('.dz__popover__limits');
+        const limitsEl = this.popover.querySelector('.dz__popover-limits');
         if (limitsEl) limitsEl.textContent = this.getLimitsHint();
 
         // Patch the footer in place — preserves action buttons across the
@@ -2370,10 +2370,10 @@ export class WebDropzone extends DropzoneEngine {
         // totals, so include them here.
         this.refreshPopoverFooter(true);
 
-        const body = this.popover.querySelector('.dz__popover__body');
+        const body = this.popover.querySelector('.dz__popover-body');
         if (body) {
             body.innerHTML = `
-                <table class="dz__popover__table">
+                <table class="dz__popover-table">
                     <tbody>
                         ${this.getOrderedFiles().map((f) => this.renderCompactItem(f)).join('')}
                     </tbody>
@@ -2389,7 +2389,7 @@ export class WebDropzone extends DropzoneEngine {
 
     private cacheElements(): void {
         this.dropzoneEl = this.element.querySelector('.dz__dropzone');
-        this.inputEl = this.element.querySelector('.dz__dropzone__input');
+        this.inputEl = this.element.querySelector('.dz__dropzone-input');
         this.fileListEl = this.element.querySelector('.dz__file-list');
         this.filesInsideEl = this.element.querySelector('.dz__files-inside');
         this.summaryEl = this.element.querySelector('.dz__summary');
@@ -2723,9 +2723,9 @@ export class WebDropzone extends DropzoneEngine {
         const textWeight = themeVar('--dz-overlay-text-font-weight', '500');
 
         this.dragOverlay.innerHTML = `
-            <div class="dz__overlay__content" style="display:flex;flex-direction:column;align-items:center;gap:${contentGap};color:inherit;text-align:center;">
-                <div class="dz__overlay__icon" style="font-size:${iconSize};line-height:1;">${icon}</div>
-                <div class="dz__overlay__text" style="font-size:${textSize};font-weight:${textWeight};">${escapeHtml(text)}</div>
+            <div class="dz__overlay-content" style="display:flex;flex-direction:column;align-items:center;gap:${contentGap};color:inherit;text-align:center;">
+                <div class="dz__overlay-icon" style="font-size:${iconSize};line-height:1;">${icon}</div>
+                <div class="dz__overlay-text" style="font-size:${textSize};font-weight:${textWeight};">${escapeHtml(text)}</div>
             </div>
         `;
 

@@ -37,12 +37,12 @@ export const ACTION_LABEL_KEYS = { pause: 'pauseFile', resume: 'resumeFile', ret
 
 /**
  * The tiny loader inside one item (a row's status pill, the summary icon): the
- * shared loader contract drawn by CSS only (`.dz-loader--inline`, the
+ * shared loader contract drawn by CSS only (`.dz__loader--inline`, the
  * `--dz-loader-inline-size` token) — no render hook, no `role="status"`; the
  * item carries `aria-busy` instead. Big loading states go through core
  * `renderLoader()` (the indicator chip).
  */
-export const INLINE_LOADER = '<span class="dz-loader dz-loader--inline" aria-hidden="true"></span>';
+export const INLINE_LOADER = '<span class="dz__loader dz__loader--inline" aria-hidden="true"></span>';
 
 /** A status glyph — the inline loader while uploading, the Lucide icon otherwise. */
 export function statusGlyph(status: FileStatus): string {
@@ -224,17 +224,17 @@ export function renderListItem(file: FileState, opts: RowTemplateOptions = {}): 
     const label = opts.label ?? defaultLabel;
     return `
         <div class="dz__file-item dz__file-item--list" data-file-id="${file.id}" data-status="${file.status}"${reorderAttr}${busyAttr(file)}>
-            ${showPart(p, 'name') ? `<span class="dz__file-item__name">${escapeHtml(file.name)}</span>` : ''}
-            ${showPart(p, 'action') ? renderRowActionButton(file, 'dz__file-item__action', label) : ''}
-            ${showPart(p, 'cancel') ? renderCancelButton(file, 'dz__file-item__action', opts) : ''}
-            ${showPart(p, 'progress') ? `<div class="dz__file-item__progress">
-                <div class="dz__file-item__progress-bar">
-                    <div class="dz__file-item__progress-fill" style="width: ${file.progress}%"></div>
+            ${showPart(p, 'name') ? `<span class="dz__file-item-name">${escapeHtml(file.name)}</span>` : ''}
+            ${showPart(p, 'action') ? renderRowActionButton(file, 'dz__file-item-action', label) : ''}
+            ${showPart(p, 'cancel') ? renderCancelButton(file, 'dz__file-item-action', opts) : ''}
+            ${showPart(p, 'progress') ? `<div class="dz__file-item-progress">
+                <div class="dz__file-item-progress-bar">
+                    <div class="dz__file-item-progress-fill" style="width: ${file.progress}%"></div>
                 </div>
-                <span class="dz__file-item__progress-text">${escapeHtml(progressLabel(file, label))}</span>
+                <span class="dz__file-item-progress-text">${escapeHtml(progressLabel(file, label))}</span>
             </div>` : ''}
-            ${showPart(p, 'status') ? renderStatusPill(file, 'dz__file-item__status', label) : ''}
-            ${showPart(p, 'remove') ? renderRemoveButton(file, 'dz__file-item__remove', removable, opts.removeIcon, label) : ''}
+            ${showPart(p, 'status') ? renderStatusPill(file, 'dz__file-item-status', label) : ''}
+            ${showPart(p, 'remove') ? renderRemoveButton(file, 'dz__file-item-remove', removable, opts.removeIcon, label) : ''}
         </div>
     `;
 }
@@ -249,27 +249,27 @@ export function renderDetailedItem(file: FileState, opts: RowTemplateOptions = {
     const label = opts.label ?? defaultLabel;
     const showSize = showPart(p, 'size');
     const showType = showPart(p, 'type');
-    const meta = (showSize || showType) ? `<div class="dz__file-item__meta">
-                    ${showSize ? `<span class="dz__file-item__size">${formatFileSize(file.size)}</span>` : ''}
-                    ${showType ? `<span class="dz__file-item__type">${escapeHtml(file.type || label('unknownType'))}</span>` : ''}
+    const meta = (showSize || showType) ? `<div class="dz__file-item-meta">
+                    ${showSize ? `<span class="dz__file-item-size">${formatFileSize(file.size)}</span>` : ''}
+                    ${showType ? `<span class="dz__file-item-type">${escapeHtml(file.type || label('unknownType'))}</span>` : ''}
                 </div>` : '';
     return `
         <div class="dz__file-item dz__file-item--detailed" data-file-id="${file.id}" data-status="${file.status}"${reorderAttr}${busyAttr(file)}>
-            ${showPart(p, 'icon') ? `<div class="dz__file-item__icon dz__file-item__icon--${category}">${inner}</div>` : ''}
-            <div class="dz__file-item__info">
-                ${showPart(p, 'name') ? `<div class="dz__file-item__name">${escapeHtml(file.name)}</div>` : ''}
+            ${showPart(p, 'icon') ? `<div class="dz__file-item-icon dz__file-item-icon--${category}">${inner}</div>` : ''}
+            <div class="dz__file-item-info">
+                ${showPart(p, 'name') ? `<div class="dz__file-item-name">${escapeHtml(file.name)}</div>` : ''}
                 ${meta}
-                ${showPart(p, 'progress') ? `<div class="dz__file-item__progress">
-                    <div class="dz__file-item__progress-bar">
-                        <div class="dz__file-item__progress-fill" style="width: ${file.progress}%"></div>
+                ${showPart(p, 'progress') ? `<div class="dz__file-item-progress">
+                    <div class="dz__file-item-progress-bar">
+                        <div class="dz__file-item-progress-fill" style="width: ${file.progress}%"></div>
                     </div>
-                    <span class="dz__file-item__progress-text">${escapeHtml(progressLabel(file, label))}</span>
+                    <span class="dz__file-item-progress-text">${escapeHtml(progressLabel(file, label))}</span>
                 </div>` : ''}
             </div>
-            ${showPart(p, 'action') ? renderRowActionButton(file, 'dz__file-item__action', label) : ''}
-            ${showPart(p, 'cancel') ? renderCancelButton(file, 'dz__file-item__action', opts) : ''}
-            ${showPart(p, 'status') ? renderStatusPill(file, 'dz__file-item__status', label) : ''}
-            ${showPart(p, 'remove') ? renderRemoveButton(file, 'dz__file-item__remove', removable, opts.removeIcon, label) : ''}
+            ${showPart(p, 'action') ? renderRowActionButton(file, 'dz__file-item-action', label) : ''}
+            ${showPart(p, 'cancel') ? renderCancelButton(file, 'dz__file-item-action', opts) : ''}
+            ${showPart(p, 'status') ? renderStatusPill(file, 'dz__file-item-status', label) : ''}
+            ${showPart(p, 'remove') ? renderRemoveButton(file, 'dz__file-item-remove', removable, opts.removeIcon, label) : ''}
         </div>
     `;
 }
@@ -284,8 +284,8 @@ export function renderGridItem(file: FileState, opts: RowTemplateOptions = {}): 
     const inner = !showPart(p, 'icon')
         ? ''
         : isImage && useThumbnail && file.previewUrl
-            ? `<img src="${file.previewUrl}" alt="${escapeHtml(file.name)}" class="dz__preview-item__image">`
-            : `<div class="dz__preview-item__placeholder">${getFileIcon(file.file, opts.iconOverrides, opts.iconContext)}</div>`;
+            ? `<img src="${file.previewUrl}" alt="${escapeHtml(file.name)}" class="dz__preview-item-image">`
+            : `<div class="dz__preview-item-placeholder">${getFileIcon(file.file, opts.iconOverrides, opts.iconContext)}</div>`;
     const showName = showPart(p, 'name');
     const showAction = showPart(p, 'action');
     const showCancel = showPart(p, 'cancel');
@@ -293,18 +293,18 @@ export function renderGridItem(file: FileState, opts: RowTemplateOptions = {}): 
     return `
         <div class="dz__preview-item ${isImage ? 'dz__preview-item--image' : ''}" data-file-id="${file.id}" data-status="${file.status}"${reorderAttr}${busyAttr(file)}>
             ${inner}
-            <div class="dz__preview-item__scrim" aria-hidden="true"></div>
-            ${showName ? `<div class="dz__preview-item__overlay">
-                <span class="dz__preview-item__name">${escapeHtml(file.name)}</span>
+            <div class="dz__preview-item-scrim" aria-hidden="true"></div>
+            ${showName ? `<div class="dz__preview-item-overlay">
+                <span class="dz__preview-item-name">${escapeHtml(file.name)}</span>
             </div>` : ''}
-            ${showPart(p, 'status') ? renderStatusPill(file, 'dz__preview-item__status', label) : ''}
-            ${showPart(p, 'progress') ? `<div class="dz__preview-item__progress-bar">
-                <div class="dz__preview-item__progress-fill" style="width: ${file.progress}%"></div>
+            ${showPart(p, 'status') ? renderStatusPill(file, 'dz__preview-item-status', label) : ''}
+            ${showPart(p, 'progress') ? `<div class="dz__preview-item-progress-bar">
+                <div class="dz__preview-item-progress-fill" style="width: ${file.progress}%"></div>
             </div>` : ''}
-            ${(showAction || showCancel || showRemove) ? `<div class="dz__preview-item__hover-actions">
-                ${showAction ? renderRowActionButton(file, 'dz__preview-item__action', label) : ''}
-                ${showCancel ? renderCancelButton(file, 'dz__preview-item__action', opts) : ''}
-                ${showRemove ? renderRemoveButton(file, 'dz__preview-item__remove', removable, opts.removeIcon, label) : ''}
+            ${(showAction || showCancel || showRemove) ? `<div class="dz__preview-item-hover-actions">
+                ${showAction ? renderRowActionButton(file, 'dz__preview-item-action', label) : ''}
+                ${showCancel ? renderCancelButton(file, 'dz__preview-item-action', opts) : ''}
+                ${showRemove ? renderRemoveButton(file, 'dz__preview-item-remove', removable, opts.removeIcon, label) : ''}
             </div>` : ''}
         </div>
     `;

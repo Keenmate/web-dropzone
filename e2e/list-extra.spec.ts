@@ -103,7 +103,7 @@ test.describe('grid-status="overlay" (finished-tile veil + big glyph)', () => {
         const m = await dz(page, 'grid-overlay').evaluate((el: any) => {
             const grid = el.shadowRoot.querySelector('web-dropzone-list').shadowRoot.querySelector('.dz__file-list--grid');
             const tile = grid.querySelector('.dz__preview-item[data-status="complete"]');
-            const status = tile.querySelector('.dz__preview-item__status');
+            const status = tile.querySelector('.dz__preview-item-status');
             const svg = status.querySelector('svg');
             const tr = tile.getBoundingClientRect(), sr = status.getBoundingClientRect();
             const scs = getComputedStyle(status);
@@ -128,10 +128,10 @@ test.describe('list-appearance="rolling"', () => {
         await addNamed(page, 'rolling', ['a.txt', 'b.txt', 'c.txt']);
         const r = dz(page, 'rolling');
         // Single "front file" surface
-        await expect(r.locator('.dz__rolling__current')).toBeVisible();
+        await expect(r.locator('.dz__rolling-current')).toBeVisible();
         // Queue indicator (button + count)
-        await expect(r.locator('.dz__rolling__queue')).toBeVisible();
-        await expect(r.locator('.dz__rolling__queue-count')).toBeVisible();
+        await expect(r.locator('.dz__rolling-queue')).toBeVisible();
+        await expect(r.locator('.dz__rolling-queue-count')).toBeVisible();
     });
 });
 
@@ -152,12 +152,12 @@ test.describe('popover content', () => {
     test('clicking the summary opens the popover with one row per file', async ({ page }) => {
         await addNamed(page, 'popover-open', ['p1.txt', 'p2.txt', 'p3.txt']);
         const p = dz(page, 'popover-open');
-        await p.locator('.dz__summary__line').click();
+        await p.locator('.dz__summary-line').click();
 
         // Popover container becomes visible; row elements are
-        // .dz__popover__row inside the popover body.
+        // .dz__popover-row inside the popover body.
         await expect(p.locator('.dz__popover')).toBeVisible();
-        await expect(p.locator('.dz__popover__row')).toHaveCount(3);
+        await expect(p.locator('.dz__popover-row')).toHaveCount(3);
     });
 });
 
@@ -170,8 +170,8 @@ test.describe('rolling-rotation', () => {
         const r = dz(page, 'rolling');
         await expect(r.locator('.dz__file-list--rolling')).toHaveAttribute('data-rotation', 'slide-in');
         await removeFront(page, 'rolling');
-        await expect(r.locator('.dz__rolling__current .dz__file-item__name')).toHaveText('b.txt');
-        await expect(r.locator('.dz__rolling__current--leaving')).toHaveCount(0);
+        await expect(r.locator('.dz__rolling-current .dz__file-item-name')).toHaveText('b.txt');
+        await expect(r.locator('.dz__rolling-current--leaving')).toHaveCount(0);
     });
 
     test('vertical: the outgoing row stays briefly as --leaving, then is removed', async ({ page }) => {
@@ -179,9 +179,9 @@ test.describe('rolling-rotation', () => {
         const r = dz(page, 'roll-v');
         await expect(r.locator('.dz__file-list--rolling')).toHaveAttribute('data-rotation', 'vertical');
         await removeFront(page, 'roll-v');
-        await expect(r.locator('.dz__rolling__current--leaving')).toHaveCount(1);
-        await expect(r.locator('.dz__rolling__current:not(.dz__rolling__current--leaving) .dz__file-item__name')).toHaveText('b.txt');
-        await expect(r.locator('.dz__rolling__current--leaving')).toHaveCount(0, { timeout: 2000 });
+        await expect(r.locator('.dz__rolling-current--leaving')).toHaveCount(1);
+        await expect(r.locator('.dz__rolling-current:not(.dz__rolling-current--leaving) .dz__file-item-name')).toHaveText('b.txt');
+        await expect(r.locator('.dz__rolling-current--leaving')).toHaveCount(0, { timeout: 2000 });
     });
 
     test('a live rolling-rotation change applies to the wrapper', async ({ page }) => {
@@ -204,7 +204,7 @@ test.describe('rolling render callbacks', () => {
         await addNamed(page, 'roll-cb', ['a.txt', 'b.txt']);
         const r = dz(page, 'roll-cb');
         await expect(r.locator('.my-body')).toHaveText('2 in queue');
-        await expect(r.locator('.dz__rolling__current')).toHaveCount(0);
+        await expect(r.locator('.dz__rolling-current')).toHaveCount(0);
 
         await set(page, `el.renderRollingBodyCallback = () => false;`);
         await addNamed(page, 'roll-cb', ['c.txt']);
@@ -212,7 +212,7 @@ test.describe('rolling render callbacks', () => {
 
         await set(page, `el.renderRollingBodyCallback = () => null;`);
         await addNamed(page, 'roll-cb', ['d.txt']);
-        await expect(r.locator('.dz__rolling__current')).toHaveCount(1);
+        await expect(r.locator('.dz__rolling-current')).toHaveCount(1);
     });
 
     test('renderRollingFileInfoCallback / renderRollingProgressCallback fill the row slots', async ({ page }) => {
@@ -220,7 +220,7 @@ test.describe('rolling render callbacks', () => {
             el.renderRollingFileInfoCallback = (a) => '<b class="fi">' + a.currentFile.name.toUpperCase() + '</b>';
             el.renderRollingProgressCallback = (a) => '<i class="pg">' + a.overallPercent + '%</i>';`);
         await addNamed(page, 'roll-cb', ['a.txt']);
-        const cur = dz(page, 'roll-cb').locator('.dz__rolling__current');
+        const cur = dz(page, 'roll-cb').locator('.dz__rolling-current');
         await expect(cur.locator('.fi')).toHaveText('A.TXT');
         await expect(cur.locator('.pg')).toHaveText('0%');
     });

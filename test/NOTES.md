@@ -117,7 +117,7 @@ only. `removable` (and `reorderEligible`, see #7) are computed by the legacy
 in-class renderer (`dropzone.ts` `rowOpts()` → `isFileUserRemovable`) which the
 convenience form no longer uses — the list is the `<web-dropzone-list>` satellite.
 
-**Symptom:** a completed row keeps a visible, clickable ✕ (`dz__file-item__remove`
+**Symptom:** a completed row keeps a visible, clickable ✕ (`dz__file-item-remove`
 without `--hidden`), so the user can delete an uploaded file.
 
 **Suggested fix:** pass `removable: !(file.status === 'complete' && cfg.isUploadedFileRemovalAllowed === false)`
@@ -193,7 +193,7 @@ the pool back up to `concurrency` and resolves with the running drain.
 ## 10. Popover "Add more" does nothing (new) — FIXED
 
 **Where:** `packages/web-dropzone/src/dropzone.ts:1799-1806` calls `this.inputEl?.click()`;
-`inputEl` is cached from `this.element.querySelector('.dz__dropzone__input')`
+`inputEl` is cached from `this.element.querySelector('.dz__dropzone-input')`
 (`cacheElements`), but the file input now lives inside the `<web-dropzone-picker>`
 satellite's shadow root → `inputEl` is `null`.
 
@@ -247,7 +247,7 @@ without `aria-label` / `aria-labelledby`.
 (`prompt-text`, e.g. "Drop reports") is not part of the name.
 
 **Suggested fix:** `aria-label="${promptText}"` (or `aria-labelledby` pointing at
-`.dz__dropzone__text`) on the input.
+`.dz__dropzone-text`) on the input.
 
 **Fixed (2026-10-25):** the card's input gets `aria-label` = the prompt (`label` attribute /
 `prompt-text`), in the picker satellite and the structural renderer.

@@ -19,7 +19,7 @@
   animation: dz-overlay-fade-in var(--dz-transition-normal) var(--dz-easing-out);
 }
 
-.dz__overlay__content {
+.dz__overlay-content {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -28,18 +28,18 @@
   text-align: center;
 }
 
-.dz__overlay__icon {
+.dz__overlay-icon {
   font-size: var(--dz-overlay-icon-size);
   line-height: 1;
   display: inline-flex;
 }
-.dz__overlay__icon > svg {
+.dz__overlay-icon > svg {
   width: 1em;
   height: 1em;
   display: block;
 }
 
-.dz__overlay__text {
+.dz__overlay-text {
   font-size: var(--dz-overlay-text-font-size);
   font-weight: var(--dz-overlay-text-font-weight);
 }

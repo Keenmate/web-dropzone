@@ -273,7 +273,7 @@ export class DropzoneIndicatorElement extends SatelliteElement {
             div.setAttribute('aria-label', this.label('indicatorStatus'));
             this.chipEl = div;
         }
-        this.chipEl.className = 'dz__indicator__chip';
+        this.chipEl.className = 'dz__indicator-chip';
         // `part="chip"` lets consumers reach the chip wrapper from outside the
         // shadow root via `::part(chip)` — needed when they want to strip the
         // pill (border / background / padding) and render plain inline text.
@@ -282,7 +282,7 @@ export class DropzoneIndicatorElement extends SatelliteElement {
 
         if (mode === 'auto') {
             this.drawerEl = document.createElement('div');
-            this.drawerEl.className = 'dz__indicator__drawer';
+            this.drawerEl.className = 'dz__indicator-drawer';
             this.drawerEl.setAttribute('part', 'drawer');
             this.drawerEl.setAttribute('role', 'dialog');
             this.drawerEl.setAttribute('aria-label', this.label('indicatorQueue'));
@@ -318,13 +318,13 @@ export class DropzoneIndicatorElement extends SatelliteElement {
         // list in this innerHTML string would have its `connectedCallback`
         // fire mid-parse with no binding, logging "store not found".
         this.drawerEl.innerHTML = `
-            <header class="dz__indicator__drawer-header">
-                <span class="dz__indicator__drawer-title">${escapeHtml(this.label('indicatorTitle'))}</span>
-                <button type="button" class="dz__indicator__drawer-close" aria-label="${escapeHtml(this.label('close'))}"></button>
+            <header class="dz__indicator-drawer-header">
+                <span class="dz__indicator-drawer-title">${escapeHtml(this.label('indicatorTitle'))}</span>
+                <button type="button" class="dz__indicator-drawer-close" aria-label="${escapeHtml(this.label('close'))}"></button>
             </header>
-            <div class="dz__indicator__drawer-body"></div>
+            <div class="dz__indicator-drawer-body"></div>
         `;
-        this.drawerCloseBtn = this.drawerEl.querySelector('.dz__indicator__drawer-close');
+        this.drawerCloseBtn = this.drawerEl.querySelector('.dz__indicator-drawer-close');
         if (this.drawerCloseBtn) {
             this.drawerCloseBtn.addEventListener('click', () => this.setDrawerOpen(false));
         }
@@ -345,7 +345,7 @@ export class DropzoneIndicatorElement extends SatelliteElement {
      */
     private bindEmbeddedList(): void {
         if (!this.drawerEl || !this.storeEl) return;
-        const body = this.drawerEl.querySelector('.dz__indicator__drawer-body');
+        const body = this.drawerEl.querySelector('.dz__indicator-drawer-body');
         if (!body) return;
         type BindableList = HTMLElement & { bindToStore?: (el: DropzoneElement) => void };
         let embeddedList = body.querySelector('web-dropzone-list') as BindableList | null;
@@ -421,15 +421,15 @@ export class DropzoneIndicatorElement extends SatelliteElement {
         this.chipEl.innerHTML = '';
 
         this.fileInfoSlotEl = document.createElement('span');
-        this.fileInfoSlotEl.className = 'dz__indicator__file-info';
+        this.fileInfoSlotEl.className = 'dz__indicator-file-info';
         this.chipEl.appendChild(this.fileInfoSlotEl);
 
         const label = document.createElement('span');
-        label.className = 'dz__indicator__label';
+        label.className = 'dz__indicator-label';
         this.chipEl.appendChild(label);
 
         this.progressSlotEl = document.createElement('span');
-        this.progressSlotEl.className = 'dz__indicator__progress';
+        this.progressSlotEl.className = 'dz__indicator-progress';
         this.chipEl.appendChild(this.progressSlotEl);
 
         this.bodyDefaultMounted = true;
@@ -443,7 +443,7 @@ export class DropzoneIndicatorElement extends SatelliteElement {
         setAttr(this.chipEl, 'aria-label', this.label('indicatorStatus'));
         setAttr(this.drawerEl, 'aria-label', this.label('indicatorQueue'));
         setAttr(this.drawerCloseBtn, 'aria-label', this.label('close'));
-        const title = this.drawerEl?.querySelector('.dz__indicator__drawer-title');
+        const title = this.drawerEl?.querySelector('.dz__indicator-drawer-title');
         const titleText = this.label('indicatorTitle');
         if (title && title.textContent !== titleText) title.textContent = titleText;
     }
@@ -479,7 +479,7 @@ export class DropzoneIndicatorElement extends SatelliteElement {
         // Templates that DO want a description alongside custom slots
         // should bake it into the fileInfo / progress return value, or
         // use `renderBodyCallback` to own the whole chip.
-        const label = this.chipEl.querySelector<HTMLElement>('.dz__indicator__label');
+        const label = this.chipEl.querySelector<HTMLElement>('.dz__indicator-label');
         if (label) {
             const labelHidden = !!this._renderFileInfoCallback
                 || !!this._renderProgressCallback;
@@ -507,7 +507,7 @@ export class DropzoneIndicatorElement extends SatelliteElement {
         const status = args.currentFile.status as FileStatus;
         // Static glyph for non-uploading focal states (paused / error /
         // complete). Returned as a string so it memoizes by equality.
-        return `<span class="dz__indicator__file-info__icon" data-status="${status}" title="${escapeHtml(fileStatusLabel(this.label, args.currentFile))}">${STATUS_ICONS[status]}</span>`;
+        return `<span class="dz__indicator-file-info-icon" data-status="${status}" title="${escapeHtml(fileStatusLabel(this.label, args.currentFile))}">${STATUS_ICONS[status]}</span>`;
     }
 
     /**
@@ -517,14 +517,14 @@ export class DropzoneIndicatorElement extends SatelliteElement {
      */
     private defaultProgress(args: StatusSurfaceArgs): string {
         if (args.aggregate.uploading === 0) return '';
-        return `<span class="dz__indicator__percent">${args.overallPercent}%</span>`;
+        return `<span class="dz__indicator-percent">${args.overallPercent}%</span>`;
     }
 
     /**
      * The upload loader (SPEC §12.14 of core): a `role="status"` container
      * filled by core `renderLoader()` — the store's `renderLoadingCallback`,
-     * else `window.components.renderLoaderCallback`, else the default
-     * `.dz-loader`. Drawn once per upload run and reused across refreshes so
+     * else `window.components.renderLoadingCallback`, else the default
+     * `.dz__loader`. Drawn once per upload run and reused across refreshes so
      * the animation never restarts (`applyStatusSurfaceResult` short-circuits
      * when the returned element is already mounted); released (hook cleanup)
      * when the focal file stops uploading or the store binding goes away.
@@ -534,7 +534,7 @@ export class DropzoneIndicatorElement extends SatelliteElement {
     private getUploadLoader(): HTMLElement {
         if (!this.uploadLoader) {
             const container = document.createElement('span');
-            container.className = 'dz__indicator__loader';
+            container.className = 'dz__indicator-loader';
             this.removeUploadLoader = renderLoader(this, container, 'upload', {
                 prefix: 'dz',
                 label: statusLabel(this.label, 'uploading'),
