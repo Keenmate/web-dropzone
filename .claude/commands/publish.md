@@ -5,20 +5,11 @@ argument-hint: rc|release|patch|minor|major
 
 # /publish — prepare an npm release of @keenmate/web-dropzone (+ @keenmate/web-dropzone-core)
 
-You are preparing this package family for `npm publish`. **Do not run `npm publish`** — the user logs in and publishes manually.
+You are preparing this package for `npm publish`. **Do not run `npm publish`** — the user logs in and publishes manually.
 
 This command follows the canonical `/publish` structure defined in the BlissFramework component guidelines at
 `web-components/publish-command.md`. Sections marked **[canonical]** are byte-identical across every
 component's `/publish`; sections marked **[per-repo]** are customized for this repo's layout, build, and tests.
-
-**This repo is a two-package workspaces monorepo.** Unlike the single-package siblings (web-multiselect,
-web-daterangepicker), `/publish` here operates on **two** packages that ship together and move in lockstep:
-
-- `@keenmate/web-dropzone-core` — headless store. Published first (the renderer depends on it).
-- `@keenmate/web-dropzone` — the custom element + satellites + CSS. Depends on `-core` by exact pinned version.
-
-Both packages carry the **same version** and are bumped together. The renderer's `dependencies["@keenmate/web-dropzone-core"]`
-pin is bumped in lockstep so a published renderer always resolves the matching published core.
 
 ## Argument [canonical]
 
@@ -26,8 +17,8 @@ The release type: **$ARGUMENTS**
 
 Must be one of:
 
-- `rc` — ship the WIP rc as-is. The `## [Unreleased]` CHANGELOG section is finalized to the current rc version.
-- `release` — promote a WIP rc to a final release. `X.Y.Z-rcN` → `X.Y.Z`.
+- `rc` — ship the WIP rc as-is. The topmost CHANGELOG heading (e.g. `## [1.10.0-rc02] - 2026-06-18`) gets ` [PUBLISHED]` appended.
+- `release` — promote a WIP rc to a final release. `X.Y.Z-rcN` → `X.Y.Z`. CHANGELOG heading is renamed to match the new version.
 - `patch` — SemVer patch bump. Drops any `-rc` suffix.
 - `minor` — SemVer minor bump. Drops `-rc`. Resets patch.
 - `major` — SemVer major bump. Drops `-rc`. Resets minor and patch.
@@ -36,54 +27,58 @@ If missing or invalid, stop and ask the user which one to use (don't guess).
 
 ## Repo layout [per-repo]
 
-Two-package monorepo; the root is private and not published:
+Two-package workspaces monorepo; the root is private and not published. The two packages ship
+together and **always carry the same version**:
 
-- **`./package.json`** — root, `"private": true`, `"version"` tracks the family version for convenience but is **not** published. Its `version` should still be kept in sync with the packages.
-- **`./packages/web-dropzone-core/package.json`** — `version` is the source of truth for **core**. Has a `file:` dep on `@keenmate/web-components-core` (see the publish-blocker check below).
-- **`./packages/web-dropzone/package.json`** — `version` is the source of truth for the **renderer**. Carries two deps that matter here: `@keenmate/web-dropzone-core` (exact pin, bump in lockstep) and `@keenmate/web-components-core` (`file:` — see below).
-- **`./CHANGELOG.md`** — single CHANGELOG at the root, covering both packages. WIP work lives under `## [Unreleased]`.
-- **`./README.md`** — single README at the root. Carries `## What's New in vX.Y.Z` sections near the top (one per release, the **two most recent** retained).
-- **`./packages/*/dist/`** — gitignored. Produced by `npm run build` (Vite + `tsc -b`). Never staged.
-- **`./packages/web-dropzone/component-variables.manifest.json`** — published with the **renderer**. Edit if the variable surface changes.
-- **`./packages/*/LICENSE`** — each package has its own LICENSE (published); there's also a root LICENSE.
+- `@keenmate/web-dropzone-core` (`packages/web-dropzone-core/`) — the headless store. Published **first**.
+- `@keenmate/web-dropzone` (`packages/web-dropzone/`) — the custom element, satellites and CSS. Pins
+  `@keenmate/web-dropzone-core` to the **exact** same version, so core must be on the registry before it.
 
-## CHANGELOG convention in this repo [per-repo]
+Files:
 
-This repo **keeps a `## [Unreleased]` section** (Keep a Changelog style — the CHANGELOG header cites it). WIP work
-accumulates under `## [Unreleased]`; releasing means renaming that heading to a dated, published version heading.
+- **`./package.json`** (root, `"private": true`) — its `version` is the family version and the source of
+  truth for the canonical steps. **Wherever a canonical step says `./package.json`, this repo means all three:**
+  `./package.json`, `./packages/web-dropzone-core/package.json` and `./packages/web-dropzone/package.json` —
+  plus the renderer's `dependencies["@keenmate/web-dropzone-core"]` pin. Bump, check and stage them together.
+  If the three versions or the pin disagree, stop and ask the user to reconcile before continuing.
+- **`npm view` in Step 1** — run both calls for **both** package names.
+- **`./CHANGELOG.md`** — at the root, covering both packages. Topmost `## [X.Y.Z] - YYYY-MM-DD` heading
+  **without** the `[PUBLISHED]` marker is the WIP section (its date may read `Unreleased` until it ships —
+  Step 3 sets it to today). Older sections carry legacy markers (`- PUBLISHED -`, `- RELEASED -`); leave them.
+- **`./README.md`** — at the root. Carries `## What's New in vX.Y.Z` sections near the top (one per release,
+  the **two most recent** retained). Each package also has its own short `README.md`.
+- **`./packages/*/dist/`** — gitignored. Produced by `npm run build` from the root. Never staged.
+- **`./packages/web-dropzone/custom-elements.json`, `web-types.json`, `vscode.html-custom-data.json`,
+  `vscode.css-custom-data.json`** — generated by `npm run analyze` (part of the renderer build) and
+  **committed** (custom-elements-manifest D-CEM-2 = A). Step 10's `./custom-elements.json` … means these.
+- **`./packages/web-dropzone/component-variables.manifest.json`** — published with the renderer. Edit if the
+  variable surface changes; `npm run check:vars` validates it.
+- **`./packages/*/docs/`** — usage / theming / examples / accessibility per package.
+- **Publishing (Step 11):** where the canonical report says `npm publish --tag rc` / `npm publish`, this repo
+  uses **`make publish-rc` / `make publish`** (`Makefile.local`): they run the release gates and publish core,
+  then the renderer. By hand it is `npm publish [--tag rc] -w @keenmate/web-dropzone-core`, then the same with
+  `-w @keenmate/web-dropzone` — never the other order.
+
+## CHANGELOG convention in this repo [canonical]
+
+There is **no `## [Unreleased]` section**. The WIP section is the topmost `## [X.Y.Z] - YYYY-MM-DD` heading without a `[PUBLISHED]` tag. Already-released sections carry `[PUBLISHED]` at the end of their heading:
 
 ```
-## [Unreleased]                               ← WIP, the one you're shipping
-### Changed
+## [1.10.0-rc02] - 2026-06-18                  ← WIP, the one you're shipping
+### Added
 - ...
 
-## [1.6.1] - 2025-12-13
-### Fixed
-- ...
-
-## [1.5.0] - PUBLISHED - 2025-12-08
+## [1.9.0] - 2026-06-09 [PUBLISHED]
 ### Added
 - ...
 ```
 
-Publishing the WIP section means renaming `## [Unreleased]` to `## [NEW_VERSION] - YYYY-MM-DD [PUBLISHED]`.
+Publishing the WIP section means **appending ` [PUBLISHED]`** to its heading — exact format: `## [X.Y.Z] - YYYY-MM-DD [PUBLISHED]`. The next development cycle creates a fresh `## [next-version] - <date>` heading on its first CHANGELOG edit.
 
-**Historical drift in this repo:** older sections use mixed markers — `## [X.Y.Z] - PUBLISHED - YYYY-MM-DD`,
-`## [X.Y.Z] - RELEASED - YYYY-MM-DD`, and bare `## [X.Y.Z] - YYYY-MM-DD`. Don't retro-fix them. Finalize the
-section you're shipping using the **canonical** format `## [NEW_VERSION] - YYYY-MM-DD [PUBLISHED]` (trailing tag,
-matching the house style going forward). Substring searches for `PUBLISHED` still work across every format.
+## Resolve versions [canonical]
 
-**After finalizing, re-open a fresh empty `## [Unreleased]` heading at the top** — this repo's established pattern
-keeps an Unreleased section between releases. (This is the one place the dropzone flow differs from the single-package
-siblings, which intentionally omit `[Unreleased]`.)
-
-## Resolve versions [per-repo]
-
-Read `./packages/web-dropzone-core/package.json` `version` as `CURRENT_VERSION` (core and renderer should already
-match — if they don't, stop and ask the user to reconcile before continuing).
-
-There is no version embedded in the `## [Unreleased]` heading, so `WIP_VERSION` is derived from `CURRENT_VERSION` per
-the argument below.
+Read `./package.json` `version` as `CURRENT_VERSION`.
+Read the topmost `## [X.Y.Z...]` heading from `./CHANGELOG.md` as `WIP_VERSION` (the version the latest WIP section is tagged for).
 
 Compute `NEW_VERSION`:
 
@@ -95,51 +90,48 @@ Compute `NEW_VERSION`:
 | `minor` | Strip any `-rcN`, then bump minor, reset patch. |
 | `major` | Strip any `-rcN`, then bump major, reset minor and patch. |
 
-`NEW_VERSION` applies to **both** packages and to the renderer's `@keenmate/web-dropzone-core` dependency pin.
+If `WIP_VERSION` ≠ `NEW_VERSION` (e.g. the WIP is `X.Y.Z-rcN` but the user asked for `release`), the CHANGELOG heading rename in step 3 also re-tags the section to `NEW_VERSION` — call this out in the report so the user notices.
 
 ## Steps (in order)
 
-### 1. Sanity checks [per-repo]
+### 1. Sanity checks [canonical]
 
-- Run `git status`. The repo intentionally keeps `.claude/`, `test-results/`, `playwright-report/`, and `nul` untracked — those are fine. If there are **other** uncommitted changes that aren't `CHANGELOG.md`, `README.md`, or a `package.json`, list them and ask the user before continuing. (Typical case: substantive source changes belonging in this release that haven't been committed yet — confirm they're intended for this version before bumping.)
-- **Publish-blocker: `file:` dependency on `@keenmate/web-components-core`.** Both packages currently declare `"@keenmate/web-components-core": "file:../../../web-components-core"`. A `file:` specifier **cannot be published** — npm will publish the literal `file:` string and consumers' installs will break. Before proceeding, check both `packages/*/package.json`: if either still has a `file:` (or `link:`/`workspace:`) specifier for `@keenmate/web-components-core`, **stop and ask the user** what published semver range to substitute (e.g. `^1.0.0-rc03`, per the CHANGELOG's stated `≥ 1.0.0-rc03` requirement). Do not guess the range.
-- **Verify the new version isn't already on npm — for BOTH packages.** Run `npm view @keenmate/web-dropzone-core@<NEW_VERSION> version 2>/dev/null` and `npm view @keenmate/web-dropzone@<NEW_VERSION> version 2>/dev/null`. If either returns the version string, that version is already published and **stop**: bumping over it would fail at publish time and pollute the commit.
-- **Verify the registry hasn't drifted past you.** Run `npm view @keenmate/web-dropzone-core version` and `npm view @keenmate/web-dropzone version` to fetch the latest published versions on the `latest` tag; if either is higher than `NEW_VERSION` (e.g. someone shipped from another machine), warn the user and ask before continuing.
-- Confirm the `## [Unreleased]` CHANGELOG section has at least one bullet of substantive content under `### Added`, `### Changed`, `### Removed`, `### Fixed`, `### Breaking Changes`, or `### Internal`. If empty, stop — there's nothing meaningful to release.
-- Confirm `./README.md` has a `## What's New in vNEW_VERSION` section. If it's missing, draft one from the CHANGELOG and present it to the user for approval before continuing:
+- Run `git status`. The repo intentionally keeps `.claude/`, `test-results/`, `playwright-report/` and `dist-examples/` untracked — those are fine. If there are **other** uncommitted changes that aren't `CHANGELOG.md`, `README.md`, or `package.json`, list them and ask the user before continuing. (Typical case: substantive source changes belonging in this release that haven't been committed yet — confirm they're intended for this version before bumping.)
+- **Verify the new version isn't already on npm.** Run `npm view @keenmate/web-dropzone@<NEW_VERSION> version 2>/dev/null` — if it returns the version string, that version is already published and **stop**: bumping over it would fail at publish time and pollute the commit.
+- **Verify the registry hasn't drifted past you.** Run `npm view @keenmate/web-dropzone version` to fetch the latest published version on the `latest` tag; if it's higher than `NEW_VERSION` (e.g. someone shipped from another machine, or there's a registry-vs-local mismatch from before the [PUBLISHED] convention landed), warn the user and ask before continuing.
+- Confirm the WIP CHANGELOG section has at least one bullet of substantive content under `### Added`, `### Changed`, `### Removed`, `### Fixed`, or `### Internal`. If empty, stop — there's nothing meaningful to release.
+- Confirm `./README.md` has a `## What's New in vWIP_VERSION` section. If it's missing, draft one from the CHANGELOG and present it to the user for approval before continuing:
   - Read the WIP CHANGELOG section, distill it to 5–8 scannable bullets covering the Added/Changed themes (paraphrase, don't copy CHANGELOG bullets verbatim — those are exhaustive; What's New is the highlight reel). Pure internal refactors and Fixed-only entries don't need coverage, though headline bug fixes worth advertising are worth a bullet.
-  - **Follow the canonical "What's New" format** defined in the BlissFramework component guidelines (`web-components/readme-structure.md` → "`## What's New in vX.Y.Z` — canonical format"). Concretely:
+  - **Follow the canonical "What's New" format** defined in the BlissFramework component guidelines (`web-components/readme-structure.md` → "`## What's New in vX.Y.Z` — canonical format"). Auto-check **C-RS-16** in `readme-structure.checks.sh` enforces it. Concretely:
     - **Heading:** `## What's New in vNEW_VERSION` — lowercase `v`, no backticks around the version, no date.
     - **Each bullet:** `- **<area or component> — <one-line headline>** — <engineer-level prose, 3–8 sentences>`. Bold-wrapped lead phrase, then a true em-dash (` — `, U+2014 with surrounding spaces), then a prose body explaining *what changed*, *why* (regression history / motivation), *what surface is affected* (concrete component / prop / file names listed inline), and *the mechanism* (the technique used). Plain hyphens or en-dashes fail the check.
-    - **No `### ` sub-headings** inside a What's New section — it's a flat bullet list.
-    - **Reference implementation:** the existing `## What's New in v1.0.0-rc01` section at the top of this repo's `README.md` is the canonical shape — mirror that voice and structure.
+    - **No `### ` sub-headings** inside a What's New section — no `### Added` / `### Fixed` lifted from the CHANGELOG. It's a flat bullet list.
+    - **Reference implementation:** the `## What's New in v1.3.3` / `v1.3.2` sections at the top of `svelte-fluentui/README.md` are the canonical shape — mirror that voice and structure.
   - Show the user the proposed draft as plain markdown in your reply. Ask whether to (a) insert as-is, (b) edit, or (c) abort so they can write it themselves.
   - Only proceed past step 1 once the user approves the draft (or supplies their own). On approval, insert the section directly above the current top `## What's New in vX.Y.Z` heading in `./README.md`, then continue.
   - Do not silently insert the draft without confirmation — release highlights are a writing call and the user owns the voice.
 
-### 2. Bump versions (if needed) [per-repo]
+### 2. Bump version (if needed) [canonical]
 
-If `NEW_VERSION` ≠ `CURRENT_VERSION`, edit **all three** package.json files:
+If `NEW_VERSION` ≠ `CURRENT_VERSION`, edit `./package.json` and change `"version": "CURRENT_VERSION"` to `"version": "NEW_VERSION"`.
 
-- `./packages/web-dropzone-core/package.json` — `"version": "NEW_VERSION"`.
-- `./packages/web-dropzone/package.json` — `"version": "NEW_VERSION"` **and** `dependencies["@keenmate/web-dropzone-core"]` → `"NEW_VERSION"` (exact pin, in lockstep).
-- `./package.json` (root) — `"version": "NEW_VERSION"` (kept in sync even though the root isn't published).
+For `rc` arg this is normally a no-op — version was bumped earlier in the development cycle.
 
-For `rc` arg this is normally a no-op — versions were bumped earlier in the development cycle. Still confirm the renderer's core-dep pin already matches `CURRENT_VERSION`.
-
-### 3. Finalize CHANGELOG [per-repo]
+### 3. Finalize CHANGELOG [canonical]
 
 In `./CHANGELOG.md`:
 
-- Rename the `## [Unreleased]` heading to `## [NEW_VERSION] - <today> [PUBLISHED]` (today's date from system context), reading exactly: `## [NEW_VERSION] - YYYY-MM-DD [PUBLISHED]`.
+- If `WIP_VERSION` ≠ `NEW_VERSION` (e.g. promoting `X.Y.Z-rcN` → `X.Y.Z`), rename the WIP heading from `## [WIP_VERSION] - <date>` to `## [NEW_VERSION] - <today>` (today's date from system context).
+- If `WIP_VERSION` == `NEW_VERSION`, leave the bracketed version alone but update the date to today **if** the existing date is stale (more than a few days old). The WIP date is usually whatever day the section was opened; refresh it so the changelog reflects the actual ship date.
+- In either case, **append ` [PUBLISHED]`** to the heading so it reads exactly: `## [NEW_VERSION] - YYYY-MM-DD [PUBLISHED]`.
 - Leave all bullet content untouched.
-- **Insert a fresh empty `## [Unreleased]` heading** directly above the just-finalized heading (this repo keeps an Unreleased section between releases). Leave it with no bullets — the next dev cycle fills it in.
+- **Do not** create an empty new WIP section — the next dev cycle's first CHANGELOG edit will create one.
 
 ### 4. Update README "What's New" — only if version changed [canonical]
 
 In `./README.md`:
 
-- If the existing `## What's New in v<WIP>` section's version differs from `NEW_VERSION` (e.g. promoting `X.Y.Z-rcN` → `X.Y.Z`), rename its heading to `## What's New in vNEW_VERSION`. (No content rewrites — the text was already curated for this release.)
+- If the existing `## What's New in vWIP_VERSION` section's version differs from `NEW_VERSION` (e.g. promoting `X.Y.Z-rcN` → `X.Y.Z`), rename its heading to `## What's New in vNEW_VERSION`. (No content rewrites — the text was already curated for this release.)
 - Then count the `## What's New in vX.Y.Z` headings. If there are more than **two**, delete the oldest ones so only the **two most recent** remain (the just-finalized one plus the one before it).
 
 For `rc` arg this is normally a no-op on the heading itself — only trims if someone left an extra-old section behind.
@@ -150,9 +142,9 @@ Read both the finalized CHANGELOG section and the matching `What's New in vNEW_V
 
 If you find a significant CHANGELOG entry that isn't reflected in What's New, add a bullet for it. If the section ends up with more than ~8 bullets after this pass, condense — What's New should be scannable, not exhaustive.
 
-### 6. Validate CHANGELOG entries match recent work [per-repo]
+### 6. Validate CHANGELOG entries match recent work [canonical]
 
-Find the previous published version in CHANGELOG (the version just before NEW_VERSION) and locate the commit that bumped to it — usually a commit whose subject starts with `v<previous-version>`, `chore(release):`, or similar. Run `git log --oneline <previous-publish-commit>..HEAD` to list commits since.
+Find the previous `[PUBLISHED]` tag in CHANGELOG (the version just before NEW_VERSION) and locate the commit that bumped to it — usually a commit whose subject starts with `v<previous-version>` or `- v<previous-version>`. Run `git log --oneline <previous-publish-commit>..HEAD` to list commits since.
 
 Also check `git diff` (or `git status`) for any uncommitted source/test work outside the files you're editing in this command.
 
@@ -160,54 +152,61 @@ For every substantive commit or uncommitted change, verify the WIP CHANGELOG sec
 
 ### 7. Run tests [per-repo]
 
-Run `npm test` from the root — this runs **both** layers in order:
+Run `npm test` from the root — both layers, in order:
+
 - `npm run test:unit` — Vitest unit specs (renderer package, happy-dom).
 - `npm run test:e2e` — Playwright e2e specs.
 
-All specs must pass. (Equivalently: `make test`, though the Makefile's `test` currently runs only e2e — prefer `npm test` to get the unit layer too.)
+All specs must pass. (`make test` runs only e2e — prefer `npm test` to get the unit layer too.) Then
+`npm run doctor` (`kmwc doctor`) — 0 errors.
 
 If anything fails, **stop and report**. Do not proceed to build/commit. The user fixes the regression (or decides to fixme the spec) before the publish flow can continue.
 
 If Playwright complains that chromium isn't installed, suggest `npm run test:e2e:install` (or `make test-e2e-install`) and stop.
 
-### 8. Build the packages [per-repo]
+### 8. Build the package [per-repo]
 
-Run `npm run build` from the root (or `make build`). This fans out via workspaces (`npm run build -ws --if-present`) and builds **both** packages — core first (the renderer imports its types), then the renderer. Each package's build cleans its `dist/`, runs Vite, and emits type declarations via `tsc -b`.
+Run `npm run build` from the root (or `make build`). It builds **both** packages, core first (the renderer
+imports its types):
+
+- core: Vite + `tsc -b` → `packages/web-dropzone-core/dist/`.
+- renderer: `check:contract`, then `npm run analyze` (regenerates `custom-elements.json`, `web-types.json` and the
+  VS Code custom-data files), then Vite + `tsc -b` → `packages/web-dropzone/dist/`.
 
 If the build errors, stop and report.
 
 After build, do a quick smoke check on the emitted artifacts:
-- `packages/web-dropzone-core/dist/` — `core.js`, `core.umd.js`, and `index.d.ts` all exist and are non-empty.
-- `packages/web-dropzone/dist/` — `dropzone.js`, `dropzone.umd.js`, `style.css`, and `index.d.ts` all exist and are non-empty.
+- `packages/web-dropzone-core/dist/` — `core.js`, `core.umd.js` and `index.d.ts` exist and are non-empty.
+- `packages/web-dropzone/dist/` — `dropzone.js`, `dropzone.umd.js`, `style.css` and `index.d.ts` exist and are non-empty.
+- `git status` shows the regenerated CEM files only if the element API changed — stage them in step 10 if so.
 
 ### 9. Verify the package contents [per-repo]
 
-Run `npm pack --dry-run` for **each** package (from within each package dir, or `npm pack --dry-run -w <name>`), or `make package` for a real two-tarball pack. Confirm:
+Run `npm pack --dry-run` for **each** package (`npm pack --dry-run -w @keenmate/web-dropzone-core`, then
+`-w @keenmate/web-dropzone`), or `make publish-dry`. Confirm:
 
-**`@keenmate/web-dropzone-core`** (`files`: `dist`, `src`) includes:
-- `dist/` (built JS + `core.umd.js` + `*.d.ts`)
-- `src/` (raw TS sources — this package ships sources)
-- `README.md` (falls back to root or its own), `LICENSE`, `package.json`
+**`@keenmate/web-dropzone-core`** (`files`: `dist`, `src`):
+- `dist/` (built JS + `core.umd.js` + `*.d.ts`), `src/` (this package ships its sources)
+- `README.md`, `LICENSE`, `package.json`
 
-**`@keenmate/web-dropzone`** (`files`: `dist`, `src/css`, `component-variables.manifest.json`) includes:
-- `dist/` (built JS + `style.css` + `*.d.ts`)
-- `src/css/` (raw CSS files exposed via the `./css` export)
+**`@keenmate/web-dropzone`** (`files`: `dist`, `src/css`, the manifest and the CEM files):
+- `dist/` (built JS + `style.css` + `*.d.ts`), `src/css/` (the raw CSS behind the `./css` export)
+- `custom-elements.json`, `web-types.json`, `vscode.html-custom-data.json`, `vscode.css-custom-data.json`
 - `component-variables.manifest.json`
 - `README.md`, `LICENSE`, `package.json`
 
-If anything user-facing is missing or anything private leaked in (e.g. `test/`, `e2e/`, `examples-*.html`, `*.spec.ts`, `*.test.ts`, `tsconfig.json`, `vite.config.ts`), stop and report — the `files` field in each `package.json` controls this and the leak needs fixing before publish. Also re-confirm neither tarball's `package.json` still carries a `file:` dep for `@keenmate/web-components-core` (the step-1 check catches it; this is the last line of defense).
+If anything user-facing is missing or anything private leaked in (e.g. `test/`, `e2e/`, `examples-*.html`, `*.spec.ts`, `tsconfig.json`, `vite.config.ts`), stop and report — the `files` field in each `package.json` controls this and the leak needs fixing before publish. Also confirm neither tarball's `package.json` carries a `file:` / `link:` / `workspace:` specifier (e.g. for `@keenmate/web-components-core`) — it would break every consumer install.
 
-### 10. Commit [per-repo]
+### 10. Commit [canonical]
 
 Stage:
 
 - `./CHANGELOG.md`
 - `./README.md`
-- `./package.json` (root)
-- `./packages/web-dropzone-core/package.json`
-- `./packages/web-dropzone/package.json`
+- `./package.json`
+- `./custom-elements.json`, `./web-types.json`, `./vscode.html-custom-data.json`, `./vscode.css-custom-data.json` (if the build regenerated them)
 
-Do **not** stage `packages/*/dist/` — it's gitignored.
+Do **not** stage `dist/` — it's gitignored.
 
 Commit message format:
 
@@ -215,52 +214,49 @@ Commit message format:
 vNEW_VERSION - <one-line summary of the headline change>
 
 <grouped bullets paraphrased from the CHANGELOG section — split into the same
-groups the CHANGELOG used: Added, Fixed, Changed, Breaking Changes, Internal, etc.
-Keep bullets terse; full prose lives in the CHANGELOG.>
+groups the CHANGELOG used: Added, Fixed, Changed, Internal, etc. Keep bullets
+terse; full prose lives in the CHANGELOG.>
 
-Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
+Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
 ```
 
-### 11. Report [per-repo]
+### 11. Report [canonical]
 
 Report back with:
 
-- The new version number (applies to both packages)
+- The new version number
 - The commit SHA
-- The exact commands to publish — **core first, then renderer.** Pick the right form for the arg type:
+- The exact commands to publish. **Pick the right one for the arg type:**
   - For `rc` (publishing a pre-release):
     ```
-    npm login                                          # if not already logged in
-    npm publish -w @keenmate/web-dropzone-core --tag rc
-    npm publish -w @keenmate/web-dropzone --tag rc
+    npm login          # if not already logged in
+    npm publish --tag rc
     ```
-    The `--tag rc` is critical — without it npm assigns the `latest` dist-tag, which would make the pre-release the default install for everyone running `npm install @keenmate/web-dropzone`. With `--tag rc`, `latest` stays put and consumers opt in via `@rc` or an exact pin.
+    The `--tag rc` is critical — without it npm assigns the `latest` dist-tag, which would make the pre-release the default install for everyone running `npm install @keenmate/web-dropzone`. With `--tag rc`, the `latest` tag stays put and consumers opt in via `@rc` or pinning the exact version.
   - For `release` / `patch` / `minor` / `major` (publishing a stable release):
     ```
-    npm login                                    # if not already logged in
-    npm publish -w @keenmate/web-dropzone-core
-    npm publish -w @keenmate/web-dropzone
+    npm login          # if not already logged in
+    npm publish
     ```
-    Or `make publish` (publishes both, core first, with a confirmation prompt). No `--tag` needed — it correctly lands as `latest`.
-  - **Order matters:** the renderer pins `@keenmate/web-dropzone-core@NEW_VERSION` exactly, so core must be on the registry first or a fresh `npm install` of the renderer fails to resolve.
-- A reminder that the CHANGELOG `[PUBLISHED]` tag is now in place — if `npm publish` fails, the user should revert the tag (CHANGELOG heading), the fresh `[Unreleased]` re-insertion, and the version bumps (all three package.json files) before retrying, since the registry will refuse to re-publish the same version.
+    Or `make publish`. No `--tag` needed — it correctly lands as `latest`.
+- A reminder that the CHANGELOG `[PUBLISHED]` tag is now in place — if `npm publish` fails, the user should revert both the tag (CHANGELOG heading) and the version bump (`package.json`) before retrying, since the registry will refuse to re-publish the same version.
 
-## Things not to do [canonical + per-repo]
+## Things not to do [canonical]
 
 - **Do not run `npm publish`.** The user publishes manually after `npm login`.
 - **Do not push to git remote.** The commit stays local until the user pushes.
-- **Do not publish with a `file:` (or `link:`/`workspace:`) dep on `@keenmate/web-components-core` still in either package.json.** Substitute a published semver range (ask the user for it) — a `file:` specifier breaks every consumer install.
-- **Do not publish the packages out of order.** Core first, then renderer.
-- **Do not let the two package versions drift apart** — core, renderer, the renderer's core-dep pin, and the root all carry `NEW_VERSION`.
-- **Do not silently insert a drafted What's New section.** If you draft one in Step 1 because it's missing, present it and wait for explicit approval (or edits) before inserting.
-- **Do not keep more than two `## What's New in vX.Y.Z` sections in the README.** Step 4 trims older ones.
-- **Do not skip the build step** — without it `packages/*/dist/` is stale and the publish would ship outdated artifacts.
-- **Do not skip the test gate** — run both unit and e2e; the gate is what catches regressions before they ship.
+- **Do not create an empty `[Unreleased]` or new WIP heading** in CHANGELOG after finalizing — the next dev cycle's first edit creates the next heading.
+- **Do not retro-fix older CHANGELOG sections** that are missing the `[PUBLISHED]` tag or carry legacy markers — only finalize the section you're shipping.
+- **Do not silently insert a drafted What's New section.** If you draft one in Step 1 because it's missing, you must present it and wait for explicit approval (or edits) before inserting — the writing voice is the user's call, even when you're handing them a starting point.
+- **Do not keep more than two `## What's New in vX.Y.Z` sections in the README.** Step 4 trims older ones; if you see three or more after Step 4, you missed one.
+- **Do not skip the build step** — without it `dist/` is stale and the publish would ship outdated artifacts (or fail entirely if `dist/` was wiped by `make clean`).
+- **Do not skip the test gate** if the repo has one — the gate is what catches regressions before they ship.
 - **Do not invent CHANGELOG entries** to cover commits you find; ask the user if something's missing.
-- **Do not bump if there's nothing meaningful in the `## [Unreleased]` section** — stop and explain.
-- **Do not retro-fix older CHANGELOG sections** that carry legacy markers (`- PUBLISHED -`, `- RELEASED -`) — only finalize the section you're shipping.
+- **Do not bump if there's nothing meaningful in the WIP section** — stop and explain.
 
 ### Repo-specific don'ts
 
-- **Do not stage `packages/*/dist/`, `test/`, `e2e/`, `test-results/`, `playwright-report/`, or `nul`** — they're either ignored or test artifacts.
-- **Do not forget to re-open a fresh `## [Unreleased]` heading** after finalizing — this repo keeps one between releases (unlike the single-package siblings).
+- **Do not stage `packages/*/dist/`, `test/`, `e2e/`, `test-results/`, `playwright-report/` or `dist-examples/`** — they're either ignored or test artifacts.
+- **Do not let the versions drift apart** — the root, core, the renderer and the renderer's core pin all carry `NEW_VERSION`; stage all three package.json files in Step 10.
+- **Do not publish the renderer before core** — it pins core exactly; a fresh install fails until core is on the registry. `make publish` / `make publish-rc` keep the order.
+- **Do not publish with a `file:` / `link:` / `workspace:` dependency** in either package.json.
