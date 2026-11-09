@@ -3,61 +3,94 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/keenmate/web-dropzone/blob/main/LICENSE)
 [![npm version](https://img.shields.io/npm/v/@keenmate/web-dropzone-core.svg)](https://www.npmjs.com/package/@keenmate/web-dropzone-core)
 
-Headless store for the [`@keenmate/web-dropzone`](https://www.npmjs.com/package/@keenmate/web-dropzone) family — file state, validation, the upload pipeline, and the event substrate. **No DOM rendering. No CSS. No custom elements.**
+> The headless store of the [`@keenmate/web-dropzone`](https://www.npmjs.com/package/@keenmate/web-dropzone) family — file state, validation, the upload pipeline and the event substrate. No DOM rendering, no CSS, no custom elements.
 
-This package is what you install when you want to build your own React / Vue / Lit / Svelte renderer on top of the same battle-tested file-handling primitives that back the official web components, without paying the cost of the renderer or Floating UI.
+## What is it
+
+`@keenmate/web-dropzone-core` is what you install to build your own React / Vue / Lit / Svelte renderer
+on the same file-handling engine that backs the official web components. `DropzoneEngine` validates
+files (type, size, count, total size, duplicates), runs uploads through a worker pool with progress,
+pause / resume, cancel (with a timeout rule) and retry with backoff, and reports every change as a DOM
+event on a host element you choose. Your renderer draws the UI from those events and drives the store
+through the `DropzoneController` facade.
+
+| You want… | Install |
+|---|---|
+| Drop `<web-dropzone>` (or its satellites) into a page | `@keenmate/web-dropzone` |
+| Build a custom renderer in your framework of choice | `@keenmate/web-dropzone-core` |
+
+`@keenmate/web-dropzone` already depends on (and bundles) this package — install both only when you
+compose your own renderer next to the official one.
+
+## What's New in v1.0.0-rc03
+
+- **`DropzoneEngine` + `DropzoneController` — one interaction model** — The headless class is `DropzoneEngine` (was `DropzoneCore`), and its public surface is the `DropzoneController` facade (`engine.controller`, also `el.controller` on `<web-dropzone>`, was `DropzoneStoreAPI`), built once and delegating to the current engine so a captured controller survives rebuilds. Every callback takes one `ctx` and every ctx / event detail carries `controller` and `element`, non-enumerable, so `JSON.stringify(detail)` sees only the data. Standalone, events are dispatched on the host element, bubbling and not composed (web-components-core SPEC §12.5).
+- **One cancel rule** — `cancelFile(id)` returns a promise: a running handler gets its `AbortSignal` and up to `cancelTimeout` ms (default 2000) to settle while the file is `cancelling`; it settles in time → `cancelled`, otherwise `cancelTimeoutBehavior` (`error`, retryable, or `remove`). Late results are ignored and the concurrency slot is freed either way. `cancelAll()`, `beforeFilesCancelCallback` and the `file-cancel` event (`{ file, result, uploadedBytes, metadata }`) complete it.
+- **`labels` — every UI string in one input** — `DEFAULT_LABELS`, `resolveLabel()` and `createLabelFn()` give renderers the same per-key-merged, placeholder-filled strings as the element (status words, row-button names, validation messages), replacing the `STATUS_LABELS` / `ACTION_LABELS` exports.
+- **`removeFiles(ids)` and `hasActiveUploads`** — `removeFiles` is the pair of `addFiles` (the remove gate runs once per batch); `hasActiveUploads` is `true` while any file is pending, uploading, paused or cancelling — the signal an app needs before leaving the page.
+
+## What's New in v1.0.0-rc02
+
+- **`@keenmate/web-components-core` ^1.0.0-rc04 — vendored logger** — Drops the transitive `loglevel` dependency and the CJS / ESM interop crash it caused under Node's native ESM loader.
+
+See the [CHANGELOG](https://github.com/keenmate/web-dropzone/blob/main/CHANGELOG.md) for the full history.
+
+## Demos & docs
+
+- 📘 [Usage / API reference](./docs/usage.md) — `DropzoneEngine`, `DropzoneController`, events, callbacks, helpers.
+- 📚 [Examples](./docs/examples.md) — a vanilla renderer, a React hook, a status line.
+- 🎨 [Theming](./docs/theming.md) — what a renderer gets (icons, status vocabulary, labels).
+- ♿ [Accessibility](./docs/accessibility.md) — what a renderer must cover.
+- 🏗️ [Architecture](https://github.com/keenmate/web-dropzone/blob/main/ARCHITECTURE.md) — the core / renderer split.
+
+## Install
 
 ```bash
 npm install @keenmate/web-dropzone-core
 ```
 
-## When to use this package
-
-| You want to… | Install |
-|---|---|
-| Drop `<web-dropzone>` (or its satellites) into a page | `@keenmate/web-dropzone` |
-| Build a custom renderer in your framework of choice | `@keenmate/web-dropzone-core` |
-
-The renderer package already depends on this one — installing both is unnecessary unless you're explicitly composing your own renderer.
-
-## What's exported
-
-- **`DropzoneEngine`** — the store class. Holds `FileState[]`, runs validation, drives the upload worker pool, reports events. Standalone, `engine.controller` is its public facade.
-- **`DropzoneController`** + **`createDropzoneController(getTarget)`** — the public facade (`<web-dropzone>`'s `el.controller`, and the `controller` on every callback ctx / event detail). Satellites and BYO renderers should depend on this, not the concrete class.
-- **Interaction-model types** — `DropzoneContext` and every callback ctx (`ValidateContext`, `BeforeFilesAddContext`, `BeforeFilesRemoveContext`, `FileIconContext`, `FileUploadContext`, `FileItemRenderContext`, …), every event detail (`FileAddEventDetail`, `FileProgressEventDetail`, `FileStatusChangeEventDetail`, …) and `DropzoneEventMap`.
-- **Domain types** — `DropzoneConfig`, `FileState`, `FileStatus`, `FileUploadHandler`, `FileUploadResult`, `OverallProgress`, `ValidationResult`, `RejectedFile`, …
-- **Pure helpers** — `formatFileSize`, `getFileTypeCategory`, `getFileIcon`, `isImageFile`, `createImagePreview`, `validateFile`, `dedupeKeyFor`, `createFileState`.
-- **Status-surface contract** — `StatusSurfaceArgs`, `StatusSurfaceCallback`, `StatusAggregate` for indicator-style UIs.
-- **Icons** — `STATUS_ICONS`, `ACTION_ICONS`, `actionForStatus()`.
-
-## Interaction model
-
-Every callback takes **one** `ctx`; every ctx and event detail carries `controller` and `element` (non-enumerable — `JSON.stringify` sees only the data). `before*Callback`s may be async; `false` cancels.
+## Quick start
 
 ```ts
+import { DropzoneEngine } from '@keenmate/web-dropzone-core';
+
+const host = document.getElementById('uploader')!;
 const engine = new DropzoneEngine(host, {
+  maxFileCount: 5,
   beforeFilesAddCallback: async ({ files }) => (files.length > 5 ? false : undefined),
-  uploadFileCallback: async ({ file, signal, setProgress, startBytes, setMetadata }) => { /* … */ },
+  uploadFileCallback: async ({ file, signal, setProgress }) => {
+    await fetch('/api/upload', { method: 'POST', body: file, signal });
+    setProgress(100);
+  },
 });
-host.addEventListener('file-add', (e) => console.log(e.detail.file, e.detail.controller.getFiles().length));
+
+fileInput.addEventListener('change', () => engine.addFiles(fileInput.files!));
+host.addEventListener('files-change', (e) => render(e.detail.files)); // once per frame
 ```
 
-Hosted by `<web-dropzone>`, the engine *notifies* and the element *emits* (with the camelCase `on*` twins). Standalone, the engine dispatches the same events on its `element` — bubbling, **not composed**:
+The engine validates the added files (a refused file fires `file-reject`), uploads the accepted ones
+and reports every step as an event on `host`; `render()` is yours. See [usage.md](./docs/usage.md) for
+the full API.
 
-- `file-add` `{ file }`, `file-remove` `{ file }`
-- `change` `{ files }`, `files-change` `{ changedIds, files }` (rAF-coalesced)
-- `file-reject` `{ rejectedFiles }`
-- `file-progress` `{ id, progress, status, file }`
-- `file-status-change` `{ id, oldStatus, newStatus, file }`
-- `file-update` `{ file }` — a field other than progress / status changed (`previewUrl` generated, upload result merged)
-- `file-retry` `{ file }`, `file-upload` `{ file }`, `file-delete` `{ file }`
+## Browser support
 
-`<web-dropzone>` adds `overlay-enter` / `overlay-leave` `{ overlayElement }` and `ready`. See [`ARCHITECTURE.md`](https://github.com/keenmate/web-dropzone/blob/main/ARCHITECTURE.md) for the topology this package fits into.
+Modern evergreen browsers (Chrome / Edge, Firefox, Safari) — ES2020 modules, `AbortController`,
+`requestAnimationFrame`. No polyfills are shipped.
 
-## Versioning
+## About
 
-Pre-1.x in spirit — the package is published at `1.0.0` to mark the core/renderer split as a milestone, but breaking changes are still expected until the wider API stabilises. Pin to a major.
+Authored and maintained by [Keenmate s.r.o.](https://keenmate.com/). This package is the headless part
+of the family; the rendered `@keenmate/web-dropzone` ships standalone with sensible light/dark defaults;
+when mounted inside [Pure Admin](https://pureadmin.io/) — or any host that publishes the `--base-*`
+taxonomy via [`@keenmate/theme-designer`](https://www.npmjs.com/package/@keenmate/theme-designer) — it
+adopts the host's colors, typography, and sizing automatically. There is no runtime dependency on Pure
+Admin; the integration is opt-in via CSS variables.
+
+## Built with BlissFramework
+
+Follows the [BlissFramework component guidelines](https://blissframework.dev/) for structure and the
+shared KeenMate interaction model.
 
 ## License
 
-MIT © [Keenmate](https://github.com/keenmate)
+MIT — see [LICENSE](./LICENSE).
