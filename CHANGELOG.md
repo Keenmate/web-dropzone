@@ -11,6 +11,98 @@ No stable 1.0.0 is published, so the break ships as the next release
 candidate — but `^1.0.0-rc02` consumers will pull it: the event,
 callback and store-access API below is breaking.
 
+### Changed — BREAKING (core 1.0.0-rc20 / rc21 alignment, 2026-11-09)
+
+Requires `@keenmate/web-components-core` `^1.0.0-rc20` (was `^1.0.0-rc15`); validated against the
+rc21 pre-release. No compatibility aliases.
+
+- **Flat BEM class names** (rulebook C-NC-8 / C-CSS-7: one element level). Every
+  `.dz__<block>__<element>` class is now `.dz__<block>-<element>`; modifiers keep `--`:
+
+  | Old | New |
+  |---|---|
+  | `.dz__file-item__name`, `__status--complete`, … | `.dz__file-item-name`, `.dz__file-item-status--complete`, … |
+  | `.dz__preview-item__image`, `__overlay`, … | `.dz__preview-item-image`, `.dz__preview-item-overlay`, … |
+  | `.dz__popover__row`, `__header`, `__footer__totals`, … | `.dz__popover-row`, `.dz__popover-header`, `.dz__popover-footer-totals`, … |
+  | `.dz__dropzone__input`, `__text`, `__icon`, `__hint`, `__content` | `.dz__dropzone-input`, `.dz__dropzone-text`, … |
+  | `.dz__summary__line`, `.dz__indicator__chip`, `.dz__indicator__drawer…`, `.dz__overall-progress__…`, `.dz__rolling__…`, `.dz__overlay__…`, `.dz__progress__…`, `.dz__native__…`, `.dz__button__…`, `.dz__minimal__…`, `.dz__card__action` | `.dz__summary-line`, `.dz__indicator-chip`, `.dz__indicator-drawer…`, `.dz__overall-progress-…`, `.dz__rolling-…`, `.dz__overlay-…`, `.dz__progress-…`, `.dz__native-…`, `.dz__button-…`, `.dz__minimal-…`, `.dz__card-action` |
+
+  127 classes in all; CSS that targets the shadow DOM (`customStyles`, render callbacks) renames
+  the same way.
+- **Default loader `.dz__loader`** (was `.dz-loader`; core rc18 draws `<prefix>__loader`), inline
+  variant `.dz__loader--inline`. The `dz-loader-spin` keyframes and `--dz-loader-*` tokens keep
+  their names. The page-wide hook is `window.components.renderLoadingCallback` (core rc18 name).
+- **The satellites are core `BlissElement`s** (`<web-dropzone-picker>`, `-list`, `-indicator`,
+  `-progress`; SPEC §9, rulebook C-CA-1). Their attributes are input rows, so:
+  - an unknown enum value (`position="diagonal"`, `list-appearance="mosaic"`, …) is **refused** —
+    a warning, the `input-rejected` event, the previous value kept — instead of falling back to the
+    default;
+  - the picker's `disabled` is the native presence attribute: `disabled="false"` **disables** it
+    (it used to enable a picker on a disabled store). Own `disabled` OR the store's disables it;
+  - `for` is also the property **`el.htmlFor`**; changing it re-binds to the new store;
+  - every satellite gets core's `ready` attribute / event / `whenReady()`, `defer` + `release()`,
+    `destroy()`, `motion`, `theme-source`, `responsive` and a `window.components[tag]` entry;
+  - the store-missing warning goes through the logger (`DROPZONE:UI`).
+- **Registration:** every tag is defined by core `registerComponent()` in the package entry,
+  satellites first. Importing a single module (e.g. `web-component-picker`) no longer defines its
+  tag — import the package (as its `exports` already required).
+- **Logging prints warnings by default.** The `DROPZONE` bundle was silenced at load, so even core's
+  input warnings for dropzone were invisible; it now follows the page-wide
+  `window.components.logging` and the `warn` default like every component (SPEC §12.1).
+  `window.components['web-dropzone'].logging` is core's control set: `getCategories()` returns the
+  bare names `['INIT', 'FILE', 'UI', 'INTERACTION']` (the exported `LOGGING_CATEGORIES` keeps the
+  `DROPZONE:` prefix), plus `resetLogging()`. Instances get `el.enableLogging()` / `el.log`.
+- **Sizes** (`max-file-size`, `min-file-size`, `max-total-size`) use core `toBytes()`: binary
+  units incl. `KiB` / `MiB`; an invalid size (`"lots"`, `"1.5b"`) is refused (`input-rejected`,
+  previous value kept) — it used to fall back to `0` (unlimited) silently.
+- **`controls` / `item-controls`:** an unknown token refuses the whole value (`input-rejected`,
+  previous value kept) on the attribute and the property; unknown tokens used to be dropped silently.
+- **Counts are bounded:** `max-file-count`, `min-file-count`, `max-visible-file-count`,
+  `progress-throttle`, `sink-completed-delay` refuse negatives; `concurrency` refuses `< 1`.
+- **Read-only selectors stay focusable** (SPEC §6.4 native semantics): under `readonly` the card
+  input and the button / minimal / native buttons are `aria-disabled="true"` (were `disabled`), so
+  Tab reaches them; activating them never opens the file dialog. `disabled` still removes them from
+  the tab order.
+- **Compact popover on core `createPopover()`** (overlay tree): an outside click is decided when
+  the click ends, Escape closes it and returns focus to its trigger, and opening another KeenMate
+  overlay (a dropdown, a menu) closes it. A detached (moved) dropzone keeps its popover until it is
+  back. The old document click / keydown listeners are gone.
+- **`DropzoneElementConfig`** lists exactly the `<web-dropzone>` inputs: no `isHeadless` /
+  `container` / `hostElement`; unset-by-default inputs are typed `| null`; adds `customStyles`.
+- `escapeHtml` (re-exported by both packages) is core's: it takes any value (`null` / `undefined`
+  → `''`). `packages/web-dropzone-core/src/dom-utils.ts` is gone.
+
+### Added (core alignment, 2026-11-09)
+
+- **Custom CSS, the core way** (`createCustomStyles()`, rulebook C-CA-15) on `<web-dropzone>` and
+  every satellite: new `custom-styles` attribute / `customStyles` property next to
+  `getCustomStylesCallback` (wins over it), and the **page layer**
+  `window.components['web-dropzone'].customStyles` / `.getCustomStylesCallback(ctx)` (per tag:
+  `window.components['web-dropzone-picker']`, …) — the instance's own CSS comes after it. An
+  `@import` (icon font) is also linked once in the document head. A store's CSS styles its own
+  shadow root; the picker / list / progress it mounts have their own (style them through their tag's
+  page layer).
+- **`<web-dropzone-picker readonly>`** (`el.isReadonly`): adds no files but stays visible and
+  focusable; a read-only store makes it read-only too.
+- **Typed properties** on every element class (`el.maxFileSize`, `el.htmlFor`, …): interfaces
+  `DropzonePickerElementConfig`, `DropzoneListElementConfig`, `DropzoneIndicatorElementConfig`,
+  `SatelliteElementConfig` merged into the classes (rulebook C-CA-16).
+- **Custom Elements Manifest** for the five tags (`custom-elements.json`, `web-types.json`, VS Code
+  data) via core `blissAnalyzerConfig()`, regenerated by the package build.
+- The indicator drawer is a full-screen sheet below 600px (safe-area padding, 44px close target);
+  drawer and popover lists no longer scroll-chain into the page; `dvh` / `dvw` sizes.
+- Values assigned before the elements are defined (e.g. a picker's `uploadMetadata`) are applied by
+  core; the satellites' own rescue code is gone.
+
+### Internal (core alignment, 2026-11-09)
+
+- e2e runs in chromium, firefox and webkit (`playwright.config.ts`); new specs
+  `core-alignment.spec.ts`, `pre-upgrade.spec.ts`.
+- Shell CSS adopted through core `adoptStyles()` (one constructed sheet per document); satellites
+  use core's `createMicrotaskScheduler()`; no private `resolveEnumAttribute` / scheduler / SSR stub.
+- Both READMEs follow the rulebook structure, with `docs/` folders; `VALIDATION-NOTES.md` records the
+  accepted deviations.
+
 ### Changed (examples site on the devkit, 2026-11-05)
 
 Repo tooling only — neither published package changes: both `dist/` folders are
