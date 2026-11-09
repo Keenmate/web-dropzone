@@ -93,11 +93,10 @@ test.describe('logging API', () => {
         );
         expect(Array.isArray(cats)).toBe(true);
         expect(cats.length).toBeGreaterThan(0);
-        // The categories use the DROPZONE: prefix so loglevel can route them
-        // independently from any other consumer that imports loglevel.
-        expect(cats).toEqual(expect.arrayContaining([
-            'DROPZONE:INIT', 'DROPZONE:FILE', 'DROPZONE:UI', 'DROPZONE:INTERACTION'
-        ]));
+        // Core's registry controls (registerComponent({ logging })) list the
+        // bare category names, like every component; setCategoryLevel also
+        // takes the 'DROPZONE:UI' form.
+        expect(cats).toEqual(['INIT', 'FILE', 'UI', 'INTERACTION']);
     });
 
     test('setLogLevel does not throw for valid level strings', async ({ page }) => {

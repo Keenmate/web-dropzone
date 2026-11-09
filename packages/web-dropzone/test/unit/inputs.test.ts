@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import '../../src/web-component'; // registers <web-dropzone>
+import '../../src/index'; // registers <web-dropzone> (core registerComponent)
 
 /**
  * Guards the `BlissElement` input-table wiring that replaced the hand-rolled

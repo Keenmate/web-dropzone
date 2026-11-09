@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import '../../src/web-component'; // registers <web-dropzone>
+import '../../src/index'; // registers <web-dropzone> (core registerComponent)
 
 /**
  * Element-level form association. `<web-dropzone>` is a form-associated custom

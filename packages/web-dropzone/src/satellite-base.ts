@@ -1,6 +1,7 @@
 /**
  * Shared helpers for satellite renderers — `<web-dropzone-picker>`,
- * `<web-dropzone-list>`, `<web-dropzone-indicator>`. See ARCHITECTURE.md for
+ * `<web-dropzone-list>`, `<web-dropzone-indicator>`, `<web-dropzone-progress>`
+ * — and their `BlissElement` base class. See ARCHITECTURE.md for
  * the store + satellite-renderers topology.
  *
  * Each satellite binds to exactly one `<web-dropzone>` store via its
@@ -11,9 +12,10 @@
 
 import type { DropzoneElement } from './web-component';
 import type { DropzoneController, DropzoneContext, DropzoneLabels, LabelFn } from '@keenmate/web-dropzone-core';
-import { createLabelFn, isLabelsValue, parseLabelsAttribute, uiLogger } from '@keenmate/web-dropzone-core';
-import { dispatch, observeThemeContext, withComponentContext, THEME_CONTEXT_ATTRIBUTE, THEME_SOURCE_ATTRIBUTE } from '@keenmate/web-components-core';
+import { createLabelFn } from '@keenmate/web-dropzone-core';
+import { BlissElement, dispatch, toText, withComponentContext, type InputDef } from '@keenmate/web-components-core';
 import { storeControllerOf, STORE_BUILD_EVENT } from './store-link';
+import { labelsConverter } from './inputs';
 
 /**
  * Look up the `<web-dropzone>` element a satellite binds to via its `for=`
@@ -132,70 +134,32 @@ export function subscribeStoreEvents(
 }
 
 /**
- * Read an HTML attribute and validate it against a closed set of allowed
- * values, returning the typed value or a fallback. Centralizes the
- * `attribute → enum` pattern used by every satellite for things like
- * `selector-appearance`, `list-appearance`, `position`, `drawer`.
+ * The input rows every satellite shares (core `static inputs`): `for` — the id
+ * of the `<web-dropzone>` store to bind to (`el.htmlFor`, the platform's name
+ * for a `for` attribute, as on `<label>` / `<output>`); `labels` — the
+ * satellite's own UI strings, merged per key over the bound store's `labels`,
+ * then the built-in English.
  */
-export function resolveEnumAttribute<T extends string>(
-    el: HTMLElement,
-    attr: string,
-    allowed: readonly T[],
-    fallback: T
-): T {
-    const raw = el.getAttribute(attr);
-    return (allowed as readonly string[]).includes(raw ?? '')
-        ? (raw as T)
-        : fallback;
-}
+export const SATELLITE_INPUTS: readonly InputDef[] = [
+    { configKey: 'htmlFor', attribute: 'for', converter: toText({ isNullable: true }), shouldReflect: true, on: 'update', type: 'string | null', description: 'Id of the `<web-dropzone>` store this satellite binds to (attribute `for`). Changing it re-binds. Not needed when the store mounts the satellite itself.' },
+    { configKey: 'labels', attribute: 'labels', converter: labelsConverter, on: 'update', type: 'Partial<DropzoneLabels> | null', description: 'This satellite\'s own UI strings — a partial `DropzoneLabels` (property, or a JSON attribute), merged per key over the bound store\'s `labels`, then the built-in English. Live.' },
+];
 
-/**
- * Build a microtask-coalesced scheduler around `fn`. Multiple calls within
- * the same task collapse into a single deferred invocation; the next call
- * after the microtask flushes schedules a fresh one. Used by satellites to
- * debounce per-event refreshes so a burst of `file-progress` / `change` /
- * `file-status-change` events in one frame results in exactly one render.
- */
-export function createMicrotaskScheduler(fn: () => void): () => void {
-    let scheduled = false;
-    return () => {
-        if (scheduled) return;
-        scheduled = true;
-        queueMicrotask(() => {
-            scheduled = false;
-            fn();
-        });
-    };
+/** The inputs every satellite has (its typed properties). */
+export interface SatelliteElementConfig {
+    htmlFor?: string | null;
+    labels?: Partial<DropzoneLabels> | null;
 }
-
-/**
- * Standard "the satellite couldn't find its store" warning. Every satellite
- * needs to emit the same diagnostic with its own tag — passing the satellite's
- * tag name (`web-dropzone-picker`, `web-dropzone-list`, …) is enough.
- */
-export function warnStoreMissing(elementName: string, forId: string | null): void {
-    // eslint-disable-next-line no-console
-    console.warn(
-        `<${elementName} for="${forId ?? ''}"> — store not found. ` +
-        `Make sure a <web-dropzone id="${forId ?? ''}"> exists on the page.`
-    );
-}
-
-/**
- * SSR-safe HTMLElement base — the satellite class extends this so the
- * module can still be imported in a Node test runner without crashing
- * on `class extends undefined`. Matches the pattern every satellite file
- * uses locally; centralizing means subclasses don't need their own copy.
- */
-const SatelliteBaseElement = (typeof HTMLElement !== 'undefined' ? HTMLElement : class {}) as typeof HTMLElement;
 
 /**
  * Base class for `<web-dropzone-picker>`, `<web-dropzone-list>`,
- * `<web-dropzone-indicator>`, `<web-dropzone-progress>`. Owns the
- * connection lifecycle (`connectedCallback` / `disconnectedCallback` /
- * `bindToStore` / `teardownStoreBinding`) so the race-resolution logic
- * lives in one place and can be tested once — subclasses provide just
- * their event subscription + first-render hooks.
+ * `<web-dropzone-indicator>`, `<web-dropzone-progress>` — a core
+ * `BlissElement` (inputs table, SSR stub, theme context mirror, `motion`,
+ * defer / ready, per-instance logger, `window.components[tag]` entry), so a
+ * satellite has no attribute plumbing of its own. It owns the store binding
+ * (`for=` resolution / `bindToStore()` + the store-ready race) so that logic
+ * lives in one place; subclasses provide their event subscription + first
+ * render hooks.
  *
  * Two abstract members:
  *  - `attachStoreSubscriptions(storeEl, store)` — wire up event listeners,
@@ -203,16 +167,15 @@ const SatelliteBaseElement = (typeof HTMLElement !== 'undefined' ? HTMLElement :
  *  - `onStoreReady(storeEl, store)` — fire the first render + any one-time
  *    bind work (e.g. mounting an embedded satellite).
  *
- * Two optional hooks:
- *  - `setupBeforeBind()` — runs at the top of `connectedCallback`, before
- *    the `for=` resolution. Use for DOM mutations that must apply
- *    regardless of whether the store resolves (the indicator pushes its
- *    `data-position` / `data-drawer` attributes here so the chip renders
- *    even when bound asynchronously).
- *  - `satelliteTagName` — used in the "store not found" warning so the
- *    diagnostic names the specific element type.
+ * Optional hooks:
+ *  - `setupBeforeBind()` — runs at every activation, before the `for=`
+ *    resolution. Use for DOM work that must apply whether or not the store
+ *    resolves (the indicator writes `data-position` / `data-drawer` here).
+ *  - `inputsChanged(partial)` — a batch of the satellite's own inputs changed
+ *    (core `update()`; `for` re-binds before it).
+ *  - `deactivated()` — after the store binding is torn down on disconnect.
  */
-export abstract class SatelliteElement extends SatelliteBaseElement {
+export abstract class SatelliteElement extends BlissElement<Record<string, never>, DropzoneController | null> {
     /**
      * The bound store, once it is built — the store's non-flushing
      * satellite-side controller (internal; the public one is `controller`).
@@ -223,13 +186,14 @@ export abstract class SatelliteElement extends SatelliteBaseElement {
      * Set by `bindToStore()` for satellites mounted inside another shadow
      * root (the convenience-form `<web-dropzone display-mode=…>` mounts its
      * own picker / list / indicator internally, where `document.getElementById`
-     * lookups can't reach across the shadow boundary). When set, the
-     * `connectedCallback` consults this directly instead of resolving the
-     * `for=` attribute.
+     * lookups can't reach across the shadow boundary). When set, activation
+     * uses it instead of resolving the `for=` attribute.
      */
     protected programmaticStoreEl: DropzoneElement | null = null;
     private cleanupStoreWait: (() => void) | null = null;
     private cleanupSubscriptions: (() => void) | null = null;
+    /** Between core's `connect()` and `disconnect()`. */
+    private isActive = false;
 
     protected abstract readonly satelliteTagName: string;
 
@@ -246,83 +210,56 @@ export abstract class SatelliteElement extends SatelliteBaseElement {
     /** Optional pre-bind DOM setup. Default no-op. */
     protected setupBeforeBind(): void { /* override in subclasses if needed */ }
 
-    /** Unsubscribe from core's theme context; set while connected. */
-    private themeUnsub: (() => void) | null = null;
+    /** The satellite's own inputs changed (not `for`). Default no-op. */
+    protected inputsChanged(_partial: Record<string, unknown>): void { /* override */ }
 
-    /** `el.labels` assigned as a property (wins over the `labels` attribute). */
-    private labelsProp: Partial<DropzoneLabels> | null = null;
-    /** Last valid parse of the `labels` attribute (a malformed one keeps it). */
-    private labelsAttrValue: Partial<DropzoneLabels> | null = null;
-    private labelsAttrRaw: string | null = null;
-
-    /**
-     * The satellite's own UI strings — a partial `DropzoneLabels` object, as a
-     * property or a JSON `labels` attribute (`labels='{"prompt":"Drop here"}'`).
-     * Merged per key on top of the bound store's `labels`, then the built-in
-     * English. Live: assigning re-renders. Add `'labels'` to the subclass's
-     * `observedAttributes` so the attribute re-renders too.
-     */
-    get labels(): Partial<DropzoneLabels> | null {
-        return this.labelsProp ?? this.readLabelsAttribute();
-    }
-    set labels(value: Partial<DropzoneLabels> | null) {
-        if (value != null && !isLabelsValue(value)) {
-            uiLogger.warn(`<${this.satelliteTagName}> labels: expected an object of strings; keeping the previous value`);
-            return;
-        }
-        this.labelsProp = value ?? null;
-        (this as unknown as { attributeChangedCallback?: (name: string) => void }).attributeChangedCallback?.('labels');
-    }
-
-    private readLabelsAttribute(): Partial<DropzoneLabels> | null {
-        const raw = this.getAttribute('labels');
-        if (raw === this.labelsAttrRaw) return this.labelsAttrValue;
-        this.labelsAttrRaw = raw;
-        const parsed = parseLabelsAttribute(raw);
-        if (parsed === undefined) {
-            uiLogger.warn(`<${this.satelliteTagName}> labels attribute: expected a JSON object of strings; keeping the previous value`);
-        } else {
-            this.labelsAttrValue = parsed;
-        }
-        return this.labelsAttrValue;
-    }
+    /** After the binding was torn down on disconnect. Default no-op. */
+    protected deactivated(): void { /* override */ }
 
     /** UI strings: own `labels` → the bound store's `labels` → built-in English. */
-    protected readonly label: LabelFn = createLabelFn(() => [this.labels, this.store?.getConfig().labels]);
+    protected readonly label: LabelFn = createLabelFn(() => [
+        this.config.labels as Partial<DropzoneLabels> | null | undefined,
+        this.store?.getConfig().labels
+    ]);
 
-    connectedCallback(): void {
-        this.subscribeThemeContext();
+    /** Activation (core): resolve the store and bind once it is built. */
+    protected override connect(): void {
+        this.isActive = true;
         this.setupBeforeBind();
+        this.bindFromConfig();
+    }
+
+    /** Deactivation (core): stop listening to the store. */
+    protected override disconnect(): void {
+        this.isActive = false;
+        this.teardownStoreBinding();
+        this.deactivated();
+    }
+
+    /** Core `update()`: `for` re-binds; everything goes to `inputsChanged()`. */
+    protected override update(partial: Record<string, unknown>): void {
+        if ('htmlFor' in partial && !this.programmaticStoreEl && this.isActive) {
+            this.teardownStoreBinding();
+            this.bindFromConfig();
+        }
+        this.inputsChanged(partial);
+    }
+
+    private bindFromConfig(): void {
         if (this.programmaticStoreEl) {
             this.storeEl = this.programmaticStoreEl;
         } else {
-            const forId = this.getAttribute('for');
+            const forId = (this.config.htmlFor as string | null) ?? null;
             this.storeEl = resolveStoreElement(forId);
             if (!this.storeEl) {
-                warnStoreMissing(this.satelliteTagName, forId);
+                this.log.UI.warn(
+                    `<${this.satelliteTagName} for="${forId ?? ''}"> — store not found. ` +
+                    `Make sure a <web-dropzone id="${forId ?? ''}"> exists on the page.`
+                );
                 return;
             }
         }
         this.waitForStore();
-    }
-
-    disconnectedCallback(): void {
-        this.themeUnsub?.();
-        this.themeUnsub = null;
-        this.teardownStoreBinding();
-    }
-
-    /**
-     * Satellites aren't BlissElements, so mirror the page theme onto the host
-     * the way BlissElement does: core's theme context (page signal, or the
-     * `theme-source` attribute) → `data-context-theme`, which dark-mode.css reads.
-     */
-    private subscribeThemeContext(): void {
-        this.themeUnsub?.();
-        this.themeUnsub = observeThemeContext(this, this.getAttribute(THEME_SOURCE_ATTRIBUTE) || null, (scheme) => {
-            if (scheme) this.setAttribute(THEME_CONTEXT_ATTRIBUTE, scheme);
-            else this.removeAttribute(THEME_CONTEXT_ATTRIBUTE);
-        });
     }
 
     /**
@@ -330,14 +267,14 @@ export abstract class SatelliteElement extends SatelliteBaseElement {
      * `for=` attribute. Use when mounting the satellite inside another
      * shadow root (where `document.getElementById` can't reach the store).
      *
-     * Safe to call before `connectedCallback` — the binding is consulted
-     * when the element connects. Calling after connection tears down the
-     * current wiring and re-binds.
+     * Safe to call before the element connects — the binding is used when it
+     * activates. Calling after connection tears down the current wiring and
+     * re-binds.
      */
     bindToStore(storeEl: DropzoneElement): void {
         if (this.programmaticStoreEl === storeEl && this.store) return;
         this.programmaticStoreEl = storeEl;
-        if (this.isConnected) {
+        if (this.isActive) {
             this.teardownStoreBinding();
             this.storeEl = storeEl;
             this.waitForStore();
@@ -357,13 +294,12 @@ export abstract class SatelliteElement extends SatelliteBaseElement {
         this.storeEl = null;
     }
 
-
     /**
      * The bound store's public controller (the same object as the store's
      * `el.controller`), or `null` until the store is built. Lets consumer
      * code reach the store from a satellite reference.
      */
-    get controller(): DropzoneController | null {
+    override get controller(): DropzoneController | null {
         return this.store && this.storeEl ? this.storeEl.controller : null;
     }
 
@@ -371,9 +307,13 @@ export abstract class SatelliteElement extends SatelliteBaseElement {
         if (!this.storeEl) return;
         const storeEl = this.storeEl;
         this.cleanupStoreWait = whenStoreReady(storeEl, (store) => {
+            this.cleanupStoreWait = null;
             this.store = store;
             this.cleanupSubscriptions = this.attachStoreSubscriptions(storeEl, store);
             this.onStoreReady(storeEl, store);
         });
     }
 }
+
+/** The shared inputs as typed properties (core usage "Typing the properties", rulebook C-CA-16). */
+export interface SatelliteElement extends SatelliteElementConfig {}

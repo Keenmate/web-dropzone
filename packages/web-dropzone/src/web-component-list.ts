@@ -20,13 +20,14 @@
  */
 
 import styles from './css/main.css?inline';
+import { adoptStyles, createMicrotaskScheduler, toBool, toEnum, type InputDef } from '@keenmate/web-components-core';
 import {
     SatelliteElement,
+    SATELLITE_INPUTS,
     subscribeStoreEvents,
-    resolveEnumAttribute,
-    createMicrotaskScheduler,
     createStoreContextBase,
-    dispatchSatelliteEvent
+    dispatchSatelliteEvent,
+    type SatelliteElementConfig
 } from './satellite-base';
 import {
     escapeHtml,
@@ -58,19 +59,37 @@ import type { DropzoneContext } from '@keenmate/web-dropzone-core';
 import { buildStatusSurfaceArgs, StatusSurface } from './status-surface';
 import type { StatusSurfaceArgs } from './status-surface';
 import type { DropzoneElement } from './web-component';
-import type { FileState, ListAppearance, RollingRotation } from '@keenmate/web-dropzone-core';
+import type { FileState, GridLayout, GridStatus, ListAppearance, RollingRotation } from '@keenmate/web-dropzone-core';
 
 // Appearances this satellite implements. `none` deliberately omitted —
 // it means "no list visible at all", which is best handled by simply
 // not mounting the satellite. The popover wrapper (Floating UI, resize,
 // persistence) still lives in `<web-dropzone>`'s in-class code; the
 // satellite renders the summary anchor only.
-const SUPPORTED_APPEARANCES: ReadonlyArray<ListAppearance> = [
+const SUPPORTED_APPEARANCES = [
     'list', 'detailed', 'grid', 'badges', 'rolling', 'popover'
+] as const satisfies readonly ListAppearance[];
+
+/** `<web-dropzone-list>` inputs. */
+const INPUTS: readonly InputDef[] = [
+    ...SATELLITE_INPUTS,
+    { configKey: 'listAppearance', attribute: 'list-appearance', converter: toEnum(SUPPORTED_APPEARANCES, { default: 'list' }), shouldReflect: true, on: 'update', description: 'How the files are shown: list, detailed, grid, badges, rolling (one current file + queue badge) or popover (the summary line; the popover itself is the store\'s).' },
+    { configKey: 'gridLayout', attribute: 'grid-layout', converter: toEnum(['uniform', 'natural'] as const, { default: 'uniform' }), shouldReflect: true, on: 'update', description: 'Tile layout for the grid appearance: uniform equal-size tiles, or natural (equal-height rows keeping each image\'s aspect ratio).' },
+    { configKey: 'gridStatus', attribute: 'grid-status', converter: toEnum(['badge', 'overlay'] as const, { default: 'badge' }), shouldReflect: true, on: 'update', description: 'How finished grid files are flagged: badge (corner glyph) or overlay (full-tile veil + big glyph).' },
+    { configKey: 'isNested', attribute: 'nested', converter: toBool('default-false'), on: 'update', type: 'boolean', description: 'Files-inside styling (the list sits inside a picker card). Set by the store when it mounts the list itself.' },
 ];
+
+/** Every `<web-dropzone-list>` input, keyed by `configKey` (its typed properties). */
+export interface DropzoneListElementConfig extends SatelliteElementConfig {
+    listAppearance?: (typeof SUPPORTED_APPEARANCES)[number];
+    gridLayout?: GridLayout;
+    gridStatus?: GridStatus;
+    isNested?: boolean;
+}
 
 
 export class DropzoneListElement extends SatelliteElement {
+    protected static override inputs = INPUTS;
     protected readonly satelliteTagName = 'web-dropzone-list';
     private shadow: ShadowRoot;
     private container: HTMLElement;
@@ -80,7 +99,9 @@ export class DropzoneListElement extends SatelliteElement {
      * without coalescing we'd rebuild the list N+1 times (and destroy the
      * row a user might be mid-click on). With it: one rebuild per burst.
      */
-    private scheduleRenderAll = createMicrotaskScheduler(() => this.renderAll());
+    private readonly renderScheduler = createMicrotaskScheduler();
+    private readonly renderAllTask = (): void => this.renderAll();
+    private scheduleRenderAll(): void { this.renderScheduler.schedule(this.renderAllTask); }
     /**
      * Memoization snapshots for the rolling appearance's three callback
      * slots (body / file-info / progress). Lets cached WAAPI spinners
@@ -110,19 +131,14 @@ export class DropzoneListElement extends SatelliteElement {
     constructor() {
         super();
         this.shadow = this.attachShadow({ mode: 'open' });
-        const styleSheet = document.createElement('style');
-        styleSheet.textContent = styles;
-        this.shadow.appendChild(styleSheet);
+        adoptStyles(this.shadow, styles);
         this.container = document.createElement('div');
         this.container.className = 'dz__host dz__host--list-only';
         this.shadow.appendChild(this.container);
     }
 
-    static get observedAttributes(): string[] {
-        return ['for', 'list-appearance', 'grid-layout', 'grid-status', 'labels', 'nested'];
-    }
-
-    attributeChangedCallback(): void {
+    /** An own input changed (core `update()`): re-render. */
+    protected override inputsChanged(): void {
         if (this.store) this.renderAll();
     }
 
@@ -177,7 +193,7 @@ export class DropzoneListElement extends SatelliteElement {
     // ========================================================================
 
     private resolveAppearance(): ListAppearance {
-        return resolveEnumAttribute(this, 'list-appearance', SUPPORTED_APPEARANCES, 'list');
+        return this.config.listAppearance as ListAppearance;
     }
 
     private renderAll(): void {
@@ -223,7 +239,7 @@ export class DropzoneListElement extends SatelliteElement {
         // styles in `_dropzone.css` only differ for nested rows. We
         // already inline that stylesheet inside the satellite shadow,
         // so the rules apply unchanged.
-        const isNested = this.getAttribute('nested') === 'true';
+        const isNested = !!this.config.isNested;
         const base = isNested ? 'dz__files-inside' : 'dz__file-list';
         const reorderClass = this.store.getConfig().shouldSinkCompleted ? ` ${base}--reorder-completed` : '';
         const containerClass = `${base} ${base}--${appearance}${reorderClass}`;
@@ -241,8 +257,8 @@ export class DropzoneListElement extends SatelliteElement {
         // Grid tile layout (uniform | natural) + finished-file flag
         // (badge | overlay) — only emitted for the grid appearance.
         const gridAttrs = appearance === 'grid'
-            ? ` data-grid-layout="${resolveEnumAttribute(this, 'grid-layout', ['uniform', 'natural'] as const, 'uniform')}"`
-              + ` data-grid-status="${resolveEnumAttribute(this, 'grid-status', ['badge', 'overlay'] as const, 'badge')}"`
+            ? ` data-grid-layout="${this.config.gridLayout as GridLayout}"`
+              + ` data-grid-status="${this.config.gridStatus as GridStatus}"`
             : '';
 
         const rows = visible.map(f => this.renderRow(f, appearance)).join('');
@@ -802,6 +818,5 @@ export class DropzoneListElement extends SatelliteElement {
     }
 }
 
-if (typeof customElements !== 'undefined' && !customElements.get('web-dropzone-list')) {
-    customElements.define('web-dropzone-list', DropzoneListElement);
-}
+/** Every input as a typed property (core usage "Typing the properties", rulebook C-CA-16). */
+export interface DropzoneListElement extends DropzoneListElementConfig {}

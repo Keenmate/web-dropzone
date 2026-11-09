@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import '../../src/web-component'; // registers <web-dropzone>
+import '../../src/index'; // registers <web-dropzone> (core registerComponent)
 
 /**
  * Interaction-model wiring on the element (SPEC §12.5): `el.controller` is the

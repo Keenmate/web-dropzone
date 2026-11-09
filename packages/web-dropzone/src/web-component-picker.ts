@@ -6,6 +6,10 @@
  * never stores files itself; it only collects them from user interaction
  * (drag-drop, click → native file dialog) and routes them.
  *
+ * Its own `disabled` / `readonly` (native semantics, core SPEC §6.4) add to
+ * the bound store's: the picker can't add files while either is disabled or
+ * read-only; only a disable greys it out.
+ *
  * Mode B per-picker upload binding (see ARCHITECTURE.md): if the picker has
  * `uploadFileCallback` and/or `uploadMetadata` JS properties set, those are
  * stamped onto every FileState the picker contributes. The store's upload
@@ -15,10 +19,12 @@
  */
 
 import styles from './css/main.css?inline';
+import { adoptStyles, toBool, toEnum, toFunction, toText, toValue, type InputDef } from '@keenmate/web-components-core';
 import {
     SatelliteElement,
+    SATELLITE_INPUTS,
     subscribeStoreEvents,
-    resolveEnumAttribute
+    type SatelliteElementConfig
 } from './satellite-base';
 import { escapeHtml, UI_ICONS } from '@keenmate/web-dropzone-core';
 import { subscribePageFileDrag, isPageFileDragActive, applyArmedState } from './page-file-drag';
@@ -34,7 +40,42 @@ const CARD_SIZES = ['minimal', 'compact', 'big'] as const;
 
 const DEFAULT_ICON = UI_ICONS.cloudUpload;
 
+/**
+ * `<web-dropzone-picker>` inputs. `null` on `accept` / `multiple` / `icon` /
+ * `highlight-on-page-drag` means "not set": the bound store's value applies.
+ */
+const INPUTS: readonly InputDef[] = [
+    ...SATELLITE_INPUTS,
+    { configKey: 'selectorAppearance', attribute: 'selector-appearance', converter: toEnum(SELECTOR_APPEARANCES, { default: 'card' }), shouldReflect: true, on: 'update', description: 'Selector appearance: card (drop area), button, minimal (icon button) or native (file-input look).' },
+    { configKey: 'cardSize', attribute: 'card-size', converter: toEnum(CARD_SIZES, { default: 'compact' }), shouldReflect: true, on: 'update', description: 'Card size for the card appearance.' },
+    { configKey: 'accept', attribute: 'accept', converter: toText({ isNullable: true }), shouldReflect: true, on: 'update', description: 'Accepted file types for this picker\'s file dialog. Unset = the bound store\'s `accept` (the store validates every file either way).' },
+    { configKey: 'isMultiple', attribute: 'multiple', converter: toBool('tristate'), on: 'update', type: 'boolean | null', description: 'Allow choosing several files in the dialog. Unset = the bound store\'s `multiple`.' },
+    { configKey: 'icon', attribute: 'icon', converter: toText({ isNullable: true }), shouldReflect: true, on: 'update', description: 'Prompt icon (raw HTML — NOT sanitized). Unset = the bound store\'s `icon`, else the built-in upload icon.' },
+    { configKey: 'isDisabled', attribute: 'disabled', converter: toBool('presence'), shouldReflect: true, on: 'update', type: 'boolean', description: 'Disable this picker (like a native control: no clicks / drops, not focusable, greyed). A disabled store disables it too.' },
+    { configKey: 'isReadonly', attribute: 'readonly', converter: toBool('presence'), shouldReflect: true, on: 'update', type: 'boolean', description: 'Read-only (like a native control): this picker adds no files, but stays visible and focusable. A read-only store makes it read-only too.' },
+    { configKey: 'isFilesInside', attribute: 'inside', converter: toBool('default-false'), on: 'update', type: 'boolean', description: 'Files-inside layout: the card slots its light-DOM children (a `<web-dropzone-list nested>`) below the prompt. Set by the store when it mounts the picker itself.' },
+    { configKey: 'shouldHighlightOnPageDrag', attribute: 'highlight-on-page-drag', converter: toBool('tristate'), on: 'update', type: 'boolean | null', description: 'Arm the picker while files are dragged anywhere over the page (`armed` attribute + `:state(armed)`). Unset = the bound store\'s `highlight-on-page-drag`.' },
+    { configKey: 'uploadFileCallback', converter: toFunction(), on: 'none', type: 'FileUploadHandler | null', description: 'Mode B: upload handler stamped onto every file this picker adds (wins over the store\'s `uploadFileCallback` for those files).' },
+    { configKey: 'uploadMetadata', converter: toValue(), on: 'none', type: 'Record<string, unknown> | null', description: 'Mode B: metadata stamped onto every file this picker adds (`ctx.uploadMetadata` in the upload handler).' },
+];
+
+/** Every `<web-dropzone-picker>` input, keyed by `configKey` (its typed properties). */
+export interface DropzonePickerElementConfig extends SatelliteElementConfig {
+    selectorAppearance?: SelectorAppearance;
+    cardSize?: CardSize;
+    accept?: string | null;
+    isMultiple?: boolean | null;
+    icon?: string | null;
+    isDisabled?: boolean;
+    isReadonly?: boolean;
+    isFilesInside?: boolean;
+    shouldHighlightOnPageDrag?: boolean | null;
+    uploadFileCallback?: FileUploadHandler | null;
+    uploadMetadata?: Record<string, unknown> | null;
+}
+
 export class DropzonePickerElement extends SatelliteElement {
+    protected static override inputs = INPUTS;
     protected readonly satelliteTagName = 'web-dropzone-picker';
     private shadow: ShadowRoot;
     private container: HTMLElement;
@@ -44,16 +85,6 @@ export class DropzonePickerElement extends SatelliteElement {
     /** Unsubscribe from the shared page-drag tracker (set while `highlight-on-page-drag` is live). */
     private unsubscribePageDrag: (() => void) | null = null;
     private isArmedState = false;
-    private internalsRef: ElementInternals | null | undefined;
-    /** UI strings from the bound store's `labels` (the picker's own attributes win). */
-
-    // Mode B per-picker upload binding (see ARCHITECTURE.md). These are
-    // JS-only properties — there's no HTML attribute equivalent because the
-    // value is a function (uploadFileCallback) or an arbitrary object
-    // (uploadMetadata). The store stamps both onto every contributed
-    // FileState at add-time.
-    private _uploadFileCallback: FileUploadHandler | null = null;
-    private _uploadMetadata: Record<string, unknown> | null = null;
 
     constructor() {
         super();
@@ -62,53 +93,21 @@ export class DropzonePickerElement extends SatelliteElement {
         // Reuse the store's CSS so picker chrome (`dz__dropzone--card`,
         // `dz__button`, `dz__minimal`) renders identically across both
         // the convenience-form picker (inside <web-dropzone>) and the
-        // satellite. Cheap — same stylesheet object cached by the bundler.
-        const styleSheet = document.createElement('style');
-        styleSheet.textContent = styles;
-        this.shadow.appendChild(styleSheet);
+        // satellite — one constructed sheet shared by every instance.
+        adoptStyles(this.shadow, styles);
 
         this.container = document.createElement('div');
         this.container.className = 'dz__host';
         this.shadow.appendChild(this.container);
-
-        // Pre-upgrade rescue for the two JS-only props.
-        this.upgradeProperty('uploadFileCallback');
-        this.upgradeProperty('uploadMetadata');
     }
 
-    private upgradeProperty(prop: string): void {
-        if (Object.prototype.hasOwnProperty.call(this, prop)) {
-            const value = (this as any)[prop];
-            delete (this as any)[prop];
-            (this as any)[prop] = value;
-        }
+    /** An own input changed (core `update()`): re-render. */
+    protected override inputsChanged(): void {
+        if (this.store) this.render();
     }
 
-    get uploadFileCallback(): FileUploadHandler | null {
-        return this._uploadFileCallback;
-    }
-    set uploadFileCallback(value: FileUploadHandler | null) {
-        this._uploadFileCallback = value;
-    }
-
-    get uploadMetadata(): Record<string, unknown> | null {
-        return this._uploadMetadata;
-    }
-    set uploadMetadata(value: Record<string, unknown> | null) {
-        this._uploadMetadata = value;
-    }
-
-    static get observedAttributes(): string[] {
-        return [
-            'for', 'selector-appearance', 'card-size', 'accept', 'multiple',
-            'labels', 'icon', 'disabled', 'inside', 'highlight-on-page-drag'
-        ];
-    }
-
-    attributeChangedCallback(): void {
-        // Cheap: re-render on any observed change. Picker DOM is small and
-        // re-built on connect anyway; the store-level rendering it would
-        // race against doesn't exist here.
+    /** Core reports a flip of the picker's own `disabled`. */
+    protected override disabledChanged(): void {
         if (this.store) this.render();
     }
 
@@ -134,8 +133,7 @@ export class DropzonePickerElement extends SatelliteElement {
         this.wireDragResetSafetyNet();
     }
 
-    disconnectedCallback(): void {
-        super.disconnectedCallback();
+    protected override deactivated(): void {
         document.removeEventListener('drop', this.handleDocReset);
         document.removeEventListener('dragend', this.handleDocReset);
         this.dragActive = false;
@@ -161,18 +159,22 @@ export class DropzonePickerElement extends SatelliteElement {
 
         const appearance = this.resolveSelectorAppearance();
         const cardSize = this.resolveCardSize();
-        const disabled = this.isDisabled();
-        const isReadonly = !!this.store.getConfig().isReadonly;
+        // Native semantics (core SPEC §6.4): disabled → `disabled` (not
+        // focusable); read-only → focusable, `aria-disabled` (adds nothing).
+        const controlAttrs = this.isOwnOrStoreDisabled()
+            ? 'disabled'
+            : this.isAddBlocked() ? 'aria-disabled="true"' : '';
+        const isReadonly = !!this.config.isReadonly || !!this.store.getConfig().isReadonly;
         // `disabled` (= can't add) covers readonly too; only a real disable greys the surface.
         const stateClass = this.isOwnOrStoreDisabled()
             ? 'dz__dropzone--disabled'
             : isReadonly ? 'dz__dropzone--readonly' : '';
         const storeCfg = this.store.getConfig();
 
-        const acceptAttr = this.getAttribute('accept') ?? storeCfg.accept ?? '';
-        const multipleAttr = this.resolveMultiple(storeCfg.isMultiple);
+        const acceptAttr = (this.config.accept as string | null) ?? storeCfg.accept ?? '';
+        const multipleAttr = (this.config.isMultiple as boolean | null) ?? storeCfg.isMultiple ?? true;
         const label = this.label('selectFiles');
-        const icon = this.getAttribute('icon') ?? storeCfg.icon ?? DEFAULT_ICON;
+        const icon = (this.config.icon as string | null) ?? storeCfg.icon ?? DEFAULT_ICON;
         const hint = this.label('hint');
 
         // Card: the hidden input IS the keyboard control — name it after the
@@ -190,7 +192,7 @@ export class DropzonePickerElement extends SatelliteElement {
                 ${inputA11yAttrs}
                 ${multipleAttr ? 'multiple' : ''}
                 ${acceptAttr ? `accept="${escapeHtml(acceptAttr)}"` : ''}
-                ${disabled ? 'disabled' : ''}
+                ${controlAttrs}
             >
         `;
 
@@ -210,7 +212,7 @@ export class DropzonePickerElement extends SatelliteElement {
             inner = `
                 <div class="dz__dropzone dz__dropzone--button ${stateClass}">
                     ${inputHtml}
-                    <button type="button" class="dz__button" ${disabled ? 'disabled' : ''}>
+                    <button type="button" class="dz__button" ${controlAttrs}>
                         <span class="dz__button-label">${escapeHtml(label)}</span>
                         ${countBadge}
                     </button>
@@ -221,7 +223,7 @@ export class DropzonePickerElement extends SatelliteElement {
             inner = `
                 <div class="dz__dropzone dz__dropzone--minimal ${stateClass}">
                     ${inputHtml}
-                    <button type="button" class="dz__minimal" aria-label="${escapeHtml(ariaLabel)}" ${disabled ? 'disabled' : ''}>
+                    <button type="button" class="dz__minimal" aria-label="${escapeHtml(ariaLabel)}" ${controlAttrs}>
                         <span class="dz__minimal-icon">${icon}</span>
                         ${minimalBadge}
                     </button>
@@ -238,7 +240,7 @@ export class DropzonePickerElement extends SatelliteElement {
             inner = `
                 <div class="dz__dropzone dz__dropzone--native ${stateClass}">
                     ${inputHtml}
-                    <button type="button" class="dz__native-button" ${disabled ? 'disabled' : ''}>${escapeHtml(label)}</button>
+                    <button type="button" class="dz__native-button" ${controlAttrs}>${escapeHtml(label)}</button>
                     <span class="dz__native-label" title="${escapeHtml(labelText)}">${escapeHtml(labelText)}</span>
                 </div>
             `;
@@ -257,7 +259,7 @@ export class DropzonePickerElement extends SatelliteElement {
             // list satellite slots into the card via the `<slot>` below,
             // and `dz__dropzone--has-files` flips on so the picker's
             // existing CSS (margin between prompt and list) kicks in.
-            const insideMode = this.getAttribute('inside') === 'true';
+            const insideMode = !!this.config.isFilesInside;
             const hasFiles = insideMode && fileCount > 0;
             const classes = [
                 'dz__dropzone',
@@ -293,16 +295,15 @@ export class DropzonePickerElement extends SatelliteElement {
     // ARMED (highlight-on-page-drag)
     // ========================================================================
 
-    /** Own `highlight-on-page-drag` attribute wins; else the bound store's setting. */
-    private shouldHighlightOnPageDrag(): boolean {
-        const raw = this.getAttribute('highlight-on-page-drag');
-        if (raw !== null) return raw !== 'false';
-        return !!this.store?.getConfig().shouldHighlightOnPageDrag;
+    /** Own `highlight-on-page-drag` wins; unset → the bound store's setting. */
+    private isPageDragHighlighted(): boolean {
+        const own = this.config.shouldHighlightOnPageDrag as boolean | null;
+        return own ?? !!this.store?.getConfig().shouldHighlightOnPageDrag;
     }
 
     /** Join / leave the shared page-drag tracker (one page listener set for every instance). */
     private syncPageDrag(): void {
-        const shouldTrack = this.isConnected && !!this.store && this.shouldHighlightOnPageDrag();
+        const shouldTrack = this.isConnected && !!this.store && this.isPageDragHighlighted();
         if (shouldTrack && !this.unsubscribePageDrag) {
             this.unsubscribePageDrag = subscribePageFileDrag(() => this.syncArmed());
         } else if (!shouldTrack && this.unsubscribePageDrag) {
@@ -314,21 +315,10 @@ export class DropzonePickerElement extends SatelliteElement {
 
     /** Armed = tracking + a file drag over the page + the picker accepts drops. */
     private syncArmed(): void {
-        const isArmed = !!this.unsubscribePageDrag && isPageFileDragActive() && !this.isDisabled();
+        const isArmed = !!this.unsubscribePageDrag && isPageFileDragActive() && !this.isAddBlocked();
         if (isArmed === this.isArmedState) return;
         this.isArmedState = isArmed;
-        applyArmedState(this, this.getInternals(), isArmed);
-    }
-
-    /** Lazily attached internals for `:state(armed)`; null where unsupported. */
-    private getInternals(): ElementInternals | null {
-        if (this.internalsRef !== undefined) return this.internalsRef;
-        try {
-            this.internalsRef = typeof this.attachInternals === 'function' ? this.attachInternals() : null;
-        } catch {
-            this.internalsRef = null;
-        }
-        return this.internalsRef;
+        applyArmedState(this, this.internals, isArmed);
     }
 
     /**
@@ -336,7 +326,7 @@ export class DropzonePickerElement extends SatelliteElement {
      * disabled or before the picker has rendered (not bound to a store yet).
      */
     openFileDialog(): void {
-        if (this.isDisabled()) return;
+        if (this.isAddBlocked()) return;
         this.inputEl?.click();
     }
 
@@ -345,29 +335,21 @@ export class DropzonePickerElement extends SatelliteElement {
     // ========================================================================
 
     private resolveSelectorAppearance(): SelectorAppearance {
-        return resolveEnumAttribute(this, 'selector-appearance', SELECTOR_APPEARANCES, 'card');
+        return this.config.selectorAppearance as SelectorAppearance;
     }
 
     private resolveCardSize(): CardSize {
-        return resolveEnumAttribute(this, 'card-size', CARD_SIZES, 'compact');
+        return this.config.cardSize as CardSize;
     }
 
-    private resolveMultiple(storeDefault: boolean | undefined): boolean {
-        const raw = this.getAttribute('multiple');
-        if (raw === null) return storeDefault ?? true;
-        return raw !== 'false';
-    }
-
-    /** Disabled by its own `disabled` attribute or the store's (not counting `readonly`). */
+    /** Disabled by its own `disabled` or the store's (not counting `readonly`). */
     private isOwnOrStoreDisabled(): boolean {
-        if (this.hasAttribute('disabled')) return this.getAttribute('disabled') !== 'false';
-        return !!this.store?.getConfig().isDisabled;
+        return this.isEffectivelyDisabled || !!this.store?.getConfig().isDisabled;
     }
 
-    /** The picker can't add files: disabled, or the store is read-only. */
-    private isDisabled(): boolean {
-        // A read-only store blocks adding too (the picker only adds files).
-        return this.isOwnOrStoreDisabled() || !!this.store?.getConfig().isReadonly;
+    /** The picker can't add files: disabled, or it / the store is read-only. */
+    private isAddBlocked(): boolean {
+        return this.isOwnOrStoreDisabled() || !!this.config.isReadonly || !!this.store?.getConfig().isReadonly;
     }
 
     // ========================================================================
@@ -382,9 +364,15 @@ export class DropzonePickerElement extends SatelliteElement {
         // `input.change` from bubbling into the same handler twice — we
         // listen to it explicitly below.
         dropZone.addEventListener('click', (e) => {
-            if (this.isDisabled()) return;
             const target = e.target as HTMLElement;
-            if (target.tagName === 'INPUT') return;
+            // A click ON the input (pointer, or Enter / Space on the focused
+            // read-only card input) opens the dialog unless adding is blocked:
+            // cancelling the click cancels the dialog.
+            if (target.tagName === 'INPUT') {
+                if (this.isAddBlocked()) e.preventDefault();
+                return;
+            }
+            if (this.isAddBlocked()) return;
             this.inputEl?.click();
         });
 
@@ -403,7 +391,7 @@ export class DropzonePickerElement extends SatelliteElement {
         // `dragActive`; button + minimal accept drops but don't show the
         // overlay (the existing `--active` modifier is card-only by design).
         dropZone.addEventListener('dragover', (e) => {
-            if (this.isDisabled()) return;
+            if (this.isAddBlocked()) return;
             e.preventDefault();
             e.stopPropagation();
         });
@@ -413,7 +401,7 @@ export class DropzonePickerElement extends SatelliteElement {
         // document-level drag events, which lit up EVERY picker on the page at
         // once — dragging over one bucket highlighted all of them.
         dropZone.addEventListener('dragenter', (e) => {
-            if (this.isDisabled()) return;
+            if (this.isAddBlocked()) return;
             e.preventDefault();
             e.stopPropagation();
             if (!e.dataTransfer?.types.includes('Files')) return;
@@ -421,13 +409,13 @@ export class DropzonePickerElement extends SatelliteElement {
             this.setDragActive(true);
         });
         dropZone.addEventListener('dragleave', (e) => {
-            if (this.isDisabled()) return;
+            if (this.isAddBlocked()) return;
             e.stopPropagation();
             this.dragCounter = Math.max(0, this.dragCounter - 1);
             if (this.dragCounter === 0) this.setDragActive(false);
         });
         dropZone.addEventListener('drop', (e) => {
-            if (this.isDisabled()) return;
+            if (this.isAddBlocked()) return;
             e.preventDefault();
             e.stopPropagation();
             const files = e.dataTransfer?.files;
@@ -486,12 +474,13 @@ export class DropzonePickerElement extends SatelliteElement {
     private contributeFiles(files: File[]): void {
         if (!this.store) return;
         const opts: { uploadFileCallback?: FileUploadHandler; uploadMetadata?: Record<string, unknown> } = {};
-        if (this._uploadFileCallback) opts.uploadFileCallback = this._uploadFileCallback;
-        if (this._uploadMetadata) opts.uploadMetadata = this._uploadMetadata;
+        const uploadFileCallback = this.config.uploadFileCallback as FileUploadHandler | null;
+        const uploadMetadata = this.config.uploadMetadata as Record<string, unknown> | null;
+        if (uploadFileCallback) opts.uploadFileCallback = uploadFileCallback;
+        if (uploadMetadata) opts.uploadMetadata = uploadMetadata;
         this.store.addFiles(files, opts);
     }
 }
 
-if (typeof customElements !== 'undefined' && !customElements.get('web-dropzone-picker')) {
-    customElements.define('web-dropzone-picker', DropzonePickerElement);
-}
+/** Every input as a typed property (core usage "Typing the properties", rulebook C-CA-16). */
+export interface DropzonePickerElement extends DropzonePickerElementConfig {}

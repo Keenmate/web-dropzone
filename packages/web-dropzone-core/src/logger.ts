@@ -14,10 +14,12 @@
  *
  * Categories: DROPZONE:INIT / FILE / UI / INTERACTION.
  *
- * Logging is silent by default (production). Enable it from the console via the
- * global API or the exported helpers:
+ * Like every core logger bundle it prints warnings and errors by default (core
+ * SPEC §12.1) and follows the page-wide switch (`window.components.logging`).
+ * Enable more from the console via the global API or the exported helpers:
  *   window.components['web-dropzone'].logging.enableLogging();
  *   window.components['web-dropzone'].logging.setCategoryLevel('DROPZONE:UI', 'debug');
+ *   window.components['web-dropzone'].logging.resetLogging(); // follow the page level again
  */
 
 import { createLoggers, type Logger, type LogLevelDesc } from '@keenmate/web-components-core';
@@ -26,11 +28,14 @@ const NAMESPACE = 'DROPZONE';
 const CATEGORIES = ['INIT', 'FILE', 'UI', 'INTERACTION'] as const;
 type Category = (typeof CATEGORIES)[number];
 
-const bundle = createLoggers(NAMESPACE, CATEGORIES);
-
-// Core's createLoggers leaves each logger at loglevel's default; dropzone ships
-// quiet in production, so silence everything on load.
-bundle.disableLogging();
+/**
+ * The dropzone family's core logger bundle. Exported so the renderer's
+ * `registerComponent()` attaches it to `window.components['web-dropzone']`
+ * (its `logging` controls) and BlissElement builds the per-instance `el.log`
+ * loggers from it (core SPEC §12.3).
+ */
+export const logging = createLoggers(NAMESPACE, CATEGORIES);
+const bundle = logging;
 
 // Category-specific loggers (real loglevel Loggers: .trace/.debug/.info/.warn/.error).
 // Explicitly typed as core's re-exported `Logger` so the emitted .d.ts stays
@@ -56,6 +61,14 @@ export function enableLogging(): void {
 /** Disable all logging (silent). */
 export function disableLogging(): void {
     bundle.disableLogging();
+}
+
+/**
+ * Clear the dropzone family's own levels (every category): it follows the
+ * page-wide level (`window.components.logging`) again, else the built-in `warn`.
+ */
+export function resetLogging(): void {
+    bundle.resetLogging();
 }
 
 /**

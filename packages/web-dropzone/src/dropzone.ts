@@ -22,8 +22,8 @@
  * keep working.
  */
 
-import { anchor } from '@keenmate/web-components-core/positioning';
-import type { Placement } from '@keenmate/web-components-core/positioning';
+import { createPopover } from '@keenmate/web-components-core/positioning';
+import type { Placement, PopoverHandle } from '@keenmate/web-components-core/positioning';
 import { dispatch } from '@keenmate/web-components-core';
 import {
     initLogger,
@@ -140,10 +140,9 @@ export class WebDropzone extends DropzoneEngine {
     private dragActive = false;
     private popover: HTMLElement | null = null;
     private isPopoverOpen = false;
-    /** Cleanup function returned by Floating UI's autoUpdate. Called from
-     *  closePopover() to detach the scroll / resize observers it installs.
-     *  null when the popover isn't open. */
-    private popoverPositionCleanup: (() => void) | null = null;
+    /** Core `createPopover()` handle of the open popover (positioning, the
+     *  overlay tree's outside click / Escape); null while it is closed. */
+    private popoverHandle: PopoverHandle | null = null;
     /** ResizeObserver watching the popover for user-driven resize. Saves
      *  the resulting dimensions to persisted state. Disconnected in
      *  closePopover so it doesn't leak past popover lifetime. */
@@ -177,9 +176,6 @@ export class WebDropzone extends DropzoneEngine {
      * there) — the popover's "Add more" asks it to open the dialog.
      */
     private satellitePickerEl: (HTMLElement & { openFileDialog?: () => void }) | null = null;
-    /** True while "Add more" synchronously dispatches the file input's click,
-     *  so the document-level outside-click handler keeps the popover open. */
-    private isAddMoreClickInFlight = false;
     /**
      * Cache of element-returning `renderFileItemCallback` outputs, keyed by
      * file id. When present for a file, `patchFileRow` skips the re-render
@@ -214,8 +210,6 @@ export class WebDropzone extends DropzoneEngine {
     private boundHandleDrop: (e: DragEvent) => void;
     private boundHandleClick: (e: MouseEvent) => void;
     private boundHandleInputChange: (e: Event) => void;
-    private boundHandleDocumentClick: (e: MouseEvent) => void;
-    private boundHandleKeyDown: (e: KeyboardEvent) => void;
     private boundHandleOverlayDragEnter: (e: DragEvent) => void;
     private boundHandleWindowBlur: () => void;
 
@@ -235,8 +229,6 @@ export class WebDropzone extends DropzoneEngine {
         this.boundHandleDrop = this.handleDrop.bind(this);
         this.boundHandleClick = this.handleClick.bind(this);
         this.boundHandleInputChange = this.handleInputChange.bind(this);
-        this.boundHandleDocumentClick = this.handleDocumentClick.bind(this);
-        this.boundHandleKeyDown = this.handleKeyDown.bind(this);
         this.boundHandleOverlayDragEnter = this.handleOverlayDragEnter.bind(this);
         this.boundHandleWindowBlur = this.removeOverlay.bind(this);
 
@@ -276,11 +268,8 @@ export class WebDropzone extends DropzoneEngine {
         if (this.isActive) return;
         this.isActive = true;
         this.setupOverlayTarget();
-        if (this.isPopoverOpen && this.popover) {
-            this.positionPopover();
-            document.addEventListener('click', this.boundHandleDocumentClick);
-            document.addEventListener('keydown', this.boundHandleKeyDown);
-        }
+        // An open popover kept through a DOM move is positioned again.
+        this.popoverHandle?.setAnchored(true);
         uiLogger.debug('Activated');
     }
 
@@ -290,10 +279,8 @@ export class WebDropzone extends DropzoneEngine {
         if (!this.isActive) return;
         this.isActive = false;
         this.cleanupOverlay();
-        this.popoverPositionCleanup?.();
-        this.popoverPositionCleanup = null;
-        document.removeEventListener('click', this.boundHandleDocumentClick);
-        document.removeEventListener('keydown', this.boundHandleKeyDown);
+        // Keep an open popover (open state + DOM) but stop positioning it.
+        this.popoverHandle?.setAnchored(false);
         uiLogger.debug('Deactivated');
     }
 
@@ -545,6 +532,27 @@ export class WebDropzone extends DropzoneEngine {
         return !!this.config.isDisabled || !!this.config.isReadonly;
     }
 
+    /**
+     * Native semantics for the selector's controls (core SPEC §6.4): disabled
+     * = `disabled` (no interaction, not focusable); read-only = still focusable,
+     * marked `aria-disabled` (it adds nothing — the click handler refuses it).
+     * A button that also opens the file popover stays a plain button under
+     * read-only (`isListTrigger`): the files can still be looked at.
+     */
+    private selectorControlAttrs(isListTrigger = false): string {
+        if (this.config.isDisabled) return 'disabled';
+        if (this.config.isReadonly && !isListTrigger) return 'aria-disabled="true"';
+        return '';
+    }
+
+    /** Button / minimal + popover with files: the selector button opens the list. */
+    private get isSelectorListTrigger(): boolean {
+        const { selectorAppearance, listAppearance } = resolveDisplayConfig(this.config);
+        return listAppearance === 'popover'
+            && (selectorAppearance === 'button' || selectorAppearance === 'minimal')
+            && this.files.length > 0;
+    }
+
     private renderSelector(appearance: SelectorAppearance, cardSize: CardSize): string {
         const disabled = this.config.isDisabled ? 'dz__dropzone--disabled' : this.config.isReadonly ? 'dz__dropzone--readonly' : '';
         const active = this.dragActive ? 'dz__dropzone--active' : '';
@@ -563,7 +571,7 @@ export class WebDropzone extends DropzoneEngine {
                 ${inputA11yAttrs}
                 ${this.config.isMultiple ? 'multiple' : ''}
                 ${this.config.accept ? `accept="${escapeHtml(this.config.accept)}"` : ''}
-                ${this.isAddBlocked ? 'disabled' : ''}
+                ${this.selectorControlAttrs()}
             >
         `;
 
@@ -573,7 +581,7 @@ export class WebDropzone extends DropzoneEngine {
             return `
                 <div class="dz__dropzone dz__dropzone--button ${disabled}">
                     ${input}
-                    <button type="button" class="dz__button" ${this.isAddBlocked ? 'disabled' : ''}>
+                    <button type="button" class="dz__button" ${this.selectorControlAttrs(this.isSelectorListTrigger)}>
                         <span class="dz__button-label">${label}</span>
                         ${count > 0 ? `<span class="dz__button-badge">${count}</span>` : ''}
                     </button>
@@ -588,7 +596,7 @@ export class WebDropzone extends DropzoneEngine {
             return `
                 <div class="dz__dropzone dz__dropzone--minimal ${disabled}">
                     ${input}
-                    <button type="button" class="dz__minimal" aria-label="${ariaLabel}" ${this.isAddBlocked ? 'disabled' : ''}>
+                    <button type="button" class="dz__minimal" aria-label="${ariaLabel}" ${this.selectorControlAttrs(this.isSelectorListTrigger)}>
                         <span class="dz__minimal-icon">${icon}</span>
                         ${count > 0 ? `<span class="dz__minimal-badge">${count}</span>` : ''}
                     </button>
@@ -607,7 +615,7 @@ export class WebDropzone extends DropzoneEngine {
             return `
                 <div class="dz__dropzone dz__dropzone--native ${disabled}">
                     ${input}
-                    <button type="button" class="dz__native-button" ${this.isAddBlocked ? 'disabled' : ''}>${label}</button>
+                    <button type="button" class="dz__native-button" ${this.selectorControlAttrs()}>${label}</button>
                     <span class="dz__native-label" title="${escapeHtml(labelText)}">${escapeHtml(labelText)}</span>
                 </div>
             `;
@@ -1869,10 +1877,35 @@ export class WebDropzone extends DropzoneEngine {
             <div class="dz__popover-footer">${this.getFooterContent()}</div>
         `;
 
-        container.appendChild(this.popover);
-
-        // Position popover
-        this.positionPopover();
+        // Core's createPopover() mounts the panel in the component's own
+        // container (shadow DOM, so it keeps the styles) and positions it with
+        // anchor() (offset → flip → shift, kept placed by autoUpdate — also on
+        // the user's CSS `resize` of the panel). `maxHeight` / `maxWidth` cap
+        // it to the space on the resolved side, so the resize handle can't
+        // push rows off-screen. The overlay tree closes it on an outside click
+        // (decided when the click ends) and on Escape; a press on the anchor
+        // (the trigger toggles it) or on the hidden file input isn't outside.
+        const placement = (this.config.popoverPlacement || DEFAULT_CONFIG.popoverPlacement) as Placement;
+        this.popoverHandle = createPopover({
+            reference: () => this.getPopoverAnchor() ?? anchor,
+            panel: this.popover,
+            container,
+            inheritThemeFrom: false, // inside the shadow root: inherits the host's theme
+            placement,
+            strategy: 'absolute',
+            offset: 8,
+            shift: 8,
+            maxHeight: { padding: 8 },
+            maxWidth: { padding: 8 },
+            // Only while attached: a detached (moved / removed) dropzone keeps
+            // its popover until it is back.
+            shouldCloseOnOutsideClick: () => this.isActive,
+            shouldCloseOnEscape: () => this.isActive,
+            getInsideElements: () => [this.inputEl, this.getPopoverAnchor()],
+            onClose: () => this.closePopover(),
+        });
+        this.isPopoverOpen = true;
+        this.popoverHandle.open();
 
         // Add event handlers
         this.popover.querySelector('[data-dz-action="clear"]')?.addEventListener('click', async () => {
@@ -1884,21 +1917,13 @@ export class WebDropzone extends DropzoneEngine {
         });
 
         this.popover.querySelector('[data-dz-action="add-more"]')?.addEventListener('click', () => {
-            // Open the native file picker without dismissing the popover. The
-            // input lives in the picker satellite (satellite path) or inside
-            // the dropzone (in-class path) — not the popover — so the
-            // synthesised input click would otherwise be picked up as an
-            // "outside" click; handleDocumentClick skips it while the flag is
-            // set (the click dispatches synchronously).
-            this.isAddMoreClickInFlight = true;
-            try {
-                if (this.satellitePickerEl?.openFileDialog) {
-                    this.satellitePickerEl.openFileDialog();
-                } else {
-                    this.inputEl?.click();
-                }
-            } finally {
-                this.isAddMoreClickInFlight = false;
+            // Open the native file picker without dismissing the popover: the
+            // synthesised click on the hidden input has no press of its own,
+            // so the overlay tree never counts it as an outside click.
+            if (this.satellitePickerEl?.openFileDialog) {
+                this.satellitePickerEl.openFileDialog();
+            } else {
+                this.inputEl?.click();
             }
         });
 
@@ -1930,10 +1955,6 @@ export class WebDropzone extends DropzoneEngine {
             });
             this.popoverResizeObserver.observe(this.popover);
         }
-
-        this.isPopoverOpen = true;
-        document.addEventListener('click', this.boundHandleDocumentClick);
-        document.addEventListener('keydown', this.boundHandleKeyDown);
 
         uiLogger.debug('Popover opened');
     }
@@ -2249,14 +2270,11 @@ export class WebDropzone extends DropzoneEngine {
         }
     }
 
+    /** Close the popover — from code, the trigger, or the overlay tree
+     *  (outside click / Escape: `onClose`). Idempotent. */
     private closePopover(): void {
         if (!this.isPopoverOpen || !this.popover) return;
-
-        // Detach Floating UI's scroll/resize observers before tearing the
-        // popover out — leaking these is the classic autoUpdate footgun
-        // (they keep firing against a detached element forever).
-        this.popoverPositionCleanup?.();
-        this.popoverPositionCleanup = null;
+        this.isPopoverOpen = false;
 
         // Tear down the user-resize observer + flush any pending save so
         // a quick close-after-resize doesn't lose the final dimension.
@@ -2268,12 +2286,13 @@ export class WebDropzone extends DropzoneEngine {
             this.flushPopoverSize();
         }
 
+        // Stops positioning, leaves the overlay tree and unmounts the panel
+        // (its onClose('api') lands here again — a no-op by now).
+        const handle = this.popoverHandle;
+        this.popoverHandle = null;
+        handle?.destroy();
         this.popover.remove();
         this.popover = null;
-        this.isPopoverOpen = false;
-
-        document.removeEventListener('click', this.boundHandleDocumentClick);
-        document.removeEventListener('keydown', this.boundHandleKeyDown);
 
         uiLogger.debug('Popover closed');
     }
@@ -2321,35 +2340,6 @@ export class WebDropzone extends DropzoneEngine {
         }
         const btn = this.dropzoneEl?.querySelector('.dz__button, .dz__minimal') as HTMLElement | null;
         return btn ?? this.dropzoneEl;
-    }
-
-    private positionPopover(): void {
-        if (!this.popover) return;
-        const anchorEl = this.getPopoverAnchor();
-        if (!anchorEl) return;
-
-        const placement = (this.config.popoverPlacement || DEFAULT_CONFIG.popoverPlacement) as Placement;
-        const popover = this.popover;
-
-        // Core's `anchor()` positions the popover (offset → flip → shift) and
-        // keeps it there via floating-ui `autoUpdate` — repositioning on scroll,
-        // anchor reflow, viewport resize, AND user-driven resize of the popover
-        // itself (the CSS `resize` handle). `maxHeight`/`maxWidth` cap the panel
-        // to the space available on the resolved side (minus 8px), so dragging
-        // the resize handle can't push rows off-screen. `absolute` strategy
-        // matches the popover's shadow-root positioning context; anchor() writes
-        // `left`/`top` on the popover itself. The returned `destroy` detaches the
-        // observers; closePopover() calls it when the popover goes away.
-        this.popoverPositionCleanup?.();
-        const handle = anchor(popover, anchorEl, {
-            placement,
-            strategy: 'absolute',
-            offset: 8,
-            shift: 8,
-            maxHeight: { padding: 8 },
-            maxWidth: { padding: 8 },
-        });
-        this.popoverPositionCleanup = handle.destroy;
     }
 
     private updatePopoverContent(): void {
@@ -2424,9 +2414,6 @@ export class WebDropzone extends DropzoneEngine {
         if (this.inputEl) {
             this.inputEl.removeEventListener('change', this.boundHandleInputChange);
         }
-
-        document.removeEventListener('click', this.boundHandleDocumentClick);
-        document.removeEventListener('keydown', this.boundHandleKeyDown);
 
         // Symmetric with `attachEventListeners`.
         this.isEngineEventWiringActive = false;
@@ -2555,23 +2542,26 @@ export class WebDropzone extends DropzoneEngine {
         // inputEl.click() — the second call cancels the first dialog and the
         // resulting `change` event arrives with an empty FileList. See the
         // popover Add-more handler.
-        if (e.target === this.inputEl) return;
+        // A click ON the input (a pointer click on the card, or Enter / Space
+        // while the read-only card input has focus) opens the native dialog —
+        // unless adding is blocked: cancelling the click cancels the dialog.
+        if (e.target === this.inputEl) {
+            if (this.isAddBlocked) e.preventDefault();
+            return;
+        }
 
-        if (this.isAddBlocked) return;
+        if (this.config.isDisabled) return;
 
         // For selector=button/minimal + listAppearance=popover, clicks on the
-        // selector toggle the popover when files exist. Otherwise (or when
-        // empty) they open the picker. This matches FluentUI's minimal+popover
-        // convention.
-        const { selectorAppearance, listAppearance } = resolveDisplayConfig(this.config);
-        if (
-            listAppearance === 'popover' &&
-            (selectorAppearance === 'button' || selectorAppearance === 'minimal') &&
-            this.files.length > 0
-        ) {
+        // selector toggle the popover when files exist (also read-only: the
+        // files can be looked at). Otherwise (or when empty) they open the
+        // picker. This matches FluentUI's minimal+popover convention.
+        if (this.isSelectorListTrigger) {
             this.togglePopover();
             return;
         }
+
+        if (this.isAddBlocked) return;
 
         this.inputEl?.click();
         interactionLogger.debug('Dropzone clicked');
@@ -2588,41 +2578,6 @@ export class WebDropzone extends DropzoneEngine {
 
         // Reset input so same file can be selected again
         input.value = '';
-    }
-
-    private handleDocumentClick(e: MouseEvent): void {
-        if (!this.isPopoverOpen || !this.popover) return;
-
-        // The popover lives inside Shadow DOM, so `e.target` at document level
-        // is re-targeted to the host element — `popover.contains(target)` is
-        // always false. composedPath() walks the real path through the shadow
-        // root and exposes the actual clicked element.
-        const path = e.composedPath();
-
-        // Clicks inside the popover itself stay open.
-        if (path.includes(this.popover)) return;
-
-        // The "Add more" button calls inputEl.click() which synthesises a
-        // bubbling click on the hidden <input type="file">. That input lives
-        // inside the dropzone — not inside the popover or anchor — so without
-        // this guard the popover would dismiss itself the moment the user
-        // tries to add more files.
-        if (this.inputEl && path.includes(this.inputEl)) return;
-        if (this.isAddMoreClickInFlight) return;
-
-        // Clicks on the trigger (summary line for card+popover, button/minimal
-        // selector for the other families) are handled by the trigger's own
-        // toggle handler — letting this branch close would race with that.
-        const anchor = this.getPopoverAnchor();
-        if (anchor && path.includes(anchor)) return;
-
-        this.closePopover();
-    }
-
-    private handleKeyDown(e: KeyboardEvent): void {
-        if (e.key === 'Escape' && this.isPopoverOpen) {
-            this.closePopover();
-        }
     }
 
     // ========================================================================

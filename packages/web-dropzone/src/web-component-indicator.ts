@@ -34,9 +34,9 @@ import styles from './css/main.css?inline';
 import indicatorStyles from './css/indicator.css?inline';
 import {
     SatelliteElement,
+    SATELLITE_INPUTS,
     subscribeStoreEvents,
-    resolveEnumAttribute,
-    createMicrotaskScheduler
+    type SatelliteElementConfig
 } from './satellite-base';
 import {
     escapeHtml,
@@ -45,7 +45,7 @@ import {
     fileStatusLabel,
     statusLabel
 } from '@keenmate/web-dropzone-core';
-import { renderLoader } from '@keenmate/web-components-core';
+import { adoptStyles, createMicrotaskScheduler, renderLoader, toEnum, toFunction, type InputDef } from '@keenmate/web-components-core';
 import {
     buildStatusSurfaceArgs,
     StatusSurface
@@ -63,6 +63,25 @@ type IndicatorPosition = typeof POSITIONS[number];
 const DRAWER_MODES = ['auto', 'off'] as const;
 type DrawerMode = typeof DRAWER_MODES[number];
 
+/** `<web-dropzone-indicator>` inputs. */
+const INPUTS: readonly InputDef[] = [
+    ...SATELLITE_INPUTS,
+    { configKey: 'position', attribute: 'position', converter: toEnum(POSITIONS, { default: 'right' }), shouldReflect: true, on: 'update', description: 'Where the chip sits: fixed to a viewport edge (right, left, top, bottom) or inline in the page flow.' },
+    { configKey: 'drawer', attribute: 'drawer', converter: toEnum(DRAWER_MODES, { default: 'auto' }), shouldReflect: true, on: 'update', description: '`auto`: the chip is a button opening a slide-out drawer with the full file list; `off`: a non-interactive `role="status"` chip, no drawer.' },
+    { configKey: 'renderBodyCallback', converter: toFunction(), on: 'update', type: 'StatusSurfaceCallback | null', description: 'Replace the whole chip body (`args`: `StatusSurfaceArgs`). Return a string / element, `null` for the default, `false` to hide the chip. When set, the default file-info / progress slots are not mounted.' },
+    { configKey: 'renderFileInfoCallback', converter: toFunction(), on: 'update', type: 'StatusSurfaceCallback | null', description: 'Replace the chip\'s file-info slot (default body only). `args.currentFile`, `currentFilePercent`, `currentFileStatus`.' },
+    { configKey: 'renderProgressCallback', converter: toFunction(), on: 'update', type: 'StatusSurfaceCallback | null', description: 'Replace the chip\'s progress slot (default body only): per-file and overall slices.' },
+];
+
+/** Every `<web-dropzone-indicator>` input, keyed by `configKey` (its typed properties). */
+export interface DropzoneIndicatorElementConfig extends SatelliteElementConfig {
+    position?: IndicatorPosition;
+    drawer?: DrawerMode;
+    renderBodyCallback?: StatusSurfaceCallback | null;
+    renderFileInfoCallback?: StatusSurfaceCallback | null;
+    renderProgressCallback?: StatusSurfaceCallback | null;
+}
+
 /**
  * Builds the default chip label. Used internally when the consumer hasn't
  * overridden the body/fileInfo/progress trio. Exposed via the shared
@@ -79,6 +98,7 @@ function defaultChipLabel(args: StatusSurfaceArgs, label: LabelFn): string {
 }
 
 export class DropzoneIndicatorElement extends SatelliteElement {
+    protected static override inputs = INPUTS;
     protected readonly satelliteTagName = 'web-dropzone-indicator';
     private shadow: ShadowRoot;
     /**
@@ -120,59 +140,20 @@ export class DropzoneIndicatorElement extends SatelliteElement {
      * would otherwise iterate every file to recompute totals. With this,
      * we recompute once per microtask (≈ once per paint frame).
      */
-    private scheduleRefresh = createMicrotaskScheduler(() => this.refresh());
+    private readonly refreshScheduler = createMicrotaskScheduler();
+    private readonly refreshTask = (): void => this.refresh();
+    private scheduleRefresh(): void { this.refreshScheduler.schedule(this.refreshTask); }
 
-    // ========================================================================
-    // RENDER CALLBACKS — JS-only properties, no HTML attribute equivalent
-    // ========================================================================
-
-    private _renderBodyCallback: StatusSurfaceCallback | null = null;
-    /**
-     * Body / shell renderer. Owns the outer chip contents; can return
-     * `false` to hide the surface entirely (solves the "empty pill hangs
-     * around" problem). When this is set, the default fileInfo + progress
-     * slots are NOT mounted automatically — the body callback decides
-     * whether to call them itself (via the standalone helpers exported
-     * from the package) or assemble its own DOM.
-     */
-    get renderBodyCallback(): StatusSurfaceCallback | null {
-        return this._renderBodyCallback;
+    // The three render callbacks (`renderBodyCallback`, `renderFileInfoCallback`,
+    // `renderProgressCallback`) are property-only input rows; see INPUTS.
+    private get bodyCallback(): StatusSurfaceCallback | null {
+        return this.config.renderBodyCallback as StatusSurfaceCallback | null;
     }
-    set renderBodyCallback(value: StatusSurfaceCallback | null) {
-        this._renderBodyCallback = value;
-        this.resetMemoization();
-        if (this.store) this.refresh();
+    private get fileInfoCallback(): StatusSurfaceCallback | null {
+        return this.config.renderFileInfoCallback as StatusSurfaceCallback | null;
     }
-
-    private _renderFileInfoCallback: StatusSurfaceCallback | null = null;
-    /**
-     * File-info renderer. Only invoked when the default body is in use
-     * (no `renderBodyCallback` set or the body callback returned `null`).
-     * Receives `args.currentFile`, `currentFilePercent`, `currentFileStatus`.
-     */
-    get renderFileInfoCallback(): StatusSurfaceCallback | null {
-        return this._renderFileInfoCallback;
-    }
-    set renderFileInfoCallback(value: StatusSurfaceCallback | null) {
-        this._renderFileInfoCallback = value;
-        this.surface.resetFileInfo();
-        if (this.store) this.refresh();
-    }
-
-    private _renderProgressCallback: StatusSurfaceCallback | null = null;
-    /**
-     * Progress renderer. Only invoked when the default body is in use.
-     * Receives both per-file (`currentFilePercent`/`currentFileStatus`) and
-     * overall (`overallPercent`/`overallStatus`) slices so templates can
-     * combine them ("xyz.zip 47% — 3 / 10 done").
-     */
-    get renderProgressCallback(): StatusSurfaceCallback | null {
-        return this._renderProgressCallback;
-    }
-    set renderProgressCallback(value: StatusSurfaceCallback | null) {
-        this._renderProgressCallback = value;
-        this.surface.resetProgress();
-        if (this.store) this.refresh();
+    private get progressCallback(): StatusSurfaceCallback | null {
+        return this.config.renderProgressCallback as StatusSurfaceCallback | null;
     }
 
     private resetMemoization(): void {
@@ -183,39 +164,27 @@ export class DropzoneIndicatorElement extends SatelliteElement {
     constructor() {
         super();
         this.shadow = this.attachShadow({ mode: 'open' });
-
-        const baseSheet = document.createElement('style');
-        baseSheet.textContent = styles;
-        this.shadow.appendChild(baseSheet);
-        const indicatorSheet = document.createElement('style');
-        indicatorSheet.textContent = indicatorStyles;
-        this.shadow.appendChild(indicatorSheet);
-
-        // Pre-upgrade rescue for the three callback properties.
-        this.upgradeProperty('renderBodyCallback');
-        this.upgradeProperty('renderFileInfoCallback');
-        this.upgradeProperty('renderProgressCallback');
+        adoptStyles(this.shadow, styles);
+        adoptStyles(this.shadow, indicatorStyles);
 
         // Chip is built on connect (and rebuilt on drawer flips) because
         // its element kind depends on attribute state.
         this.chipEl = document.createElement('button');
     }
 
-    private upgradeProperty(prop: string): void {
-        if (Object.prototype.hasOwnProperty.call(this, prop)) {
-            const value = (this as any)[prop];
-            delete (this as any)[prop];
-            (this as any)[prop] = value;
+    /**
+     * Own inputs changed (core `update()`): position / drawer re-apply, a new
+     * render callback drops its memoized slot, then one refresh.
+     */
+    protected override inputsChanged(partial: Record<string, unknown>): void {
+        if ('position' in partial) this.applyPosition();
+        if ('drawer' in partial) {
+            this.applyDrawerMode();
+            this.bindEmbeddedList();
         }
-    }
-
-    static get observedAttributes(): string[] {
-        return ['for', 'position', 'labels', 'drawer'];
-    }
-
-    attributeChangedCallback(name: string): void {
-        if (name === 'position') this.applyPosition();
-        if (name === 'drawer')   this.applyDrawerMode();
+        if ('renderBodyCallback' in partial) this.resetMemoization();
+        if ('renderFileInfoCallback' in partial) this.surface.resetFileInfo();
+        if ('renderProgressCallback' in partial) this.surface.resetProgress();
         if (this.store) this.scheduleRefresh();
     }
 
@@ -234,11 +203,11 @@ export class DropzoneIndicatorElement extends SatelliteElement {
     // ========================================================================
 
     private resolvePosition(): IndicatorPosition {
-        return resolveEnumAttribute(this, 'position', POSITIONS, 'right');
+        return this.config.position as IndicatorPosition;
     }
 
     private resolveDrawerMode(): DrawerMode {
-        return resolveEnumAttribute(this, 'drawer', DRAWER_MODES, 'auto');
+        return this.config.drawer as DrawerMode;
     }
 
     private applyPosition(): void {
@@ -379,8 +348,8 @@ export class DropzoneIndicatorElement extends SatelliteElement {
         }
 
         // ---- Body callback (or default) ---------------------------------
-        const bodyResult = this._renderBodyCallback
-            ? this._renderBodyCallback(args)
+        const bodyResult = this.bodyCallback
+            ? this.bodyCallback(args)
             : null;
 
         const { current } = this.surface.applyBody(this.chipEl, bodyResult);
@@ -450,8 +419,8 @@ export class DropzoneIndicatorElement extends SatelliteElement {
 
     private refreshFileInfoSlot(args: StatusSurfaceArgs): void {
         if (!this.fileInfoSlotEl) return;
-        const result = this._renderFileInfoCallback
-            ? this._renderFileInfoCallback(args)
+        const result = this.fileInfoCallback
+            ? this.fileInfoCallback(args)
             : null;
         this.surface.applyFileInfo(
             this.fileInfoSlotEl,
@@ -462,8 +431,8 @@ export class DropzoneIndicatorElement extends SatelliteElement {
 
     private refreshProgressSlot(args: StatusSurfaceArgs): void {
         if (!this.progressSlotEl) return;
-        const result = this._renderProgressCallback
-            ? this._renderProgressCallback(args)
+        const result = this.progressCallback
+            ? this.progressCallback(args)
             : null;
         this.surface.applyProgress(
             this.progressSlotEl,
@@ -481,8 +450,8 @@ export class DropzoneIndicatorElement extends SatelliteElement {
         // use `renderBodyCallback` to own the whole chip.
         const label = this.chipEl.querySelector<HTMLElement>('.dz__indicator-label');
         if (label) {
-            const labelHidden = !!this._renderFileInfoCallback
-                || !!this._renderProgressCallback;
+            const labelHidden = !!this.fileInfoCallback
+                || !!this.progressCallback;
             if (label.hidden !== labelHidden) label.hidden = labelHidden;
             if (!labelHidden) {
                 const nextLabel = defaultChipLabel(args, this.label);
@@ -572,9 +541,8 @@ export class DropzoneIndicatorElement extends SatelliteElement {
     }
 }
 
-if (typeof customElements !== 'undefined' && !customElements.get('web-dropzone-indicator')) {
-    customElements.define('web-dropzone-indicator', DropzoneIndicatorElement);
-}
+/** Every input as a typed property (core usage "Typing the properties", rulebook C-CA-16). */
+export interface DropzoneIndicatorElement extends DropzoneIndicatorElementConfig {}
 
 // Convenience re-exports so users writing callbacks have a single import
 // path for everything: types + status icons.

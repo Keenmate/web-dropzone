@@ -148,7 +148,9 @@ export {
     enableLogging,
     disableLogging,
     setCategoryLevel,
+    resetLogging,
     LOGGING_CATEGORIES,
+    logging,
     initLogger,
     fileLogger,
     uiLogger,
@@ -156,6 +158,6 @@ export {
 } from './logger';
 
 // ---- DOM helpers shared with renderers ---------------------------------
-// Tiny + zero-project-dependency, so they live in core to avoid a renderer
-// → core cycle. Pure DOM primitives — safe to use from either side.
-export { escapeHtml } from './dom-utils';
+// HTML escaping is core's `escapeHtml(value)` (any value: null / undefined →
+// ''), re-exported so renderers and template callbacks keep one import path.
+export { escapeHtml } from '@keenmate/web-components-core';

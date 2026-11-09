@@ -23,16 +23,22 @@
  */
 
 import styles from './css/main.css?inline';
+import { adoptStyles, createMicrotaskScheduler, type InputDef } from '@keenmate/web-components-core';
 import {
     SatelliteElement,
+    SATELLITE_INPUTS,
     subscribeStoreEvents,
-    createMicrotaskScheduler
+    type SatelliteElementConfig
 } from './satellite-base';
 import { escapeHtml, formatFileSize } from '@keenmate/web-dropzone-core';
 import type { DropzoneElement } from './web-component';
 import type { OverallProgress } from '@keenmate/web-dropzone-core';
 
+/** `<web-dropzone-progress>` inputs: only the shared `for` + `labels`. */
+const INPUTS: readonly InputDef[] = [...SATELLITE_INPUTS];
+
 export class DropzoneProgressElement extends SatelliteElement {
+    protected static override inputs = INPUTS;
     protected readonly satelliteTagName = 'web-dropzone-progress';
     private shadow: ShadowRoot;
     private container: HTMLElement;
@@ -41,15 +47,14 @@ export class DropzoneProgressElement extends SatelliteElement {
      * intervals across every active upload; a 20-file burst would
      * otherwise re-aggregate 400×/sec — overkill for a single bar.
      */
-    private scheduleRefresh = createMicrotaskScheduler(() => this.refresh());
-    /** UI strings from the bound store's `labels`. */
+    private readonly refreshScheduler = createMicrotaskScheduler();
+    private readonly refreshTask = (): void => this.refresh();
+    private scheduleRefresh(): void { this.refreshScheduler.schedule(this.refreshTask); }
 
     constructor() {
         super();
         this.shadow = this.attachShadow({ mode: 'open' });
-        const styleSheet = document.createElement('style');
-        styleSheet.textContent = styles;
-        this.shadow.appendChild(styleSheet);
+        adoptStyles(this.shadow, styles);
 
         this.container = document.createElement('div');
         this.container.className = 'dz__overall-progress';
@@ -60,11 +65,8 @@ export class DropzoneProgressElement extends SatelliteElement {
         this.shadow.appendChild(this.container);
     }
 
-    static get observedAttributes(): string[] {
-        return ['for', 'labels'];
-    }
-
-    attributeChangedCallback(): void {
+    /** `labels` changed (core `update()`): re-render with the new strings. */
+    protected override inputsChanged(): void {
         if (this.store) this.refresh();
     }
 
@@ -243,6 +245,5 @@ export class DropzoneProgressElement extends SatelliteElement {
     }
 }
 
-if (typeof customElements !== 'undefined' && !customElements.get('web-dropzone-progress')) {
-    customElements.define('web-dropzone-progress', DropzoneProgressElement);
-}
+/** Every input as a typed property (core usage "Typing the properties", rulebook C-CA-16). */
+export interface DropzoneProgressElement extends SatelliteElementConfig {}

@@ -133,11 +133,19 @@ test.describe('<web-dropzone-indicator> attributes', () => {
         await expect(ind.locator('.dz__indicator-drawer')).toHaveCount(0);
     });
 
-    test('an unknown position falls back to "right"; live change applies', async ({ page }) => {
-        await dz(page, 'ind-left').evaluate((el) => el.setAttribute('position', 'diagonal'));
-        await expect(dz(page, 'ind-left')).toHaveAttribute('data-position', 'right');
+    test('an unknown position is refused (core invalid rule: previous kept, input-rejected); live change applies', async ({ page }) => {
+        const rejected = await dz(page, 'ind-left').evaluate((el: any) => {
+            const seen: string[] = [];
+            el.addEventListener('input-rejected', (e: any) => seen.push(e.detail.configKey));
+            el.setAttribute('position', 'diagonal');
+            return seen;
+        });
+        expect(rejected).toEqual(['position']);
+        await expect(dz(page, 'ind-left')).toHaveAttribute('position', 'left'); // reflected back
+        await expect(dz(page, 'ind-left')).toHaveAttribute('data-position', 'left');
         await dz(page, 'ind-left').evaluate((el) => el.setAttribute('position', 'top'));
         await expect(dz(page, 'ind-left')).toHaveAttribute('data-position', 'top');
+        expect(await dz(page, 'ind-left').evaluate((el: any) => el.position)).toBe('top');
     });
 });
 

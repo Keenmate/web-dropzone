@@ -40,9 +40,23 @@ test.describe('controls', () => {
         await expect(dz(page, 'no-picker').locator('.dz__file-item')).toHaveCount(1);
     });
 
-    test('unknown tokens are ignored; the property holds the parsed list', async ({ page }) => {
-        expect(await surfaces(page, 'no-progress')).toEqual({ picker: 1, list: 1, progress: 0 });
-        expect(await dz(page, 'no-progress').evaluate((el: any) => el.controls)).toEqual(['picker', 'list']);
+    test('an unknown token refuses the whole value (core invalid rule: previous value kept, input-rejected)', async ({ page }) => {
+        // controls="picker,list,bogus" in the markup → refused → unset → every surface
+        expect(await surfaces(page, 'no-progress')).toEqual({ picker: 1, list: 1, progress: 1 });
+        expect(await dz(page, 'no-progress').evaluate((el: any) => el.controls)).toBeNull();
+        const result = await dz(page, 'no-progress').evaluate(async (el: any) => {
+            const rejected: string[] = [];
+            el.addEventListener('input-rejected', (e: any) => rejected.push(`${e.detail.configKey}:${e.detail.source}`));
+            el.setAttribute('controls', 'list');
+            await el.whenSettled();
+            el.setAttribute('controls', 'list,nope');      // attribute path
+            el.controls = ['picker', 'nope'];             // property path
+            await el.whenSettled();
+            return { rejected, controls: el.controls };
+        });
+        expect(result.controls).toEqual(['list']);
+        expect(result.rejected).toEqual(['controls:attribute', 'controls:property']);
+        await expect.poll(() => surfaces(page, 'no-progress')).toEqual({ picker: 0, list: 1, progress: 0 });
     });
 
     test('changing controls after build remounts the surfaces', async ({ page }) => {

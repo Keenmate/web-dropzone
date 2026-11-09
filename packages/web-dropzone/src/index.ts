@@ -1,18 +1,14 @@
 // Import styles
 import './css/main.css';
 
-// Import for export and global API.
-//
-// IMPORTANT — import ORDER matters. ES modules are evaluated on first
-// import, so the textual order of these named imports determines which
-// `customElements.define` call runs first. Satellites MUST be imported
-// before `./web-component`; see the comment block on the
-// side-effect imports below for the full rationale.
+// The element classes. Nothing is defined as a side effect of importing a
+// module: the tags are defined below by core's registerComponent(), satellites
+// first (see the registration block at the end of this file).
 import { DropzonePickerElement } from './web-component-picker';
 import { DropzoneListElement } from './web-component-list';
 import { DropzoneIndicatorElement } from './web-component-indicator';
 import { DropzoneProgressElement } from './web-component-progress';
-import { getAllInstances, DropzoneElement } from './web-component';
+import { DropzoneElement } from './web-component';
 
 // Export the web component + satellite renderers (see ARCHITECTURE.md)
 export {
@@ -109,6 +105,7 @@ export {
     setLogLevel,
     enableLogging,
     disableLogging,
+    resetLogging,
     setCategoryLevel,
     LOGGING_CATEGORIES,
     initLogger,
@@ -116,23 +113,6 @@ export {
     uiLogger,
     interactionLogger
 } from '@keenmate/web-dropzone-core';
-
-// Custom-element registration order is established by the NAMED imports
-// at the top of this file. Each module's `customElements.define` runs as
-// a side effect of being imported, and ES modules evaluate exactly once
-// on first import. Adding side-effect imports here would be no-ops.
-//
-// Why satellites must register before `<web-dropzone>`:
-// `mountSatellites()` runs inside the store's `connectedCallback`, which
-// fires the instant `customElements.define('web-dropzone', ...)`
-// upgrades any `<web-dropzone>` already in the parsed HTML. If satellites
-// weren't defined yet, `document.createElement('web-dropzone-picker')`
-// would return a plain HTMLElement (no `bindToStore` method),
-// `bindToStore?.()` would silently no-op, and the picker would later
-// upgrade with no programmatic binding — emitting a "store not found"
-// warning. Satellites tolerate the reverse race (store not yet upgraded)
-// via `resolveStoreElement` (tag-name check) + `whenStoreReady` (waits
-// for the store's `ready` event).
 
 // Type declarations for build-time constants
 declare const __VERSION__: string;
@@ -144,50 +124,17 @@ declare const __HOMEPAGE__: string;
 declare const __CORE_VERSION__: string;
 declare const __CORE_PACKAGE_NAME__: string;
 
-// Global API interface
-export interface GlobalDropzoneAPI {
-    version: () => string;
-    config: {
-        name: string;
-        version: string;
-        author: string;
-        license: string;
-        repository: string;
-        homepage: string;
-        /** Name + version of the underlying @keenmate/web-dropzone-core package. */
-        core: { name: string; version: string };
-    };
-    logging: {
-        enableLogging: () => void;
-        disableLogging: () => void;
-        setLogLevel: (level: string) => void;
-        setCategoryLevel: (category: string, level: string) => void;
-        getCategories: () => string[];
-    };
-    register: () => void;
-    getInstances: () => HTMLElement[];
-}
-
 // The `window.components` registry is declared (and typed) by
 // `@keenmate/web-components-core` (SPEC §12.3): `Record<string,
-// RegisteredComponent>`. BlissElement writes live instances into it
-// automatically; below we publish this package's own registry entry, which
-// conforms to core's `RegisteredComponent` shape. (No local `declare global`
+// RegisteredComponent>`; `registerComponent()` below publishes the entries and
+// core tracks the live instances (`getInstances()`). (No local `declare global`
 // for `Window.components` — that would clash with core's augmentation.)
-
-// Import logging functions for global API
 import { registerComponent } from '@keenmate/web-components-core';
-import type { LogLevelDesc, ResponsiveMap, ResponsiveCallback, RenderLoaderCallback as CoreRenderLoaderCallback } from '@keenmate/web-components-core';
-import type { DropzoneConfig as DropzoneConfigType } from '@keenmate/web-dropzone-core';
+import type { ResponsiveMap, ResponsiveCallback } from '@keenmate/web-components-core';
 
-/**
- * Every `<web-dropzone>` input, keyed by `configKey`: the store's
- * `DropzoneConfig` plus the two element-only inputs.
- */
-export type DropzoneElementConfig = DropzoneConfigType & {
-    shouldKeepAliveWhenRemoved?: boolean;
-    renderLoadingCallback?: CoreRenderLoaderCallback | null;
-};
+/** Every `<web-dropzone>` input, keyed by `configKey` (the element's typed properties). */
+export type { DropzoneElementConfig } from './web-component';
+import type { DropzoneElementConfig } from './web-component';
 
 /** Responsive rules map for `<web-dropzone>` (core SPEC §6.7): device class → partial config. */
 export type DropzoneResponsiveMap = ResponsiveMap<DropzoneElementConfig>;
@@ -195,40 +142,45 @@ export type DropzoneResponsiveMap = ResponsiveMap<DropzoneElementConfig>;
 /** Responsive rules callback for `<web-dropzone>` (core SPEC §6.7): context → partial config. */
 export type DropzoneResponsiveCallback = ResponsiveCallback<DropzoneElementConfig>;
 
-import {
-    setLogLevel,
-    enableLogging,
-    disableLogging,
-    setCategoryLevel,
-    LOGGING_CATEGORIES
-} from '@keenmate/web-dropzone-core';
+import { logging } from '@keenmate/web-dropzone-core';
 
-// Initialize global API. `registerComponent` publishes the entry (adopting an
-// object the page created before this script loaded) and installs the per-tag
-// `responsive` / `responsiveCallback` accessors (SPEC §6.7) — assigning them
-// re-evaluates the live instances. The element itself is defined by
-// `./web-component` (registration order — see above), so no auto-define here.
-if (typeof window !== 'undefined') {
-    const entry = registerComponent('web-dropzone', DropzoneElement as unknown as CustomElementConstructor, {
-        config: {
-            name: __PACKAGE_NAME__,
-            version: __VERSION__,
-            author: __AUTHOR__,
-            license: __LICENSE__,
-            repository: __REPOSITORY__,
-            homepage: __HOMEPAGE__,
-            core: { name: __CORE_PACKAGE_NAME__, version: __CORE_VERSION__ }
-        },
-        shouldAutoDefine: false
-    });
-    entry.logging = {
-        enableLogging,
-        disableLogging,
-        // Core's registry types levels as `LogLevelDesc` (string | number);
-        // dropzone-core's controls take the string level name — widen here.
-        setLogLevel: (level: LogLevelDesc) => setLogLevel(level as string),
-        setCategoryLevel: (category: string, level: LogLevelDesc) => setCategoryLevel(category, level as string),
-        getCategories: () => [...LOGGING_CATEGORIES]
-    };
-    entry.getInstances = () => getAllInstances();
+// Registration (rule: the tags are defined by core's registerComponent() only).
+// `registerComponent` publishes `window.components[tag]` (adopting an object the
+// page created before this script loaded), attaches the logger bundle (its
+// controls on `.logging`, the per-instance `el.log`), installs the per-tag
+// `responsive` / `customStyles` hooks, and defines the tag.
+//
+// Order: the four satellites BEFORE `<web-dropzone>`. Defining `web-dropzone`
+// upgrades the store elements already in the page, and a convenience-form
+// store mounts its own picker / list / indicator during its first build — those
+// must already be defined (else `document.createElement('web-dropzone-picker')`
+// returns a plain element with no `bindToStore`). The reverse race (a satellite
+// in the page before its store is defined) is handled by `whenStoreReady`.
+// (The build defines the `__*__` constants; a bare TS run — unit tests — doesn't.)
+const COMPONENT_CONFIG = {
+    name: typeof __PACKAGE_NAME__ !== 'undefined' ? __PACKAGE_NAME__ : '@keenmate/web-dropzone',
+    version: typeof __VERSION__ !== 'undefined' ? __VERSION__ : '0.0.0',
+    author: typeof __AUTHOR__ !== 'undefined' ? __AUTHOR__ : 'Keenmate',
+    license: typeof __LICENSE__ !== 'undefined' ? __LICENSE__ : 'MIT',
+    repository: typeof __REPOSITORY__ !== 'undefined' ? __REPOSITORY__ : '',
+    homepage: typeof __HOMEPAGE__ !== 'undefined' ? __HOMEPAGE__ : '',
+    core: {
+        name: typeof __CORE_PACKAGE_NAME__ !== 'undefined' ? __CORE_PACKAGE_NAME__ : '@keenmate/web-dropzone-core',
+        version: typeof __CORE_VERSION__ !== 'undefined' ? __CORE_VERSION__ : '0.0.0'
+    }
+};
+registerComponent('web-dropzone-picker', DropzonePickerElement as unknown as CustomElementConstructor, { config: COMPONENT_CONFIG, logging });
+registerComponent('web-dropzone-list', DropzoneListElement as unknown as CustomElementConstructor, { config: COMPONENT_CONFIG, logging });
+registerComponent('web-dropzone-indicator', DropzoneIndicatorElement as unknown as CustomElementConstructor, { config: COMPONENT_CONFIG, logging });
+registerComponent('web-dropzone-progress', DropzoneProgressElement as unknown as CustomElementConstructor, { config: COMPONENT_CONFIG, logging });
+registerComponent('web-dropzone', DropzoneElement as unknown as CustomElementConstructor, { config: COMPONENT_CONFIG, logging });
+
+declare global {
+    interface HTMLElementTagNameMap {
+        'web-dropzone': DropzoneElement;
+        'web-dropzone-picker': DropzonePickerElement;
+        'web-dropzone-list': DropzoneListElement;
+        'web-dropzone-indicator': DropzoneIndicatorElement;
+        'web-dropzone-progress': DropzoneProgressElement;
+    }
 }
