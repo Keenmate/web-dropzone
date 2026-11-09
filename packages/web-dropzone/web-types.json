@@ -19,7 +19,7 @@
             {
               "name": "labels",
               "description": "This satellite's own UI strings — a partial `DropzoneLabels` (property, or a JSON attribute), merged per key over the bound store's `labels`, then the built-in English. Live.",
-              "value": { "type": "Partial<DropzoneLabels> | null" }
+              "value": { "type": "Partial<DropzoneLabels>" }
             },
             {
               "name": "custom-styles",
@@ -83,7 +83,7 @@
               {
                 "name": "labels",
                 "description": "This satellite's own UI strings — a partial `DropzoneLabels` (property, or a JSON attribute), merged per key over the bound store's `labels`, then the built-in English. Live.",
-                "type": "Partial<DropzoneLabels> | null"
+                "type": "Partial<DropzoneLabels>"
               },
               {
                 "name": "customStyles",
@@ -206,7 +206,7 @@
             {
               "name": "labels",
               "description": "This satellite's own UI strings — a partial `DropzoneLabels` (property, or a JSON attribute), merged per key over the bound store's `labels`, then the built-in English. Live.",
-              "value": { "type": "Partial<DropzoneLabels> | null" }
+              "value": { "type": "Partial<DropzoneLabels>" }
             },
             {
               "name": "custom-styles",
@@ -284,7 +284,7 @@
               {
                 "name": "labels",
                 "description": "This satellite's own UI strings — a partial `DropzoneLabels` (property, or a JSON attribute), merged per key over the bound store's `labels`, then the built-in English. Live.",
-                "type": "Partial<DropzoneLabels> | null"
+                "type": "Partial<DropzoneLabels>"
               },
               {
                 "name": "customStyles",
@@ -402,7 +402,7 @@
             {
               "name": "labels",
               "description": "This satellite's own UI strings — a partial `DropzoneLabels` (property, or a JSON attribute), merged per key over the bound store's `labels`, then the built-in English. Live.",
-              "value": { "type": "Partial<DropzoneLabels> | null" }
+              "value": { "type": "Partial<DropzoneLabels>" }
             },
             {
               "name": "custom-styles",
@@ -510,7 +510,7 @@
               {
                 "name": "labels",
                 "description": "This satellite's own UI strings — a partial `DropzoneLabels` (property, or a JSON attribute), merged per key over the bound store's `labels`, then the built-in English. Live.",
-                "type": "Partial<DropzoneLabels> | null"
+                "type": "Partial<DropzoneLabels>"
               },
               {
                 "name": "customStyles",
@@ -663,7 +663,7 @@
             {
               "name": "labels",
               "description": "This satellite's own UI strings — a partial `DropzoneLabels` (property, or a JSON attribute), merged per key over the bound store's `labels`, then the built-in English. Live.",
-              "value": { "type": "Partial<DropzoneLabels> | null" }
+              "value": { "type": "Partial<DropzoneLabels>" }
             },
             {
               "name": "custom-styles",
@@ -715,7 +715,7 @@
               {
                 "name": "labels",
                 "description": "This satellite's own UI strings — a partial `DropzoneLabels` (property, or a JSON attribute), merged per key over the bound store's `labels`, then the built-in English. Live.",
-                "type": "Partial<DropzoneLabels> | null"
+                "type": "Partial<DropzoneLabels>"
               },
               {
                 "name": "customStyles",
@@ -855,7 +855,7 @@
             },
             {
               "name": "disabled",
-              "description": "Disable the dropzone (like a native control: no clicks / drops; boolean attribute — present = on). An ancestor `<fieldset disabled>` disables it too (core `isEffectivelyDisabled`); `el.isDisabled` keeps the authored value.",
+              "description": "Disable the dropzone (like a native control: no clicks / drops, every button — selector, rows, bulk actions, satellites — disabled and out of the tab order; boolean attribute — present = on). An ancestor `<fieldset disabled>` disables it too (core `isEffectivelyDisabled`); `el.isDisabled` keeps the authored value.",
               "value": { "type": "boolean", "default": "false" }
             },
             {
@@ -1269,7 +1269,7 @@
               },
               {
                 "name": "isDisabled",
-                "description": "Disable the dropzone (like a native control: no clicks / drops; boolean attribute — present = on). An ancestor `<fieldset disabled>` disables it too (core `isEffectivelyDisabled`); `el.isDisabled` keeps the authored value.",
+                "description": "Disable the dropzone (like a native control: no clicks / drops, every button — selector, rows, bulk actions, satellites — disabled and out of the tab order; boolean attribute — present = on). An ancestor `<fieldset disabled>` disables it too (core `isEffectivelyDisabled`); `el.isDisabled` keeps the authored value.",
                 "type": "boolean"
               },
               {

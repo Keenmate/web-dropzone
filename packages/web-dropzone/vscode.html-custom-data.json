@@ -342,7 +342,7 @@
         },
         {
           "name": "disabled",
-          "description": "Disable the dropzone (like a native control: no clicks / drops; boolean attribute — present = on). An ancestor `<fieldset disabled>` disables it too (core `isEffectivelyDisabled`); `el.isDisabled` keeps the authored value.",
+          "description": "Disable the dropzone (like a native control: no clicks / drops, every button — selector, rows, bulk actions, satellites — disabled and out of the tab order; boolean attribute — present = on). An ancestor `<fieldset disabled>` disables it too (core `isEffectivelyDisabled`); `el.isDisabled` keeps the authored value.",
           "values": []
         },
         {
