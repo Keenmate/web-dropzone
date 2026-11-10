@@ -11,6 +11,14 @@ No stable 1.0.0 is published, so the break ships as the next release
 candidate — but `^1.0.0-rc02` consumers will pull it: the event,
 callback and store-access API below is breaking.
 
+### Docs (button + popover rule, 2026-11-10)
+
+- **A `button` / `minimal` selector always opens the file dialog** — also with
+  `list-appearance="popover"` and files added (today's behaviour, now the documented rule). The
+  popover opens from its own summary line / indicator chip; the old FluentUI "button toggles the
+  popover" convention is dropped (its dead branch in the legacy engine click handler is removed).
+  `docs/usage.md` (Compact Mode) and `docs/accessibility.md` updated.
+
 ### Removed — BREAKING (dead input, 2026-11-10)
 
 - **`value-format` attribute / `valueFormat` property / `ValueFormat` type removed** — nothing read

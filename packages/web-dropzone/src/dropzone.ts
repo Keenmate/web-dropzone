@@ -562,18 +562,10 @@ export class WebDropzone extends DropzoneEngine {
      * A button that also opens the file popover stays a plain button under
      * read-only (`isListTrigger`): the files can still be looked at.
      */
-    private selectorControlAttrs(isListTrigger = false): string {
+    private selectorControlAttrs(): string {
         if (this.config.isDisabled) return 'disabled';
-        if (this.config.isReadonly && !isListTrigger) return 'aria-disabled="true"';
+        if (this.config.isReadonly) return 'aria-disabled="true"';
         return '';
-    }
-
-    /** Button / minimal + popover with files: the selector button opens the list. */
-    private get isSelectorListTrigger(): boolean {
-        const { selectorAppearance, listAppearance } = resolveDisplayConfig(this.config);
-        return listAppearance === 'popover'
-            && (selectorAppearance === 'button' || selectorAppearance === 'minimal')
-            && this.files.length > 0;
     }
 
     private renderSelector(appearance: SelectorAppearance, cardSize: CardSize): string {
@@ -604,7 +596,7 @@ export class WebDropzone extends DropzoneEngine {
             return `
                 <div class="dz__dropzone dz__dropzone--button ${disabled}">
                     ${input}
-                    <button type="button" class="dz__button" ${this.selectorControlAttrs(this.isSelectorListTrigger)}>
+                    <button type="button" class="dz__button" ${this.selectorControlAttrs()}>
                         <span class="dz__button-label">${label}</span>
                         ${count > 0 ? `<span class="dz__button-badge">${count}</span>` : ''}
                     </button>
@@ -619,7 +611,7 @@ export class WebDropzone extends DropzoneEngine {
             return `
                 <div class="dz__dropzone dz__dropzone--minimal ${disabled}">
                     ${input}
-                    <button type="button" class="dz__minimal" aria-label="${ariaLabel}" ${this.selectorControlAttrs(this.isSelectorListTrigger)}>
+                    <button type="button" class="dz__minimal" aria-label="${ariaLabel}" ${this.selectorControlAttrs()}>
                         <span class="dz__minimal-icon">${icon}</span>
                         ${count > 0 ? `<span class="dz__minimal-badge">${count}</span>` : ''}
                     </button>
@@ -2636,15 +2628,9 @@ export class WebDropzone extends DropzoneEngine {
 
         if (this.config.isDisabled) return;
 
-        // For selector=button/minimal + listAppearance=popover, clicks on the
-        // selector toggle the popover when files exist (also read-only: the
-        // files can be looked at). Otherwise (or when empty) they open the
-        // picker. This matches FluentUI's minimal+popover convention.
-        if (this.isSelectorListTrigger) {
-            this.togglePopover();
-            return;
-        }
-
+        // The selector always opens the file dialog — also for button/minimal
+        // with a popover list that has files; the popover opens from its own
+        // summary line / indicator chip.
         if (this.isAddBlocked) return;
 
         this.inputEl?.click();

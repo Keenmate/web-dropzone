@@ -150,13 +150,23 @@ test.describe('popover header actions', () => {
         expect(await dz(page, 'pop').evaluate((el: any) => el.files.length)).toBe(1);
     });
 
-    test('with files, clicking the button selector toggles the popover instead of the file dialog', async ({ page }) => {
-        test.fail(true, 'NOTES.md #11');
+    test('with files, clicking the button selector opens the file dialog — the popover stays closed (NOTES #11)', async ({ page }) => {
+        await addNamed(page, 'pop', ['p1.txt']);
+        const [chooser] = await Promise.all([
+            page.waitForEvent('filechooser', { timeout: 2000 }),
+            dz(page, 'pop').locator('.dz__button').click(),
+        ]);
+        expect(chooser).toBeTruthy();
+        await page.waitForTimeout(100);
+        await expect(dz(page, 'pop').locator('.dz__popover')).toHaveCount(0);
+    });
+
+    test('with files, the popover opens from its own summary chip, not the button (NOTES #11)', async ({ page }) => {
         let choosers = 0;
         page.on('filechooser', () => { choosers++; });
         await addNamed(page, 'pop', ['p1.txt']);
-        await dz(page, 'pop').locator('.dz__button').click();
-        await expect(dz(page, 'pop').locator('.dz__popover')).toBeVisible({ timeout: 1000 });
+        await dz(page, 'pop').locator('.dz__summary-line').click();
+        await expect(dz(page, 'pop').locator('.dz__popover')).toBeVisible();
         expect(choosers).toBe(0);
     });
 });

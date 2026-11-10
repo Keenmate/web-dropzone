@@ -202,7 +202,7 @@ outside-click handler ignores that synthetic input click so the popover stays op
 
 **Test status:** `toolbar.spec.ts` › "Add more opens the native file dialog" — green.
 
-## 11. Button/minimal selector + popover list: click opens the dialog, not the popover (new — confirm intent)
+## 11. Button/minimal selector + popover list: click opens the dialog, not the popover (decided 2026-11-10)
 
 **Where:** the toggle logic is in the legacy `dropzone.ts` `handleClick` (~2440:
 "for selector=button/minimal + listAppearance=popover, clicks on the selector toggle
@@ -217,8 +217,13 @@ popover is reachable only through the summary line.
 yes, the picker needs to route the click to the store when `list-appearance="popover"`
 and files exist.
 
-**Test status:** `toolbar.spec.ts` › "with files, clicking the button selector toggles
-the popover" — `test.fail`.
+**Decided (2026-11-10, Q29):** the button always opens the file dialog — also with files
+and `list-appearance="popover"`. The FluentUI toggle convention is dropped; the popover opens
+from its own summary line / indicator chip. The dead toggle branch in the legacy
+`dropzone.ts` `handleClick` was removed so both render paths follow the rule.
+
+**Test status:** `toolbar.spec.ts` › "with files, clicking the button selector opens the file
+dialog" + "the popover opens from its own summary chip" — green.
 
 ## 12. `el.addFiles(files)` takes no options (new — minor, API question)
 

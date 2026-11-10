@@ -321,7 +321,7 @@ Every spec runs in three Playwright projects — chromium, firefox and webkit
 | Popover Clear all (gate honoured, popover closes)             | ✓      | `toolbar.spec.ts` | `toolbar.html` |
 | Popover Add more opens the file dialog                        | ✓      | `toolbar.spec.ts` (NOTES #10 fixed) | `toolbar.html` |
 | Disabled: Add more hidden, Clear all kept                     | ✓      | `toolbar.spec.ts` | `toolbar.html` |
-| Button/minimal + popover: click toggles the popover           | ✗      | `toolbar.spec.ts` (test.fail NOTES #11) | `toolbar.html` |
+| Button/minimal + popover with files: click opens the file dialog; summary chip opens the popover | ✓ | `toolbar.spec.ts` (NOTES #11) | `toolbar.html` |
 
 ## 17. Lifecycle (DOM move — decision D1: keep state)
 

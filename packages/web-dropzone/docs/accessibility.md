@@ -11,7 +11,7 @@ accessible names are localised together with the UI. Color contrast follows the 
 |---|---|---|
 | Card selector (`selector-appearance="card"`, the default) | <kbd>Tab</kbd> | One tab stop: the visually-hidden native `<input type="file">` inside the card. The card shows a `:focus-within` ring. |
 | | <kbd>Enter</kbd> / <kbd>Space</kbd> | Opens the native file dialog. |
-| Button / minimal / native selector | <kbd>Tab</kbd>, <kbd>Enter</kbd> / <kbd>Space</kbd> | The selector's own `<button>` is the tab stop (the hidden input leaves the tab order) and opens the file dialog — or, with a popover list that has files, toggles the popover. |
+| Button / minimal / native selector | <kbd>Tab</kbd>, <kbd>Enter</kbd> / <kbd>Space</kbd> | The selector's own `<button>` is the tab stop (the hidden input leaves the tab order) and always opens the file dialog — also with a popover list that has files (the popover opens from its summary line / indicator chip). |
 | Row buttons (Cancel ⊘, Remove ✕, pause / resume / retry) | <kbd>Tab</kbd>, <kbd>Enter</kbd> / <kbd>Space</kbd> | Native `<button>`s. A button that doesn't apply to the row's state is hidden with `tabindex="-1"` + `aria-hidden="true"`, so it is never a dead tab stop. |
 | "Show N more" / "Show less", rolling queue button | <kbd>Tab</kbd>, <kbd>Enter</kbd> / <kbd>Space</kbd> | Native `<button>`s. |
 | Compact summary line (`display-mode="compact"`, `list-appearance="popover"`) | <kbd>Tab</kbd>, <kbd>Enter</kbd> / <kbd>Space</kbd> | `role="button"`, `tabindex="0"`: opens the file popover (on `<web-dropzone-list>` alone it fires `summary-activate`). |
@@ -33,7 +33,7 @@ The pair follows native form-control semantics (web-components-core SPEC §6.4):
   not focusable, no drops; the form value isn't submitted.
 - **`readonly`** — the user can't change the selection, but the controls stay focusable and are marked
   `aria-disabled="true"` (never the native `disabled`), and they never open the file dialog; the files
-  can still be looked at (a button that opens the popover list stays a plain button) and are submitted
+  can still be looked at (the summary line that opens the popover list stays active) and are submitted
   with the form.
 
 `<web-dropzone-picker>` has the same pair (`disabled` / `readonly`, presence attributes —

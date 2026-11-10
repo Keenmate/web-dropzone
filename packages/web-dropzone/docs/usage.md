@@ -206,6 +206,8 @@ Image preview grid with thumbnails. Perfect for image uploads.
 
 Minimal inline display showing file count and total size. Click to open a popover with the full file list
 (on a phone-width viewport, ≤ 600px, a full-screen sheet with a Close button — like the indicator drawer).
+The popover opens only from that summary line (or the indicator chip). A `button` / `minimal` selector
+always opens the file dialog — also with `list-appearance="popover"` and files already added.
 
 ```html
 <web-dropzone display-mode="compact"></web-dropzone>
