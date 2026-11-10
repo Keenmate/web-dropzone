@@ -1,5 +1,5 @@
 /**
- * UI strings — the `labels` input (KeenMate cross-component i18n model).
+ * UI strings — the `labels` input (Keenmate cross-component i18n model).
  *
  * Every user-visible string the dropzone renders by itself comes from ONE
  * lookup, {@link resolveLabel}: the element's `labels` overrides (a partial

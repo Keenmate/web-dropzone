@@ -15,7 +15,7 @@ accessible names are localised together with the UI. Color contrast follows the 
 | Row buttons (Cancel ⊘, Remove ✕, pause / resume / retry) | <kbd>Tab</kbd>, <kbd>Enter</kbd> / <kbd>Space</kbd> | Native `<button>`s. A button that doesn't apply to the row's state is hidden with `tabindex="-1"` + `aria-hidden="true"`, so it is never a dead tab stop. |
 | "Show N more" / "Show less", rolling queue button | <kbd>Tab</kbd>, <kbd>Enter</kbd> / <kbd>Space</kbd> | Native `<button>`s. |
 | Compact summary line (`display-mode="compact"`, `list-appearance="popover"`) | <kbd>Tab</kbd>, <kbd>Enter</kbd> / <kbd>Space</kbd> | `role="button"`, `tabindex="0"`: opens the file popover (on `<web-dropzone-list>` alone it fires `summary-activate`). |
-| Compact popover | <kbd>Esc</kbd> | Closes the popover and returns focus to the trigger; an outside click (decided when the click ends) closes it too, and so does opening another KeenMate overlay (a dropdown, a menu, another popover). |
+| Compact popover | <kbd>Esc</kbd> | Closes the popover and returns focus to the trigger; an outside click (decided when the click ends) closes it too, and so does opening another Keenmate overlay (a dropdown, a menu, another popover). |
 | Drag overlay (`overlay-target`) | <kbd>Esc</kbd> | Dismisses the full-viewport drag overlay. |
 | Armed page drag (`highlight-on-page-drag`) | <kbd>Esc</kbd> | Disarms. |
 | Indicator chip (`<web-dropzone-indicator drawer="auto">`) | <kbd>Tab</kbd>, <kbd>Enter</kbd> / <kbd>Space</kbd> | A native `<button>` toggling the drawer. |

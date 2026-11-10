@@ -108,7 +108,7 @@ COMPACT / POPOVER
   (derived from accept / size / count caps when labels.hint is empty), the
   file table, and a totals footer.
 - Closes on an outside click (decided when the click ends), on Escape (focus
-  returns to the trigger), when another KeenMate overlay opens, and when the
+  returns to the trigger), when another Keenmate overlay opens, and when the
   last file is removed.
 - User-resizable (--dz-popover-resize: both). With storage-key the size is
   persisted (advanced-patterns.txt).

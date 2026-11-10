@@ -256,7 +256,7 @@ Requires @keenmate/web-components-core ^1.0.0-rc20.
   disabled) and never open the file dialog. Calls from code still work.
 - Compact popover runs on core createPopover(): outside click decided when
   the click ends, Escape closes it and returns focus to the trigger, opening
-  another KeenMate overlay closes it. popover-placement still auto-flips.
+  another Keenmate overlay closes it. popover-placement still auto-flips.
 - DropzoneElementConfig lists exactly the element's inputs: isHeadless /
   container / hostElement are gone; adds customStyles,
   shouldKeepAliveWhenRemoved, renderLoadingCallback.

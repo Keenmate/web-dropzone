@@ -80,7 +80,7 @@ Warnings and errors print by default; turn on more from the console:
 window.components['web-dropzone'].logging.enableLogging();          // debug, every category
 window.components['web-dropzone'].logging.setCategoryLevel('UI', 'debug');
 window.components['web-dropzone'].logging.resetLogging();           // follow the page level again
-window.components.logging.enableLogging('debug');                  // every KeenMate component
+window.components.logging.enableLogging('debug');                  // every Keenmate component
 ```
 
 ## Publishing

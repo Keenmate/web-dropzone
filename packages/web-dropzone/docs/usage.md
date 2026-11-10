@@ -545,7 +545,7 @@ Own widths or combinations (device AND width, orientation, …) go in a **callba
 config). Both at three levels:
 
 ```js
-// page-wide, every KeenMate component (unknown keys are skipped silently)
+// page-wide, every Keenmate component (unknown keys are skipped silently)
 window.components.responsive = { device: { mobile: { /* … */ } } };
 // every <web-dropzone> on the page
 window.components['web-dropzone'].responsive = {
@@ -775,7 +775,7 @@ when equal to the last one); an `HTMLElement` = mounted (skipped when already th
 ## Logging
 
 Every element of the family logs through one categorized bundle, `DROPZONE` (categories `INIT`,
-`FILE`, `UI`, `INTERACTION`; web-components-core logging). Like every KeenMate component it prints
+`FILE`, `UI`, `INTERACTION`; web-components-core logging). Like every Keenmate component it prints
 **warnings and errors by default** and follows the page-wide switch `window.components.logging`;
 nothing is silenced at load. The closest level wins: element → component type → page → `warn`.
 
@@ -787,7 +787,7 @@ logging.disableLogging();                   // silent
 logging.resetLogging();                     // follow the page level again
 logging.getCategories();                    // ['INIT', 'FILE', 'UI', 'INTERACTION']
 
-window.components.logging.enableLogging('debug');   // every KeenMate component on the page
+window.components.logging.enableLogging('debug');   // every Keenmate component on the page
 dropzone.enableLogging('debug');                    // one element only (closest level wins)
 ```
 

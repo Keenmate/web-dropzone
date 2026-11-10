@@ -159,7 +159,7 @@ examples-upload.html (`dz-upload-*`). New pages use `attachControlsPersistence`.
 
 **dropzone.ts**
 - `WebDropzone extends DropzoneEngine` — adds the convenience-form rendering (drag-drop zone, inline file list, popover). Inheritance is convenience, not architectural; the back-compat `<web-dropzone>` form is the sole reason for it.
-- The compact-mode popover runs on core `createPopover()` (`@keenmate/web-components-core/positioning`; core owns `@floating-ui/dom` — dropzone never imports it): auto-flip from `popover-placement`, outside click decided when the click ends, Escape closes and returns focus to the trigger, opening another KeenMate overlay closes it.
+- The compact-mode popover runs on core `createPopover()` (`@keenmate/web-components-core/positioning`; core owns `@floating-ui/dom` — dropzone never imports it): auto-flip from `popover-placement`, outside click decided when the click ends, Escape closes and returns focus to the trigger, opening another Keenmate overlay closes it.
 
 **web-component.ts**
 - `DropzoneElement extends BlissElement` (core) wrapping `WebDropzone`.

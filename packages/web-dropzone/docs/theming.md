@@ -8,7 +8,7 @@ Every visual of `<web-dropzone>` and its satellites (`<web-dropzone-picker>`, `-
 ## Quick theme
 
 ```css
-/* Design-system level — every KeenMate component on the page */
+/* Design-system level — every Keenmate component on the page */
 :root {
   --base-primary-color: #14b8a6;
   --base-main-bg: #ffffff;
@@ -199,7 +199,7 @@ turning — it shows that an upload is running; the contract slows it (`--base-l
 
 ## Loader
 
-One loader look for every KeenMate component (the `--base-loader-*` contract): a single-colour mask
+One loader look for every Keenmate component (the `--base-loader-*` contract): a single-colour mask
 shape in `currentColor`.
 
 | Token | Default |
@@ -227,7 +227,7 @@ list use `overscroll-behavior: contain`, so a fling at the list edge doesn't scr
 
 The compact-mode popover opens `--base-dropdown-offset` away from its trigger (the summary line /
 selector; `@keenmate/base-css-variables` 2.0.1+, `4px` when unset) — the one field → panel gap every
-KeenMate component shares; core reads it on the trigger when the popover opens. Set it page-wide, per
+Keenmate component shares; core reads it on the trigger when the popover opens. Set it page-wide, per
 section, or per component: `web-dropzone { --base-dropdown-offset: 8px; }`.
 
 ## Variable reference

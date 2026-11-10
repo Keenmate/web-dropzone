@@ -1,7 +1,7 @@
 import { test, expect, type Page } from './fixtures';
 
 /**
- * The KeenMate interaction model (web-components-core SPEC §12.5):
+ * The Keenmate interaction model (web-components-core SPEC §12.5):
  *   - events are present-tense kebab names, bubble, and are NOT composed
  *   - each `<web-dropzone>` event has a camelCase `on*` twin that receives the
  *     SAME detail object, before the DOM event fires

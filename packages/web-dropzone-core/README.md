@@ -89,7 +89,7 @@ Admin; the integration is opt-in via CSS variables.
 ## Built with BlissFramework
 
 Follows the [BlissFramework component guidelines](https://blissframework.dev/) for structure and the
-shared KeenMate interaction model.
+shared Keenmate interaction model.
 
 ## License
 

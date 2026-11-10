@@ -113,7 +113,7 @@ be async; returning `false` cancels.
 - **Logging** — the `DROPZONE` bundle on web-components-core logging (`logging`, plus `initLogger`,
   `fileLogger`, `uiLogger`, `interactionLogger`) and its controls: `enableLogging`, `disableLogging`,
   `resetLogging`, `setLogLevel`, `setCategoryLevel` (`'UI'` or `'DROPZONE:UI'`), `LOGGING_CATEGORIES`
-  (the prefixed names, `'DROPZONE:INIT'` …). Like every KeenMate bundle it prints warnings and errors by
+  (the prefixed names, `'DROPZONE:INIT'` …). Like every Keenmate bundle it prints warnings and errors by
   default and follows the page-wide `window.components.logging` — nothing is silenced at load;
   `resetLogging()` returns to the page level. (`@keenmate/web-dropzone` attaches the same bundle to
   `window.components['web-dropzone'].logging`, whose `getCategories()` lists the bare names.)
