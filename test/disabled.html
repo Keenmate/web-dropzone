@@ -51,9 +51,24 @@
         <web-dropzone-indicator id="dis-ind" for="dis-store" position="inline"></web-dropzone-indicator>
     </div>
 
+    <div class="fixture">
+        <div class="fixture-label">satellites follow their store: a store in a &lt;fieldset&gt; (satellites outside it) and a read-only store</div>
+        <fieldset id="sat-fs">
+            <web-dropzone id="fs-store" render-mode="headless" multiple max-visible-file-count="1"></web-dropzone>
+        </fieldset>
+        <web-dropzone-list id="fs-ls" for="fs-store"></web-dropzone-list>
+        <web-dropzone-progress id="fs-prog" for="fs-store"></web-dropzone-progress>
+        <web-dropzone-indicator id="fs-ind" for="fs-store" position="inline"></web-dropzone-indicator>
+        <web-dropzone id="ro-store" render-mode="headless" multiple readonly max-visible-file-count="1"></web-dropzone>
+        <web-dropzone-picker id="ro-pk" for="ro-store"></web-dropzone-picker>
+        <web-dropzone-list id="ro-ls" for="ro-store"></web-dropzone-list>
+        <web-dropzone-progress id="ro-prog" for="ro-store"></web-dropzone-progress>
+        <web-dropzone-indicator id="ro-ind" for="ro-store" position="inline"></web-dropzone-indicator>
+    </div>
+
     <script type="module">
         // Uploads that never settle: rows stay `uploading` (pause / cancel offered).
-        for (const id of ['dis-files', 'dis-pop', 'dis-store']) {
+        for (const id of ['dis-files', 'dis-pop', 'dis-store', 'fs-store', 'ro-store']) {
             document.getElementById(id).uploadFileCallback = () => new Promise(() => {});
         }
     </script>

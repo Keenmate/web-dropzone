@@ -235,3 +235,68 @@ test.describe('disabled store with files (SPEC §6.4: no interaction, not focusa
         await expect(dz(page, 'dis-files').locator('[data-dz-action="open-queue"]')).toBeDisabled();
     });
 });
+
+test.describe('satellites follow their store (SPEC §6.4; only the picker has its own pair)', () => {
+    const addTwo = (page: Page, id: string) => dz(page, id).evaluate((el: any) =>
+        el.addFiles([new File(['a'], 'a.txt'), new File(['b'], 'b.txt')]));
+
+    test.beforeEach(async ({ page }) => {
+        await page.waitForFunction((ids) => ids.every((id) => (document.getElementById(id) as any)?.isReady),
+            ['fs-store', 'fs-ls', 'fs-prog', 'fs-ind', 'ro-store', 'ro-pk', 'ro-ls', 'ro-prog', 'ro-ind']);
+    });
+
+    test('list / progress / indicator have no disabled / readonly of their own', async ({ page }) => {
+        for (const id of ['fs-ls', 'fs-prog', 'fs-ind']) {
+            expect(await dz(page, id).evaluate((el: any) => ['isDisabled', 'isReadonly'].filter((k) => k in el))).toEqual([]);
+        }
+    });
+
+    test('a store disabled by its <fieldset> disables the satellites outside it; re-enabling restores them', async ({ page }) => {
+        await addTwo(page, 'fs-store');
+        await expect(dz(page, 'fs-prog').locator('[data-dz-action="cancel-all"]')).toHaveCount(1);
+        const setFieldset = (isDisabled: boolean) => page.locator('#sat-fs').evaluate(async (fs: HTMLFieldSetElement, isDisabled) => {
+            fs.disabled = isDisabled;
+            await (document.getElementById('fs-store') as any).whenSettled();
+        }, isDisabled);
+
+        await setFieldset(true);
+        await expect.poll(() => controlStates(page, 'fs-ls')).toEqual(['row-action', 'cancel', 'remove', 'toggle-visible'].map((n) => `${n}:off`));
+        await expect.poll(() => controlStates(page, 'fs-prog')).toEqual(['pause-all:off', 'cancel-all:off']);
+        await expect(dz(page, 'fs-ind').locator('button.dz__indicator-chip')).toBeDisabled();
+        await dz(page, 'fs-ls').locator('[data-dz-action="remove"]').click({ force: true });
+        await page.waitForTimeout(150);
+        expect(await count(page, 'fs-store')).toBe(2);
+
+        await setFieldset(false);
+        await expect.poll(() => controlStates(page, 'fs-ls')).toEqual(['row-action', 'cancel', 'remove', 'toggle-visible'].map((n) => `${n}:on`));
+        await expect.poll(() => controlStates(page, 'fs-prog')).toEqual(['pause-all:on', 'cancel-all:on']);
+        await expect(dz(page, 'fs-ind').locator('button.dz__indicator-chip')).toBeEnabled();
+    });
+
+    test('a read-only store: the list offers no Remove, the picker adds nothing; navigation + upload controls stay on', async ({ page }) => {
+        await addTwo(page, 'ro-store');
+        await expect(dz(page, 'ro-ls').locator('.dz__file-item')).toHaveCount(1);
+        // list: no user removal (hidden), the rest focusable / usable like the store's own list
+        await expect(dz(page, 'ro-ls').locator('[data-dz-action="remove"]')).toHaveClass(/--hidden/);
+        await dz(page, 'ro-ls').locator('[data-dz-action="remove"]').click({ force: true });
+        await page.waitForTimeout(150);
+        expect(await count(page, 'ro-store')).toBe(2);
+        await expect(dz(page, 'ro-ls').locator('[data-dz-action="toggle-visible"]')).toBeEnabled();
+        // progress: uploads keep running under readonly, the bulk controls stay on
+        await expect.poll(() => controlStates(page, 'ro-prog')).toEqual(['pause-all:on', 'cancel-all:on']);
+        // indicator: the chip still opens the drawer (focusable, not disabled)
+        await expect(dz(page, 'ro-ind').locator('button.dz__indicator-chip')).toBeEnabled();
+        // picker: read-only through the store — focusable, aria-disabled, a drop adds nothing
+        const pkCard = dz(page, 'ro-pk').locator('.dz__dropzone');
+        await expect(pkCard).toHaveClass(/dz__dropzone--readonly/);
+        await dragFiles(pkCard, 'drop', ['x.txt']);
+        await page.waitForTimeout(150);
+        expect(await count(page, 'ro-store')).toBe(2);
+        expect(choosers()).toBe(0);
+
+        // live flip: the store leaves readonly → the list offers Remove again
+        await dz(page, 'ro-store').evaluate(async (el: any) => { el.isReadonly = false; await el.whenSettled(); });
+        await expect(dz(page, 'ro-ls').locator('[data-dz-action="remove"]')).not.toHaveClass(/--hidden/);
+        await expect(dz(page, 'ro-pk').locator('.dz__dropzone')).not.toHaveClass(/dz__dropzone--readonly/);
+    });
+});
