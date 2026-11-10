@@ -103,38 +103,6 @@
             margin-bottom: 1rem;
         }
 
-        .store-event-log {
-            margin-top: 1rem;
-            padding: 0.75rem 1rem;
-            background: var(--kmwc-console-bg);
-            color: var(--kmwc-console-text-color);
-            border-radius: 8px;
-            font-family: 'SF Mono', 'Monaco', Consolas, monospace;
-            font-size: 0.82rem;
-            max-height: 12rem;
-            overflow-y: auto;
-        }
-        .store-event-log__empty {
-            color: var(--kmwc-console-muted-color);
-            font-style: italic;
-        }
-        .store-event-log__row {
-            padding: 0.2rem 0;
-            border-bottom: 1px solid color-mix(in srgb, var(--kmwc-console-text-color) 12%, transparent);
-            display: grid;
-            grid-template-columns: 7rem 9rem minmax(0, 1fr);
-            gap: 0.5rem;
-        }
-        .store-event-log__row:last-child { border-bottom: none; }
-        .store-event-log__detail { overflow-wrap: anywhere; }
-        .store-event-log__time { color: var(--kmwc-console-muted-color); }
-        .store-event-log__type { font-weight: 600; }
-        .store-event-log__type--file-add         { color: var(--kmwc-console-ok-color); }
-        .store-event-log__type--file-remove       { color: var(--kmwc-console-err-color); }
-        .store-event-log__type--file-progress      { color: var(--kmwc-console-info-color); }
-        .store-event-log__type--file-status-change{ color: var(--kmwc-console-warn-color); }
-        .store-event-log__type--ready        { color: var(--kmwc-code-keyword-color); }
-
         .scenario-title {
             display: flex;
             align-items: baseline;
@@ -476,9 +444,7 @@
             </kmwc-demo>
 
             <div class="stage-label">Substrate event log (store fan-out)</div>
-            <div id="store-event-log" class="store-event-log">
-                <div class="store-event-log__empty">Drop files into either picker to see <code>file-add</code> / <code>file-progress</code> / <code>file-status-change</code> dispatched by the store and consumed by every satellite.</div>
-            </div>
+            <div id="store-event-log" class="log-panel log-panel--dark" style="--log-max-height: 12rem" data-empty="Drop files into either picker to see file-add / file-progress / file-status-change dispatched by the store and consumed by every satellite."></div>
         </section>
 
         <!-- ============================================================ -->
@@ -747,6 +713,7 @@ spinner.renderBodyCallback = ({ aggregate }) =&gt; {
         // consistent across surfaces.
         import { ACTION_ICONS, resolveLabel } from '/packages/web-dropzone/src/index.ts';
         import { simulateUpload, wireQueueControlButton } from '/examples-shared.js';
+        import { appendLogLine } from '@keenmate/web-components-devkit/examples';
 
         // ============================================================
         // Active-demo toggle — only one scenario's stores accept drops at a
@@ -1265,23 +1232,12 @@ spinner.renderBodyCallback = ({ aggregate }) =&gt; {
         const log = document.getElementById('store-event-log');
         const dzModeB = document.getElementById('dz-modeb');
         const MAX_LOG_ROWS = 50;
-        let logRows = [];
-        const formatTime = () => new Date().toLocaleTimeString('en-GB', { hour12: false });
+        /** Store event → log-line variant (`ready` keeps the default colour). */
+        const STORE_EVENT_VARIANTS = { 'file-add': 'success', 'file-remove': 'danger', 'file-progress': 'info', 'file-status-change': 'warning' };
 
         function addLogRow(type, detail) {
-            if (logRows.length === 0 && log) log.innerHTML = '';
-            const row = document.createElement('div');
-            row.className = 'store-event-log__row';
-            row.innerHTML = `
-                <span class="store-event-log__time">${formatTime()}</span>
-                <span class="store-event-log__type store-event-log__type--${type}">${type}</span>
-                <span class="store-event-log__detail">${detail}</span>
-            `;
-            log.prepend(row);
-            logRows.push(row);
-            while (logRows.length > MAX_LOG_ROWS) {
-                logRows.shift()?.remove();
-            }
+            appendLogLine(log, { name: type, detail, variant: STORE_EVENT_VARIANTS[type] });
+            while (log.childElementCount > MAX_LOG_ROWS) log.firstElementChild.remove();
         }
 
         if (dzModeB) {

@@ -85,7 +85,7 @@
     ]
   },
   "devDependencies": {
-    "@keenmate/web-components-devkit": "^1.0.0-rc11",
+    "@keenmate/web-components-devkit": "^1.0.0-rc12",
     "@playwright/test": "^1.60.0",
     "rimraf": "^5.0.5",
     "typescript": "^5.3.3",

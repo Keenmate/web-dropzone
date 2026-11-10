@@ -404,6 +404,8 @@
 
 
     <script type="module">
+        import { mapToEscapedHtml } from '@keenmate/web-components-devkit/examples';
+
         // -----------------------------------------------------------
         // Fake "server" — pre-seeded inventory + 300 ms latency.
         // The inventory is mutated when uploads complete so the user
@@ -544,7 +546,7 @@
                     if (file.status === 'complete') {
                         row.innerHTML = `
                             <div class="sp-row__meta">
-                                <div class="sp-row__name">${escapeHtml(file.name)}</div>
+                                <div class="sp-row__name">${mapToEscapedHtml(file.name)}</div>
                                 <div class="sp-row__sub">${formatSize(file.size)} · uploaded</div>
                             </div>
                             <div class="sp-row__actions">
@@ -561,7 +563,7 @@
                         if (!seenIds.has(file.id)) {
                             row.innerHTML = `
                                 <div class="sp-row__meta">
-                                    <div class="sp-row__name">${escapeHtml(file.name)}</div>
+                                    <div class="sp-row__name">${mapToEscapedHtml(file.name)}</div>
                                     <div class="sp-row__sub">${formatSize(file.size)} · checking server…</div>
                                 </div>
                                 <div class="sp-row__actions">
@@ -575,7 +577,7 @@
                         row.classList.add('sp-row--new')
                         row.innerHTML = `
                             <div class="sp-row__meta">
-                                <div class="sp-row__name">${escapeHtml(file.name)}</div>
+                                <div class="sp-row__name">${mapToEscapedHtml(file.name)}</div>
                                 <div class="sp-row__sub">${formatSize(file.size)} · new file</div>
                             </div>
                             <div class="sp-row__actions">
@@ -594,7 +596,7 @@
                         row.classList.add('sp-row--pending')
                         row.innerHTML = `
                             <div class="sp-row__meta">
-                                <div class="sp-row__name">${escapeHtml(file.name)}</div>
+                                <div class="sp-row__name">${mapToEscapedHtml(file.name)}</div>
                                 <div class="sp-row__sub"><strong>Already exists on server.</strong> Choose what to do:</div>
                             </div>
                             <div class="sp-row__actions">
@@ -626,7 +628,7 @@
                         row.classList.add('sp-row--overwrite')
                         row.innerHTML = `
                             <div class="sp-row__meta">
-                                <div class="sp-row__name">${escapeHtml(file.name)}</div>
+                                <div class="sp-row__name">${mapToEscapedHtml(file.name)}</div>
                                 <div class="sp-row__sub">${formatSize(file.size)} · will replace the server copy</div>
                             </div>
                             <div class="sp-row__actions">
@@ -646,14 +648,14 @@
                         row.innerHTML = `
                             <div class="sp-row__meta">
                                 <div class="sp-row__name">
-                                    <del>${escapeHtml(file.name)}</del>
-                                    <ins>${escapeHtml(d.renameTo)}</ins>
+                                    <del>${mapToEscapedHtml(file.name)}</del>
+                                    <ins>${mapToEscapedHtml(d.renameTo)}</ins>
                                 </div>
                                 <div class="sp-row__sub">${formatSize(file.size)} · will upload under the new name</div>
                                 <div class="sp-rename-error" hidden></div>
                             </div>
                             <div class="sp-row__actions">
-                                <input class="sp-rename-input" type="text" value="${escapeHtml(d.renameTo)}">
+                                <input class="sp-rename-input" type="text" value="${mapToEscapedHtml(d.renameTo)}">
                                 <span class="sp-badge sp-badge--rename">✎ Rename</span>
                                 <button type="button" class="sp-btn sp-btn--change" data-action="undo">Change…</button>
                             </div>
@@ -828,11 +830,6 @@
         // -----------------------------------------------------------
         // Small helpers.
         // -----------------------------------------------------------
-        function escapeHtml(s) {
-            return String(s)
-                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;').replace(/'/g, '&#39;')
-        }
         function formatSize(bytes) {
             if (bytes < 1024) return `${bytes} B`
             if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`

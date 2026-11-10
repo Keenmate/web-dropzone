@@ -4,6 +4,8 @@
 
 
     <script type="module">
+        import { mapToEscapedHtml } from '@keenmate/web-components-devkit/examples';
+
         // Page helpers the demo scripts below call. Module scripts run in document
         // order, so these are on window before any demo needs them.
 
@@ -65,13 +67,8 @@
             return null
         }
 
-        function escapeHtml(s) {
-            const d = document.createElement('div')
-            d.textContent = s
-            return d.innerHTML
-        }
 
-        Object.assign(window, { escapeHtml, simulateUpload, actionIconFor })
+        Object.assign(window, { escapeHtml: mapToEscapedHtml, simulateUpload, actionIconFor })
     </script>
 
         <!-- INTRO -->

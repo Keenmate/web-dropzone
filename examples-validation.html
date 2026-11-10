@@ -214,6 +214,7 @@
 
     <script type="module">
         import { simulateUpload } from '/examples-shared.js';
+        import { mapToEscapedHtml } from '@keenmate/web-components-devkit/examples';
 
         // Wire every dropzone on the page to the shared simulator so accepted
         // files actually progress (validation demo otherwise leaves them at
@@ -230,9 +231,9 @@
             dz.addEventListener('file-reject', (e) => {
                 log.innerHTML = e.detail.rejectedFiles.map(r => `
                     <div class="row">
-                        <span class="name">${escapeHtml(r.file.name)}</span>
+                        <span class="name">${mapToEscapedHtml(r.file.name)}</span>
                         <span class="reason">[${r.validation.code}]</span>
-                        <span>${escapeHtml(r.validation.error || '')}</span>
+                        <span>${mapToEscapedHtml(r.validation.error || '')}</span>
                     </div>
                 `).join('')
             })
@@ -247,9 +248,4 @@
             return { valid: true }
         }
 
-        function escapeHtml(s) {
-            const d = document.createElement('div')
-            d.textContent = s
-            return d.innerHTML
-        }
     </script>
