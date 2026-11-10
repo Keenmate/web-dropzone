@@ -13,7 +13,7 @@ callback and store-access API below is breaking.
 
 ### Changed — BREAKING (persisted UI state the core way, SPEC §12.17 / rulebook C-CA-17, 2026-11-09)
 
-Needs core `createStateStore()` (`@keenmate/web-components-core` 1.0.0-rc21). No compatibility aliases.
+Needs core `createStateStore()` (`@keenmate/web-components-core` ^1.0.0-rc21). No compatibility aliases.
 
 - **`persistStateCallback` → `saveStateCallback`.** Same `{ key, state }` ctx (plus `controller` /
   `element`); `state` is the WHOLE `DropzoneState`. `loadStateCallback` and `storage-key` keep their
@@ -31,8 +31,7 @@ Needs core `createStateStore()` (`@keenmate/web-components-core` 1.0.0-rc21). No
 
 ### Changed — BREAKING (core 1.0.0-rc20 / rc21 alignment, 2026-11-09)
 
-Requires `@keenmate/web-components-core` `^1.0.0-rc20` (was `^1.0.0-rc15`); validated against the
-rc21 pre-release. No compatibility aliases.
+Requires `@keenmate/web-components-core` `^1.0.0-rc21` (was `^1.0.0-rc15`). No compatibility aliases.
 
 - **Flat BEM class names** (rulebook C-NC-8 / C-CSS-7: one element level). Every
   `.dz__<block>__<element>` class is now `.dz__<block>-<element>`; modifiers keep `--`:

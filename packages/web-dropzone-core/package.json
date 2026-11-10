@@ -43,7 +43,7 @@
     "url": "https://github.com/keenmate/web-dropzone/issues"
   },
   "dependencies": {
-    "@keenmate/web-components-core": "^1.0.0-rc20"
+    "@keenmate/web-components-core": "^1.0.0-rc21"
   },
   "devDependencies": {
     "vite": "^5.4.21"
