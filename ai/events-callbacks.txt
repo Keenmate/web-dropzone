@@ -177,10 +177,11 @@ dz.onFileReject = ({ rejectedFiles, element }) => {
 
 SATELLITE EVENTS
 ----------------
-Dispatched on the satellite itself (bubbles, not composed); detail carries the
-BOUND STORE's controller / element:
-  <web-dropzone-list> summary-activate   popover appearance: summary line activated
-  <web-dropzone-list> queue-open         rolling appearance: queue button clicked
+Dispatched on the satellite itself (bubbles, not composed); each has an on*
+twin property called first with the same detail; detail carries the BOUND
+STORE's controller / element:
+  <web-dropzone-list> summary-activate   onSummaryActivate   popover appearance: summary line activated
+  <web-dropzone-list> queue-open         onQueueOpen         rolling appearance: queue button clicked
 Every satellite (a core BlissElement) also fires core's `ready` (once, after
 its first build; onReady twin) and `input-rejected` (an invalid value - e.g. an
 unknown enum - was refused; the previous value stays) on itself.

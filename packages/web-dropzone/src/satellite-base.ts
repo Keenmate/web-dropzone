@@ -13,7 +13,7 @@
 import type { DropzoneElement } from './web-component';
 import type { DropzoneController, DropzoneContext, DropzoneLabels, LabelFn } from '@keenmate/web-dropzone-core';
 import { createLabelFn } from '@keenmate/web-dropzone-core';
-import { BlissElement, createCustomStyles, dispatch, toFunction, toText, withComponentContext, type CustomStylesHandle, type InputDef } from '@keenmate/web-components-core';
+import { BlissElement, createCustomStyles, toFunction, toText, withComponentContext, type CustomStylesHandle, type EventMap, type InputDef } from '@keenmate/web-components-core';
 import { storeControllerOf, STORE_BUILD_EVENT } from './store-link';
 import { labelsConverter } from './inputs';
 
@@ -96,21 +96,6 @@ export function createStoreContextBase(storeEl: DropzoneElement): DropzoneContex
 }
 
 /**
- * Fire a satellite event (SPEC §12.5): bubbles, NOT composed, dispatched on
- * the satellite; the detail carries the bound store's `controller` /
- * `element` (non-enumerable).
- */
-export function dispatchSatelliteEvent(
-    satellite: HTMLElement,
-    storeEl: DropzoneElement | null,
-    name: string,
-    detail: object = {}
-): boolean {
-    const payload = storeEl ? withComponentContext(detail, storeEl.controller, storeEl as HTMLElement) : detail;
-    return dispatch(satellite, name, payload);
-}
-
-/**
  * Subscribe to one or more events on the store element. Returns a teardown
  * function that removes every listener. Each handler receives the live
  * CustomEvent so satellites can read `event.detail` directly.
@@ -179,7 +164,7 @@ export interface SatelliteElementConfig {
  *    (core `update()`; `for` re-binds before it).
  *  - `deactivated()` — after the store binding is torn down on disconnect.
  */
-export abstract class SatelliteElement extends BlissElement<Record<string, never>, DropzoneController | null> {
+export abstract class SatelliteElement<TEvents extends EventMap = Record<string, never>> extends BlissElement<TEvents, DropzoneController | null> {
     /**
      * The bound store, once it is built — the store's non-flushing
      * satellite-side controller (internal; the public one is `controller`).
@@ -337,6 +322,20 @@ export abstract class SatelliteElement extends BlissElement<Record<string, never
         return this.store && this.storeEl ? this.storeEl.controller : null;
     }
 
+    /**
+     * Fire one of this satellite's declared events (`static events`) through
+     * core `emit()` (SPEC §12.5): the `on*` twin is called with the detail,
+     * then the DOM event (bubbles, NOT composed) is dispatched on the
+     * satellite. The detail carries the BOUND STORE's context — `controller`
+     * (the store's `el.controller`) and `element` (the `<web-dropzone>`),
+     * non-enumerable — attached up front, so core keeps them.
+     */
+    protected emitStoreEvent<K extends keyof TEvents & string>(name: K): boolean {
+        const storeEl = this.storeEl;
+        const detail = storeEl ? withComponentContext({}, storeEl.controller, storeEl as HTMLElement) : {};
+        return this.emit(name, detail as never);
+    }
+
     private waitForStore(): void {
         if (!this.storeEl) return;
         const storeEl = this.storeEl;
@@ -350,4 +349,4 @@ export abstract class SatelliteElement extends BlissElement<Record<string, never
 }
 
 /** The shared inputs as typed properties (core usage "Typing the properties", rulebook C-CA-16). */
-export interface SatelliteElement extends SatelliteElementConfig {}
+export interface SatelliteElement<TEvents extends EventMap = Record<string, never>> extends SatelliteElementConfig {}

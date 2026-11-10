@@ -395,7 +395,7 @@ Events bubble and are **not composed** (core SPEC §12.5); each has a camelCase 
 - `overlay-enter` / `overlay-leave`
 - `ready` (core: once, after the first build) and core's `input-rejected` (a refused attribute / property value)
 
-`<web-dropzone-list>` fires `summary-activate` / `queue-open`; every satellite fires core's `ready` and `input-rejected`. The full table is in `packages/web-dropzone/docs/usage.md#events`.
+`<web-dropzone-list>` fires `summary-activate` / `queue-open` through core `emit()` (twins `onSummaryActivate` / `onQueueOpen`, detail = the bound store's context); every satellite fires core's `ready` and `input-rejected`. The full table is in `packages/web-dropzone/docs/usage.md#events`.
 
 ## Form Integration
 

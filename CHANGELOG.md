@@ -101,6 +101,18 @@ Requires `@keenmate/web-components-core` `^1.0.0-rc21` (was `^1.0.0-rc15`). No c
 - `escapeHtml` (re-exported by both packages) is core's: it takes any value (`null` / `undefined`
   → `''`). `packages/web-dropzone-core/src/dom-utils.ts` is gone.
 
+### Added (satellite events through core emit(), 2026-11-10)
+
+- **`<web-dropzone-list>` events have `on*` twins**: `summary-activate` → `el.onSummaryActivate`,
+  `queue-open` → `el.onQueueOpen` (core `emit()`: the twin runs first with the same detail, then the
+  DOM event). Both are declared in the list's `static events`, so they are in the Custom Elements
+  Manifest / web-types / VS Code data. Names, bubbling (not composed) and the detail (the bound
+  store's `controller` / `element`, no data) are unchanged.
+- Internal: `dispatchSatelliteEvent()` → protected `SatelliteElement.emitStoreEvent(name)`.
+- e2e: the satellites follow their store's disabled / readonly state (a `<fieldset disabled>` store
+  disables list / progress / indicator controls; a read-only store hides the list's Remove and keeps
+  the picker adding nothing). Only the picker has its own `disabled` / `readonly` (SPEC §6.4).
+
 ### Fixed (drag overlay light / dark, 2026-11-10)
 
 - **The `overlay-target` drag overlay takes the dropzone's color scheme, not the page's.** It is

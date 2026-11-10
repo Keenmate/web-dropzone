@@ -188,6 +188,7 @@
             };
 
             // ===== satellites =====
+            window.__satTwin = {};
             const store = document.getElementById('sat-store');
             const picker = document.getElementById('sat-picker');
             picker.uploadFileCallback = (ctx) => {
@@ -198,9 +199,16 @@
             for (const id of ['sat-summary', 'sat-rolling']) {
                 const list = document.getElementById(id);
                 for (const name of ['summary-activate', 'queue-open']) {
+                    // core emit(): the `on*` twin runs first, with the SAME detail object
+                    list[twinOf(name)] = (d) => {
+                        window.__satTwin[`${id}:${name}`] = d;
+                        check(`${id}:twin:${name}`, d, store);
+                        log(`${id}:twin:${name}`);
+                    };
                     list.addEventListener(name, (e) => {
                         check(`${id}:${name}`, e.detail, store);
                         log(`${id}:${name} composed=${e.composed}`);
+                        window.__sameDetail[`${id}:${name}`] = e.detail === window.__satTwin[`${id}:${name}`];
                     });
                 }
             }

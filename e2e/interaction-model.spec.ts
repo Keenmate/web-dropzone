@@ -291,7 +291,7 @@ test.describe('satellites', () => {
         await expect(page.locator('#sat-summary .dz__summary-text')).toContainText('2');
     });
 
-    test('summary-activate / queue-open: not composed, carry the store controller / element', async ({ page }) => {
+    test('summary-activate / queue-open: fire once, not composed, on* twin, carry the store controller / element', async ({ page }) => {
         await addNamed(page, 'sat-store', ['q1.txt', 'q2.txt']);
         await page.locator('#sat-summary .dz__summary-line').click();
         await page.locator('#sat-rolling .dz__rolling-queue').click();
@@ -300,6 +300,17 @@ test.describe('satellites', () => {
         expect(log).toContain('sat-rolling:queue-open composed=false');
         await expectContext(page, 'sat-summary:summary-activate');
         await expectContext(page, 'sat-rolling:queue-open');
+        // Each fires ONCE; its `on*` twin (core emit()) runs first with the same detail + store context.
+        for (const label of ['sat-summary:summary-activate', 'sat-rolling:queue-open']) {
+            const [id, name] = label.split(':');
+            expect(log.filter((l) => l.startsWith(`${label} `)), `${label} fired once`).toHaveLength(1);
+            expect(log.filter((l) => l === `${id}:twin:${name}`), `${label} twin called once`).toHaveLength(1);
+            expect(log.indexOf(`${id}:twin:${name}`)).toBeLessThan(log.indexOf(`${label} composed=false`));
+            await expectContext(page, `${id}:twin:${name}`);
+            expect(await page.evaluate((l) => (window as any).__sameDetail[l], label), `${label}: twin + event share one detail`).toBe(true);
+        }
+        // The detail carries no data of its own (shape unchanged: context only).
+        expect((await checkOf(page, 'sat-summary:summary-activate')).json).toBe('{}');
         // Satellites expose the bound store's controller.
         expect(await page.evaluate(() =>
             (document.getElementById('sat-summary') as any).controller === (document.getElementById('sat-store') as any).controller

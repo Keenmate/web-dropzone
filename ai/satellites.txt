@@ -130,13 +130,15 @@ cancel-icon / remove-icon, fileIcons / getFileIconCallback.
 Row buttons (Cancel / Remove / pause-resume-retry) call the store's API
 through its controller and run the same gates.
 
-Events (on the list element; bubbles, not composed; detail = store context):
+Events (on the list element; bubbles, not composed; detail = store context;
+on* twin called first with the same detail):
   summary-activate   popover appearance: the summary line was activated
                      (click / Enter / Space). The standalone list owns NO popover -
                      open your own UI here.
   queue-open         rolling appearance: the queue button was clicked
 
 list.addEventListener('queue-open', () => drawer.show());
+list.onSummaryActivate = ({ controller }) => console.log(controller.getFiles());
 
 <web-dropzone-progress>
 -----------------------

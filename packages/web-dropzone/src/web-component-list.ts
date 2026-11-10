@@ -11,7 +11,7 @@
  * Rolling appearance shows a single "front" file (highest-priority active
  * one — see `getFrontFile`) with rotation animations. A queue badge button
  * sits in the top-right corner; clicking it dispatches a `queue-open`
- * CustomEvent (bubbles, not composed; detail carries the store's `controller` / `element`) — popover wiring is up to the consumer.
+ * event (core `emit()`: `onQueueOpen` twin first; bubbles, not composed; detail carries the store's `controller` / `element`) — popover wiring is up to the consumer.
  * The convenience form (`<web-dropzone>`) listens for this event and opens
  * its built-in popover; standalone satellite consumers can wire any UI.
  *
@@ -20,13 +20,12 @@
  */
 
 import styles from './css/main.css?inline';
-import { adoptStyles, createMicrotaskScheduler, toBool, toEnum, type InputDef } from '@keenmate/web-components-core';
+import { adoptStyles, createMicrotaskScheduler, toBool, toEnum, type EventDef, type InputDef } from '@keenmate/web-components-core';
 import {
     SatelliteElement,
     SATELLITE_INPUTS,
     subscribeStoreEvents,
     createStoreContextBase,
-    dispatchSatelliteEvent,
     type SatelliteElementConfig
 } from './satellite-base';
 import {
@@ -56,7 +55,7 @@ import {
     statusGlyph
 } from './row-templates';
 import type { RowTemplateOptions } from './row-templates';
-import type { DropzoneContext } from '@keenmate/web-dropzone-core';
+import type { DropzoneContext, DropzoneListEventMap, QueueOpenEventDetail, SummaryActivateEventDetail } from '@keenmate/web-dropzone-core';
 import { buildStatusSurfaceArgs, StatusSurface } from './status-surface';
 import type { StatusSurfaceArgs } from './status-surface';
 import type { DropzoneElement } from './web-component';
@@ -88,10 +87,26 @@ export interface DropzoneListElementConfig extends SatelliteElementConfig {
     isNested?: boolean;
 }
 
+/**
+ * Event table (core SPEC §12.5): each is one DOM event on the list (bubbles,
+ * NOT composed) + a camelCase `on*` twin called first with the same detail.
+ * The detail carries the BOUND STORE's `controller` / `element`
+ * (non-enumerable), no data of its own.
+ */
+const EVENTS: readonly EventDef[] = [
+    { name: 'summary-activate', description: 'Popover appearance: the summary line was activated (click / Enter / Space). The standalone list owns no popover — open your own UI here. `detail`: the bound store\'s `controller` / `element`. Twin: `onSummaryActivate(detail)`.' },
+    { name: 'queue-open', description: 'Rolling appearance: the queue badge was clicked. `detail`: the bound store\'s `controller` / `element`. Twin: `onQueueOpen(detail)`.' },
+];
 
-export class DropzoneListElement extends SatelliteElement {
+export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> {
     protected static override inputs = INPUTS;
+    protected static override events = EVENTS;
     protected readonly satelliteTagName = 'web-dropzone-list';
+
+    // `on*` twins — called with the event detail (core installs the accessors).
+    declare onSummaryActivate: ((detail: SummaryActivateEventDetail) => void) | null;
+    declare onQueueOpen: ((detail: QueueOpenEventDetail) => void) | null;
+
     private shadow: ShadowRoot;
     private container: HTMLElement;
     /**
@@ -312,7 +327,8 @@ export class DropzoneListElement extends SatelliteElement {
      * the click target for the popover. The actual popover wrapper is
      * external to this satellite — the convenience form's `<web-dropzone>`
      * renders it in-class, and standalone consumers wire any UI they want
-     * by listening for `summary-activate` (bubbles, not composed).
+     * by listening for `summary-activate` (bubbles, not composed) or setting
+     * its `onSummaryActivate` twin.
      *
      * The summary subtree is re-rendered on every store change. That's
      * cheap (one line of DOM) and avoids the per-tick patching dance the
@@ -347,7 +363,7 @@ export class DropzoneListElement extends SatelliteElement {
         const line = this.container.querySelector('.dz__summary-line');
         if (!line) return;
         const fire = () => {
-            if (!this.isStoreDisabled) dispatchSatelliteEvent(this, this.storeEl, 'summary-activate');
+            if (!this.isStoreDisabled) this.emitStoreEvent('summary-activate');
         };
         line.addEventListener('click', fire);
         line.addEventListener('keydown', (e) => {
@@ -627,7 +643,7 @@ export class DropzoneListElement extends SatelliteElement {
      * the current file count. Created once and reused across re-renders so
      * its click handler isn't repeatedly rebound (and so the badge doesn't
      * flicker during a front-file swap). On click, dispatches a
-     * `queue-open` CustomEvent (bubbles, not composed) — popover wiring
+     * `queue-open` event (core `emit()`, `onQueueOpen` twin; bubbles, not composed) — popover wiring
      * happens externally (convenience form listens; standalone users wire
      * their own).
      */
@@ -641,7 +657,7 @@ export class DropzoneListElement extends SatelliteElement {
             queueBtn.innerHTML = '<span class="dz__rolling-queue-count"></span>';
             queueBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                dispatchSatelliteEvent(this, this.storeEl, 'queue-open');
+                this.emitStoreEvent('queue-open');
             });
             wrapper.appendChild(queueBtn);
         }

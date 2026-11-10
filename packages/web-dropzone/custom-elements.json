@@ -233,6 +233,15 @@
             },
             {
               "kind": "field",
+              "name": "overlaySchemeObserver",
+              "type": {
+                "text": "MutationObserver | null"
+              },
+              "privacy": "private",
+              "default": "null"
+            },
+            {
+              "kind": "field",
               "name": "boundHandleDragOver",
               "type": {
                 "text": "(e: DragEvent) => void"
@@ -3606,43 +3615,6 @@
         },
         {
           "kind": "function",
-          "name": "dispatchSatelliteEvent",
-          "return": {
-            "type": {
-              "text": "boolean"
-            }
-          },
-          "parameters": [
-            {
-              "name": "satellite",
-              "type": {
-                "text": "HTMLElement"
-              }
-            },
-            {
-              "name": "storeEl",
-              "type": {
-                "text": "DropzoneElement | null"
-              }
-            },
-            {
-              "name": "name",
-              "type": {
-                "text": "string"
-              }
-            },
-            {
-              "name": "detail",
-              "default": "{}",
-              "type": {
-                "text": "object"
-              }
-            }
-          ],
-          "description": "Fire a satellite event (SPEC §12.5): bubbles, NOT composed, dispatched on\nthe satellite; the detail carries the bound store's `controller` /\n`element` (non-enumerable)."
-        },
-        {
-          "kind": "function",
           "name": "subscribeStoreEvents",
           "return": {
             "type": {
@@ -3966,6 +3938,25 @@
             },
             {
               "kind": "method",
+              "name": "emitStoreEvent",
+              "privacy": "protected",
+              "return": {
+                "type": {
+                  "text": "boolean"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "name",
+                  "type": {
+                    "text": "K"
+                  }
+                }
+              ],
+              "description": "Fire one of this satellite's declared events (`static events`) through\ncore `emit()` (SPEC §12.5): the `on*` twin is called with the detail,\nthen the DOM event (bubbles, NOT composed) is dispatched on the\nsatellite. The detail carries the BOUND STORE's context — `controller`\n(the store's `el.controller`) and `element` (the `<web-dropzone>`),\nnon-enumerable — attached up front, so core keeps them."
+            },
+            {
+              "kind": "method",
               "name": "waitForStore",
               "privacy": "private",
               "return": {
@@ -4003,14 +3994,6 @@
           "name": "createStoreContextBase",
           "declaration": {
             "name": "createStoreContextBase",
-            "module": "src/satellite-base.ts"
-          }
-        },
-        {
-          "kind": "js",
-          "name": "dispatchSatelliteEvent",
-          "declaration": {
-            "name": "dispatchSatelliteEvent",
             "module": "src/satellite-base.ts"
           }
         },
@@ -5715,6 +5698,29 @@
             },
             {
               "kind": "method",
+              "name": "emitStoreEvent",
+              "privacy": "protected",
+              "return": {
+                "type": {
+                  "text": "boolean"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "name",
+                  "type": {
+                    "text": "K"
+                  }
+                }
+              ],
+              "description": "Fire one of this satellite's declared events (`static events`) through\ncore `emit()` (SPEC §12.5): the `on*` twin is called with the detail,\nthen the DOM event (bubbles, NOT composed) is dispatched on the\nsatellite. The detail carries the BOUND STORE's context — `controller`\n(the store's `el.controller`) and `element` (the `<web-dropzone>`),\nnon-enumerable — attached up front, so core keeps them.",
+              "inheritedFrom": {
+                "name": "SatelliteElement",
+                "module": "src/satellite-base.ts"
+              }
+            },
+            {
+              "kind": "method",
               "name": "waitForStore",
               "privacy": "private",
               "return": {
@@ -7038,6 +7044,16 @@
             },
             {
               "kind": "field",
+              "name": "events",
+              "privacy": "protected",
+              "static": true,
+              "default": "[ { name: 'summary-activate', description: 'Popover appearance: the summary line was activated (click / Enter / Space). The standalone list owns no popover — open your own UI here. `detail`: the bound store\\'s `controller` / `element`. Twin: `onSummaryActivate(detail)`.' }, { name: 'queue-open', description: 'Rolling appearance: the queue badge was clicked. `detail`: the bound store\\'s `controller` / `element`. Twin: `onQueueOpen(detail)`.' }, ]",
+              "type": {
+                "text": "readonly EventDef[]"
+              }
+            },
+            {
+              "kind": "field",
               "name": "satelliteTagName",
               "type": {
                 "text": "string"
@@ -7048,6 +7064,20 @@
               "inheritedFrom": {
                 "name": "SatelliteElement",
                 "module": "src/satellite-base.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "onSummaryActivate",
+              "type": {
+                "text": "((detail: SummaryActivateEventDetail) => void) | null"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "onQueueOpen",
+              "type": {
+                "text": "((detail: QueueOpenEventDetail) => void) | null"
               }
             },
             {
@@ -7278,7 +7308,7 @@
                   }
                 }
               ],
-              "description": "Render a single summary line (\"{count} files · {size}\") that acts as\nthe click target for the popover. The actual popover wrapper is\nexternal to this satellite — the convenience form's `<web-dropzone>`\nrenders it in-class, and standalone consumers wire any UI they want\nby listening for `summary-activate` (bubbles, not composed).\n\nThe summary subtree is re-rendered on every store change. That's\ncheap (one line of DOM) and avoids the per-tick patching dance the\nin-class summary does — there's no nested resize / focus state to\npreserve here, just the icon + text."
+              "description": "Render a single summary line (\"{count} files · {size}\") that acts as\nthe click target for the popover. The actual popover wrapper is\nexternal to this satellite — the convenience form's `<web-dropzone>`\nrenders it in-class, and standalone consumers wire any UI they want\nby listening for `summary-activate` (bubbles, not composed) or setting\nits `onSummaryActivate` twin.\n\nThe summary subtree is re-rendered on every store change. That's\ncheap (one line of DOM) and avoids the per-tick patching dance the\nin-class summary does — there's no nested resize / focus state to\npreserve here, just the icon + text."
             },
             {
               "kind": "method",
@@ -7537,7 +7567,7 @@
                   }
                 }
               ],
-              "description": "Ensure the rolling queue badge exists inside `wrapper` and reflects\nthe current file count. Created once and reused across re-renders so\nits click handler isn't repeatedly rebound (and so the badge doesn't\nflicker during a front-file swap). On click, dispatches a\n`queue-open` CustomEvent (bubbles, not composed) — popover wiring\nhappens externally (convenience form listens; standalone users wire\ntheir own)."
+              "description": "Ensure the rolling queue badge exists inside `wrapper` and reflects\nthe current file count. Created once and reused across re-renders so\nits click handler isn't repeatedly rebound (and so the badge doesn't\nflicker during a front-file swap). On click, dispatches a\n`queue-open` event (core `emit()`, `onQueueOpen` twin; bubbles, not composed) — popover wiring\nhappens externally (convenience form listens; standalone users wire\ntheir own)."
             },
             {
               "kind": "method",
@@ -8265,6 +8295,29 @@
             },
             {
               "kind": "method",
+              "name": "emitStoreEvent",
+              "privacy": "protected",
+              "return": {
+                "type": {
+                  "text": "boolean"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "name",
+                  "type": {
+                    "text": "K"
+                  }
+                }
+              ],
+              "description": "Fire one of this satellite's declared events (`static events`) through\ncore `emit()` (SPEC §12.5): the `on*` twin is called with the detail,\nthen the DOM event (bubbles, NOT composed) is dispatched on the\nsatellite. The detail carries the BOUND STORE's context — `controller`\n(the store's `el.controller`) and `element` (the `<web-dropzone>`),\nnon-enumerable — attached up front, so core keeps them.",
+              "inheritedFrom": {
+                "name": "SatelliteElement",
+                "module": "src/satellite-base.ts"
+              }
+            },
+            {
+              "kind": "method",
               "name": "waitForStore",
               "privacy": "private",
               "return": {
@@ -8379,6 +8432,14 @@
             }
           ],
           "events": [
+            {
+              "name": "summary-activate",
+              "description": "Popover appearance: the summary line was activated (click / Enter / Space). The standalone list owns no popover — open your own UI here. `detail`: the bound store's `controller` / `element`. Twin: `onSummaryActivate(detail)`."
+            },
+            {
+              "name": "queue-open",
+              "description": "Rolling appearance: the queue badge was clicked. `detail`: the bound store's `controller` / `element`. Twin: `onQueueOpen(detail)`."
+            },
             {
               "name": "ready",
               "description": "Fired once after the first live build (core, SPEC §6.3), on the microtask after it; also the `ready` attribute, `:state(ready)`, `isReady` and `whenReady()`. Twin callback `onReady`."
@@ -10606,6 +10667,29 @@
             },
             {
               "kind": "method",
+              "name": "emitStoreEvent",
+              "privacy": "protected",
+              "return": {
+                "type": {
+                  "text": "boolean"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "name",
+                  "type": {
+                    "text": "K"
+                  }
+                }
+              ],
+              "description": "Fire one of this satellite's declared events (`static events`) through\ncore `emit()` (SPEC §12.5): the `on*` twin is called with the detail,\nthen the DOM event (bubbles, NOT composed) is dispatched on the\nsatellite. The detail carries the BOUND STORE's context — `controller`\n(the store's `el.controller`) and `element` (the `<web-dropzone>`),\nnon-enumerable — attached up front, so core keeps them.",
+              "inheritedFrom": {
+                "name": "SatelliteElement",
+                "module": "src/satellite-base.ts"
+              }
+            },
+            {
+              "kind": "method",
               "name": "waitForStore",
               "privacy": "private",
               "return": {
@@ -12783,6 +12867,29 @@
               },
               "description": "The bound store's public controller (the same object as the store's\n`el.controller`), or `null` until the store is built. Lets consumer\ncode reach the store from a satellite reference.",
               "readonly": true,
+              "inheritedFrom": {
+                "name": "SatelliteElement",
+                "module": "src/satellite-base.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "emitStoreEvent",
+              "privacy": "protected",
+              "return": {
+                "type": {
+                  "text": "boolean"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "name",
+                  "type": {
+                    "text": "K"
+                  }
+                }
+              ],
+              "description": "Fire one of this satellite's declared events (`static events`) through\ncore `emit()` (SPEC §12.5): the `on*` twin is called with the detail,\nthen the DOM event (bubbles, NOT composed) is dispatched on the\nsatellite. The detail carries the BOUND STORE's context — `controller`\n(the store's `el.controller`) and `element` (the `<web-dropzone>`),\nnon-enumerable — attached up front, so core keeps them.",
               "inheritedFrom": {
                 "name": "SatelliteElement",
                 "module": "src/satellite-base.ts"

@@ -260,7 +260,14 @@ Every event bubbles and is **not composed**, fires on `<web-dropzone>`, and has 
 | `overlay-enter` / `overlay-leave` | `onOverlayEnter` / `onOverlayLeave` | `{ overlayElement }` | A drag entered / left the drag overlay |
 | `ready` | `onReady` | — (context only) | Core: fired once, after the first build (`el.controller` is live). The host gets the `ready` attribute + `:state(ready)`; `await el.whenReady()` is the promise form. A mode-flip rebuild or a DOM move doesn't fire it again |
 
-`<web-dropzone-list>` fires `summary-activate` (popover appearance — the summary line was activated) and `queue-open` (rolling appearance — the queue badge was clicked) on itself, with the bound store's `controller` / `element` on the detail. `file-row-update` (`{ file }`) is dispatched on the element a `renderFileItemCallback` returned (structural mode) — listen on that row.
+On `<web-dropzone-list>` (same model: the `on*` twin runs first with the same detail; the detail carries the BOUND STORE's `controller` / `element`, no data of its own):
+
+| Event | Twin | Detail | When |
+|---|---|---|---|
+| `summary-activate` | `onSummaryActivate` | — (store context only) | Popover appearance: the summary line was activated (click / Enter / Space) |
+| `queue-open` | `onQueueOpen` | — (store context only) | Rolling appearance: the queue badge was clicked |
+
+ `file-row-update` (`{ file }`) is dispatched on the element a `renderFileItemCallback` returned (structural mode) — listen on that row.
 
 ### Event Examples
 
@@ -728,10 +735,11 @@ Reads from the store: `item-controls`, `max-visible-file-count`, `sink-completed
 `allow-uploaded-file-removal`, `labels`, `cancel-icon` / `remove-icon`, `fileIcons` /
 `getFileIconCallback`. Row buttons call the store's API through its controller and run the same gates.
 
-Events (on the list element; bubble, not composed; the detail carries the store's `controller` /
-`element`): `summary-activate` (popover appearance — the summary line was activated by click / Enter /
-Space; the standalone list owns no popover, open your own UI here) and `queue-open` (rolling
-appearance — the queue button was clicked).
+Events (on the list element; bubble, not composed; each has an `on*` twin called first with the same
+detail; the detail carries the store's `controller` / `element`): `summary-activate` / `onSummaryActivate`
+(popover appearance — the summary line was activated by click / Enter / Space; the standalone list owns
+no popover, open your own UI here) and `queue-open` / `onQueueOpen` (rolling appearance — the queue
+button was clicked).
 
 ### `<web-dropzone-progress>`
 
