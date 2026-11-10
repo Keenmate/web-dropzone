@@ -303,7 +303,7 @@ pre-rc builds -> 1.0.0-rc01
 - list-appearance="chips" -> "badges" (classes .dz__chip* -> .dz__badge*,
   --dz-chip-* -> --dz-badge-*, --dz-chips-gap -> --dz-badges-gap).
 - Hidden filename inputs removed: forms submit real File blobs via
-  ElementInternals; value-format kept but inert.
+  ElementInternals. value-format / valueFormat / ValueFormat removed (rc03).
 - Config keys: multiple -> isMultiple, disabled -> isDisabled,
   filesInside -> isFilesInside (attributes unchanged; the el.multiple-style
   aliases were removed in rc03 - see STEP 8b).

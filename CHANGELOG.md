@@ -11,6 +11,11 @@ No stable 1.0.0 is published, so the break ships as the next release
 candidate — but `^1.0.0-rc02` consumers will pull it: the event,
 callback and store-access API below is breaking.
 
+### Removed — BREAKING (dead input, 2026-11-10)
+
+- **`value-format` attribute / `valueFormat` property / `ValueFormat` type removed** — nothing read
+  it (files always submit as `FormData` blobs under `name`). Drop the attribute; no replacement.
+
 ### Changed — BREAKING (persisted UI state the core way, SPEC §12.17 / rulebook C-CA-17, 2026-11-09)
 
 Needs core `createStateStore()` (`@keenmate/web-components-core` ^1.0.0-rc21). No compatibility aliases.

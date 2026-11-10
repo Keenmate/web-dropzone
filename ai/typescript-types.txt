@@ -20,7 +20,7 @@ class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneController>
   //   element interface extends it): isMultiple, isDisabled, isReadonly,
   //   isFilesInside, shouldAutoUpload, isUploadedFileRemovalAllowed,
   //   isThumbnailsShown, displayMode, selectorAppearance, listAppearance,
-  //   gridLayout, gridStatus, rollingRotation, cardSize, valueFormat,
+  //   gridLayout, gridStatus, rollingRotation, cardSize,
   //   overlayTarget, labels, accept, maxFileSize, customStyles,
   //   uploadFileCallback, renderLoadingCallback, shouldKeepAliveWhenRemoved, ...
   //   (unset-by-default inputs are typed `| null`)
@@ -148,7 +148,6 @@ type RollingRotation = 'horizontal' | 'vertical' | 'slide-in';
 type DropzoneControl = 'picker' | 'list' | 'overall-progress';
 type FileItemPart = 'icon' | 'name' | 'size' | 'type' | 'progress' | 'status'
                   | 'action' | 'cancel' | 'remove';
-type ValueFormat = 'json' | 'csv' | 'array';
 type FileTypeCategory = 'image' | 'video' | 'audio' | 'pdf' | 'doc'
                       | 'spreadsheet' | 'archive' | 'code' | 'text' | 'default';
 
@@ -243,7 +242,7 @@ dedupeMode, isDisabled, isReadonly, renderMode, progressThrottle, displayMode,
 selectorAppearance, listAppearance, gridLayout, gridStatus, controls,
 itemControls, rollingRotation, cardSize, isThumbnailsShown,
 isFilesInside, icon, labels,
-popoverPlacement, overlayTarget, overlayIcon, name, valueFormat, every
+popoverPlacement, overlayTarget, overlayIcon, name, every
 *Callback, fileIcons, concurrency, shouldAutoUpload, progressMode,
 retryPolicy, cancelTimeout, cancelTimeoutBehavior, cancelIcon, removeIcon,
 isUploadedFileRemovalAllowed, shouldSinkCompleted, sinkCompletedDelay,

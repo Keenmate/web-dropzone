@@ -48,20 +48,14 @@ with structured data.
 **Test status:** `upload-edge.spec.ts` › retryPolicy › "auto-retry does not write to
 the console outside /logging" — green.
 
-## 3. `value-format` is a no-op (DZ-3)
+## 3. `value-format` is a no-op (DZ-3) — RESOLVED (removed)
 
-**Where:** `packages/web-dropzone/src/web-component.ts:233` (input row) and `:425`
-(only re-syncs the form value; nothing reads the format).
+**Decision (2026-11-10):** the input was dead (files submit as `FormData` blobs via
+`setFormValue`, no hidden-input fallback), so `value-format` / `valueFormat` /
+`ValueFormat` were removed (v2, no alias; BREAKING line in the CHANGELOG).
 
-**Symptom:** `value-format="csv"` / `"array"` / `"json"` produce identical form
-submissions (FormData blobs under `name`).
-
-**Suggested fix:** implement the documented hidden-input serialization (see the
-cross-repo form-submission convention: light-DOM hidden inputs + value-format) or
-remove the attribute.
-
-**Test status:** not pinned yet (needs the intended output shape decided — open
-question).
+**Test status:** `packages/web-dropzone/test/unit/inputs.test.ts` › "has no value-format
+input" — green.
 
 ## 4. DOM move destroys the store — files lost, uploads aborted (DZ-4, D1) — FIXED
 

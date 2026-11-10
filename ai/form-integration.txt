@@ -41,13 +41,6 @@ Or build it yourself:
 const body = new FormData();
 for (const f of dz.files) body.append('files[]', f.file, f.name);
 
-value-format
-------------
-value-format="json" | "csv" | "array" (default json) is accepted and reflected
-but currently has NO effect: files always submit as blobs. It is kept for a
-possible future text serialization. (Older versions wrote hidden inputs with
-file names; that mechanism was removed.)
-
 REQUIRED / MINIMUM FILES
 ------------------------
 <web-dropzone name="docs" min-file-count="2" display-mode="list"></web-dropzone>

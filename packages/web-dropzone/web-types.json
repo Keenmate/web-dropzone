@@ -1014,14 +1014,6 @@
               "value": { "type": "string" }
             },
             {
-              "name": "value-format",
-              "description": "Fallback hidden-input serialization format hint (FormData blobs are always submitted for files).",
-              "value": {
-                "type": "'json' | 'csv' | 'array'",
-                "default": "'json'"
-              }
-            },
-            {
               "name": "concurrency",
               "description": "Maximum concurrent uploads through the worker pool.",
               "value": { "type": "number", "default": "1" }
@@ -1405,11 +1397,6 @@
               {
                 "name": "name",
                 "description": "Form field name. Files submit as real FormData blobs under this name."
-              },
-              {
-                "name": "valueFormat",
-                "description": "Fallback hidden-input serialization format hint (FormData blobs are always submitted for files).",
-                "type": "'json' | 'csv' | 'array'"
               },
               {
                 "name": "concurrency",

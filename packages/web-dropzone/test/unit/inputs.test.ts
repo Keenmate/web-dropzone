@@ -26,7 +26,6 @@ describe('<web-dropzone> input table (BlissElement)', () => {
         expect(el.maxVisibleFileCount).toBe(7);   // toInt({ default: 7 })
         expect(el.maxFileCount).toBe(0);       // toInt({ default: 0 })
         expect(el.displayMode).toBe('list');   // toEnum default 'list'
-        expect(el.valueFormat).toBe('json');   // toEnum default 'json'
         expect(el.isMultiple).toBe(true);      // toBool('default-true')
         expect(el.isDisabled).toBe(false);     // toBool('presence')
         expect(el.isThumbnailsShown).toBeNull(); // toBool('tristate') → unset
@@ -84,6 +83,13 @@ describe('<web-dropzone> input table (BlissElement)', () => {
         for (const old of ['multiple', 'disabled', 'showThumbnails', 'filesInside', 'autoUpload', 'uploadedDeletable', 'mode', 'maxVisibleFiles']) {
             expect(old in el, old).toBe(false);
         }
+    });
+
+    it('has no value-format input (removed in rc03: it was never read)', () => {
+        el = document.createElement('web-dropzone');
+        expect('valueFormat' in el).toBe(false);
+        const observed = (customElements.get('web-dropzone') as any).observedAttributes as string[];
+        expect(observed).not.toContain('value-format');
     });
 
     it('coalesces a property write and settles (connected)', async () => {

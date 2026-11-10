@@ -199,7 +199,6 @@ const INPUTS: readonly InputDef[] = [
 
     // ── Form integration ──────────────────────────────────────────────────────
     { configKey: 'name',                    attribute: 'name',                converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'Form field name. Files submit as real FormData blobs under this name.' },
-    { configKey: 'valueFormat',             attribute: 'value-format',        converter: toEnum(['json', 'csv', 'array'] as const, { default: 'json' }),               shouldReflect: true, on: 'update', description: 'Fallback hidden-input serialization format hint (FormData blobs are always submitted for files).' },
 
     // ── Upload pipeline (meaningful once uploadFileCallback is set) ────────────
     { configKey: 'concurrency',             attribute: 'concurrency',         converter: toInt({ min: 1, default: 1 }),                                                        shouldReflect: true, on: 'update', description: 'Maximum concurrent uploads through the worker pool.' },
@@ -492,7 +491,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
 
         // Form-relevant changes re-stamp the FormData; minFileCount alone only
         // affects validity.
-        if ('name' in partial || 'valueFormat' in partial) {
+        if ('name' in partial) {
             this.#syncFormValue();
         } else if ('minFileCount' in partial || 'labels' in partial) {
             this.#syncValidity(this.#dropzone?.getFiles().length ?? 0);

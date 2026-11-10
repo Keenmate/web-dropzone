@@ -48,7 +48,6 @@ export type {
     FileStatus,
     CancelTimeoutBehavior,
     FileCancelResult,
-    ValueFormat,
     FileState,
     ValidationResult,
     RejectedFile,

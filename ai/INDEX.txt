@@ -195,7 +195,6 @@ uploadMetadata -> satellites.txt
 V
 -
 validateCallback -> validation.txt
-value-format (inert) -> form-integration.txt
 
 W
 -

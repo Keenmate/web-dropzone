@@ -124,7 +124,6 @@ shadow root (`custom-styles` / `getCustomStylesCallback`, page-wide per tag) is 
 | `overlay-icon` | `overlayIcon` |  |  | Icon shown in the drag overlay. |
 | `highlight-on-page-drag` | `shouldHighlightOnPageDrag` | `boolean` | `false` | Arm the drop target while FILES are dragged anywhere over the page: the host gets the `armed` attribute + `:state(armed)` and the card takes `--dz-dropzone-bg-armed` (the card under the pointer keeps `--dz-dropzone-bg-active`). Cleared on drop anywhere, when the drag leaves the window, on Escape / `dragend`, and on disconnect. Never armed while disabled / read-only; text and other non-file drags never arm. One shared page listener for all instances. |
 | `name` | `name` |  |  | Form field name. Files submit as real FormData blobs under this name. |
-| `value-format` | `valueFormat` | `'json' \| 'csv' \| 'array'` | `'json'` | Fallback hidden-input serialization format hint (FormData blobs are always submitted for files). |
 | `concurrency` | `concurrency` | `number` | `1` | Maximum concurrent uploads through the worker pool. |
 | `cancel-timeout` | `cancelTimeout` | `number` | `2000` | How long (ms) a cancel waits for the aborted upload handler to settle (the row shows "Cancelling…"). Settles in time → `cancelled`; otherwise `cancel-timeout-behavior` applies and later results are ignored. |
 | `cancel-timeout-behavior` | `cancelTimeoutBehavior` | `'error' \| 'remove'` | `'error'` | What a timed-out cancel does: `error` (status error, reason `cancel-timeout`, retryable) or `remove` (the file is removed from the list). |
@@ -620,8 +619,6 @@ form.addEventListener('submit', (e) => {
 - `disabled` (or an ancestor `<fieldset disabled>`) — nothing is submitted; `readonly` — the user
   can't change the selection, the files are still submitted.
 - A form reset clears the selection.
-- `value-format` (`json` / `csv` / `array`) is a serialization hint for a hidden-input fallback; the
-  submitted value is always the `File` entries above.
 
 ## RTL
 

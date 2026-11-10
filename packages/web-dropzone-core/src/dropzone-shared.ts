@@ -48,7 +48,6 @@ export const DEFAULT_CONFIG: Required<Omit<DropzoneConfig, 'fileIcons' | 'getFil
     overlayIcon: UI_ICONS.upload,
     shouldHighlightOnPageDrag: false,
     name: '',
-    valueFormat: 'json',
     concurrency: 1,
     cancelTimeout: 2000,
     cancelTimeoutBehavior: 'error',

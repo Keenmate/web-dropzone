@@ -116,7 +116,6 @@ export type {
     FileStatus,
     CancelTimeoutBehavior,
     FileCancelResult,
-    ValueFormat,
     FileState,
     FileUploadHandler,
     FileUploadResult,

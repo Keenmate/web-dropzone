@@ -504,11 +504,6 @@
           "values": []
         },
         {
-          "name": "value-format",
-          "description": "Fallback hidden-input serialization format hint (FormData blobs are always submitted for files).",
-          "values": [{ "name": "json" }, { "name": "csv" }, { "name": "array" }]
-        },
-        {
           "name": "concurrency",
           "description": "Maximum concurrent uploads through the worker pool.",
           "values": []

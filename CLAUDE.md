@@ -400,6 +400,5 @@ Events bubble and are **not composed** (core SPEC §12.5); each has a camelCase 
 ## Form Integration
 
 - `name` attribute for form field name
-- `value-format` attribute: `'json' | 'csv' | 'array'` (controls fallback hidden-input serialization)
 - Form-associated via `ElementInternals.setFormValue()` — the element submits a real `FormData` containing each `File` blob under the configured `name`, so server-side it behaves like a standard `<input type="file">`
 - `formResetCallback()` clears the selection when the surrounding form resets

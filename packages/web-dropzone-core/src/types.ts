@@ -282,11 +282,6 @@ export interface RetryPolicy {
 }
 
 /**
- * Value format for form serialization
- */
-export type ValueFormat = 'json' | 'csv' | 'array';
-
-/**
  * State of a file in the dropzone
  */
 export interface FileState {
@@ -583,10 +578,8 @@ export interface DropzoneConfig {
     // FORM INTEGRATION
     // ========================================================================
 
-    /** HTML form field name for hidden inputs */
+    /** HTML form field name (files submit as FormData blobs under it) */
     name?: string;
-    /** Format for value serialization */
-    valueFormat?: ValueFormat;
 
     // ========================================================================
     // CALLBACKS

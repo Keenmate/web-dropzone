@@ -222,7 +222,7 @@ Every spec runs in three Playwright projects — chromium, firefox and webkit
 | `el.form` resolves the owning `<form>` (even unnamed)         | ✓      | `form-delegation.spec.ts` | `form.html` |
 | Delegated `change` listener resolves `event.target.form`      | ✓      | `form-delegation.spec.ts` | `form.html` |
 | Dropzone outside any `<form>` → `el.form === null`            | ✓      | `form-delegation.spec.ts` | `form.html` |
-| `value-format` changes the submitted shape                    | ✗      | — NOTES.md #3 (no-op)  |             |
+| `value-format` removed (no input, no accessor)                | ✓      | `inputs.test.ts` (unit) |            |
 
 ## 10. Theming
 
