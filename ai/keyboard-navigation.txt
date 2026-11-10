@@ -24,6 +24,8 @@ KEY BINDINGS
 The compact popover runs on core createPopover(): Escape closes it and
 returns focus to the trigger, an outside click (decided when the click ends)
 closes it, and opening another Keenmate overlay (dropdown, menu) closes it.
+On a phone-width viewport (<= 600px) the popover is a full-screen sheet (like
+the indicator drawer) with a Close button that returns focus to the trigger.
 Not implemented: arrow-key navigation between rows, roving tabindex, Delete
 key to remove, Escape for the indicator drawer, a focus trap in the popover
 or drawer. External file drags cannot be cancelled by Escape

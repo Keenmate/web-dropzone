@@ -328,7 +328,7 @@
     { "name": "dz-text-color-3", "category": "text", "usage": "text color 3" },
     { "name": "dz-text-color-4", "category": "text", "usage": "text color 4" },
     { "name": "dz-text-on-accent", "category": "text", "usage": "text on accent" },
-    { "name": "dz-touch-target-min", "category": "sizing", "usage": "minimum tap size of phone-mode controls — the indicator drawer close in the full-screen sheet, 44px (base: --base-touch-target-min)" },
+    { "name": "dz-touch-target-min", "category": "sizing", "usage": "minimum tap size of phone-mode controls — the close button of the full-screen sheet (indicator drawer, compact popover), 44px (base: --base-touch-target-min)" },
     { "name": "dz-transition-fast", "category": "motion", "usage": "speed fast 0.1s (base: --base-duration-fast); 0s = motion off" },
     { "name": "dz-transition-medium", "category": "motion", "usage": "speed medium 0.25s (base: --base-duration-medium); 0s = motion off" },
     { "name": "dz-transition-normal", "category": "motion", "usage": "speed normal 0.15s (base: --base-duration-normal); 0s = motion off" },

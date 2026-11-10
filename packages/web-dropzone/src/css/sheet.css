@@ -1,0 +1,94 @@
+/* ==============================================================================
+   PHONE SHEET — the indicator drawer and the compact popover on a phone
+   ==============================================================================
+   One presentation for both overlay panels (responsive-overlay.md: D-RO-2 = A
+   full-screen, D-RO-3 = A 600px — the only phone literal in the package; the
+   JS twin is PHONE_MEDIA_QUERY in src/phone-sheet.ts, which un-anchors the
+   popover at the same line). Imported by main.css into the `overrides` layer,
+   so it beats the panels' own geometry (popover.css, indicator.css — both in
+   `component`) and the inline position core's anchor() wrote is gone first
+   (the popover is un-anchored on a phone). Also holds the shared close button
+   (drawer header + popover header; the popover's shows on a phone only). */
+
+/* ==========================================================================
+   CLOSE BUTTON
+   ========================================================================== */
+/* The standard masked X (--dz-icon-remove), same glyph the file rows and
+ * web-multiselect's .ms__badge-remove use, rendered via a currentColor mask so
+ * it themes from one place. */
+.dz__indicator-drawer-close,
+.dz__popover-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: calc(2.8 * var(--dz-rem, 10px));
+    height: calc(2.8 * var(--dz-rem, 10px));
+    padding: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--dz-text-color-1);
+    border-radius: calc(0.4 * var(--dz-rem, 10px));
+    transition: background-color var(--dz-transition-normal) var(--dz-easing-snappy),
+                color var(--dz-transition-normal) var(--dz-easing-snappy);
+}
+.dz__indicator-drawer-close::before,
+.dz__popover-close::before {
+    content: "";
+    display: block;
+    width: calc(1.6 * var(--dz-rem, 10px));
+    height: calc(1.6 * var(--dz-rem, 10px));
+    background-color: currentColor;
+    -webkit-mask: var(--dz-icon-remove) center / contain no-repeat;
+            mask: var(--dz-icon-remove) center / contain no-repeat;
+}
+.dz__indicator-drawer-close:hover,
+.dz__popover-close:hover {
+    background: var(--dz-hover-bg);
+}
+/* The anchored (desktop) popover closes on an outside click / Escape — no button. */
+.dz__popover-close {
+    display: none;
+}
+
+/* ==========================================================================
+   PHONE PRESENTATION — edge-to-edge full-screen sheet
+   ==========================================================================
+   Every drawer position (edge strips AND the inline chip-anchored drop-down)
+   and the compact popover become a fixed 100dvw x 100dvh sheet; the drawer's
+   closed state keeps each edge's slide transform, its open state's
+   translate(0, 0) is untouched. box-sizing + four-edge env(safe-area-inset-*)
+   keep the header and rows out of the notch / home indicator / landscape side
+   bars while the background stays full-bleed. */
+@media (max-width: 600px) {
+    .dz__indicator-drawer,
+    .dz__popover {
+        --dz-popover-border-radius: 0;
+        position: fixed;
+        inset: 0;
+        box-sizing: border-box;
+        width: 100dvw;
+        height: 100dvh;
+        min-width: 0;
+        min-height: 0;
+        max-width: none;
+        max-height: none;
+        padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+        resize: none;
+    }
+
+    .dz__popover-close {
+        display: flex;
+    }
+
+    /* Touch target (D-RO-7 = A, --dz-touch-target-min → --base-touch-target-min, 44px). */
+    .dz__indicator-drawer-close,
+    .dz__popover-close {
+        min-width: var(--dz-touch-target-min);
+        min-height: var(--dz-touch-target-min);
+    }
+}

@@ -204,7 +204,8 @@ Image preview grid with thumbnails. Perfect for image uploads.
 
 ### Compact Mode
 
-Minimal inline display showing file count and total size. Click to open a popover with the full file list.
+Minimal inline display showing file count and total size. Click to open a popover with the full file list
+(on a phone-width viewport, ≤ 600px, a full-screen sheet with a Close button — like the indicator drawer).
 
 ```html
 <web-dropzone display-mode="compact"></web-dropzone>

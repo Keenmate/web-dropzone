@@ -24,7 +24,8 @@
 
 import { createPopover } from '@keenmate/web-components-core/positioning';
 import type { Placement, PopoverHandle } from '@keenmate/web-components-core/positioning';
-import { dispatch } from '@keenmate/web-components-core';
+import { deepActiveElement, dispatch } from '@keenmate/web-components-core';
+import { getPhoneMediaQuery } from './phone-sheet';
 import {
     initLogger,
     uiLogger,
@@ -151,6 +152,15 @@ export class WebDropzone extends DropzoneEngine {
     /** Debounce handle for the resize → save flow. ResizeObserver fires on
      *  every drag tick; we only want to persist the final dimension. */
     private popoverSaveTimer: number | null = null;
+    /** The phone-line query while the popover is open (a sheet below it, un-anchored). */
+    private popoverPhoneQuery: MediaQueryList | null = null;
+    private readonly onPopoverPhoneChange = (): void => this.applyPopoverPresentation();
+    /** Whether the open popover is presented as a phone sheet (null while closed). */
+    private popoverIsSheet: boolean | null = null;
+    /** The anchored panel's inline width / height (persisted or user-resized), put away while it is a sheet. */
+    private popoverAnchoredSize: { width: string; height: string } = { width: '', height: '' };
+    /** What had focus when the popover opened — the close button gives focus back to it. */
+    private popoverReturnFocus: HTMLElement | null = null;
     /** When true, the maxVisibleFileCount cap is ignored and all files are
      *  rendered. Toggled by the "Show N more" / "Show less" button at the
      *  end of the list (or the "+N" badge in badges mode). Reset on clear(). */
@@ -272,8 +282,8 @@ export class WebDropzone extends DropzoneEngine {
         if (this.isActive) return;
         this.isActive = true;
         this.setupOverlayTarget();
-        // An open popover kept through a DOM move is positioned again.
-        this.popoverHandle?.setAnchored(true);
+        // An open popover kept through a DOM move is positioned again (not a phone sheet).
+        this.applyPopoverPresentation();
         uiLogger.debug('Activated');
     }
 
@@ -1871,14 +1881,12 @@ export class WebDropzone extends DropzoneEngine {
         // backed by localStorage (synchronous, just await ms), but the
         // callback flavour may go to the network. Apply width/height once
         // resolved — autoUpdate re-positions on the size change.
+        // A phone sheet ignores it (applyPopoverPresentation).
         void this.stateStore.load().then(state => {
             if (!this.popover || !state) return;
-            if (typeof state.popoverWidth === 'number') {
-                this.popover.style.width = `${state.popoverWidth}px`;
-            }
-            if (typeof state.popoverHeight === 'number') {
-                this.popover.style.height = `${state.popoverHeight}px`;
-            }
+            const size = this.popoverIsSheet ? this.popoverAnchoredSize : this.popover.style;
+            if (typeof state.popoverWidth === 'number') size.width = `${state.popoverWidth}px`;
+            if (typeof state.popoverHeight === 'number') size.height = `${state.popoverHeight}px`;
         });
         this.popover.innerHTML = `
             <div class="dz__popover-sticky-top">
@@ -1887,6 +1895,7 @@ export class WebDropzone extends DropzoneEngine {
                     <div class="dz__popover-actions">
                         ${this.isAddBlocked ? '' : `<button type="button" class="dz__popover-action" data-dz-action="add-more"${this.disabledAttr}>${escapeHtml(this.label('addMore'))}</button>`}
                         ${this.config.isReadonly ? '' : `<button type="button" class="dz__popover-action" data-dz-action="clear"${this.disabledAttr}>${escapeHtml(this.label('clearAll'))}</button>`}
+                        <button type="button" class="dz__popover-close" data-dz-action="close" aria-label="${escapeHtml(this.label('close'))}"></button>
                     </div>
                 </div>
                 <div class="dz__popover-limits">${escapeHtml(this.getLimitsHint())}</div>
@@ -1929,9 +1938,24 @@ export class WebDropzone extends DropzoneEngine {
             onClose: () => this.closePopover(),
         });
         this.isPopoverOpen = true;
+        const focused = deepActiveElement();
+        this.popoverReturnFocus = focused instanceof HTMLElement ? focused : null;
+        // On a phone the popover is a full-screen sheet (css/sheet.css, like the
+        // indicator drawer): opened un-anchored, re-decided when the line is crossed.
+        this.popoverHandle.setAnchored(false);
         this.popoverHandle.open();
+        this.popoverPhoneQuery = getPhoneMediaQuery();
+        this.popoverPhoneQuery?.addEventListener('change', this.onPopoverPhoneChange);
+        this.applyPopoverPresentation();
 
         // Add event handlers
+        this.popover.querySelector('[data-dz-action="close"]')?.addEventListener('click', () => {
+            // The sheet's close button (phones only): focus goes back to the trigger.
+            const returnFocus = this.popoverReturnFocus ?? this.getPopoverAnchor();
+            this.closePopover();
+            if (returnFocus?.isConnected) returnFocus.focus({ preventScroll: true });
+        });
+
         this.popover.querySelector('[data-dz-action="clear"]')?.addEventListener('click', async () => {
             // User-initiated clear runs the confirm gate (if set). Popover
             // stays open until the user resolves so the dialog has surrounding
@@ -2300,6 +2324,11 @@ export class WebDropzone extends DropzoneEngine {
     private closePopover(): void {
         if (!this.isPopoverOpen || !this.popover) return;
         this.isPopoverOpen = false;
+        this.popoverPhoneQuery?.removeEventListener('change', this.onPopoverPhoneChange);
+        this.popoverPhoneQuery = null;
+        this.popoverIsSheet = null;
+        this.popoverAnchoredSize = { width: '', height: '' };
+        this.popoverReturnFocus = null;
 
         // Tear down the user-resize observer + flush any pending save so
         // a quick close-after-resize doesn't lose the final dimension.
@@ -2327,12 +2356,42 @@ export class WebDropzone extends DropzoneEngine {
      *  flush path in closePopover so a late close doesn't drop the final
      *  dimension. */
     private flushPopoverSize(): void {
-        if (!this.popover) return;
+        // A phone sheet's size is the viewport's, not the user's choice.
+        if (!this.popover || this.isPopoverSheet()) return;
         const rect = this.popover.getBoundingClientRect();
         void this.stateStore.save({
             popoverWidth: Math.round(rect.width),
             popoverHeight: Math.round(rect.height)
         });
+    }
+
+    /** Whether the open popover is a phone sheet (below the 600px line, css/sheet.css). */
+    private isPopoverSheet(): boolean {
+        return !!this.popoverPhoneQuery?.matches;
+    }
+
+    /**
+     * Phone sheet or anchored panel: a sheet is un-anchored (the sheet CSS places
+     * it) and puts the panel's inline size (persisted / user-resized) away; back
+     * above the line the anchored panel gets it again. Detached (moved) dropzones
+     * stay un-anchored until `activate()`.
+     */
+    private applyPopoverPresentation(): void {
+        if (!this.popover || !this.popoverHandle) return;
+        const isSheet = this.isPopoverSheet();
+        if (isSheet !== this.popoverIsSheet) {
+            const style = this.popover.style;
+            if (isSheet) {
+                this.popoverAnchoredSize = { width: style.width, height: style.height };
+                style.width = '';
+                style.height = '';
+            } else if (this.popoverIsSheet) {
+                style.width = this.popoverAnchoredSize.width;
+                style.height = this.popoverAnchoredSize.height;
+            }
+            this.popoverIsSheet = isSheet;
+        }
+        this.popoverHandle.setAnchored(this.isActive && !isSheet);
     }
 
     /**

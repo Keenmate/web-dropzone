@@ -358,6 +358,7 @@ Every spec runs in three Playwright projects — chromium, firefox and webkit
 | Default placement bottom-start; `popover-placement="top-end"` | ✓      | `popover.spec.ts` | `popover.html` |
 | Escape / outside click close; inside click stays; summary toggles; Enter opens | ✓ | `popover.spec.ts` | `popover.html` |
 | `labels.summary` `{count}` / `{size}` (+ default, live change)   | ✓   | `popover.spec.ts` | `popover.html` |
+| Phone (≤ 600px): full-screen sheet + Close (focus back to the summary); widening re-anchors; desktop: no Close | ✓ | `phone-sheet.spec.ts` | `popover.html` |
 
 ## 21. File icons
 

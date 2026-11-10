@@ -77,7 +77,8 @@ Form validity (`min-file-count`) uses the native constraint API — `valueMissin
 
 - Opening the file dialog returns focus to the control that opened it (browser behaviour).
 - The compact popover keeps focus on its trigger when it opens; when it closes on <kbd>Esc</kbd> while
-  focus is inside it, focus returns to the trigger (core `createPopover()`).
+  focus is inside it, focus returns to the trigger (core `createPopover()`). On a phone-width viewport
+  it is a full-screen sheet with a Close button, which also gives focus back to the trigger.
 - The indicator drawer does **not** move focus when it opens and doesn't trap it; it is closed with its
   Close button (or the chip). On a phone-width viewport the open drawer is a full-screen sheet — see
   [theming.md](./theming.md#phone-presentation).

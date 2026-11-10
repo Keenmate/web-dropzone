@@ -4,7 +4,11 @@
    Styles live in their own partial because the chip is a satellite-only
    surface (no equivalent inside the convenience-form <web-dropzone>). Loaded
    by <web-dropzone-indicator> only (next to main.css), NOT imported by
-   main.css — see VALIDATION-NOTES.md → C-CSS-5. */
+   main.css — see VALIDATION-NOTES.md → C-CSS-5. Everything sits in main.css's
+   `component` layer (adopted after main.css, so it still wins there), which
+   lets the phone sheet in sheet.css (`overrides` layer) restyle the drawer. */
+
+@layer component {
 
 /* ==========================================================================
    HOST
@@ -251,38 +255,8 @@
     font-weight: 600;
     font-size: calc(1.5 * var(--dz-rem, 10px));
 }
-/* Close button — the standard masked X (--dz-icon-remove), same glyph the file
- * rows and web-multiselect's .ms__badge-remove use, rendered via a currentColor
- * mask so it themes from one place. Previously a raw "×" text character, which
- * read as a different, heavier glyph than the rest of the component. */
-.dz__indicator-drawer-close {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    width: calc(2.8 * var(--dz-rem, 10px));
-    height: calc(2.8 * var(--dz-rem, 10px));
-    padding: 0;
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--dz-text-color-1);
-    border-radius: calc(0.4 * var(--dz-rem, 10px));
-    transition: background-color var(--dz-transition-normal) var(--dz-easing-snappy),
-                color var(--dz-transition-normal) var(--dz-easing-snappy);
-}
-.dz__indicator-drawer-close::before {
-    content: "";
-    display: block;
-    width: calc(1.6 * var(--dz-rem, 10px));
-    height: calc(1.6 * var(--dz-rem, 10px));
-    background-color: currentColor;
-    -webkit-mask: var(--dz-icon-remove) center / contain no-repeat;
-            mask: var(--dz-icon-remove) center / contain no-repeat;
-}
-.dz__indicator-drawer-close:hover {
-    background: var(--dz-hover-bg);
-}
+/* The close button (.dz__indicator-drawer-close) is shared with the compact
+ * popover — sheet.css. */
 .dz__indicator-drawer-body {
     flex: 1 1 auto;
     overflow-y: auto;
@@ -291,34 +265,7 @@
     padding: calc(1.2 * var(--dz-rem, 10px)) calc(1.6 * var(--dz-rem, 10px));
 }
 
-/* ==========================================================================
-   PHONE PRESENTATION — the drawer goes edge-to-edge full-screen
-   ==========================================================================
-   responsive-overlay.md (D-RO-2 = A full-screen, D-RO-3 = A 600px, the only
-   phone literal in the package). Every position (edge strips AND the inline
-   chip-anchored drop-down) becomes a fixed 100dvw x 100dvh sheet; the closed
-   state keeps each edge's slide transform, the open state's translate(0, 0)
-   is untouched. box-sizing + four-edge env(safe-area-inset-*) keep the header
-   and rows out of the notch / home indicator / landscape side bars while the
-   background stays full-bleed. Same specificity as the per-position rules
-   above (:host([…]) .class), later in source, so it wins. */
-@media (max-width: 600px) {
-    :host([data-position]) .dz__indicator-drawer {
-        position: fixed;
-        inset: 0;
-        box-sizing: border-box;
-        width: 100dvw;
-        height: 100dvh;
-        max-height: none;
-        padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-        border: none;
-        border-radius: 0;
-        box-shadow: none;
-    }
+/* PHONE PRESENTATION — the drawer goes edge-to-edge full-screen: sheet.css
+   (shared with the compact popover; main.css, `overrides` layer). */
 
-    /* Touch target (D-RO-7 = A, --dz-touch-target-min → --base-touch-target-min, 44px). */
-    .dz__indicator-drawer-close {
-        min-width: var(--dz-touch-target-min);
-        min-height: var(--dz-touch-target-min);
-    }
-}
+} /* @layer component */

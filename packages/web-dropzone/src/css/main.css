@@ -13,7 +13,9 @@
    NOTE: this CSS is inlined into the shadow root of every element in the
    package (host + four satellites). `indicator.css` is loaded separately by
    `<web-dropzone-indicator>` only, to avoid shipping its drawer chrome to
-   every satellite shadow root.
+   every satellite shadow root (it wraps itself in the `component` layer).
+   `sheet.css` is the phone sheet + close button shared by the indicator
+   drawer and the compact popover.
 */
 
 @layer variables, component, overrides;
@@ -37,3 +39,4 @@
 
 /* === OVERRIDES === */
 @import url('./dark-mode.css')   layer(overrides);
+@import url('./sheet.css')       layer(overrides);

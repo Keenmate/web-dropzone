@@ -106,6 +106,17 @@ Requires `@keenmate/web-components-core` `^1.0.0-rc21` (was `^1.0.0-rc15`). No c
 - `escapeHtml` (re-exported by both packages) is core's: it takes any value (`null` / `undefined`
   → `''`). `packages/web-dropzone-core/src/dom-utils.ts` is gone.
 
+### Changed (compact popover on phones, 2026-11-10)
+
+- **On a phone-width viewport (≤ 600px) the compact popover is a full-screen sheet**, like the
+  indicator drawer: edge to edge, safe-area padding, no resize handle, and a Close button in its header
+  (`.dz__popover-close`, `labels.close`; hidden above the line), which gives focus back to the trigger.
+  It is not anchored while it is a sheet and ignores its persisted size (nor saves one); crossing the
+  line while open switches between sheet and anchored panel. Desktop is unchanged. e2e:
+  `phone-sheet.spec.ts`.
+- Internal: the sheet rules and the close-button style are one copy in `css/sheet.css` (`main.css`,
+  `overrides` layer) shared by both panels; `indicator.css` now sits in the `component` layer.
+
 ### Added (satellite events through core emit(), 2026-11-10)
 
 - **`<web-dropzone-list>` events have `on*` twins**: `summary-activate` → `el.onSummaryActivate`,

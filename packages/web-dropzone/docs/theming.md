@@ -217,10 +217,13 @@ icon show the CSS-only `.dz__loader--inline` while uploading (the row carries `a
 
 ## Phone presentation
 
-On a phone-width viewport (`@media (max-width: 600px)`) the `<web-dropzone-indicator>` drawer becomes
-an edge-to-edge full-screen sheet (`100dvw` × `100dvh`, no border / radius / shadow), with
-`env(safe-area-inset-*)` padding on all four edges and a close button of at least
-`--dz-touch-target-min` (`--base-touch-target-min`, 44px). Its list and the compact-mode popover's
+On a phone-width viewport (`@media (max-width: 600px)`) the `<web-dropzone-indicator>` drawer and the
+compact-mode popover become the same edge-to-edge full-screen sheet (`100dvw` × `100dvh`, no border /
+radius / shadow, no resize handle), with `env(safe-area-inset-*)` padding on all four edges and a close
+button (`.dz__indicator-drawer-close` / `.dz__popover-close` — the popover's shows on a phone only) of
+at least `--dz-touch-target-min` (`--base-touch-target-min`, 44px). The popover is not anchored to its
+trigger while it is a sheet and ignores its persisted size; crossing the line while it is open
+switches between the two. Its list and the compact-mode popover's
 list use `overscroll-behavior: contain`, so a fling at the list edge doesn't scroll the page behind.
 
 ## Popover gap
@@ -651,7 +654,7 @@ as `@keenmate/web-dropzone/manifest`).
 | Variable | Usage |
 |---|---|
 | `--dz-rem` | base sizing unit for proportional scaling (default 10px). Input variable: not declared on :host, read as var(--dz-rem, 10px) so a value on <web-dropzone> or any ancestor reaches every satellite |
-| `--dz-touch-target-min` | minimum tap size of phone-mode controls — the indicator drawer close in the full-screen sheet, 44px (base: --base-touch-target-min) |
+| `--dz-touch-target-min` | minimum tap size of phone-mode controls — the close button of the full-screen sheet (indicator drawer, compact popover), 44px (base: --base-touch-target-min) |
 
 #### rolling tokens
 

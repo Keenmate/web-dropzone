@@ -48,7 +48,11 @@ satellites, so it is imported (`?inline`) next to `main.css` by
 `main.css`. Importing it from `main.css` would ship the drawer chrome to
 every satellite shadow root. It sits in the same cascade (layer-less
 partial, loaded after `main.css`) and follows every other CSS rule
-(banners, BEM, `--dz-*` only). PASS with note.
+(banners, BEM, `--dz-*` only). Its rules sit in an `@layer component { … }`
+block (adopted after `main.css`, so they still win inside that layer) so the
+phone sheet in `sheet.css` — imported by `main.css` into `overrides`, shared
+with the compact popover — restyles the drawer without a second copy.
+PASS with note.
 
 ## C-TC-7 — `display: contents` on the fixed-edge `<web-dropzone-indicator>` host
 

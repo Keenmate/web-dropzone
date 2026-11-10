@@ -200,7 +200,8 @@ Lives only in the renderer package. The core has no CSS.
 - `base.css`, `controls.css`, `floating.css`, `states.css`, `animations.css` — skeleton + canonical concerns (FOUC guard, loader, focus, motion).
 - `dropzone.css`, `file-item.css`, `file-list.css`, `overlay.css`, `popover.css`, `progress.css`, `rtl.css` — feature rules (`component` layer).
 - `dark-mode.css` — `overrides` layer.
-- `indicator.css` — loaded only by `<web-dropzone-indicator>` (drawer chrome stays out of the other shadow roots).
+- `indicator.css` — loaded only by `<web-dropzone-indicator>` (drawer chrome stays out of the other shadow roots; wrapped in `@layer component`).
+- `sheet.css` — phone sheet (≤ 600px) + close button shared by the indicator drawer and the compact popover (`overrides` layer); `src/phone-sheet.ts` is its JS twin (un-anchors the popover).
 
 ### Naming Conventions
 

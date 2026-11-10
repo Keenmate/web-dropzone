@@ -70,6 +70,52 @@
             },
             {
               "kind": "field",
+              "name": "popoverPhoneQuery",
+              "type": {
+                "text": "MediaQueryList | null"
+              },
+              "privacy": "private",
+              "default": "null",
+              "description": "The phone-line query while the popover is open (a sheet below it, un-anchored)."
+            },
+            {
+              "kind": "field",
+              "name": "onPopoverPhoneChange",
+              "privacy": "private",
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "popoverIsSheet",
+              "type": {
+                "text": "boolean | null"
+              },
+              "privacy": "private",
+              "default": "null",
+              "description": "Whether the open popover is presented as a phone sheet (null while closed)."
+            },
+            {
+              "kind": "field",
+              "name": "popoverAnchoredSize",
+              "type": {
+                "text": "{ width: string; height: string }"
+              },
+              "privacy": "private",
+              "default": "{ width: '', height: '' }",
+              "description": "The anchored panel's inline width / height (persisted or user-resized), put away while it is a sheet."
+            },
+            {
+              "kind": "field",
+              "name": "popoverReturnFocus",
+              "type": {
+                "text": "HTMLElement | null"
+              },
+              "privacy": "private",
+              "default": "null",
+              "description": "What had focus when the popover opened — the close button gives focus back to it."
+            },
+            {
+              "kind": "field",
               "name": "showAllList",
               "type": {
                 "text": "boolean"
@@ -1455,6 +1501,28 @@
             },
             {
               "kind": "method",
+              "name": "isPopoverSheet",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "boolean"
+                }
+              },
+              "description": "Whether the open popover is a phone sheet (below the 600px line, css/sheet.css)."
+            },
+            {
+              "kind": "method",
+              "name": "applyPopoverPresentation",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "description": "Phone sheet or anchored panel: a sheet is un-anchored (the sheet CSS places\nit) and puts the panel's inline size (persisted / user-resized) away; back\nabove the line the anchored panel gets it again. Detached (moved) dropzones\nstay un-anchored until `activate()`."
+            },
+            {
+              "kind": "method",
               "name": "getPopoverAnchor",
               "privacy": "private",
               "return": {
@@ -2664,6 +2732,49 @@
           "declaration": {
             "name": "applyArmedState",
             "module": "src/page-file-drag.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/phone-sheet.ts",
+      "declarations": [
+        {
+          "kind": "variable",
+          "name": "PHONE_MEDIA_QUERY",
+          "type": {
+            "text": "string"
+          },
+          "default": "'(max-width: 600px)'",
+          "description": "The phone line of the overlay panels (responsive-overlay.md D-RO-3 = A, 600px).\nBelow it the indicator drawer and the compact popover are full-screen sheets —\ndrawn by `css/sheet.css` (`@media (max-width: 600px)`, the same literal); the\npopover reads this query to un-anchor itself so the sheet CSS places it."
+        },
+        {
+          "kind": "function",
+          "name": "getPhoneMediaQuery",
+          "return": {
+            "type": {
+              "text": "MediaQueryList | null"
+            }
+          },
+          "description": "The phone-line media query list, or `null` without `matchMedia` (SSR, old jsdom)."
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "PHONE_MEDIA_QUERY",
+          "declaration": {
+            "name": "PHONE_MEDIA_QUERY",
+            "module": "src/phone-sheet.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "getPhoneMediaQuery",
+          "declaration": {
+            "name": "getPhoneMediaQuery",
+            "module": "src/phone-sheet.ts"
           }
         }
       ]
@@ -6899,7 +7010,7 @@
             },
             {
               "name": "--dz-touch-target-min",
-              "description": "minimum tap size of phone-mode controls — the indicator drawer close in the full-screen sheet, 44px (base: --base-touch-target-min)"
+              "description": "minimum tap size of phone-mode controls — the close button of the full-screen sheet (indicator drawer, compact popover), 44px (base: --base-touch-target-min)"
             },
             {
               "name": "--dz-transition-fast",
@@ -9522,7 +9633,7 @@
             },
             {
               "name": "--dz-touch-target-min",
-              "description": "minimum tap size of phone-mode controls — the indicator drawer close in the full-screen sheet, 44px (base: --base-touch-target-min)"
+              "description": "minimum tap size of phone-mode controls — the close button of the full-screen sheet (indicator drawer, compact popover), 44px (base: --base-touch-target-min)"
             },
             {
               "name": "--dz-transition-fast",
@@ -11929,7 +12040,7 @@
             },
             {
               "name": "--dz-touch-target-min",
-              "description": "minimum tap size of phone-mode controls — the indicator drawer close in the full-screen sheet, 44px (base: --base-touch-target-min)"
+              "description": "minimum tap size of phone-mode controls — the close button of the full-screen sheet (indicator drawer, compact popover), 44px (base: --base-touch-target-min)"
             },
             {
               "name": "--dz-transition-fast",
@@ -14057,7 +14168,7 @@
             },
             {
               "name": "--dz-touch-target-min",
-              "description": "minimum tap size of phone-mode controls — the indicator drawer close in the full-screen sheet, 44px (base: --base-touch-target-min)"
+              "description": "minimum tap size of phone-mode controls — the close button of the full-screen sheet (indicator drawer, compact popover), 44px (base: --base-touch-target-min)"
             },
             {
               "name": "--dz-transition-fast",
@@ -17367,7 +17478,7 @@
             },
             {
               "name": "--dz-touch-target-min",
-              "description": "minimum tap size of phone-mode controls — the indicator drawer close in the full-screen sheet, 44px (base: --base-touch-target-min)"
+              "description": "minimum tap size of phone-mode controls — the close button of the full-screen sheet (indicator drawer, compact popover), 44px (base: --base-touch-target-min)"
             },
             {
               "name": "--dz-transition-fast",
