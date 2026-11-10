@@ -14,9 +14,9 @@
    HOST
    ========================================================================== */
 :host {
-    /* Fixed-edge mode (default): element is zero-size so it doesn't take
-       up flow space — the chip + drawer float via position: fixed. Inline
-       mode overrides this below so the chip participates in normal layout. */
+    /* zero-footprint host: fixed-edge mode (default) — the element takes no flow
+       space; the chip + drawer float via position: fixed. Inline mode overrides
+       this below so the chip participates in normal layout. */
     display: contents;
 }
 
