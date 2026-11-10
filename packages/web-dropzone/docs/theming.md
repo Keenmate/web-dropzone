@@ -89,6 +89,10 @@ The page signal (`data-theme`, `data-bs-theme`, `.dark` / `.light` on `<html>` t
 element named by the core `theme-source` attribute) is mirrored onto the host as `data-context-theme`,
 which `dark-mode.css` reads — a replacement for `:host-context()`, which Firefox and Safari don't support.
 
+The `overlay-target` drag overlay lives on `<body>`, outside the shadow root, and takes the
+**host's** resolved `color-scheme` (kept live while it's shown) — a `data-theme="dark"` dropzone on a
+light page gets a dark overlay.
+
 ## Shared theme layer (`--base-*`)
 
 The `--dz-*` tokens read [`@keenmate/base-css-variables`](https://www.npmjs.com/package/@keenmate/base-css-variables),

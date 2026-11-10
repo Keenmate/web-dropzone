@@ -101,6 +101,15 @@ Requires `@keenmate/web-components-core` `^1.0.0-rc21` (was `^1.0.0-rc15`). No c
 - `escapeHtml` (re-exported by both packages) is core's: it takes any value (`null` / `undefined`
   → `''`). `packages/web-dropzone-core/src/dom-utils.ts` is gone.
 
+### Fixed (drag overlay light / dark, 2026-11-10)
+
+- **The `overlay-target` drag overlay takes the dropzone's color scheme, not the page's.** It is
+  mounted on `<body>` (it has to cover any target on the page), outside the host's `dark-mode.css`
+  rules, so a dark dropzone on a light page (or the reverse) resolved its `light-dark()` colors
+  (e.g. a `light-dark()` `--base-primary-color`) against the page. The overlay now copies the host's
+  resolved `color-scheme` (`data-theme` > `data-context-theme` > inherited) and follows it live
+  while shown. e2e: `drag-overlay-theme.spec.ts`.
+
 ### Changed (popover gap, 2026-11-09)
 
 - **The compact-mode popover opens 4px from its trigger instead of 8px** — the gap is now the page

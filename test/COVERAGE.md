@@ -198,6 +198,7 @@ Every spec runs in three Playwright projects — chromium, firefox and webkit
 | Two overlays don't steal each other's drags (both close on drop) | ✓   | `drag-overlay.spec.ts` | `drag-overlay.html` |
 | `overlayTarget` property as an HTMLElement                    | ✓      | `drag-overlay.spec.ts` | `drag-overlay.html` |
 | `overlay-target="#id"` (documented selector form)             | ✓      | `drag-overlay.spec.ts` (NOTES #1 fixed) | `drag-overlay.html` |
+| Overlay takes the host's color-scheme (dark on light page, light on dark, live) | ✓ | `drag-overlay-theme.spec.ts` | `drag-overlay-theme.html` |
 | `highlight-on-page-drag` off by default (no `armed`)          | ✓      | `armed.spec.ts` | `armed.html` |
 | Armed while a file drag is over the page (attr, `:state`, bg, bulk / structural / picker) | ✓ | `armed.spec.ts` | `armed.html` |
 | Armed cleared on drop / dragleave out / dragend / Escape / heartbeat / disconnect | ✓ | `armed.spec.ts` | `armed.html` |

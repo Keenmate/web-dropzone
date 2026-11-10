@@ -204,6 +204,9 @@ export class WebDropzone extends DropzoneEngine {
     private boundOverlayWindowDragover: ((e: DragEvent) => void) | null = null;
     private boundOverlayWindowDragend: (() => void) | null = null;
     private boundOverlayDragEndedSignal: (() => void) | null = null;
+    // Keeps the body-mounted overlay's color-scheme in step with the host's
+    // while it's shown (see createOverlay).
+    private overlaySchemeObserver: MutationObserver | null = null;
 
     // Event handler references for cleanup
     private boundHandleDragOver: (e: DragEvent) => void;
@@ -2706,6 +2709,27 @@ export class WebDropzone extends DropzoneEngine {
             </div>
         `;
 
+        // Light / dark: the overlay sits on <body>, outside the host's
+        // `dark-mode.css` rules, so its `light-dark()` values (the copied
+        // `--dz-overlay-*` tokens are unresolved, e.g. a `light-dark()`
+        // accent) would follow the PAGE's scheme. Copy the host's resolved
+        // `color-scheme` (data-theme > data-context-theme > inherited) and
+        // keep it live while the overlay is up — core re-writes
+        // `data-context-theme` on a page / theme-source change, and the
+        // page can flip `data-theme` on the host mid-drag.
+        const host = this.config.hostElement;
+        if (host) {
+            const syncScheme = (): void => {
+                if (this.dragOverlay) this.dragOverlay.style.colorScheme = getComputedStyle(host).colorScheme;
+            };
+            syncScheme();
+            this.overlaySchemeObserver = new MutationObserver(syncScheme);
+            this.overlaySchemeObserver.observe(host, {
+                attributes: true,
+                attributeFilter: ['data-theme', 'data-context-theme', 'style', 'class'],
+            });
+        }
+
         document.body.appendChild(this.dragOverlay);
 
         // Fade-in via WAAPI (no global keyframes needed). The overlay lives on
@@ -2870,6 +2894,8 @@ export class WebDropzone extends DropzoneEngine {
                 clearInterval(this.overlayHeartbeatTimer);
                 this.overlayHeartbeatTimer = null;
             }
+            this.overlaySchemeObserver?.disconnect();
+            this.overlaySchemeObserver = null;
             this.dragOverlay.remove();
             this.dragOverlay = null;
             uiLogger.debug('Overlay removed');

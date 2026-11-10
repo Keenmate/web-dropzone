@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — drag overlay light / dark</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        /* A scheme-dependent accent, so the overlay background proves which branch resolved:
+           blue = light, red = dark. */
+        :root { --base-primary-color: light-dark(rgb(0, 0, 255), rgb(255, 0, 0)); }
+        .target { min-height: 120px; border: 1px dashed #cbd5e0; padding: 16px; }
+        web-dropzone { display: none; } /* overlay-only mode hides the host */
+    </style>
+</head>
+<body>
+    <h1>drag overlay — the dropzone's scheme, not the page's</h1>
+    <p>Targeted by <code>e2e/drag-overlay-theme.spec.ts</code>. The page starts light; the dropzone is forced dark.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">overlay-target="target", host data-theme="dark" on a data-theme="light" page</div>
+        <div id="target" class="target">Drag files here.</div>
+        <web-dropzone id="dz" data-theme="dark" overlay-target="target" accept="*/*"></web-dropzone>
+    </div>
+
+    <script type="module">
+        import '/src/index.ts';
+    </script>
+</body>
+</html>
