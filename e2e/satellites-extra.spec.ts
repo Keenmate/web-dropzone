@@ -109,6 +109,69 @@ test.describe('<web-dropzone-list> attributes', () => {
     });
 });
 
+test.describe('<web-dropzone-indicator> drawer — core overlay tree', () => {
+    const chip = (page: Page) => dz(page, 'ind-left').locator('.dz__indicator-chip');
+    const closeBtn = (page: Page) => dz(page, 'ind-left').locator('.dz__indicator-drawer-close');
+    const isOpen = (page: Page, open: boolean) =>
+        expect(dz(page, 'ind-left')).toHaveAttribute('data-drawer-open', String(open));
+
+    test('the chip carries aria-expanded; opening moves focus into the drawer', async ({ page }) => {
+        await expect(chip(page)).toHaveAttribute('aria-expanded', 'false');
+        await chip(page).click();
+        await isOpen(page, true);
+        await expect(chip(page)).toHaveAttribute('aria-expanded', 'true');
+        await expect(closeBtn(page)).toBeFocused();
+    });
+
+    test('Escape closes it and focus returns to the chip', async ({ page }) => {
+        await chip(page).click();
+        await isOpen(page, true);
+        await page.keyboard.press('Escape');
+        await isOpen(page, false);
+        await expect(chip(page)).toHaveAttribute('aria-expanded', 'false');
+        await expect(chip(page)).toBeFocused();
+    });
+
+    test('the Close button returns focus to the chip', async ({ page }) => {
+        await chip(page).click();
+        await closeBtn(page).click();
+        await isOpen(page, false);
+        await expect(chip(page)).toBeFocused();
+    });
+
+    test('a click outside closes it; a click inside does not', async ({ page }) => {
+        await chip(page).click();
+        await isOpen(page, true);
+        await dz(page, 'ind-left').locator('.dz__indicator-drawer-title').click();
+        await isOpen(page, true);
+        await page.mouse.click(1300, 500); // the left drawer is min(40rem, 90dvw) wide
+        await isOpen(page, false);
+        await expect(chip(page)).toHaveAttribute('aria-expanded', 'false');
+    });
+
+    test('Escape closes the topmost overlay first: one opened from inside the drawer, then the drawer', async ({ page }) => {
+        await chip(page).click();
+        await isOpen(page, true);
+        await dz(page, 'ind-left').evaluate((host) => {
+            const trigger = host.shadowRoot!.querySelector('.dz__indicator-drawer-title')!;
+            const panel = document.createElement('div');
+            document.body.append(panel);
+            (window as any).__childClosed = '';
+            const child = (window as any).__registerOverlay(
+                (reason: string) => { (window as any).__childClosed = reason; },
+                undefined,
+                { getElement: () => panel, shouldCloseOnEscape: true },
+            );
+            child.activate({ trigger });
+        });
+        await page.keyboard.press('Escape');
+        await expect.poll(() => page.evaluate(() => (window as any).__childClosed)).toBe('escape');
+        await isOpen(page, true);
+        await page.keyboard.press('Escape');
+        await isOpen(page, false);
+    });
+});
+
 test.describe('<web-dropzone-indicator> attributes', () => {
     test('position / drawer reflect to data-* on the host', async ({ page }) => {
         await expect(dz(page, 'ind-left')).toHaveAttribute('data-position', 'left');

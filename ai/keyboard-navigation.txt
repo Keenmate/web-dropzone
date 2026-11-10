@@ -18,7 +18,11 @@ KEY BINDINGS
 |                                |                | to its trigger                  |
 | Drag overlay (in-page drag)    | Escape         | remove the overlay              |
 | <web-dropzone-list> summary    | Enter / Space  | fire `summary-activate`         |
-| Indicator chip (drawer="auto") | Enter / Space  | toggle the drawer (<button>)    |
+| Indicator chip (drawer="auto") | Enter / Space  | toggle the drawer (<button>,    |
+|                                |                | aria-expanded); focus moves to  |
+|                                |                | the drawer's Close button       |
+| Indicator drawer (open)        | Escape         | close the drawer; focus returns |
+|                                |                | to the chip                     |
 | Tab / Shift+Tab                |                | move between the controls above |
 
 The compact popover runs on core createPopover(): Escape closes it and
@@ -26,9 +30,11 @@ returns focus to the trigger, an outside click (decided when the click ends)
 closes it, and opening another Keenmate overlay (dropdown, menu) closes it.
 On a phone-width viewport (<= 600px) the popover is a full-screen sheet (like
 the indicator drawer) with a Close button that returns focus to the trigger.
+The indicator drawer (role="dialog") joins the same overlay tree: Escape and
+an outside click close it (topmost overlay first), opening another Keenmate
+overlay closes it, focus moves into it on open and back to the chip on close.
 Not implemented: arrow-key navigation between rows, roving tabindex, Delete
-key to remove, Escape for the indicator drawer, a focus trap in the popover
-or drawer. External file drags cannot be cancelled by Escape
+key to remove, a focus trap in the popover or drawer. External file drags cannot be cancelled by Escape
 (the OS swallows the key); the overlay closes ~350 ms after the drag stops.
 
 TAB ORDER

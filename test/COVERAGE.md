@@ -176,6 +176,7 @@ Every spec runs in three Playwright projects — chromium, firefox and webkit
 | Picker `inside="true"` + nested list (files-inside layout)    | ✓      | `satellites-extra.spec.ts` | `satellites-extra.html` |
 | List own `labels.noData`, `list-appearance` (+ live change)     | ✓      | `satellites-extra.spec.ts` | `satellites-extra.html` |
 | Indicator `position` / `drawer` (auto toggles, off = status chip) / `labels.indicatorTitle` | ✓ | `satellites-extra.spec.ts` | `satellites-extra.html` |
+| Indicator drawer in the overlay tree: `aria-expanded`, focus in / back, Escape, outside click, topmost first | ✓ | `satellites-extra.spec.ts` | `satellites-extra.html` |
 | Indicator unknown `position` refused (`input-rejected`, previous value reflected back); live change applies | ✓ | `satellites-extra.spec.ts` | `satellites-extra.html` |
 | Progress `data-empty` / `data-status` (uploading → paused → error → complete) | ✓ | `satellites-extra.spec.ts` | `satellites-extra.html` |
 | Satellites on core `BlissElement`: `ready`, `motion` mirrored (`data-motion`), core theme context (`data-context-theme` from a page `data-theme`) | ✓ | `core-alignment.spec.ts` | `core-alignment.html` |

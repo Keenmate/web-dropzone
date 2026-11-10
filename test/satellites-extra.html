@@ -44,6 +44,9 @@
 
     <script type="module">
         import '/src/index.ts';
+        // Core's overlay tree, for the drawer's nested-overlay (topmost-first) test.
+        import { registerOverlay } from '@keenmate/web-components-core';
+        window.__registerOverlay = registerOverlay;
 
         // Synthetic upload pump for the progress fixture — drive an upload
         // to see the satellites update.

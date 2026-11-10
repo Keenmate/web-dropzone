@@ -762,8 +762,10 @@ The shared inputs, plus:
 Indicator strings (`labels`): `indicatorTitle`, `indicatorIdle`, `indicatorStatus` / `indicatorQueue`
 (aria), `close`, `indicatorFailed` / `…Uploading` / `…Paused` / `…Queued` / `…Done`.
 Host attributes `data-position`, `data-drawer`, `data-drawer-open`; shadow parts `::part(chip)`,
-`::part(drawer)`. The chip hides while a non-inline drawer is open; on a phone-width viewport the
-drawer is a full-screen sheet. The drawer embeds a `<web-dropzone-list>` (style it with
+`::part(drawer)`. The chip (`aria-expanded`) hides while a non-inline drawer is open; on a phone-width
+viewport the drawer is a full-screen sheet. The drawer is in core's overlay tree: <kbd>Esc</kbd> and an
+outside click close it (topmost overlay first), opening another Keenmate overlay closes it; focus moves
+into it on open and back to the chip on close. The drawer embeds a `<web-dropzone-list>` (style it with
 `window.components['web-dropzone-list'].customStyles`). The callbacks follow the status-surface
 contract below.
 

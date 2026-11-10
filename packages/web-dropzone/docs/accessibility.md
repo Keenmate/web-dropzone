@@ -18,8 +18,8 @@ accessible names are localised together with the UI. Color contrast follows the 
 | Compact popover | <kbd>Esc</kbd> | Closes the popover and returns focus to the trigger; an outside click (decided when the click ends) closes it too, and so does opening another Keenmate overlay (a dropdown, a menu, another popover). |
 | Drag overlay (`overlay-target`) | <kbd>Esc</kbd> | Dismisses the full-viewport drag overlay. |
 | Armed page drag (`highlight-on-page-drag`) | <kbd>Esc</kbd> | Disarms. |
-| Indicator chip (`<web-dropzone-indicator drawer="auto">`) | <kbd>Tab</kbd>, <kbd>Enter</kbd> / <kbd>Space</kbd> | A native `<button>` toggling the drawer. |
-| Indicator drawer | <kbd>Tab</kbd> to the Close button | Closes the drawer. |
+| Indicator chip (`<web-dropzone-indicator drawer="auto">`) | <kbd>Tab</kbd>, <kbd>Enter</kbd> / <kbd>Space</kbd> | A native `<button>` (`aria-expanded`) toggling the drawer; opening moves focus to the drawer's Close button. |
+| Indicator drawer | <kbd>Esc</kbd>, or its Close button | Closes the drawer and returns focus to the chip; an outside click closes it too, and so does opening another Keenmate overlay (core overlay tree, topmost overlay first). |
 | `<web-dropzone-progress>` bulk buttons | <kbd>Tab</kbd>, <kbd>Enter</kbd> / <kbd>Space</kbd> | Native `<button>`s (Pause all / Resume all / Cancel all / Retry all). |
 
 ## Disabled and read-only
@@ -79,9 +79,10 @@ Form validity (`min-file-count`) uses the native constraint API — `valueMissin
 - The compact popover keeps focus on its trigger when it opens; when it closes on <kbd>Esc</kbd> while
   focus is inside it, focus returns to the trigger (core `createPopover()`). On a phone-width viewport
   it is a full-screen sheet with a Close button, which also gives focus back to the trigger.
-- The indicator drawer does **not** move focus when it opens and doesn't trap it; it is closed with its
-  Close button (or the chip). On a phone-width viewport the open drawer is a full-screen sheet — see
-  [theming.md](./theming.md#phone-presentation).
+- The indicator drawer (`role="dialog"`) moves focus to its Close button when it opens (it doesn't
+  trap it); <kbd>Esc</kbd> or the Close button closes it and focus returns to the chip, an outside
+  click closes it without moving focus. On a phone-width viewport the open drawer is a full-screen
+  sheet — see [theming.md](./theming.md#phone-presentation).
 - A DOM move of the element keeps its UI state (no rebuild), so focus inside it is not reset by a
   re-parent.
 

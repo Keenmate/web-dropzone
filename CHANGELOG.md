@@ -106,6 +106,15 @@ Requires `@keenmate/web-components-core` `^1.0.0-rc21` (was `^1.0.0-rc15`). No c
 - `escapeHtml` (re-exported by both packages) is core's: it takes any value (`null` / `undefined`
   → `''`). `packages/web-dropzone-core/src/dom-utils.ts` is gone.
 
+### Changed (indicator drawer in the overlay tree, 2026-11-10)
+
+- **The `<web-dropzone-indicator>` drawer (`role="dialog"`) joins core's overlay tree**, like the
+  compact popover (core `createPopover()`, kept mounted, un-anchored): <kbd>Esc</kbd> and a click
+  outside close it — the topmost overlay first (one opened from inside the drawer closes before the
+  drawer) — and opening another Keenmate overlay (a dropdown, a menu, a popover) closes it. Opening
+  moves focus to its Close button; <kbd>Esc</kbd> / Close give focus back to the chip. The chip
+  carries `aria-expanded`. A detached indicator closes its drawer. e2e: `satellites-extra.spec.ts`.
+
 ### Changed (compact popover on phones, 2026-11-10)
 
 - **On a phone-width viewport (≤ 600px) the compact popover is a full-screen sheet**, like the

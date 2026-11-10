@@ -46,6 +46,7 @@ import {
     statusLabel
 } from '@keenmate/web-dropzone-core';
 import { adoptStyles, createMicrotaskScheduler, renderLoader, toEnum, toFunction, type InputDef } from '@keenmate/web-components-core';
+import { createPopover, type PopoverHandle } from '@keenmate/web-components-core/positioning';
 import {
     buildStatusSurfaceArgs,
     StatusSurface
@@ -133,6 +134,13 @@ export class DropzoneIndicatorElement extends SatelliteElement {
     private drawerEl: HTMLElement | null = null;
     private drawerCloseBtn: HTMLButtonElement | null = null;
     private drawerOpen = false;
+    /**
+     * Core `createPopover()` handle of the drawer (null when `drawer="off"`): kept
+     * mounted and un-anchored (the drawer CSS places it), it only joins the page's
+     * overlay tree — Escape / an outside click close it, topmost overlay first, and
+     * opening another Keenmate overlay closes it (like the compact popover).
+     */
+    private drawerHandle: PopoverHandle | null = null;
 
     /**
      * Coalesces aggregate recomputation. A bulk drop with N files
@@ -220,6 +228,7 @@ export class DropzoneIndicatorElement extends SatelliteElement {
 
         // Tear down previous chip + drawer. We always rebuild on a drawer
         // flip because the chip's element kind (button vs div) differs.
+        this.destroyDrawerHandle();
         if (this.chipEl.parentNode) this.chipEl.parentNode.removeChild(this.chipEl);
         if (this.drawerEl?.parentNode) this.drawerEl.parentNode.removeChild(this.drawerEl);
         this.drawerEl = null;
@@ -234,6 +243,7 @@ export class DropzoneIndicatorElement extends SatelliteElement {
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.setAttribute('aria-label', this.label('indicatorStatus'));
+            btn.setAttribute('aria-expanded', 'false');
             btn.addEventListener('click', () => this.toggleDrawer());
             this.chipEl = btn;
         } else {
@@ -257,7 +267,27 @@ export class DropzoneIndicatorElement extends SatelliteElement {
             this.drawerEl.setAttribute('aria-label', this.label('indicatorQueue'));
             this.populateDrawer();
             this.shadow.appendChild(this.drawerEl);
+            this.drawerHandle = createPopover({
+                reference: this.chipEl,
+                panel: this.drawerEl,
+                shouldKeepMounted: true,
+                isAnchored: false,
+                visibleClass: 'dz__indicator-drawer--open',
+                inheritThemeFrom: false, // inside the shadow root: inherits the host's theme
+                // Only while attached; Escape gives focus back to the chip (the reference).
+                shouldCloseOnEscape: () => this.isConnected,
+                shouldCloseOnOutsideClick: () => this.isConnected,
+                onClose: () => this.syncDrawerClosed(),
+            });
         }
+    }
+
+    /** Leave the overlay tree (drawer flip, disconnect, destroy). */
+    private destroyDrawerHandle(): void {
+        const handle = this.drawerHandle;
+        this.drawerHandle = null;
+        handle?.destroy();
+        this.syncDrawerClosed();
     }
 
     // ========================================================================
@@ -295,7 +325,10 @@ export class DropzoneIndicatorElement extends SatelliteElement {
         `;
         this.drawerCloseBtn = this.drawerEl.querySelector('.dz__indicator-drawer-close');
         if (this.drawerCloseBtn) {
-            this.drawerCloseBtn.addEventListener('click', () => this.setDrawerOpen(false));
+            this.drawerCloseBtn.addEventListener('click', () => {
+                this.setDrawerOpen(false);
+                this.chipEl.focus({ preventScroll: true });
+            });
         }
         // Try to mount immediately — no-op if storeEl isn't resolved yet
         // (populateDrawer runs during connectedCallback, before
@@ -539,10 +572,36 @@ export class DropzoneIndicatorElement extends SatelliteElement {
     }
 
     private setDrawerOpen(open: boolean): void {
-        if (!this.drawerEl) return;
+        if (!this.drawerEl || !this.drawerHandle) return;
         if (this.drawerOpen === open) return;
-        this.drawerOpen = open;
-        this.shadow.host.setAttribute('data-drawer-open', open ? 'true' : 'false');
+        if (!open) {
+            this.drawerHandle.close(); // → onClose → syncDrawerClosed()
+            return;
+        }
+        this.drawerOpen = true;
+        this.shadow.host.setAttribute('data-drawer-open', 'true');
+        this.chipEl.setAttribute('aria-expanded', 'true');
+        this.drawerHandle.open();
+        // Focus moves into the dialog (its Close button); it comes back to the
+        // chip on Escape (core) and on Close.
+        this.drawerCloseBtn?.focus({ preventScroll: true });
+    }
+
+    /** The drawer closed (any reason): state, host attribute, the chip's aria-expanded. */
+    private syncDrawerClosed(): void {
+        this.drawerOpen = false;
+        this.shadow.host.setAttribute('data-drawer-open', 'false');
+        if (this.chipEl instanceof HTMLButtonElement) this.chipEl.setAttribute('aria-expanded', 'false');
+    }
+
+    /** Detached: close the drawer and leave the overlay tree (the next connect rebuilds it). */
+    protected override deactivated(): void {
+        this.destroyDrawerHandle();
+    }
+
+    protected override destroyCallback(): void {
+        this.destroyDrawerHandle();
+        super.destroyCallback();
     }
 }
 
