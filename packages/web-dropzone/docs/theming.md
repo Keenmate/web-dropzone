@@ -156,16 +156,18 @@ window.components['web-dropzone-picker'].customStyles = `.dz__dropzone-text { fo
   `@font-face` inside a shadow root (`window.components.shouldHoistImports = false` turns that off).
 - The value is raw CSS and is **not** sanitized — see the XSS notice in
   [usage.md](./usage.md#html-injection-xss-notice).
-- **One shadow root each.** A `<web-dropzone>`'s custom CSS reaches its **own** shadow root only. In
-  bulk mode (the default when display attributes are set) the picker / list / progress it shows are
-  satellite elements it mounts itself, each with its own shadow root — the store's own shadow root
-  holds only the layout container and the compact popover — so the store's `custom-styles` does not
-  style the card or the rows (in `render-mode="structural"` the store renders everything itself, and
-  it does); style those with the
-  satellite tags' page layer — `window.components['web-dropzone-picker'].customStyles`,
-  `['web-dropzone-list']`, `['web-dropzone-progress']` (the indicator's drawer list is a
-  `<web-dropzone-list>` too). The page layer is page-wide: scope a rule to one store by a host
-  attribute if you need to (`:host([managed]) …` targets only mounted satellites).
+- **Mounted satellites take their owner's CSS.** In bulk mode (the default when display attributes
+  are set) the picker / list / progress a `<web-dropzone>` shows are satellite elements it mounts
+  itself, each with its own shadow root (the store's own shadow root holds only the layout container
+  and the compact popover). The store's custom CSS — its page layer and its `custom-styles` /
+  `getCustomStylesCallback` — is written into each of them too, in this order: satellite page layer
+  → store page layer → store `custom-styles` → satellite `custom-styles`. So
+  `<web-dropzone custom-styles=".dz__file-item-name { … }">` styles its rows, and live changes to it
+  follow. The indicator's drawer list takes the **indicator's** CSS the same way. A satellite you
+  place yourself (`for="…"`, or `bindToStore(storeEl)` without an owner) gets only its own two layers. In `render-mode="structural"` the store
+  renders everything in its own shadow root. To style every satellite of one tag, use its page layer —
+  `window.components['web-dropzone-picker'].customStyles`, `['web-dropzone-list']`,
+  `['web-dropzone-progress']` (`:host([managed]) …` targets only mounted satellites).
 - Selectors: the flat BEM classes below (`.dz__file-item-name`, never `.dz__file-item__name`).
 
 ## Shadow parts and BEM hooks

@@ -387,7 +387,7 @@ export class WebDropzone extends DropzoneEngine {
         const showList = showSurface('list') && listAppearance !== 'none';
         const showProgress = showSurface('overall-progress');
 
-        type BindableSatellite = HTMLElement & { bindToStore?: (el: HTMLElement) => void };
+        type BindableSatellite = HTMLElement & { bindToStore?: (el: HTMLElement, owner?: HTMLElement) => void };
 
         // Files-inside composition only makes sense with a card selector
         // (button / minimal have no inside-the-card surface) AND needs both
@@ -408,7 +408,7 @@ export class WebDropzone extends DropzoneEngine {
             if (insideMode) {
                 picker.setAttribute('inside', 'true');
             }
-            picker.bindToStore?.(host);
+            picker.bindToStore?.(host, host); // the store owns it: its custom CSS applies too
             container.appendChild(picker);
         }
         this.satellitePickerEl = picker;
@@ -428,7 +428,7 @@ export class WebDropzone extends DropzoneEngine {
                 // applies inside the satellite shadow.
                 list.setAttribute('nested', 'true');
             }
-            list.bindToStore?.(host);
+            list.bindToStore?.(host, host); // the store owns it: its custom CSS applies too
             // Rolling appearance's queue button dispatches `queue-open`
             // (the satellite owns no popover of its own). Bridge it to the
             // in-class popover so the convenience form behaves the same as
@@ -463,7 +463,7 @@ export class WebDropzone extends DropzoneEngine {
         if (showProgress) {
             const progress = document.createElement('web-dropzone-progress') as BindableSatellite;
             progress.setAttribute('managed', '');   // inherit --dz-* from store host
-            progress.bindToStore?.(host);
+            progress.bindToStore?.(host, host); // the store owns it: its custom CSS applies too
             container.appendChild(progress);
         }
     }

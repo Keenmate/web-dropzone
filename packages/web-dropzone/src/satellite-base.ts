@@ -179,6 +179,8 @@ export abstract class SatelliteElement<TEvents extends EventMap = Record<string,
      * uses it instead of resolving the `for=` attribute.
      */
     protected programmaticStoreEl: DropzoneElement | null = null;
+    /** The element that mounted this satellite (`bindToStore()`'s `owner`): its custom CSS applies here too. */
+    private managedOwner: HTMLElement | null = null;
     private cleanupStoreWait: (() => void) | null = null;
     private cleanupSubscriptions: (() => void) | null = null;
     /** Between core's `connect()` and `disconnect()`. */
@@ -216,7 +218,8 @@ export abstract class SatelliteElement<TEvents extends EventMap = Record<string,
     /**
      * Build (core `reinit()`): custom CSS, the canonical way (core usage
      * "Style injection", rulebook C-CA-15) — the page layer
-     * `window.components[tag].customStyles`, then this instance's.
+     * `window.components[tag].customStyles`, then (a satellite another
+     * element mounted) the owner's page + instance layers, then this instance's.
      */
     protected override reinit(): void {
         if (this.customStylesHandle) {
@@ -230,6 +233,9 @@ export abstract class SatelliteElement<TEvents extends EventMap = Record<string,
                 css: this.config.customStyles as string | null,
                 callback: this.config.getCustomStylesCallback as ((ctx: object) => string | null | undefined) | null,
             }),
+            // A satellite another element mounted (`bindToStore()`) also takes that owner's
+            // custom CSS (SPEC Q24): satellite page → owner page → owner instance → own instance.
+            getOwner: () => this.managedOwner,
         });
     }
 
@@ -289,8 +295,16 @@ export abstract class SatelliteElement<TEvents extends EventMap = Record<string,
      * Safe to call before the element connects — the binding is used when it
      * activates. Calling after connection tears down the current wiring and
      * re-binds.
+     *
+     * `owner` — the element that mounted this satellite and owns it (the store
+     * for its bulk-mode UI, the indicator for its drawer list); its custom CSS
+     * (page + instance layers) also applies to this satellite. Default none.
      */
-    bindToStore(storeEl: DropzoneElement): void {
+    bindToStore(storeEl: DropzoneElement, owner: HTMLElement | null = null): void {
+        if (this.managedOwner !== owner) {
+            this.managedOwner = owner;
+            this.customStylesHandle?.refresh();
+        }
         if (this.programmaticStoreEl === storeEl && this.store) return;
         this.programmaticStoreEl = storeEl;
         if (this.isActive) {

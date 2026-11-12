@@ -667,12 +667,15 @@ Binding:
   missing store logs a "store not found" warning. Order doesn't matter — a satellite that connects
   before the store builds waits for it. Changing `for` / `htmlFor` later re-binds to the new store.
 - Inside another shadow root (where `getElementById` can't reach), bind in code:
-  `satellite.bindToStore(storeEl)`.
+  `satellite.bindToStore(storeEl)`. An element that mounts and owns the satellite passes itself as
+  the second argument, `bindToStore(storeEl, ownerEl)`: the owner's custom CSS then applies to the
+  satellite too (see [theming.md](./theming.md#extra-css-for-the-shadow-root)).
 - `satellite.controller` is the bound store's `DropzoneController` (`null` until bound). Satellites
   follow store rebuilds, and the page theme like the store (`data-context-theme`, `theme-source`).
 - Bulk-mode `<web-dropzone>` builds its own UI from these same satellites (marked `managed`, so
   `--dz-*` set on `<web-dropzone>` cascades into them — see [theming.md](./theming.md)). They are
-  separate elements with their own shadow roots: the store's `custom-styles` does **not** reach them
+  separate elements with their own shadow roots; the store's custom CSS (page layer + `custom-styles`)
+  is applied to each of them too, between the satellite's own page layer and its own `custom-styles`
   (see [theming.md → Extra CSS](./theming.md#extra-css-for-the-shadow-root)).
 
 Every satellite is a web-components-core `BlissElement`, so it works exactly like the store: one

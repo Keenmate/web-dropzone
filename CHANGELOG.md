@@ -11,6 +11,18 @@ No stable 1.0.0 is published, so the break ships as the next release
 candidate — but `^1.0.0-rc02` consumers will pull it: the event,
 callback and store-access API below is breaking.
 
+### Added (mounted satellites take their owner's custom CSS, SPEC Q24, 2026-11-13)
+
+Needs core `createCustomStyles({ getOwner })` (`@keenmate/web-components-core` ^1.0.0-rc22).
+
+- **The store's custom CSS now reaches the satellites it mounts** (bulk mode: picker / list /
+  progress). Each satellite's shadow root gets, in order: its own page layer → the store's page layer →
+  the store's `custom-styles` / `getCustomStylesCallback` → its own `custom-styles`. Live: a change to
+  the store's CSS restyles them. The indicator's drawer list takes the **indicator's** CSS the same way.
+  A satellite you place yourself (`for="…"`) is unchanged.
+- **`satellite.bindToStore(storeEl, owner?)`** — new optional `owner`: the element that mounts and
+  owns the satellite; its custom CSS applies to the satellite too. Default none (unchanged).
+
 ### Docs (button + popover rule, 2026-11-10)
 
 - **A `button` / `minimal` selector always opens the file dialog** — also with

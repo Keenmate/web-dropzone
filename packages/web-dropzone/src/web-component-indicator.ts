@@ -349,18 +349,19 @@ export class DropzoneIndicatorElement extends SatelliteElement {
         if (!this.drawerEl || !this.storeEl) return;
         const body = this.drawerEl.querySelector('.dz__indicator-drawer-body');
         if (!body) return;
-        type BindableList = HTMLElement & { bindToStore?: (el: DropzoneElement) => void };
+        type BindableList = HTMLElement & { bindToStore?: (el: DropzoneElement, owner?: HTMLElement) => void };
         let embeddedList = body.querySelector('web-dropzone-list') as BindableList | null;
         if (!embeddedList) {
             embeddedList = document.createElement('web-dropzone-list') as BindableList;
             embeddedList.setAttribute('list-appearance', 'detailed');
             // bindToStore BEFORE appendChild — sets `programmaticStoreEl`
             // so the list's connectedCallback uses it instead of looking
-            // up the `for=` attribute (which we don't set).
-            embeddedList.bindToStore?.(this.storeEl);
+            // up the `for=` attribute (which we don't set). The indicator
+            // owns it: the indicator's custom CSS applies to it too.
+            embeddedList.bindToStore?.(this.storeEl, this);
             body.appendChild(embeddedList);
         } else {
-            embeddedList.bindToStore?.(this.storeEl);
+            embeddedList.bindToStore?.(this.storeEl, this);
         }
     }
 
