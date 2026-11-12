@@ -11,6 +11,9 @@ No stable 1.0.0 is published, so the break ships as the next release
 candidate — but `^1.0.0-rc02` consumers will pull it: the event,
 callback and store-access API below is breaking.
 
+### Internal — core 1.0.0-rc22 (2026-11-13)
+- **Requires `@keenmate/web-components-core` `^1.0.0-rc22`** (was `^1.0.0-rc21`).
+
 ### Added (mounted satellites take their owner's custom CSS, SPEC Q24, 2026-11-13)
 
 Needs core `createCustomStyles({ getOwner })` (`@keenmate/web-components-core` ^1.0.0-rc22).
