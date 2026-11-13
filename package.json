@@ -85,10 +85,14 @@
     ]
   },
   "devDependencies": {
-    "@keenmate/web-components-devkit": "^1.0.0-rc12",
+    "@keenmate/web-components-devkit": "^1.0.0-rc14",
     "@playwright/test": "^1.60.0",
     "rimraf": "^5.0.5",
     "typescript": "^5.3.3",
     "vite": "^7.3.7"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true,
+    "esbuild@0.21.5": true
   }
 }
