@@ -137,7 +137,7 @@
         <div class="card">
             <h2>UP01 · How this page works</h2>
             <p>web-dropzone's built-in upload pipeline takes a single async handler. The component runs files through a worker pool of size <code>concurrency</code>, awaits each handler Promise, drives <code>file.status</code> from the outcome, and exposes Pause / Resume / Cancel / Retry. The handler gets one <code>ctx</code> carrying the file, the abort signal, <code>setProgress</code>, the <strong>resume offset</strong> and <strong>persistent metadata</strong> — so handlers backed by Content-Range / tus.io / S3 multipart can pick up where a paused upload left off:</p>
-            <pre class="code-block"><code>dropzone.uploadFileCallback = async (ctx) => {
+            <div class="code-block" data-language="js"><pre><code>dropzone.uploadFileCallback = async (ctx) => {
     // ctx.file          — the native File blob
     // ctx.setProgress   — call with 0..100 to tick the progress bar
     // ctx.signal        — AbortSignal fires on pause / cancel / remove
@@ -147,7 +147,7 @@
     // ctx.uploadMetadata, ctx.controller, ctx.element — routing + context
 }
 dropzone.concurrency = 3        // max 3 in flight (default 1)
-dropzone.shouldAutoUpload   = true    // start uploads on add (default)</code></pre>
+dropzone.shouldAutoUpload   = true    // start uploads on add (default)</code></pre></div>
             <p>Status badges, the per-file progress column inside the <strong>popover</strong>, and the overall progress strip (with Pause all / Resume all / Retry all buttons) all wire themselves up automatically. The plain <code>list</code> / <code>detailed</code> appearances don't show per-file progress — use one of the rich appearances for upload UI.</p>
             <p>For apps with a bespoke upload manager, the older fire-and-forget escape hatch (<code>file-add</code> event + <code>updateFileProgress</code> / <code>setFileStatus</code>) still works — just leave <code>uploadFileCallback</code> unset.</p>
         </div>
@@ -280,7 +280,7 @@ dropzone.shouldAutoUpload   = true    // start uploads on add (default)</code></
             <h2>UP03 · How to wire a real upload</h2>
             <p>Set <code>uploadFileCallback</code> to a function that does the actual <code>fetch()</code> against your endpoint. The component handles the rest — queue, concurrency, status transitions, abort signal for pause/cancel/remove.</p>
             <p><strong>Single-shot upload</strong> (server-side state not resumable):</p>
-            <pre class="code-block"><code>dropzone.uploadFileCallback = ({ file, setProgress, signal }) => new Promise((resolve, reject) => {
+            <div class="code-block" data-language="js"><pre><code>dropzone.uploadFileCallback = ({ file, setProgress, signal }) => new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest()
     xhr.upload.addEventListener('progress', (ev) => {
         if (ev.lengthComputable) setProgress((ev.loaded / ev.total) * 100)
@@ -299,10 +299,10 @@ dropzone.shouldAutoUpload   = true    // start uploads on add (default)</code></
     formData.append('file', file, file.name)
     xhr.open('POST', '/api/upload')
     xhr.send(formData)
-})</code></pre>
+})</code></pre></div>
 
             <p><strong>Resume-aware upload (tus.io / HTTP Content-Range pattern)</strong>:</p>
-            <pre class="code-block"><code>dropzone.uploadFileCallback = async (ctx) => {
+            <div class="code-block" data-language="js"><pre><code>dropzone.uploadFileCallback = async (ctx) => {
     const { file, signal } = ctx
     // 1. Get / create the server-side session URL. On resume, ctx.metadata
     //    carries the URL we stashed during the first attempt.
@@ -344,7 +344,7 @@ dropzone.shouldAutoUpload   = true    // start uploads on add (default)</code></
 // Optional knobs
 dropzone.concurrency = 3
 dropzone.shouldAutoUpload  = true
-dropzone.retryPolicy = { attempts: 3, delayMs: 1000, backoff: 2 }</code></pre>
+dropzone.retryPolicy = { attempts: 3, delayMs: 1000, backoff: 2 }</code></pre></div>
         </div>
 
         <footer>

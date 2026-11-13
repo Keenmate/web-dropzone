@@ -193,7 +193,7 @@
             <h2>VA07 · Rejection Codes</h2>
             <p>Each rejection includes a <code>code</code> so you can branch on it programmatically.</p>
 
-            <div class="code-block">
+            <div class="code-block" data-language="js">
                 <pre><code>el.addEventListener('file-reject', (e) => {
     for (const { file, validation } of e.detail.rejectedFiles) {
         switch (validation.code) {

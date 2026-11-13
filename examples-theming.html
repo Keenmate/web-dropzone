@@ -213,7 +213,7 @@
                 </div>
             </div>
 
-            <div class="code-block">
+            <div class="code-block" data-language="html">
                 <pre><code>&lt;!-- One variable scales everything --&gt;
 &lt;web-dropzone style="--dz-rem: 12px;"&gt;&lt;/web-dropzone&gt;</code></pre>
             </div>
@@ -273,7 +273,7 @@
                 </div>
             </div>
 
-            <div class="code-block">
+            <div class="code-block" data-language="html">
                 <pre><code>&lt;!-- Either works --&gt;
 &lt;web-dropzone style="font-family: 'Inter', sans-serif;"&gt;&lt;/web-dropzone&gt;
 web-dropzone { --dz-font-family: 'Inter', sans-serif; }</code></pre>
@@ -484,7 +484,7 @@ web-dropzone { --dz-font-family: 'Inter', sans-serif; }</code></pre>
             <h2>TH09 · Building a theme — recipe</h2>
             <p>Combine all three levels. Start broad with <code>--base-*</code>, then override <code>--dz-*</code> for dropzone-only touch-ups, and use <code>--dz-rem</code> if you need a different overall size.</p>
 
-            <div class="code-block" data-kmwc-snippet>
+            <div class="code-block" data-language="css" data-kmwc-snippet>
                 <pre><code>.app-shell {
     /* Level 1 — cross-component palette */
     --base-primary-color: #818cf8;
@@ -507,7 +507,7 @@ web-dropzone { --dz-rem: 11px; }</code></pre>
             </div>
 
             <p>The other KM components inside <code>.app-shell</code> automatically pick up the level-1 settings.</p>
-            <div class="code-block">
+            <div class="code-block" data-language="html">
                 <pre><code>&lt;div class="app-shell"&gt;
     &lt;web-dropzone&gt;&lt;/web-dropzone&gt;
     &lt;web-multiselect&gt;&lt;/web-multiselect&gt;

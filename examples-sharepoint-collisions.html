@@ -354,11 +354,11 @@
 
             <p><strong>1. A side <code>Map</code> holds the user's decision for each colliding file.</strong> It's keyed by <code>FileState.id</code> and updated by the per-row UI. The framework doesn't need to know it exists — the upload callback closes over it.</p>
 
-            <pre class="code-block"><code>const decisions = new Map() // fileId -> { action: 'pending'|'overwrite'|'rename', renameTo? }</code></pre>
+            <div class="code-block" data-language="js"><pre><code>const decisions = new Map() // fileId -> { action: 'pending'|'overwrite'|'rename', renameTo? }</code></pre></div>
 
             <p><strong>2. <code>files-change</code> drives the collision check.</strong> Every time a file is added we ask the server, then either seed the decisions map with <code>'pending'</code> (collision) or leave the file untracked (new — will upload as-is).</p>
 
-            <pre class="code-block"><code>dz.addEventListener('files-change', async (e) => {
+            <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>dz.addEventListener('files-change', async (e) => {
     const newFiles = e.detail.files.filter(f =&gt; !seenIds.has(f.id))
     if (!newFiles.length) return
     const report = await checkNames(newFiles.map(f =&gt; f.name))
@@ -368,11 +368,11 @@
         if (exists) decisions.set(file.id, { action: 'pending', renameTo: suggestRename(file.name) })
     }
     refreshToolbar()
-})</code></pre>
+})</code></pre></div>
 
             <p><strong>3. The row renderer reads the decisions map and re-renders <em>itself</em> when the user clicks.</strong> Element-returning <code>renderFileItemCallback</code> means each row owns its own DOM and event listeners; no need to bother the framework when local state changes.</p>
 
-            <pre class="code-block"><code>dz.renderFileItemCallback = ({ file }) =&gt; {
+            <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>dz.renderFileItemCallback = ({ file }) =&gt; {
     const row = document.createElement('div')
     const repaint = () =&gt; {
         const d = decisions.get(file.id)
@@ -384,18 +384,18 @@
     }
     repaint()
     return row
-}</code></pre>
+}</code></pre></div>
 
             <p><strong>4. The upload callback closes over the decisions map.</strong> <code>ctx.file</code> is the native <code>File</code>; we find the matching <code>FileState</code> to pull its <code>id</code>, then send the right thing. Returning <code>{ name }</code> renames the file in the UI on success.</p>
 
-            <pre class="code-block"><code>dz.uploadFileCallback = async ({ file: rawFile, setProgress, signal }) =&gt; {
+            <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>dz.uploadFileCallback = async ({ file: rawFile, setProgress, signal }) =&gt; {
     const fileState = dz.files.find(f =&gt; f.file === rawFile)
     const decision  = decisions.get(fileState.id)
     const finalName = decision?.action === 'rename' ? decision.renameTo : rawFile.name
     // …simulated upload progress…
     SERVER_INVENTORY.add(finalName) // server now knows about it
     if (decision?.action === 'rename') return { name: finalName }
-}</code></pre>
+}</code></pre></div>
         </div>
 
         <footer>
