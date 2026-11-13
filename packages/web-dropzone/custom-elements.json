@@ -7063,8 +7063,80 @@
               "description": "text on accent"
             },
             {
-              "name": "--dz-touch-target-min",
-              "description": "minimum tap size of phone-mode controls — the close button of the full-screen sheet (indicator drawer, compact popover), 44px (base: --base-touch-target-min)"
+              "name": "--dz-sheet-header-gap",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-header-gap: Gap between the header's title / fields and the close button (→ --base-space-sm, default 8px)"
+            },
+            {
+              "name": "--dz-sheet-header-padding-block",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-header-padding-block: Header top / bottom padding; the close button's tap area reaches it (→ --base-space-sm, default 8px)"
+            },
+            {
+              "name": "--dz-sheet-header-padding-inline",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-header-padding-inline: Header start / end padding (lines the title up with the sheet rows); the close button's tap area reaches it (→ --base-space-base, default 16px)"
+            },
+            {
+              "name": "--dz-sheet-header-min-height",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-header-min-height: Header minimum height (default 5.6 × --base-rem = 56px)"
+            },
+            {
+              "name": "--dz-sheet-header-bg",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-header-bg: Header background (default transparent: the sheet's)"
+            },
+            {
+              "name": "--dz-sheet-header-border",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-header-border: Header bottom border (default 1px solid --base-border-color)"
+            },
+            {
+              "name": "--dz-sheet-title-color",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-title-color: Title colour (default inherit)"
+            },
+            {
+              "name": "--dz-sheet-title-font-size",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-title-font-size: Title font size (→ --base-font-size-lg, default 18px)"
+            },
+            {
+              "name": "--dz-sheet-title-font-weight",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-title-font-weight: Title font weight (→ --base-font-weight-semibold, default 600)"
+            },
+            {
+              "name": "--dz-sheet-close-size",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-size: Close button chip size (→ --base-touch-target-min, default 44px)"
+            },
+            {
+              "name": "--dz-sheet-close-icon-size",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-icon-size: Close icon size (default 2 × --base-rem = 20px)"
+            },
+            {
+              "name": "--dz-sheet-close-icon",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-icon: Close icon, a mask image (→ --base-icon-close, default the base ✕)"
+            },
+            {
+              "name": "--dz-sheet-close-color",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-color: Close icon colour (default inherit)"
+            },
+            {
+              "name": "--dz-sheet-close-bg",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-bg: Close chip background (default transparent)"
+            },
+            {
+              "name": "--dz-sheet-close-bg-hover",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-bg-hover: Close chip hover background (→ --base-hover-bg)"
+            },
+            {
+              "name": "--dz-sheet-close-border",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-border: Close chip border (default none; with a radius and a bg it reads as a bordered button)"
+            },
+            {
+              "name": "--dz-sheet-close-border-radius",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-border-radius: Close chip radius (default 50%)"
+            },
+            {
+              "name": "--dz-sheet-close-edge-nudge",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-edge-nudge: How far the close button slides past the header padding toward the edge (→ --base-space-sm, default 8px)"
+            },
+            {
+              "name": "--dz-sheet-close-focus-color",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-focus-color: Close button keyboard focus ring (→ --base-primary-color)"
             },
             {
               "name": "--dz-transition-fast",
@@ -9707,8 +9779,80 @@
               "description": "text on accent"
             },
             {
-              "name": "--dz-touch-target-min",
-              "description": "minimum tap size of phone-mode controls — the close button of the full-screen sheet (indicator drawer, compact popover), 44px (base: --base-touch-target-min)"
+              "name": "--dz-sheet-header-gap",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-header-gap: Gap between the header's title / fields and the close button (→ --base-space-sm, default 8px)"
+            },
+            {
+              "name": "--dz-sheet-header-padding-block",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-header-padding-block: Header top / bottom padding; the close button's tap area reaches it (→ --base-space-sm, default 8px)"
+            },
+            {
+              "name": "--dz-sheet-header-padding-inline",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-header-padding-inline: Header start / end padding (lines the title up with the sheet rows); the close button's tap area reaches it (→ --base-space-base, default 16px)"
+            },
+            {
+              "name": "--dz-sheet-header-min-height",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-header-min-height: Header minimum height (default 5.6 × --base-rem = 56px)"
+            },
+            {
+              "name": "--dz-sheet-header-bg",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-header-bg: Header background (default transparent: the sheet's)"
+            },
+            {
+              "name": "--dz-sheet-header-border",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-header-border: Header bottom border (default 1px solid --base-border-color)"
+            },
+            {
+              "name": "--dz-sheet-title-color",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-title-color: Title colour (default inherit)"
+            },
+            {
+              "name": "--dz-sheet-title-font-size",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-title-font-size: Title font size (→ --base-font-size-lg, default 18px)"
+            },
+            {
+              "name": "--dz-sheet-title-font-weight",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-title-font-weight: Title font weight (→ --base-font-weight-semibold, default 600)"
+            },
+            {
+              "name": "--dz-sheet-close-size",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-size: Close button chip size (→ --base-touch-target-min, default 44px)"
+            },
+            {
+              "name": "--dz-sheet-close-icon-size",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-icon-size: Close icon size (default 2 × --base-rem = 20px)"
+            },
+            {
+              "name": "--dz-sheet-close-icon",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-icon: Close icon, a mask image (→ --base-icon-close, default the base ✕)"
+            },
+            {
+              "name": "--dz-sheet-close-color",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-color: Close icon colour (default inherit)"
+            },
+            {
+              "name": "--dz-sheet-close-bg",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-bg: Close chip background (default transparent)"
+            },
+            {
+              "name": "--dz-sheet-close-bg-hover",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-bg-hover: Close chip hover background (→ --base-hover-bg)"
+            },
+            {
+              "name": "--dz-sheet-close-border",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-border: Close chip border (default none; with a radius and a bg it reads as a bordered button)"
+            },
+            {
+              "name": "--dz-sheet-close-border-radius",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-border-radius: Close chip radius (default 50%)"
+            },
+            {
+              "name": "--dz-sheet-close-edge-nudge",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-edge-nudge: How far the close button slides past the header padding toward the edge (→ --base-space-sm, default 8px)"
+            },
+            {
+              "name": "--dz-sheet-close-focus-color",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-focus-color: Close button keyboard focus ring (→ --base-primary-color)"
             },
             {
               "name": "--dz-transition-fast",
@@ -12135,8 +12279,80 @@
               "description": "text on accent"
             },
             {
-              "name": "--dz-touch-target-min",
-              "description": "minimum tap size of phone-mode controls — the close button of the full-screen sheet (indicator drawer, compact popover), 44px (base: --base-touch-target-min)"
+              "name": "--dz-sheet-header-gap",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-header-gap: Gap between the header's title / fields and the close button (→ --base-space-sm, default 8px)"
+            },
+            {
+              "name": "--dz-sheet-header-padding-block",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-header-padding-block: Header top / bottom padding; the close button's tap area reaches it (→ --base-space-sm, default 8px)"
+            },
+            {
+              "name": "--dz-sheet-header-padding-inline",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-header-padding-inline: Header start / end padding (lines the title up with the sheet rows); the close button's tap area reaches it (→ --base-space-base, default 16px)"
+            },
+            {
+              "name": "--dz-sheet-header-min-height",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-header-min-height: Header minimum height (default 5.6 × --base-rem = 56px)"
+            },
+            {
+              "name": "--dz-sheet-header-bg",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-header-bg: Header background (default transparent: the sheet's)"
+            },
+            {
+              "name": "--dz-sheet-header-border",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-header-border: Header bottom border (default 1px solid --base-border-color)"
+            },
+            {
+              "name": "--dz-sheet-title-color",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-title-color: Title colour (default inherit)"
+            },
+            {
+              "name": "--dz-sheet-title-font-size",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-title-font-size: Title font size (→ --base-font-size-lg, default 18px)"
+            },
+            {
+              "name": "--dz-sheet-title-font-weight",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-title-font-weight: Title font weight (→ --base-font-weight-semibold, default 600)"
+            },
+            {
+              "name": "--dz-sheet-close-size",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-size: Close button chip size (→ --base-touch-target-min, default 44px)"
+            },
+            {
+              "name": "--dz-sheet-close-icon-size",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-icon-size: Close icon size (default 2 × --base-rem = 20px)"
+            },
+            {
+              "name": "--dz-sheet-close-icon",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-icon: Close icon, a mask image (→ --base-icon-close, default the base ✕)"
+            },
+            {
+              "name": "--dz-sheet-close-color",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-color: Close icon colour (default inherit)"
+            },
+            {
+              "name": "--dz-sheet-close-bg",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-bg: Close chip background (default transparent)"
+            },
+            {
+              "name": "--dz-sheet-close-bg-hover",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-bg-hover: Close chip hover background (→ --base-hover-bg)"
+            },
+            {
+              "name": "--dz-sheet-close-border",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-border: Close chip border (default none; with a radius and a bg it reads as a bordered button)"
+            },
+            {
+              "name": "--dz-sheet-close-border-radius",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-border-radius: Close chip radius (default 50%)"
+            },
+            {
+              "name": "--dz-sheet-close-edge-nudge",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-edge-nudge: How far the close button slides past the header padding toward the edge (→ --base-space-sm, default 8px)"
+            },
+            {
+              "name": "--dz-sheet-close-focus-color",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-focus-color: Close button keyboard focus ring (→ --base-primary-color)"
             },
             {
               "name": "--dz-transition-fast",
@@ -14284,8 +14500,80 @@
               "description": "text on accent"
             },
             {
-              "name": "--dz-touch-target-min",
-              "description": "minimum tap size of phone-mode controls — the close button of the full-screen sheet (indicator drawer, compact popover), 44px (base: --base-touch-target-min)"
+              "name": "--dz-sheet-header-gap",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-header-gap: Gap between the header's title / fields and the close button (→ --base-space-sm, default 8px)"
+            },
+            {
+              "name": "--dz-sheet-header-padding-block",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-header-padding-block: Header top / bottom padding; the close button's tap area reaches it (→ --base-space-sm, default 8px)"
+            },
+            {
+              "name": "--dz-sheet-header-padding-inline",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-header-padding-inline: Header start / end padding (lines the title up with the sheet rows); the close button's tap area reaches it (→ --base-space-base, default 16px)"
+            },
+            {
+              "name": "--dz-sheet-header-min-height",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-header-min-height: Header minimum height (default 5.6 × --base-rem = 56px)"
+            },
+            {
+              "name": "--dz-sheet-header-bg",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-header-bg: Header background (default transparent: the sheet's)"
+            },
+            {
+              "name": "--dz-sheet-header-border",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-header-border: Header bottom border (default 1px solid --base-border-color)"
+            },
+            {
+              "name": "--dz-sheet-title-color",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-title-color: Title colour (default inherit)"
+            },
+            {
+              "name": "--dz-sheet-title-font-size",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-title-font-size: Title font size (→ --base-font-size-lg, default 18px)"
+            },
+            {
+              "name": "--dz-sheet-title-font-weight",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-title-font-weight: Title font weight (→ --base-font-weight-semibold, default 600)"
+            },
+            {
+              "name": "--dz-sheet-close-size",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-size: Close button chip size (→ --base-touch-target-min, default 44px)"
+            },
+            {
+              "name": "--dz-sheet-close-icon-size",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-icon-size: Close icon size (default 2 × --base-rem = 20px)"
+            },
+            {
+              "name": "--dz-sheet-close-icon",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-icon: Close icon, a mask image (→ --base-icon-close, default the base ✕)"
+            },
+            {
+              "name": "--dz-sheet-close-color",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-color: Close icon colour (default inherit)"
+            },
+            {
+              "name": "--dz-sheet-close-bg",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-bg: Close chip background (default transparent)"
+            },
+            {
+              "name": "--dz-sheet-close-bg-hover",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-bg-hover: Close chip hover background (→ --base-hover-bg)"
+            },
+            {
+              "name": "--dz-sheet-close-border",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-border: Close chip border (default none; with a radius and a bg it reads as a bordered button)"
+            },
+            {
+              "name": "--dz-sheet-close-border-radius",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-border-radius: Close chip radius (default 50%)"
+            },
+            {
+              "name": "--dz-sheet-close-edge-nudge",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-edge-nudge: How far the close button slides past the header padding toward the edge (→ --base-space-sm, default 8px)"
+            },
+            {
+              "name": "--dz-sheet-close-focus-color",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-focus-color: Close button keyboard focus ring (→ --base-primary-color)"
             },
             {
               "name": "--dz-transition-fast",
@@ -17594,8 +17882,80 @@
               "description": "text on accent"
             },
             {
-              "name": "--dz-touch-target-min",
-              "description": "minimum tap size of phone-mode controls — the close button of the full-screen sheet (indicator drawer, compact popover), 44px (base: --base-touch-target-min)"
+              "name": "--dz-sheet-header-gap",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-header-gap: Gap between the header's title / fields and the close button (→ --base-space-sm, default 8px)"
+            },
+            {
+              "name": "--dz-sheet-header-padding-block",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-header-padding-block: Header top / bottom padding; the close button's tap area reaches it (→ --base-space-sm, default 8px)"
+            },
+            {
+              "name": "--dz-sheet-header-padding-inline",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-header-padding-inline: Header start / end padding (lines the title up with the sheet rows); the close button's tap area reaches it (→ --base-space-base, default 16px)"
+            },
+            {
+              "name": "--dz-sheet-header-min-height",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-header-min-height: Header minimum height (default 5.6 × --base-rem = 56px)"
+            },
+            {
+              "name": "--dz-sheet-header-bg",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-header-bg: Header background (default transparent: the sheet's)"
+            },
+            {
+              "name": "--dz-sheet-header-border",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-header-border: Header bottom border (default 1px solid --base-border-color)"
+            },
+            {
+              "name": "--dz-sheet-title-color",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-title-color: Title colour (default inherit)"
+            },
+            {
+              "name": "--dz-sheet-title-font-size",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-title-font-size: Title font size (→ --base-font-size-lg, default 18px)"
+            },
+            {
+              "name": "--dz-sheet-title-font-weight",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-title-font-weight: Title font weight (→ --base-font-weight-semibold, default 600)"
+            },
+            {
+              "name": "--dz-sheet-close-size",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-size: Close button chip size (→ --base-touch-target-min, default 44px)"
+            },
+            {
+              "name": "--dz-sheet-close-icon-size",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-icon-size: Close icon size (default 2 × --base-rem = 20px)"
+            },
+            {
+              "name": "--dz-sheet-close-icon",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-icon: Close icon, a mask image (→ --base-icon-close, default the base ✕)"
+            },
+            {
+              "name": "--dz-sheet-close-color",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-color: Close icon colour (default inherit)"
+            },
+            {
+              "name": "--dz-sheet-close-bg",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-bg: Close chip background (default transparent)"
+            },
+            {
+              "name": "--dz-sheet-close-bg-hover",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-bg-hover: Close chip hover background (→ --base-hover-bg)"
+            },
+            {
+              "name": "--dz-sheet-close-border",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-border: Close chip border (default none; with a radius and a bg it reads as a bordered button)"
+            },
+            {
+              "name": "--dz-sheet-close-border-radius",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-border-radius: Close chip radius (default 50%)"
+            },
+            {
+              "name": "--dz-sheet-close-edge-nudge",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-edge-nudge: How far the close button slides past the header padding toward the edge (→ --base-space-sm, default 8px)"
+            },
+            {
+              "name": "--dz-sheet-close-focus-color",
+              "description": "Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-close-focus-color: Close button keyboard focus ring (→ --base-primary-color)"
             },
             {
               "name": "--dz-transition-fast",

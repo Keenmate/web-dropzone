@@ -24,7 +24,7 @@
 
 import { createPopover } from '@keenmate/web-components-core/positioning';
 import type { Placement, PopoverHandle } from '@keenmate/web-components-core/positioning';
-import { deepActiveElement, dispatch } from '@keenmate/web-components-core';
+import { adoptStyles, deepActiveElement, dispatch, SHEET_CHROME_CSS } from '@keenmate/web-components-core';
 import { getPhoneMediaQuery } from './phone-sheet';
 import {
     initLogger,
@@ -1862,6 +1862,13 @@ export class WebDropzone extends DropzoneEngine {
         if (!anchor) return;
 
         const container = this.config.container || this.element;
+        // The phone sheet's close button is core's sheet chrome: its CSS goes into
+        // the root the panel lives in (the shadow root, or the document for a
+        // light-DOM container). Idempotent per root.
+        const containerRoot = container.getRootNode();
+        if (containerRoot instanceof Document || containerRoot instanceof ShadowRoot) {
+            adoptStyles(containerRoot, SHEET_CHROME_CSS);
+        }
 
         // Create popover
         this.popover = document.createElement('div');
@@ -1887,7 +1894,7 @@ export class WebDropzone extends DropzoneEngine {
                     <div class="dz__popover-actions">
                         ${this.isAddBlocked ? '' : `<button type="button" class="dz__popover-action" data-dz-action="add-more"${this.disabledAttr}>${escapeHtml(this.label('addMore'))}</button>`}
                         ${this.config.isReadonly ? '' : `<button type="button" class="dz__popover-action" data-dz-action="clear"${this.disabledAttr}>${escapeHtml(this.label('clearAll'))}</button>`}
-                        <button type="button" class="dz__popover-close" data-dz-action="close" aria-label="${escapeHtml(this.label('close'))}"></button>
+                        <button type="button" class="dz__popover-close km-sheet-close" data-dz-action="close" aria-label="${escapeHtml(this.label('close'))}"></button>
                     </div>
                 </div>
                 <div class="dz__popover-limits">${escapeHtml(this.getLimitsHint())}</div>

@@ -14,6 +14,26 @@ callback and store-access API below is breaking.
 ### Internal — core 1.0.0-rc22 (2026-11-13)
 - **Requires `@keenmate/web-components-core` `^1.0.0-rc22`** (was `^1.0.0-rc21`).
 
+### Changed (phone sheet chrome from core, 2026-11-13)
+
+Needs core `SHEET_CHROME_CSS` (`@keenmate/web-components-core` 1.0.0-rc24).
+
+- **The indicator drawer header and both close buttons are core's shared sheet chrome** — the
+  drawer header / title / close and the phone popover's close carry `km-sheet-header` /
+  `km-sheet-title` / `km-sheet-close` (a round 44px `--base-touch-target-min` chip with the masked
+  `--base-icon-close`, the tap area reaching into the top-trailing corner), the same look as every
+  Keenmate sheet. `SHEET_CHROME_CSS` is adopted into the root the panel lives in (shadow root, or the
+  document for a light-DOM `container`). The `dz__indicator-drawer-*` / `dz__popover-close` classes
+  stay as hooks (the anchored desktop popover still hides its close). Close `aria-label` = `labels.close`.
+- **New `--dz-sheet-*` variables** (header-gap, header-padding-block / -inline, header-min-height,
+  header-bg, header-border, title-color / -font-size / -font-weight, close-size, close-icon-size,
+  close-icon, close-color, close-bg, close-bg-hover, close-border, close-border-radius,
+  close-edge-nudge, close-focus-color) — unset by default, mapped onto core's `--_km-sheet-*`;
+  page-wide theming is core's `--km-sheet-*` on `:root`.
+- **BREAKING:** `--dz-touch-target-min` is removed (use `--dz-sheet-close-size` /
+  `--km-sheet-close-size`); dz's own close-chip CSS (`--dz-icon-remove` mask, 2.8rem chip) and the
+  drawer header padding / border / title font are gone.
+
 ### Added (mounted satellites take their owner's custom CSS, SPEC Q24, 2026-11-13)
 
 Needs core `createCustomStyles({ getOwner })` (`@keenmate/web-components-core` ^1.0.0-rc22).

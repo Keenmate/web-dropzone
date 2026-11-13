@@ -344,9 +344,29 @@
   --dz-loader-inline-size: calc(var(--dz-loader-size) * 0.75);
   /* The uploading-row pulse is decoration, not a loader: 0s under reduced motion. */
   --dz-uploading-pulse-duration: 1.5s;
-  /* Minimum tap size of the phone-mode controls (indicator drawer close in the
-     full-screen sheet, responsive-overlay.md D-RO-7). */
-  --dz-touch-target-min: var(--base-touch-target-min, 44px);
+  /* Sheet chrome (indicator drawer header + close, phone popover close) is core's
+     SHEET_CHROME_CSS. Each --dz-sheet-* is UNSET by default (core's --km-sheet-* /
+     --base-* defaults apply, e.g. the 44px --base-touch-target-min close chip);
+     set one on the element to theme that instance. Mapped with no fallback. */
+  --_km-sheet-header-gap: var(--dz-sheet-header-gap);
+  --_km-sheet-header-padding-block: var(--dz-sheet-header-padding-block);
+  --_km-sheet-header-padding-inline: var(--dz-sheet-header-padding-inline);
+  --_km-sheet-header-min-height: var(--dz-sheet-header-min-height);
+  --_km-sheet-header-bg: var(--dz-sheet-header-bg);
+  --_km-sheet-header-border: var(--dz-sheet-header-border);
+  --_km-sheet-title-color: var(--dz-sheet-title-color);
+  --_km-sheet-title-font-size: var(--dz-sheet-title-font-size);
+  --_km-sheet-title-font-weight: var(--dz-sheet-title-font-weight);
+  --_km-sheet-close-size: var(--dz-sheet-close-size);
+  --_km-sheet-close-icon-size: var(--dz-sheet-close-icon-size);
+  --_km-sheet-close-icon: var(--dz-sheet-close-icon);
+  --_km-sheet-close-color: var(--dz-sheet-close-color);
+  --_km-sheet-close-bg: var(--dz-sheet-close-bg);
+  --_km-sheet-close-bg-hover: var(--dz-sheet-close-bg-hover);
+  --_km-sheet-close-border: var(--dz-sheet-close-border);
+  --_km-sheet-close-border-radius: var(--dz-sheet-close-border-radius);
+  --_km-sheet-close-edge-nudge: var(--dz-sheet-close-edge-nudge);
+  --_km-sheet-close-focus-color: var(--dz-sheet-close-focus-color);
 
   /* File Item Remove Button — empty button with × glyph painted via CSS
      mask of --dz-icon-remove on the ::before (matches .dz__badge-remove

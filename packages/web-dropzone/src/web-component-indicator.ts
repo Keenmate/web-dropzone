@@ -45,7 +45,7 @@ import {
     fileStatusLabel,
     statusLabel
 } from '@keenmate/web-dropzone-core';
-import { adoptStyles, createMicrotaskScheduler, renderLoader, toEnum, toFunction, type InputDef } from '@keenmate/web-components-core';
+import { adoptStyles, createMicrotaskScheduler, renderLoader, SHEET_CHROME_CSS, toEnum, toFunction, type InputDef } from '@keenmate/web-components-core';
 import { createPopover, type PopoverHandle } from '@keenmate/web-components-core/positioning';
 import {
     buildStatusSurfaceArgs,
@@ -174,6 +174,8 @@ export class DropzoneIndicatorElement extends SatelliteElement {
         this.shadow = this.attachShadow({ mode: 'open' });
         adoptStyles(this.shadow, styles);
         adoptStyles(this.shadow, indicatorStyles);
+        // The drawer header + close button are core's sheet chrome.
+        adoptStyles(this.shadow, SHEET_CHROME_CSS);
 
         // Chip is built on connect (and rebuilt on drawer flips) because
         // its element kind depends on attribute state.
@@ -317,9 +319,9 @@ export class DropzoneIndicatorElement extends SatelliteElement {
         // list in this innerHTML string would have its `connectedCallback`
         // fire mid-parse with no binding, logging "store not found".
         this.drawerEl.innerHTML = `
-            <header class="dz__indicator-drawer-header">
-                <span class="dz__indicator-drawer-title">${escapeHtml(this.label('indicatorTitle'))}</span>
-                <button type="button" class="dz__indicator-drawer-close" aria-label="${escapeHtml(this.label('close'))}"></button>
+            <header class="dz__indicator-drawer-header km-sheet-header">
+                <span class="dz__indicator-drawer-title km-sheet-title">${escapeHtml(this.label('indicatorTitle'))}</span>
+                <button type="button" class="dz__indicator-drawer-close km-sheet-close" aria-label="${escapeHtml(this.label('close'))}"></button>
             </header>
             <div class="dz__indicator-drawer-body"></div>
         `;

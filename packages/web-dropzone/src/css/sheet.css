@@ -7,47 +7,17 @@
    popover at the same line). Imported by main.css into the `overrides` layer,
    so it beats the panels' own geometry (popover.css, indicator.css — both in
    `component`) and the inline position core's anchor() wrote is gone first
-   (the popover is un-anchored on a phone). Also holds the shared close button
-   (drawer header + popover header; the popover's shows on a phone only). */
+   (the popover is un-anchored on a phone). Also shows / hides the popover's
+   close button (core's .km-sheet-close; it shows on a phone only). */
 
 /* ==========================================================================
    CLOSE BUTTON
-   ========================================================================== */
-/* The standard masked X (--dz-icon-remove), same glyph the file rows and
- * web-multiselect's .ms__badge-remove use, rendered via a currentColor mask so
- * it themes from one place. */
-.dz__indicator-drawer-close,
-.dz__popover-close {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    width: calc(2.8 * var(--dz-rem, 10px));
-    height: calc(2.8 * var(--dz-rem, 10px));
-    padding: 0;
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--dz-text-color-1);
-    border-radius: calc(0.4 * var(--dz-rem, 10px));
-    transition: background-color var(--dz-transition-normal) var(--dz-easing-snappy),
-                color var(--dz-transition-normal) var(--dz-easing-snappy);
-}
-.dz__indicator-drawer-close::before,
-.dz__popover-close::before {
-    content: "";
-    display: block;
-    width: calc(1.6 * var(--dz-rem, 10px));
-    height: calc(1.6 * var(--dz-rem, 10px));
-    background-color: currentColor;
-    -webkit-mask: var(--dz-icon-remove) center / contain no-repeat;
-            mask: var(--dz-icon-remove) center / contain no-repeat;
-}
-.dz__indicator-drawer-close:hover,
-.dz__popover-close:hover {
-    background: var(--dz-hover-bg);
-}
-/* The anchored (desktop) popover closes on an outside click / Escape — no button. */
+   ==========================================================================
+   Core's sheet chrome draws the header bar and the close chip (SHEET_CHROME_CSS:
+   .km-sheet-header / .km-sheet-title / .km-sheet-close, adopted into the root
+   the panel lives in; themed through --dz-sheet-* → --_km-sheet-*, variables.css).
+   The dz classes stay as hooks: the anchored (desktop) popover closes on an
+   outside click / Escape — no button. */
 .dz__popover-close {
     display: none;
 }
@@ -81,14 +51,8 @@
         resize: none;
     }
 
+    /* The chip is 44px (--base-touch-target-min) by core's sheet chrome (D-RO-7 = A). */
     .dz__popover-close {
-        display: flex;
-    }
-
-    /* Touch target (D-RO-7 = A, --dz-touch-target-min → --base-touch-target-min, 44px). */
-    .dz__indicator-drawer-close,
-    .dz__popover-close {
-        min-width: var(--dz-touch-target-min);
-        min-height: var(--dz-touch-target-min);
+        display: inline-flex;
     }
 }

@@ -43,6 +43,14 @@ test.describe('phone viewport', () => {
         await expect(summary(page)).toBeFocused();
     });
 
+    test("its close button is core's sheet chrome: a 44px chip, themed by --dz-sheet-close-size", async ({ page }) => {
+        await open(page);
+        await expect(closeButton(page)).toHaveClass(/\bkm-sheet-close\b/);
+        await expect.poll(async () => (await closeButton(page).boundingBox())?.width).toBe(44);
+        await dz(page, 'pop').evaluate((el) => (el as HTMLElement).style.setProperty('--dz-sheet-close-size', '50px'));
+        await expect.poll(async () => (await closeButton(page).boundingBox())?.width).toBe(50);
+    });
+
     test('widening past the phone line while open anchors it again', async ({ page }) => {
         await open(page);
         await expect(closeButton(page)).toBeVisible(); // a sheet first

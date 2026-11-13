@@ -244,19 +244,9 @@
 /* ==========================================================================
    DRAWER CHROME
    ========================================================================== */
-.dz__indicator-drawer-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: calc(1.2 * var(--dz-rem, 10px)) calc(1.6 * var(--dz-rem, 10px));
-    border-bottom: 1px solid var(--dz-border-color);
-}
-.dz__indicator-drawer-title {
-    font-weight: 600;
-    font-size: calc(1.5 * var(--dz-rem, 10px));
-}
-/* The close button (.dz__indicator-drawer-close) is shared with the compact
- * popover — sheet.css. */
+/* The header bar, title and close button are core's sheet chrome
+ * (.km-sheet-header / .km-sheet-title / .km-sheet-close, SHEET_CHROME_CSS adopted
+ * by the indicator); .dz__indicator-drawer-header / -title / -close stay as hooks. */
 .dz__indicator-drawer-body {
     flex: 1 1 auto;
     overflow-y: auto;

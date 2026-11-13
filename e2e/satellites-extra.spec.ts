@@ -123,6 +123,16 @@ test.describe('<web-dropzone-indicator> drawer — core overlay tree', () => {
         await expect(closeBtn(page)).toBeFocused();
     });
 
+    test("the drawer header is core's sheet chrome (km-sheet-header / -title / -close)", async ({ page }) => {
+        await chip(page).click();
+        await isOpen(page, true);
+        const ind = dz(page, 'ind-left');
+        await expect(ind.locator('.dz__indicator-drawer-header')).toHaveClass(/\bkm-sheet-header\b/);
+        await expect(ind.locator('.dz__indicator-drawer-title')).toHaveClass(/\bkm-sheet-title\b/);
+        await expect(closeBtn(page)).toHaveClass(/\bkm-sheet-close\b/);
+        await expect.poll(async () => (await closeBtn(page).boundingBox())?.height).toBe(44);
+    });
+
     test('Escape closes it and focus returns to the chip', async ({ page }) => {
         await chip(page).click();
         await isOpen(page, true);
