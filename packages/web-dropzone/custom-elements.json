@@ -474,23 +474,7 @@
                   "text": "string"
                 }
               },
-              "parameters": [
-                {
-                  "name": "isListTrigger",
-                  "default": "false"
-                }
-              ],
               "description": "Native semantics for the selector's controls (core SPEC §6.4): disabled\n= `disabled` (no interaction, not focusable); read-only = still focusable,\nmarked `aria-disabled` (it adds nothing — the click handler refuses it).\nA button that also opens the file popover stays a plain button under\nread-only (`isListTrigger`): the files can still be looked at."
-            },
-            {
-              "kind": "field",
-              "name": "isSelectorListTrigger",
-              "type": {
-                "text": "boolean"
-              },
-              "privacy": "private",
-              "description": "Button / minimal + popover with files: the selector button opens the list.",
-              "readonly": true
             },
             {
               "kind": "method",
@@ -3785,6 +3769,16 @@
             },
             {
               "kind": "field",
+              "name": "managedOwner",
+              "type": {
+                "text": "HTMLElement | null"
+              },
+              "privacy": "private",
+              "default": "null",
+              "description": "The element that mounted this satellite (`bindToStore()`'s `owner`): its custom CSS applies here too."
+            },
+            {
+              "kind": "field",
               "name": "cleanupStoreWait",
               "type": {
                 "text": "(() => void) | null"
@@ -3938,7 +3932,7 @@
                   "text": "void"
                 }
               },
-              "description": "Build (core `reinit()`): custom CSS, the canonical way (core usage\n\"Style injection\", rulebook C-CA-15) — the page layer\n`window.components[tag].customStyles`, then this instance's."
+              "description": "Build (core `reinit()`): custom CSS, the canonical way (core usage\n\"Style injection\", rulebook C-CA-15) — the page layer\n`window.components[tag].customStyles`, then (a satellite another\nelement mounted) the owner's page + instance layers, then this instance's."
             },
             {
               "kind": "method",
@@ -4016,9 +4010,16 @@
                   "type": {
                     "text": "DropzoneElement"
                   }
+                },
+                {
+                  "name": "owner",
+                  "default": "null",
+                  "type": {
+                    "text": "HTMLElement | null"
+                  }
                 }
               ],
-              "description": "Programmatically bind to a `<web-dropzone>` element, bypassing the\n`for=` attribute. Use when mounting the satellite inside another\nshadow root (where `document.getElementById` can't reach the store).\n\nSafe to call before the element connects — the binding is used when it\nactivates. Calling after connection tears down the current wiring and\nre-binds."
+              "description": "Programmatically bind to a `<web-dropzone>` element, bypassing the\n`for=` attribute. Use when mounting the satellite inside another\nshadow root (where `document.getElementById` can't reach the store).\n\nSafe to call before the element connects — the binding is used when it\nactivates. Calling after connection tears down the current wiring and\nre-binds.\n\n`owner` — the element that mounted this satellite and owns it (the store\nfor its bulk-mode UI, the indicator for its drawer list); its custom CSS\n(page + instance layers) also applies to this satellite. Default none."
             },
             {
               "kind": "method",
@@ -5648,6 +5649,20 @@
             },
             {
               "kind": "field",
+              "name": "managedOwner",
+              "type": {
+                "text": "HTMLElement | null"
+              },
+              "privacy": "private",
+              "default": "null",
+              "description": "The element that mounted this satellite (`bindToStore()`'s `owner`): its custom CSS applies here too.",
+              "inheritedFrom": {
+                "name": "SatelliteElement",
+                "module": "src/satellite-base.ts"
+              }
+            },
+            {
+              "kind": "field",
               "name": "cleanupStoreWait",
               "type": {
                 "text": "(() => void) | null"
@@ -5723,7 +5738,7 @@
                   "text": "void"
                 }
               },
-              "description": "Build (core `reinit()`): custom CSS, the canonical way (core usage\n\"Style injection\", rulebook C-CA-15) — the page layer\n`window.components[tag].customStyles`, then this instance's.",
+              "description": "Build (core `reinit()`): custom CSS, the canonical way (core usage\n\"Style injection\", rulebook C-CA-15) — the page layer\n`window.components[tag].customStyles`, then (a satellite another\nelement mounted) the owner's page + instance layers, then this instance's.",
               "inheritedFrom": {
                 "name": "SatelliteElement",
                 "module": "src/satellite-base.ts"
@@ -5810,9 +5825,16 @@
                   "type": {
                     "text": "DropzoneElement"
                   }
+                },
+                {
+                  "name": "owner",
+                  "default": "null",
+                  "type": {
+                    "text": "HTMLElement | null"
+                  }
                 }
               ],
-              "description": "Programmatically bind to a `<web-dropzone>` element, bypassing the\n`for=` attribute. Use when mounting the satellite inside another\nshadow root (where `document.getElementById` can't reach the store).\n\nSafe to call before the element connects — the binding is used when it\nactivates. Calling after connection tears down the current wiring and\nre-binds.",
+              "description": "Programmatically bind to a `<web-dropzone>` element, bypassing the\n`for=` attribute. Use when mounting the satellite inside another\nshadow root (where `document.getElementById` can't reach the store).\n\nSafe to call before the element connects — the binding is used when it\nactivates. Calling after connection tears down the current wiring and\nre-binds.\n\n`owner` — the element that mounted this satellite and owns it (the store\nfor its bulk-mode UI, the indicator for its drawer list); its custom CSS\n(page + instance layers) also applies to this satellite. Default none.",
               "inheritedFrom": {
                 "name": "SatelliteElement",
                 "module": "src/satellite-base.ts"
@@ -8186,6 +8208,20 @@
             },
             {
               "kind": "field",
+              "name": "managedOwner",
+              "type": {
+                "text": "HTMLElement | null"
+              },
+              "privacy": "private",
+              "default": "null",
+              "description": "The element that mounted this satellite (`bindToStore()`'s `owner`): its custom CSS applies here too.",
+              "inheritedFrom": {
+                "name": "SatelliteElement",
+                "module": "src/satellite-base.ts"
+              }
+            },
+            {
+              "kind": "field",
               "name": "cleanupStoreWait",
               "type": {
                 "text": "(() => void) | null"
@@ -8291,7 +8327,7 @@
                   "text": "void"
                 }
               },
-              "description": "Build (core `reinit()`): custom CSS, the canonical way (core usage\n\"Style injection\", rulebook C-CA-15) — the page layer\n`window.components[tag].customStyles`, then this instance's.",
+              "description": "Build (core `reinit()`): custom CSS, the canonical way (core usage\n\"Style injection\", rulebook C-CA-15) — the page layer\n`window.components[tag].customStyles`, then (a satellite another\nelement mounted) the owner's page + instance layers, then this instance's.",
               "inheritedFrom": {
                 "name": "SatelliteElement",
                 "module": "src/satellite-base.ts"
@@ -8393,9 +8429,16 @@
                   "type": {
                     "text": "DropzoneElement"
                   }
+                },
+                {
+                  "name": "owner",
+                  "default": "null",
+                  "type": {
+                    "text": "HTMLElement | null"
+                  }
                 }
               ],
-              "description": "Programmatically bind to a `<web-dropzone>` element, bypassing the\n`for=` attribute. Use when mounting the satellite inside another\nshadow root (where `document.getElementById` can't reach the store).\n\nSafe to call before the element connects — the binding is used when it\nactivates. Calling after connection tears down the current wiring and\nre-binds.",
+              "description": "Programmatically bind to a `<web-dropzone>` element, bypassing the\n`for=` attribute. Use when mounting the satellite inside another\nshadow root (where `document.getElementById` can't reach the store).\n\nSafe to call before the element connects — the binding is used when it\nactivates. Calling after connection tears down the current wiring and\nre-binds.\n\n`owner` — the element that mounted this satellite and owns it (the store\nfor its bulk-mode UI, the indicator for its drawer list); its custom CSS\n(page + instance layers) also applies to this satellite. Default none.",
               "inheritedFrom": {
                 "name": "SatelliteElement",
                 "module": "src/satellite-base.ts"
@@ -10573,6 +10616,20 @@
             },
             {
               "kind": "field",
+              "name": "managedOwner",
+              "type": {
+                "text": "HTMLElement | null"
+              },
+              "privacy": "private",
+              "default": "null",
+              "description": "The element that mounted this satellite (`bindToStore()`'s `owner`): its custom CSS applies here too.",
+              "inheritedFrom": {
+                "name": "SatelliteElement",
+                "module": "src/satellite-base.ts"
+              }
+            },
+            {
+              "kind": "field",
               "name": "cleanupStoreWait",
               "type": {
                 "text": "(() => void) | null"
@@ -10663,7 +10720,7 @@
                   "text": "void"
                 }
               },
-              "description": "Build (core `reinit()`): custom CSS, the canonical way (core usage\n\"Style injection\", rulebook C-CA-15) — the page layer\n`window.components[tag].customStyles`, then this instance's.",
+              "description": "Build (core `reinit()`): custom CSS, the canonical way (core usage\n\"Style injection\", rulebook C-CA-15) — the page layer\n`window.components[tag].customStyles`, then (a satellite another\nelement mounted) the owner's page + instance layers, then this instance's.",
               "inheritedFrom": {
                 "name": "SatelliteElement",
                 "module": "src/satellite-base.ts"
@@ -10765,9 +10822,16 @@
                   "type": {
                     "text": "DropzoneElement"
                   }
+                },
+                {
+                  "name": "owner",
+                  "default": "null",
+                  "type": {
+                    "text": "HTMLElement | null"
+                  }
                 }
               ],
-              "description": "Programmatically bind to a `<web-dropzone>` element, bypassing the\n`for=` attribute. Use when mounting the satellite inside another\nshadow root (where `document.getElementById` can't reach the store).\n\nSafe to call before the element connects — the binding is used when it\nactivates. Calling after connection tears down the current wiring and\nre-binds.",
+              "description": "Programmatically bind to a `<web-dropzone>` element, bypassing the\n`for=` attribute. Use when mounting the satellite inside another\nshadow root (where `document.getElementById` can't reach the store).\n\nSafe to call before the element connects — the binding is used when it\nactivates. Calling after connection tears down the current wiring and\nre-binds.\n\n`owner` — the element that mounted this satellite and owns it (the store\nfor its bulk-mode UI, the indicator for its drawer list); its custom CSS\n(page + instance layers) also applies to this satellite. Default none.",
               "inheritedFrom": {
                 "name": "SatelliteElement",
                 "module": "src/satellite-base.ts"
@@ -12765,6 +12829,20 @@
             },
             {
               "kind": "field",
+              "name": "managedOwner",
+              "type": {
+                "text": "HTMLElement | null"
+              },
+              "privacy": "private",
+              "default": "null",
+              "description": "The element that mounted this satellite (`bindToStore()`'s `owner`): its custom CSS applies here too.",
+              "inheritedFrom": {
+                "name": "SatelliteElement",
+                "module": "src/satellite-base.ts"
+              }
+            },
+            {
+              "kind": "field",
               "name": "cleanupStoreWait",
               "type": {
                 "text": "(() => void) | null"
@@ -12870,7 +12948,7 @@
                   "text": "void"
                 }
               },
-              "description": "Build (core `reinit()`): custom CSS, the canonical way (core usage\n\"Style injection\", rulebook C-CA-15) — the page layer\n`window.components[tag].customStyles`, then this instance's.",
+              "description": "Build (core `reinit()`): custom CSS, the canonical way (core usage\n\"Style injection\", rulebook C-CA-15) — the page layer\n`window.components[tag].customStyles`, then (a satellite another\nelement mounted) the owner's page + instance layers, then this instance's.",
               "inheritedFrom": {
                 "name": "SatelliteElement",
                 "module": "src/satellite-base.ts"
@@ -12972,9 +13050,16 @@
                   "type": {
                     "text": "DropzoneElement"
                   }
+                },
+                {
+                  "name": "owner",
+                  "default": "null",
+                  "type": {
+                    "text": "HTMLElement | null"
+                  }
                 }
               ],
-              "description": "Programmatically bind to a `<web-dropzone>` element, bypassing the\n`for=` attribute. Use when mounting the satellite inside another\nshadow root (where `document.getElementById` can't reach the store).\n\nSafe to call before the element connects — the binding is used when it\nactivates. Calling after connection tears down the current wiring and\nre-binds.",
+              "description": "Programmatically bind to a `<web-dropzone>` element, bypassing the\n`for=` attribute. Use when mounting the satellite inside another\nshadow root (where `document.getElementById` can't reach the store).\n\nSafe to call before the element connects — the binding is used when it\nactivates. Calling after connection tears down the current wiring and\nre-binds.\n\n`owner` — the element that mounted this satellite and owns it (the store\nfor its bulk-mode UI, the indicator for its drawer list); its custom CSS\n(page + instance layers) also applies to this satellite. Default none.",
               "inheritedFrom": {
                 "name": "SatelliteElement",
                 "module": "src/satellite-base.ts"
