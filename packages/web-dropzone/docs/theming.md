@@ -662,6 +662,10 @@ as `@keenmate/web-dropzone/manifest`).
 
 #### sheet tokens
 
+A **sheet** is a panel that covers the page on a phone — a bottom sheet, a side drawer, a full-screen
+picker. These variables style its top bar: the strip (`header-*`), its title (`title-*`) and the round
+close button (`close-*`).
+
 | Variable | Usage |
 |---|---|
 | `--dz-sheet-header-gap` | Sheet chrome (indicator drawer header / close, phone popover close) — unset by default, maps onto core --_km-sheet-header-gap: Gap between the header's title / fields and the close button (→ --base-space-sm, default 8px) |
