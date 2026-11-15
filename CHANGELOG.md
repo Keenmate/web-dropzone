@@ -11,6 +11,9 @@ No stable 1.0.0 is published, so the break ships as the next release
 candidate — but `^1.0.0-rc02` consumers will pull it: the event,
 callback and store-access API below is breaking.
 
+### Internal — core 1.0.0-rc24 (2026-11-15)
+- core `^1.0.0-rc24` (was `^1.0.0-rc22`).
+
 ### Internal — devkit 1.0.0-rc14 (2026-11-13)
 - **Example pages on `@keenmate/web-components-devkit` `^1.0.0-rc14`** — every hand-written code
   block is a `.code-block[data-language]` (html / js / css), so the kit highlights it at build time
@@ -22,7 +25,7 @@ callback and store-access API below is breaking.
 
 ### Changed (phone sheet chrome from core, 2026-11-13)
 
-Needs core `SHEET_CHROME_CSS` (`@keenmate/web-components-core` 1.0.0-rc24).
+Needs core `SHEET_CHROME_CSS` (needs `@keenmate/web-components-core` `^1.0.0-rc24`).
 
 - **The indicator drawer header and both close buttons are core's shared sheet chrome** — the
   drawer header / title / close and the phone popover's close carry `km-sheet-header` /
