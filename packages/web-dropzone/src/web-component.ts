@@ -38,6 +38,8 @@ import {
     createCustomStyles,
     createStateStore,
     toBool,
+    watchPageDrag,
+    applyArmedState,
     toBytes,
     toEnum,
     toInt,
@@ -55,7 +57,6 @@ import {
 } from '@keenmate/web-components-core';
 import { WebDropzone } from './dropzone';
 import { linkStoreController, linkStoreReorder, announceStoreBuild } from './store-link';
-import { subscribePageFileDrag, isPageFileDragActive, applyArmedState } from './page-file-drag';
 import { initLogger, createDropzoneController, countLabel, defaultLabel } from '@keenmate/web-dropzone-core';
 import { labelsConverter } from './inputs';
 import type {
@@ -338,6 +339,8 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
     #customStyles: CustomStylesHandle | null = null;
     /** Unsubscribe from the shared page-drag tracker (set while `highlight-on-page-drag` is live). */
     #unsubscribePageDrag?: () => void;
+    /** A file drag is over the page (core `watchPageDrag`). */
+    #isPageDragging = false;
     #isArmed = false;
 
     /**
@@ -568,10 +571,17 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
     #syncPageDrag(): void {
         const shouldTrack = this.isConnected && !!this.config.shouldHighlightOnPageDrag;
         if (shouldTrack && !this.#unsubscribePageDrag) {
-            this.#unsubscribePageDrag = subscribePageFileDrag(() => this.#syncArmed());
+            this.#unsubscribePageDrag = watchPageDrag({
+                types: ['Files'],
+                onChange: (isDragging) => {
+                    this.#isPageDragging = isDragging;
+                    this.#syncArmed();
+                },
+            });
         } else if (!shouldTrack && this.#unsubscribePageDrag) {
             this.#unsubscribePageDrag();
             this.#unsubscribePageDrag = undefined;
+            this.#isPageDragging = false;
         }
         this.#syncArmed();
     }
@@ -579,7 +589,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
     /** Armed = tracking + a file drag over the page + the dropzone accepts drops. */
     #syncArmed(): void {
         const isArmed = !!this.#unsubscribePageDrag
-            && isPageFileDragActive()
+            && this.#isPageDragging
             && !this.isEffectivelyDisabled
             && !this.config.isReadonly;
         if (isArmed === this.#isArmed) return;

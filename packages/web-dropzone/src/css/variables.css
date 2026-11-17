@@ -621,7 +621,10 @@
   --dz-overlay-text-font-size: calc(1.8 * var(--dz-rem, 10px));
   --dz-overlay-text-font-weight: 500;
   --dz-overlay-gap: calc(1.2 * var(--dz-rem, 10px));
-  --dz-overlay-z-index: 9999;
+  --dz-overlay-z-index: var(--base-z-popover, 7600);
+  --dz-overlay-hover-filter: brightness(1.12) saturate(1.05);
+  --dz-overlay-hover-border: 3px solid var(--dz-text-on-accent);
+  --dz-overlay-hover-shadow: 0 10px 36px var(--dz-shadow-color);
 }
 
 /* Reduced motion: no transitions / animations; the uploading-row pulse stops

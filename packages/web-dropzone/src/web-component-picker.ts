@@ -19,7 +19,7 @@
  */
 
 import styles from './css/main.css?inline';
-import { adoptStyles, toBool, toEnum, toFunction, toText, toValue, type InputDef } from '@keenmate/web-components-core';
+import { adoptStyles, applyArmedState, watchPageDrag, toBool, toEnum, toFunction, toText, toValue, type InputDef } from '@keenmate/web-components-core';
 import {
     SatelliteElement,
     SATELLITE_INPUTS,
@@ -27,7 +27,6 @@ import {
     type SatelliteElementConfig
 } from './satellite-base';
 import { escapeHtml, UI_ICONS } from '@keenmate/web-dropzone-core';
-import { subscribePageFileDrag, isPageFileDragActive, applyArmedState } from './page-file-drag';
 import type { DropzoneElement } from './web-component';
 import type {
     SelectorAppearance,
@@ -84,6 +83,8 @@ export class DropzonePickerElement extends SatelliteElement {
     private dragCounter = 0;
     /** Unsubscribe from the shared page-drag tracker (set while `highlight-on-page-drag` is live). */
     private unsubscribePageDrag: (() => void) | null = null;
+    /** A file drag is over the page (core `watchPageDrag`). */
+    private isPageDragging = false;
     private isArmedState = false;
 
     constructor() {
@@ -305,17 +306,24 @@ export class DropzonePickerElement extends SatelliteElement {
     private syncPageDrag(): void {
         const shouldTrack = this.isConnected && !!this.store && this.isPageDragHighlighted();
         if (shouldTrack && !this.unsubscribePageDrag) {
-            this.unsubscribePageDrag = subscribePageFileDrag(() => this.syncArmed());
+            this.unsubscribePageDrag = watchPageDrag({
+                types: ['Files'],
+                onChange: (isDragging) => {
+                    this.isPageDragging = isDragging;
+                    this.syncArmed();
+                },
+            });
         } else if (!shouldTrack && this.unsubscribePageDrag) {
             this.unsubscribePageDrag();
             this.unsubscribePageDrag = null;
+            this.isPageDragging = false;
         }
         this.syncArmed();
     }
 
     /** Armed = tracking + a file drag over the page + the picker accepts drops. */
     private syncArmed(): void {
-        const isArmed = !!this.unsubscribePageDrag && isPageFileDragActive() && !this.isAddBlocked();
+        const isArmed = !!this.unsubscribePageDrag && this.isPageDragging && !this.isAddBlocked();
         if (isArmed === this.isArmedState) return;
         this.isArmedState = isArmed;
         applyArmedState(this, this.internals, isArmed);

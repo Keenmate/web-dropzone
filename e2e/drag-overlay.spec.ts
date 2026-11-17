@@ -6,7 +6,8 @@ import { test, expect, dragFiles, logLines, type Page } from './fixtures';
  * Fixture: test/drag-overlay.html. `#overlay-dz` is attached to the external
  * `#target` via `overlay-target="target"` (an element id — the documented
  * `"#target"` selector form is NOTES.md #1). A file drag anywhere on the page
- * mounts a fixed overlay (light DOM, appended to <body>) over the target;
+ * mounts an overlay over the target in a core layer (`div.km-layer` in the overlay
+ * container, its own shadow root);
  * overlay-enter / overlay-leave / file-add log into `overlay-log`.
  *
  * Drags are synthetic (`dragFiles`): a constructed DataTransfer carrying real
@@ -21,7 +22,9 @@ const overlay = (page: Page) => page.locator('.dz__overlay');
 async function overlayIndexFor(page: Page, targetId: string): Promise<number> {
     return page.evaluate((targetId) => {
         const t = document.getElementById(targetId)!.getBoundingClientRect();
-        const all = Array.from(document.querySelectorAll<HTMLElement>('.dz__overlay'));
+        // Overlays render in core layers (`div.km-layer`, inline geometry on the layer).
+        const all = Array.from(document.querySelectorAll<HTMLElement>('.km-layer'))
+            .filter((l) => l.shadowRoot?.querySelector('.dz__overlay'));
         return all.findIndex((o) => Math.abs(parseFloat(o.style.top) - t.top) < 1);
     }, targetId);
 }
@@ -57,8 +60,11 @@ test.describe('overlay lifecycle', () => {
         await dragFiles(page.locator('body'), 'dragenter');
         await expect(overlay(page)).toHaveCount(1);
         // Compare the inline geometry (the WAAPI fade-in scales the box briefly).
-        const o = await overlay(page).evaluate((el: HTMLElement) =>
-            [el.style.top, el.style.left, el.style.width, el.style.height].map(parseFloat));
+        // The overlay renders in a core layer; the layer's host carries the inline geometry.
+        const o = await overlay(page).evaluate((el: HTMLElement) => {
+            const layer = (el.getRootNode() as ShadowRoot).host as HTMLElement;
+            return [layer.style.top, layer.style.left, layer.style.width, layer.style.height].map(parseFloat);
+        });
         const r = await page.locator('#target').evaluate((el) => {
             const b = el.getBoundingClientRect();
             return [b.top, b.left, b.width, b.height];
@@ -90,6 +96,7 @@ test.describe('overlay lifecycle', () => {
         await startPulse(page);
         await dragFiles(page.locator('body'), 'dragenter');
         await dragFiles(overlay(page), 'dragenter');
+        await stopPulse(page); // a real drop ends the dragover pulses (core's watcher re-arms on one)
         await dragFiles(overlay(page), 'drop', ['a.txt', 'b.txt']);
         await expect(overlay(page)).toHaveCount(0);
         await expect.poll(() => page.locator('#overlay-dz').evaluate((el: any) => el.files.map((f: any) => f.name)))

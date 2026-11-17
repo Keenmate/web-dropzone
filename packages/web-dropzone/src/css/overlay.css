@@ -1,14 +1,14 @@
 /* ==============================================================================
    DRAG OVERLAY — ultra-compact selectors
    ==============================================================================
-   Rendered position:fixed when a drag enters a non-card selector (button /
-   minimal / indicator) — the overlay communicates the drop target without
-   needing the chrome to occupy real estate. Fade-in animation lives in
-   animations.css. */
+   Shown over `overlay-target` while a file drag is over the page. It renders
+   in a core layer (createLayer): its own shadow root with this stylesheet, in
+   the overlay container, positioned + stacked by core (the layer's
+   `.km-layer__content` box fills it; z-index from --dz-overlay-z-index).
+   Fade-in animation lives in animations.css. */
 
 .dz__overlay {
-  position: fixed;
-  z-index: var(--dz-overlay-z-index);
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -17,6 +17,16 @@
   border-radius: var(--dz-overlay-border-radius);
   pointer-events: all;
   animation: dz-overlay-fade-in var(--dz-transition-normal) var(--dz-easing-out);
+  transition: filter var(--dz-transition-fast) var(--dz-easing-snappy),
+              border-color var(--dz-transition-fast) var(--dz-easing-snappy),
+              box-shadow var(--dz-transition-fast) var(--dz-easing-snappy);
+}
+
+/* A drag over the overlay itself. */
+.dz__overlay--hover {
+  filter: var(--dz-overlay-hover-filter);
+  border: var(--dz-overlay-hover-border);
+  box-shadow: var(--dz-overlay-hover-shadow);
 }
 
 .dz__overlay-content {

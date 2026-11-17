@@ -567,7 +567,10 @@ as `@keenmate/web-dropzone/manifest`).
 | `--dz-overlay-icon-size` | overlay icon size |
 | `--dz-overlay-text-font-size` | overlay text font size |
 | `--dz-overlay-text-font-weight` | overlay text font weight |
-| `--dz-overlay-z-index` | overlay z index |
+| `--dz-overlay-z-index` | overlay z index (default the popover tier `var(--base-z-popover, 7600)`) |
+| `--dz-overlay-hover-filter` | overlay filter while a drag is over it |
+| `--dz-overlay-hover-border` | overlay border while a drag is over it |
+| `--dz-overlay-hover-shadow` | overlay shadow while a drag is over it |
 
 #### popover tokens
 

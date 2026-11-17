@@ -11,6 +11,28 @@ No stable 1.0.0 is published, so the break ships as the next release
 candidate — but `^1.0.0-rc02` consumers will pull it: the event,
 callback and store-access API below is breaking.
 
+### Changed (core adoption, 2026-11-17)
+
+Needs `@keenmate/web-components-core` `^1.0.0-rc25`.
+
+- **Page-wide file drag through core `watchPageDrag` / `applyArmedState`** — the `armed` state
+  (`highlight-on-page-drag`) on `<web-dropzone>` / `<web-dropzone-picker>` and the drag overlay
+  (`overlay-target`) follow core's one shared page watcher (drop, Escape, leaving the window,
+  the dragover heartbeat). The private `page-file-drag.ts` tracker, the overlay's own document /
+  window listeners, heartbeat timer and the `dz:overlay-drag-ended` sibling signal are gone —
+  every overlay on the page ends together because they share the watcher.
+- **The drag overlay is a core layer (`createLayer`)** — instead of a `<div>` on `<body>` with
+  every style copied inline, it renders in its own shadow root carrying the component
+  stylesheet, in the overlay container (`<body>`, or the open modal `<dialog>` the dropzone sits
+  in, so a modal no longer covers it), with the host's theme. Hover look and fade-in are CSS
+  (`.dz__overlay--hover`, `dz-overlay-fade-in`). Page CSS that styled `.dz__overlay` in the light
+  DOM no longer reaches it — theme it with the `--dz-overlay-*` variables (per-instance values
+  set on the dropzone are carried over). `overlay-enter` / `overlay-leave` still pass
+  `overlayElement` (now the element inside the layer).
+- **New `--dz-overlay-hover-filter` / `-hover-border` / `-hover-shadow`** (were hard-coded
+  JS fallbacks). **`--dz-overlay-z-index` defaults to the popover tier**
+  `var(--base-z-popover, 7600)` (was `9999`).
+
 ### Internal — core 1.0.0-rc24 (2026-11-15)
 - core `^1.0.0-rc24` (was `^1.0.0-rc22`).
 

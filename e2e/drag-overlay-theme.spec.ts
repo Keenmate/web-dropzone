@@ -3,7 +3,7 @@ import { test, expect, dragFiles, type Page } from './fixtures';
 /**
  * Drag overlay light / dark. Fixture: test/drag-overlay-theme.html.
  *
- * The overlay is mounted on <body>, outside the host's dark-mode.css rules, so it
+ * The overlay renders in a core layer outside the host (overlay container), so it
  * must carry the HOST's resolved color-scheme — not the page's. The page sets a
  * scheme-dependent accent (`light-dark(blue, red)`), so the overlay background
  * proves which branch resolved: blue-ish = light, red-ish = dark.
@@ -72,4 +72,11 @@ test('a host theme change while the overlay is shown re-schemes it live', async 
     expect((await overlayScheme(page)).scheme).toBe('dark');
     await page.locator('#dz').evaluate((el) => el.setAttribute('data-theme', 'light'));
     await expect.poll(async () => (await overlayScheme(page)).scheme).toBe('light');
+});
+
+test('a per-instance --dz-overlay-* token set on the host reaches the overlay layer', async ({ page }) => {
+    await page.locator('#dz').evaluate((el: HTMLElement) => el.style.setProperty('--dz-overlay-bg', 'rgb(0, 128, 0)'));
+    await dragFiles(page.locator('body'), 'dragenter');
+    await expect(overlay(page)).toHaveCount(1);
+    expect((await overlayScheme(page)).bg).toBe('rgb(0, 128, 0)');
 });

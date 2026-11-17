@@ -22,9 +22,10 @@
  * keep working.
  */
 
-import { createPopover } from '@keenmate/web-components-core/positioning';
-import type { Placement, PopoverHandle } from '@keenmate/web-components-core/positioning';
-import { adoptStyles, deepActiveElement, dispatch, SHEET_CHROME_CSS } from '@keenmate/web-components-core';
+import { createLayer, createPopover } from '@keenmate/web-components-core/positioning';
+import type { Layer, Placement, PopoverHandle } from '@keenmate/web-components-core/positioning';
+import { adoptStyles, deepActiveElement, dispatch, SHEET_CHROME_CSS, watchPageDrag, Z_INDEX } from '@keenmate/web-components-core';
+import styles from './css/main.css?inline';
 import { getPhoneMediaQuery } from './phone-sheet';
 import {
     initLogger,
@@ -205,17 +206,13 @@ export class WebDropzone extends DropzoneEngine {
 
     // Drag overlay elements
     private overlayTarget: HTMLElement | null = null;
+    /** The overlay's element (inside its core layer) while a file drag is over the page. */
     private dragOverlay: HTMLElement | null = null;
-    // Heartbeat state for detecting drag cancellation (Esc on an external
-    // file drag never reaches JS as a keydown — browsers handle it at the
-    // OS level — so we watch the `dragover` pulse instead).
-    private overlayLastDragoverAt: number = 0;
-    private overlayHeartbeatTimer: ReturnType<typeof setInterval> | null = null;
-    private boundOverlayWindowDragover: ((e: DragEvent) => void) | null = null;
-    private boundOverlayWindowDragend: (() => void) | null = null;
-    private boundOverlayDragEndedSignal: (() => void) | null = null;
-    // Keeps the body-mounted overlay's color-scheme in step with the host's
-    // while it's shown (see createOverlay).
+    private overlayLayer: Layer | null = null;
+    /** Core `watchPageDrag` subscription while an overlay target is set up. */
+    private stopOverlayDragWatch: (() => void) | null = null;
+    // Keeps the layer's theme attributes in step with the host's while the
+    // overlay is shown (a theme switch mid-drag).
     private overlaySchemeObserver: MutationObserver | null = null;
 
     // Event handler references for cleanup
@@ -224,7 +221,6 @@ export class WebDropzone extends DropzoneEngine {
     private boundHandleDrop: (e: DragEvent) => void;
     private boundHandleClick: (e: MouseEvent) => void;
     private boundHandleInputChange: (e: Event) => void;
-    private boundHandleOverlayDragEnter: (e: DragEvent) => void;
     private boundHandleWindowBlur: () => void;
 
     /**
@@ -243,7 +239,6 @@ export class WebDropzone extends DropzoneEngine {
         this.boundHandleDrop = this.handleDrop.bind(this);
         this.boundHandleClick = this.handleClick.bind(this);
         this.boundHandleInputChange = this.handleInputChange.bind(this);
-        this.boundHandleOverlayDragEnter = this.handleOverlayDragEnter.bind(this);
         this.boundHandleWindowBlur = this.removeOverlay.bind(this);
 
         initLogger.debug('WebDropzone initialized', { config: this.config });
@@ -2689,152 +2684,105 @@ export class WebDropzone extends DropzoneEngine {
             return;
         }
 
-        // Listen for drag events on document to detect file drags
-        document.addEventListener('dragenter', this.boundHandleOverlayDragEnter);
+        // Core's page-wide drag watcher (SPEC §12.28): a file drag anywhere on
+        // the page shows the overlay; drop / Escape / leaving the window / the
+        // dragover heartbeat stopping (an external drag cancelled with Escape)
+        // hides it — for every overlay on the page at once (one shared watcher).
+        this.stopOverlayDragWatch = watchPageDrag({
+            types: ['Files'],
+            onChange: (isDragging) => (isDragging ? this.showOverlay() : this.removeOverlay()),
+        });
         window.addEventListener('blur', this.boundHandleWindowBlur);
 
         initLogger.debug('Overlay target setup', { target: this.overlayTarget });
     }
 
-    private handleOverlayDragEnter(e: DragEvent): void {
-        // Only activate if dragging files
-        if (!e.dataTransfer?.types.includes('Files')) return;
-
-        // Only activate if not disabled and target exists
-        if (this.isAddBlocked || !this.overlayTarget) return;
-
-        // Only create overlay if not already showing
-        if (this.dragOverlay) return;
-
+    private showOverlay(): void {
+        if (this.isAddBlocked || !this.overlayTarget || this.dragOverlay) return;
         this.createOverlay();
     }
+
+    /**
+     * The `--dz-*` tokens the overlay reads, copied from the host onto the layer.
+     * A core layer (createLayer) isn't the host's descendant, so per-instance
+     * custom properties set on the dropzone (or an ancestor) wouldn't reach it —
+     * only `:root` tokens and the theme do (core gap, reported). The layer's own
+     * shadow root carries the component stylesheet, whose `:host` defaults apply
+     * when the host has nothing of its own.
+     */
+    private static readonly OVERLAY_VARS = [
+        '--dz-overlay-bg', '--dz-overlay-border', '--dz-overlay-border-radius', '--dz-overlay-color',
+        '--dz-overlay-gap', '--dz-overlay-icon-size', '--dz-overlay-text-font-size', '--dz-overlay-text-font-weight',
+        '--dz-overlay-z-index', '--dz-overlay-hover-filter', '--dz-overlay-hover-border', '--dz-overlay-hover-shadow',
+        '--dz-accent-color', '--dz-text-on-accent', '--dz-dropzone-border-radius', '--dz-shadow-color',
+        '--dz-transition-normal', '--dz-transition-fast', '--dz-easing-out', '--dz-easing-snappy', '--dz-rem',
+    ];
 
     private createOverlay(): void {
         if (!this.overlayTarget || this.dragOverlay) return;
 
-        const rect = this.overlayTarget.getBoundingClientRect();
+        const host = this.config.hostElement ?? this.element;
         const icon = this.config.overlayIcon || DEFAULT_CONFIG.overlayIcon;
         const text = this.label('overlay');
 
-        // The overlay lives in light DOM (document.body) so it can cover any
-        // target on the page, but the `.dz__overlay*` rules in _modifiers.css
-        // are scoped to the shadow root and don't reach here. We inline every
-        // style the overlay needs, reading themable values from the host's
-        // `--dz-overlay-*` custom properties when present.
-        const hostStyles = this.config.hostElement
-            ? getComputedStyle(this.config.hostElement)
-            : null;
-        const themeVar = (name: string, fallback: string): string => {
-            const v = hostStyles?.getPropertyValue(name).trim();
-            return v && v.length > 0 ? v : fallback;
-        };
-
-        this.dragOverlay = document.createElement('div');
-        this.dragOverlay.className = 'dz__overlay';
-        Object.assign(this.dragOverlay.style, {
-            position: 'fixed',
-            top: `${rect.top}px`,
-            left: `${rect.left}px`,
-            width: `${rect.width}px`,
-            height: `${rect.height}px`,
-            zIndex: themeVar('--dz-overlay-z-index', '9999'),
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: themeVar('--dz-overlay-bg', 'rgba(59, 130, 246, 0.92)'),
-            border: themeVar('--dz-overlay-border', '3px dashed #ffffff'),
-            borderRadius: themeVar('--dz-overlay-border-radius', '8px'),
-            color: themeVar('--dz-overlay-color', '#ffffff'),
-            pointerEvents: 'all',
-            boxSizing: 'border-box',
+        // A core layer: its own shadow root with the component stylesheet, in
+        // the overlay container (body, or the open modal dialog the host is in),
+        // theme attributes copied from the host.
+        const layer = createLayer(host, {
+            css: styles,
+            className: 'dz__overlay',
+            zIndex: `var(--dz-overlay-z-index, ${Z_INDEX.popover})`,
         });
-
-        const contentGap = themeVar('--dz-overlay-gap', '12px');
-        const iconSize = themeVar('--dz-overlay-icon-size', '48px');
-        const textSize = themeVar('--dz-overlay-text-font-size', '18px');
-        const textWeight = themeVar('--dz-overlay-text-font-weight', '500');
-
+        const hostStyles = getComputedStyle(host);
+        for (const name of WebDropzone.OVERLAY_VARS) {
+            const value = hostStyles.getPropertyValue(name).trim();
+            if (value) layer.layer.style.setProperty(name, value);
+        }
+        // The host's resolved color-scheme, inline: core's layer resets its host
+        // with an unlayered `all: initial`, so the stylesheet's layered
+        // `:host([data-theme])` / `[data-context-theme]` rules (dark-mode.css)
+        // can't set it on the layer (core gap, reported).
+        const syncScheme = (): void => {
+            layer.layer.style.colorScheme = getComputedStyle(host).colorScheme;
+        };
+        syncScheme();
+        layer.place(this.overlayTarget.getBoundingClientRect());
+        this.overlayLayer = layer;
+        this.dragOverlay = layer.element;
         this.dragOverlay.innerHTML = `
-            <div class="dz__overlay-content" style="display:flex;flex-direction:column;align-items:center;gap:${contentGap};color:inherit;text-align:center;">
-                <div class="dz__overlay-icon" style="font-size:${iconSize};line-height:1;">${icon}</div>
-                <div class="dz__overlay-text" style="font-size:${textSize};font-weight:${textWeight};">${escapeHtml(text)}</div>
+            <div class="dz__overlay-content">
+                <div class="dz__overlay-icon">${icon}</div>
+                <div class="dz__overlay-text">${escapeHtml(text)}</div>
             </div>
         `;
 
-        // Light / dark: the overlay sits on <body>, outside the host's
-        // `dark-mode.css` rules, so its `light-dark()` values (the copied
-        // `--dz-overlay-*` tokens are unresolved, e.g. a `light-dark()`
-        // accent) would follow the PAGE's scheme. Copy the host's resolved
-        // `color-scheme` (data-theme > data-context-theme > inherited) and
-        // keep it live while the overlay is up — core re-writes
-        // `data-context-theme` on a page / theme-source change, and the
-        // page can flip `data-theme` on the host mid-drag.
-        const host = this.config.hostElement;
-        if (host) {
-            const syncScheme = (): void => {
-                if (this.dragOverlay) this.dragOverlay.style.colorScheme = getComputedStyle(host).colorScheme;
-            };
+        // The page can flip the host's theme mid-drag; core re-writes
+        // `data-context-theme` on a page / theme-source change.
+        this.overlaySchemeObserver = new MutationObserver(() => {
+            layer.syncTheme();
             syncScheme();
-            this.overlaySchemeObserver = new MutationObserver(syncScheme);
-            this.overlaySchemeObserver.observe(host, {
-                attributes: true,
-                attributeFilter: ['data-theme', 'data-context-theme', 'style', 'class'],
-            });
-        }
+        });
+        this.overlaySchemeObserver.observe(host, {
+            attributes: true,
+            attributeFilter: ['data-theme', 'data-context-theme', 'data-motion'],
+        });
 
-        document.body.appendChild(this.dragOverlay);
-
-        // Fade-in via WAAPI (no global keyframes needed). The overlay lives on
-        // <body>, so its timing comes from the host's motion variables (0s under
-        // reduced motion / motion off).
-        const toMs = (d: string): number => {
-            const n = parseFloat(d);
-            return Number.isFinite(n) ? (d.trim().endsWith('ms') ? n : n * 1000) : 0;
-        };
-        const easeStandard = themeVar('--dz-easing-snappy', 'cubic-bezier(0.4, 0, 0.2, 1)');
-        this.dragOverlay.animate(
-            [
-                { opacity: 0, transform: 'scale(0.98)' },
-                { opacity: 1, transform: 'scale(1)' },
-            ],
-            {
-                duration: toMs(themeVar('--dz-transition-normal', '0.15s')),
-                easing: themeVar('--dz-easing-out', 'cubic-bezier(0, 0, 0.2, 1)'),
-                fill: 'both',
-            },
-        );
-        const hoverSpeed = themeVar('--dz-transition-fast', '0.1s');
-
-        // Hover state — closure-scoped so each overlay tracks itself.
-        // Emits overlay-enter / overlay-leave on the host so consumers can
-        // surface contextual info (remaining quota, hint text, etc.).
-        const baseBorder = themeVar('--dz-overlay-border', '3px dashed #ffffff');
+        // Hover state — emits overlay-enter / overlay-leave on the host so
+        // consumers can surface contextual info (remaining quota, hint text, …).
         let isOverlayHovered = false;
         const applyOverlayHover = (): void => {
             if (!this.dragOverlay || isOverlayHovered) return;
             isOverlayHovered = true;
-            Object.assign(this.dragOverlay.style, {
-                filter: themeVar('--dz-overlay-hover-filter', 'brightness(1.12) saturate(1.05)'),
-                border: themeVar('--dz-overlay-hover-border', '3px solid #ffffff'),
-                boxShadow: themeVar('--dz-overlay-hover-shadow', `0 10px 36px ${themeVar('--dz-shadow-color', 'rgba(0, 0, 0, 0.15)')}`),
-                transition: ['filter', 'border-color', 'box-shadow'].map((p) => `${p} ${hoverSpeed} ${easeStandard}`).join(', '),
-            });
             this.dragOverlay.classList.add('dz__overlay--hover');
             this.notify('overlay-enter', { overlayElement: this.dragOverlay });
         };
         const revertOverlayHover = (): void => {
             if (!this.dragOverlay || !isOverlayHovered) return;
             isOverlayHovered = false;
-            Object.assign(this.dragOverlay.style, {
-                filter: '',
-                border: baseBorder,
-                boxShadow: '',
-            });
             this.dragOverlay.classList.remove('dz__overlay--hover');
             this.notify('overlay-leave', { overlayElement: this.dragOverlay });
         };
 
-        // Handle drag events on overlay
         this.dragOverlay.addEventListener('dragenter', (e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -2843,8 +2791,7 @@ export class WebDropzone extends DropzoneEngine {
 
         this.dragOverlay.addEventListener('dragover', (e) => {
             e.preventDefault();
-            e.stopPropagation();
-            this.overlayLastDragoverAt = performance.now();
+            // Not stopped: core's page watcher (window, capture) sees it anyway.
             // Belt-and-braces: if the overlay was inserted under an existing
             // drag, dragenter may not fire — dragover still does.
             applyOverlayHover();
@@ -2864,103 +2811,33 @@ export class WebDropzone extends DropzoneEngine {
         });
 
         this.dragOverlay.addEventListener('dragleave', (e) => {
-            const relatedTarget = e.relatedTarget as HTMLElement | null;
+            const relatedTarget = e.relatedTarget as Node | null;
             // Moving within our own children — stay hovered, stay alive
-            if (this.dragOverlay?.contains(relatedTarget)) return;
-            // Truly left the overlay — emit leave + revert hover styles.
-            // We deliberately do NOT call removeOverlay here. As long as the
-            // drag is still live somewhere on the page, the dragover-pulse
-            // heartbeat keeps us alive; real termination (drop, Esc, drag
-            // out of window) is handled by the drop / dragend / heartbeat /
-            // sibling-broadcast paths. Closing here would flicker overlays
-            // whenever the cursor crosses a non-overlay gap between sibling
-            // drop targets (e.g. two editor cards with a margin between
-            // them in a multi-editor split-overlay layout).
+            if (relatedTarget && this.dragOverlay?.contains(relatedTarget)) return;
+            // Truly left the overlay — emit leave + revert hover. The overlay
+            // stays while the drag is live anywhere on the page (core's
+            // watcher ends it), so crossing a gap between two split-overlay
+            // targets doesn't flicker.
             revertOverlayHover();
         });
-
-        // ESC to close — only effective for in-page drags; external file
-        // drags swallow keydown at the OS level, hence the heartbeat below.
-        document.addEventListener('keydown', this.handleOverlayKeyDown);
-
-        // Window-level dragover keeps the heartbeat alive even before the
-        // cursor reaches the overlay (e.g. when the user is dragging over
-        // a different area of the page).
-        this.boundOverlayWindowDragover = (e: DragEvent) => {
-            if (!e.dataTransfer?.types.includes('Files')) return;
-            this.overlayLastDragoverAt = performance.now();
-        };
-        window.addEventListener('dragover', this.boundOverlayWindowDragover, { capture: true });
-
-        // `dragend` fires for in-page drag sources when the user presses
-        // Esc — useful as a belt-and-suspenders.
-        this.boundOverlayWindowDragend = () => this.removeOverlay();
-        window.addEventListener('dragend', this.boundOverlayWindowDragend);
-
-        // Sibling-overlay sync: when any overlay terminates (drop, Esc,
-        // heartbeat timeout), it broadcasts on document. Every still-alive
-        // overlay tears itself down too — otherwise a drop on one half of a
-        // split-overlay leaves the other half lingering until its own
-        // heartbeat times out ~350ms later.
-        this.boundOverlayDragEndedSignal = () => this.removeOverlay();
-        document.addEventListener('dz:overlay-drag-ended', this.boundOverlayDragEndedSignal);
-
-        // Heartbeat: a live native drag pulses `dragover` ~every 250ms.
-        // When the user presses Esc (or the drag otherwise ends without a
-        // drop), pulses stop. After ~350ms of silence we treat the drag
-        // as gone and tear the overlay down.
-        this.overlayLastDragoverAt = performance.now();
-        this.overlayHeartbeatTimer = setInterval(() => {
-            if (!this.dragOverlay) return;
-            if (performance.now() - this.overlayLastDragoverAt > 350) {
-                uiLogger.debug('Overlay closed via dragover-heartbeat timeout');
-                this.removeOverlay();
-            }
-        }, 150);
 
         uiLogger.debug('Overlay created');
     }
 
-    private handleOverlayKeyDown = (e: KeyboardEvent): void => {
-        if (e.key === 'Escape') {
-            this.removeOverlay();
-        }
-    };
-
     private removeOverlay(): void {
-        if (this.dragOverlay) {
-            document.removeEventListener('keydown', this.handleOverlayKeyDown);
-            if (this.boundOverlayWindowDragover) {
-                window.removeEventListener('dragover', this.boundOverlayWindowDragover, { capture: true } as EventListenerOptions);
-                this.boundOverlayWindowDragover = null;
-            }
-            if (this.boundOverlayWindowDragend) {
-                window.removeEventListener('dragend', this.boundOverlayWindowDragend);
-                this.boundOverlayWindowDragend = null;
-            }
-            if (this.boundOverlayDragEndedSignal) {
-                document.removeEventListener('dz:overlay-drag-ended', this.boundOverlayDragEndedSignal);
-                this.boundOverlayDragEndedSignal = null;
-            }
-            if (this.overlayHeartbeatTimer !== null) {
-                clearInterval(this.overlayHeartbeatTimer);
-                this.overlayHeartbeatTimer = null;
-            }
-            this.overlaySchemeObserver?.disconnect();
-            this.overlaySchemeObserver = null;
-            this.dragOverlay.remove();
-            this.dragOverlay = null;
-            uiLogger.debug('Overlay removed');
-            // Tell sibling overlays the drag is over so they close immediately
-            // rather than waiting on their own heartbeats. This instance's own
-            // listener was already removed above, so we won't re-enter.
-            document.dispatchEvent(new Event('dz:overlay-drag-ended'));
-        }
+        if (!this.dragOverlay) return;
+        this.overlaySchemeObserver?.disconnect();
+        this.overlaySchemeObserver = null;
+        this.overlayLayer?.destroy();
+        this.overlayLayer = null;
+        this.dragOverlay = null;
+        uiLogger.debug('Overlay removed');
     }
 
     protected override cleanupOverlay(): void {
         this.removeOverlay();
-        document.removeEventListener('dragenter', this.boundHandleOverlayDragEnter);
+        this.stopOverlayDragWatch?.();
+        this.stopOverlayDragWatch = null;
         window.removeEventListener('blur', this.boundHandleWindowBlur);
     }
 }
