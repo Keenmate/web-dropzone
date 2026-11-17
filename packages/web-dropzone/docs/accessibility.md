@@ -72,6 +72,20 @@ Form validity (`min-file-count`) uses the native constraint API — `valueMissin
 - The chip of `drawer="off"` is a `role="status"` region: its text changes ("2 uploading", "1 failed")
   are announced politely.
 - Labels are text: they are always inserted escaped, never as HTML.
+- **Announcements** go through core `announce()` — the page's one shared polite live region
+  (`[data-km-announcer]`, `role="status"`), so the drop target needs no live region of its own:
+
+  | When | Label (default English) |
+  |---|---|
+  | Files added — ONE message per drop / pick, not per file | `announceAdded` "{count} files added" / `announceAddedOne` "1 file added" |
+  | A file rejected (same message as the add, after it) | `announceRejected` "{name} was rejected: {reason}" (`reason` = the validation message) |
+  | An upload batch finished (the worker pool drained) | `announceUploadDone` "Upload complete: {count} files" / `announceUploadDoneOne`; with failures `announceUploadFailed` "{done} uploaded, {failed} failed" |
+  | A file removed by the user (row ✕, Clear all) | `announceRemoved` "{name} removed" |
+
+  Upload progress is not announced (the progress bar has its own `aria-valuenow`); a programmatic
+  `removeFile()` / `clear()` (without `{ confirm: true }`) and a single-file replace are not either.
+  Numbers go in raw: core formats them for the locale, and a page-wide `formatLabelCallback` gets the
+  number. Set a label to `''` to silence that announcement.
 
 ## Focus management
 

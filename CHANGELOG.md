@@ -11,6 +11,16 @@ No stable 1.0.0 is published, so the break ships as the next release
 candidate — but `^1.0.0-rc02` consumers will pull it: the event,
 callback and store-access API below is breaking.
 
+### Added (screen-reader announcements, 2026-11-17)
+
+- **Announcements through core `announce()`** (the page's one shared polite live region): files
+  added — ONE message per drop / pick ("3 files added"), each rejected file ("bad.png was rejected:
+  File type not accepted", in the same message), a finished upload batch ("Upload complete: 2 files"
+  / "1 uploaded, 1 failed"), a file removed by the user ("a.txt removed"). Upload progress is not
+  announced. New labels `announceAdded(One)`, `announceRejected`, `announceUploadDone(One)`,
+  `announceUploadFailed`, `announceRemoved` (numbers raw — core formats them, a page-wide
+  `formatLabelCallback` gets the number); a label set to `''` silences that announcement.
+
 ### Changed (core adoption, 2026-11-17)
 
 Needs `@keenmate/web-components-core` `^1.0.0-rc25`.

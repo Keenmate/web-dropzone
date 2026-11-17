@@ -127,6 +127,23 @@ export interface DropzoneLabels {
     /** Form validity message (`min-file-count`). */
     errorMinFileCount: string;
     errorMinFileCountOne: string;
+
+    /**
+     * Screen-reader announcements (core `announce()`, the page's one polite live
+     * region). `''` silences one. Files added — ONE per drop / pick (`{count}`);
+     * `announceAddedOne` for exactly one.
+     */
+    announceAdded: string;
+    announceAddedOne: string;
+    /** A file was rejected (`{name}`, `{reason}` = the validation message). */
+    announceRejected: string;
+    /** An upload batch finished, all succeeded (`{count}`); `announceUploadDoneOne` for exactly one. */
+    announceUploadDone: string;
+    announceUploadDoneOne: string;
+    /** An upload batch finished with failures (`{done}`, `{failed}`). */
+    announceUploadFailed: string;
+    /** A file removed by the user — row ✕, Clear all (`{name}`). */
+    announceRemoved: string;
 }
 
 export type DropzoneLabelKey = keyof DropzoneLabels;
@@ -208,7 +225,15 @@ export const DEFAULT_LABELS: Readonly<DropzoneLabels> = Object.freeze({
     errorMaxTotalSize: 'Total size would exceed {size}',
     errorUpload: 'Upload failed',
     errorMinFileCount: 'At least {count} files required',
-    errorMinFileCountOne: 'At least 1 file required'
+    errorMinFileCountOne: 'At least 1 file required',
+
+    announceAdded: '{count} files added',
+    announceAddedOne: '1 file added',
+    announceRejected: '{name} was rejected: {reason}',
+    announceUploadDone: 'Upload complete: {count} files',
+    announceUploadDoneOne: 'Upload complete: 1 file',
+    announceUploadFailed: '{done} uploaded, {failed} failed',
+    announceRemoved: '{name} removed'
 });
 
 /** Placeholder values for {@link resolveLabel}. */
@@ -271,6 +296,15 @@ export function createLabelFn(getOverrides: () => LabelSources, getHost?: () => 
     };
 }
 
+/**
+ * The raw template of `key` (no placeholders filled) — `''` when the consumer
+ * silenced it (an announcement label set to `''` never reaches `announce()`,
+ * even through a page-wide `formatLabelCallback`).
+ */
+export function labelTemplate(overrides: LabelSources, key: DropzoneLabelKey): string {
+    return resolveCoreLabel(LABELS_TAG, DEFAULT_LABELS, mergeSources(overrides), key);
+}
+
 /** The page-wide labels of a satellite's own tag (`window.components.locale.labels[tag]`). */
 export function pageLabelsFor(tag: string): Partial<DropzoneLabels> | undefined {
     return getPageLocale()?.labels?.[tag] as Partial<DropzoneLabels> | undefined;
@@ -280,7 +314,7 @@ export function pageLabelsFor(tag: string): Partial<DropzoneLabels> | undefined 
 export const defaultLabel: LabelFn = (key, vars) => resolveLabel(undefined, key, vars);
 
 /** Keys with a singular variant `<key>One`, used when `count === 1`. */
-export type CountedLabelKey = 'fileCount' | 'errorMaxFileCount' | 'errorMinFileCount';
+export type CountedLabelKey = 'fileCount' | 'errorMaxFileCount' | 'errorMinFileCount' | 'announceAdded' | 'announceUploadDone';
 
 /** A count label: `<key>One` for exactly one, else `<key>` with `{count}` filled. */
 export function countLabel(label: LabelFn, key: CountedLabelKey, count: number): string {

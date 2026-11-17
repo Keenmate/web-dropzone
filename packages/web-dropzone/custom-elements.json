@@ -248,6 +248,15 @@
             },
             {
               "kind": "field",
+              "name": "overlayLayerStyles",
+              "type": {
+                "text": "{ destroy(): void } | null"
+              },
+              "privacy": "private",
+              "default": "null"
+            },
+            {
+              "kind": "field",
               "name": "stopOverlayDragWatch",
               "type": {
                 "text": "(() => void) | null"
@@ -14890,6 +14899,14 @@
             },
             {
               "kind": "field",
+              "name": "#layerStyles",
+              "privacy": "private",
+              "readonly": true,
+              "default": "new Set<CustomStylesHandle>()",
+              "description": "Live extra-root handles (the open drag overlay layer), refreshed with `#customStyles`."
+            },
+            {
+              "kind": "field",
               "name": "#unsubscribePageDrag",
               "privacy": "private",
               "type": {
@@ -15003,6 +15020,25 @@
                 }
               },
               "description": "Custom CSS (core usage \"Style injection\", rulebook C-CA-15): the page\nlayer `window.components['web-dropzone'].customStyles` /\n`.getCustomStylesCallback(ctx)`, then this instance's `customStyles` /\n`getCustomStylesCallback`. One handle, made on the first build, refreshed\nper build."
+            },
+            {
+              "kind": "method",
+              "name": "#attachLayerStyles",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "{ destroy(): void }"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "root",
+                  "type": {
+                    "text": "ShadowRoot"
+                  }
+                }
+              ],
+              "description": "The same custom CSS (page + instance layers) for a shadow root outside the\nhost — the drag overlay's core layer. `shouldShareLayers: false`: an extra\nroot, so the host's shared entry (what satellites read as owner CSS) stays\nthe main handle's. Refreshed with the main one while open; the engine\ndestroys it with the layer."
             },
             {
               "kind": "method",

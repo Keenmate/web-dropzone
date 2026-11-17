@@ -16,8 +16,11 @@ What a renderer built on the store should cover — the contract the official `<
   word (`statusAria` for an `aria-label` such as "Status: Uploading").
 - **Progress semantics.** `role="progressbar"` with `aria-valuenow` from `file.progress` /
   `getOverallProgress().percent`; mark a row `aria-busy="true"` while its file uploads.
-- **Announcements.** Render rejected files (`file-reject`, `validation.error` is already a localised
-  message) where a screen reader reaches them, e.g. a `role="status"` region.
+- **Announcements.** The store announces by itself through core `announce()` (the page's one polite
+  live region): files added (one message per drop / pick), rejections (`{name}` + the localised
+  `validation.error`), a finished upload batch, a user removal (`removeFile` / `clear` with
+  `{ confirm: true }`) — the `announce*` labels; `''` silences one. Still render rejected files
+  (`file-reject`) visibly.
 - **Disabled vs read-only.** If your control can be disabled, follow native semantics: disabled = not
   focusable and nothing submitted; read-only = focusable, no changes (`aria-disabled="true"`).
 - **Escaping.** File names are user data — insert them as text (`textContent`) or through

@@ -530,7 +530,10 @@ popover limits line `limitMaxFileSize` / `limitMinFileSize` / `limitMaxTotalSize
 `close` / `indicatorFailed` / `indicatorUploading` / `indicatorPaused` / `indicatorQueued` /
 `indicatorDone`; validation `errorMaxFileSize` / `errorMinFileSize` / `errorFileType` /
 `errorRejected` / `errorMaxFileCount(One)` / `errorDuplicate` / `errorMaxTotalSize` / `errorUpload`;
-form validity `errorMinFileCount(One)`. `…One` variants are used when the count is 1
+form validity `errorMinFileCount(One)`; screen-reader announcements `announceAdded(One)` (`{count}`),
+`announceRejected` (`{name}`, `{reason}`), `announceUploadDone(One)` (`{count}`), `announceUploadFailed`
+(`{done}`, `{failed}`), `announceRemoved` (`{name}`) — `''` silences one (see
+[accessibility.md](./accessibility.md#screen-reader-notes)). `…One` variants are used when the count is 1
 (`countLabel()`).
 
 **Page-wide (core `/locale`).** One assignment translates every dropzone on the page, live (the

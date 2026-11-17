@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — screen-reader announcements</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>web-dropzone { display: block; max-width: 420px; }</style>
+</head>
+<body>
+    <h1>screen-reader announcements</h1>
+    <p>Targeted by <code>e2e/announce.spec.ts</code>. Core <code>announce()</code> writes into the page's one
+        <code>[data-km-announcer]</code> live region.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">drop — accept=".txt", no upload handler</div>
+        <web-dropzone id="drop" accept=".txt" max-file-count="10" display-mode="list"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">upload — auto-upload with the fixture pump</div>
+        <web-dropzone id="up" accept="*/*" max-file-count="10" display-mode="list" concurrency="3"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">silent — every announce* label set to ''</div>
+        <web-dropzone id="silent" accept=".txt" max-file-count="10" display-mode="list" concurrency="3"
+            labels='{"announceAdded": "", "announceAddedOne": "", "announceRejected": "", "announceUploadDone": "", "announceUploadDoneOne": "", "announceUploadFailed": "", "announceRemoved": ""}'></web-dropzone>
+    </div>
+
+    <script type="module">
+        import '/src/index.ts';
+        import { installAddNamed, installPump } from './fixture-kit.js';
+        installAddNamed();
+        const handler = installPump();
+
+        customElements.whenDefined('web-dropzone').then(() => {
+            for (const id of ['up', 'silent']) document.getElementById(id).uploadFileCallback = handler;
+            window.__ready = true;
+        });
+    </script>
+</body>
+</html>

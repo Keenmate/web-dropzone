@@ -20,9 +20,9 @@
  */
 
 import { fileLogger, initLogger, uiLogger } from './logger';
-import { createStateStore, dispatch, runBeforeCallback, withComponentContext, type StateStore } from '@keenmate/web-components-core';
+import { announce, createStateStore, dispatch, runBeforeCallback, withComponentContext, type StateStore } from '@keenmate/web-components-core';
 import { createDropzoneController, type DropzoneController } from './controller';
-import { createLabelFn, countLabel, type LabelFn } from './labels';
+import { createLabelFn, countLabel, labelTemplate, type CountedLabelKey, type DropzoneLabelKey, type LabelFn, type LabelVars } from './labels';
 import type {
     DropzoneContext,
     DropzoneEngineEventName,
@@ -134,6 +134,8 @@ export class DropzoneEngine {
     private drainPromise: Promise<void> | null = null;
     private settleDrain: ((error?: unknown) => void) | null = null;
     private drainError: unknown = undefined;
+    /** Files a worker picked up during the current drain — counted for the "upload complete" announcement. */
+    private drainFileIds = new Set<string>();
     /** Pending reorder timers per file id, used to delay the visual move of
      *  a row from the "unresolved" bucket to the "complete" bucket (see
      *  `sinkCompletedDelay`). A file with a pending timer is NOT yet
@@ -377,7 +379,12 @@ export class DropzoneEngine {
 
         // The async steps may have run while other code paths mutated
         // `this.files` — dropFiles re-resolves the ids.
+        const present = new Set(this.files.map(f => f.id));
+        const removed = targets.filter(f => present.has(f.id));
         this.dropFiles(ids);
+
+        // `{ confirm: true }` = a user removal (row ✕, Clear all) — say it.
+        if (opts?.confirm) this.announceParts(removed.map(f => this.announceLabel('announceRemoved', { name: f.name })));
     }
 
     /**
@@ -791,6 +798,7 @@ export class DropzoneEngine {
                     );
                     if (!next) return;
                     this.activeIds.add(next.id);
+                    this.drainFileIds.add(next.id);
                     try {
                         await this.runUpload(next.id);
                     } finally {
@@ -808,6 +816,7 @@ export class DropzoneEngine {
                     this.drainPromise = null;
                     this.settleDrain = null;
                     this.drainError = undefined;
+                    this.announceDrainEnd();
                     settle?.(error);
                 }
             }
@@ -1427,6 +1436,12 @@ export class DropzoneEngine {
             this.emitRejectEvent(rejectedFiles);
         }
 
+        // ONE screen-reader announcement per drop / pick: the added count, then each rejection.
+        this.announceParts([
+            acceptedFiles.length > 0 ? this.announceCount('announceAdded', acceptedFiles.length) : '',
+            ...rejectedFiles.map(r => this.announceLabel('announceRejected', { name: r.file.name, reason: r.validation.error ?? '' }))
+        ]);
+
         // Re-render the row set. Per-file events were already reported
         // above (`file-add` for each accepted file, `change` from
         // `emitChangeEvent`); the renderer's `onEngineEvent` picks up the
@@ -1634,6 +1649,44 @@ export class DropzoneEngine {
           : 'uploading';
 
         return { uploadedBytes, totalBytes, completedCount, failedCount, uploadingCount, pausedCount, pendingCount, cancellingCount, percent, hasActivity, aggregateStatus };
+    }
+
+    // ========================================================================
+    // SCREEN-READER ANNOUNCEMENTS (core `announce()`)
+    // ========================================================================
+
+    /** An announcement label — `''` when the consumer silenced it (its template is `''`). */
+    protected announceLabel(key: DropzoneLabelKey, vars?: LabelVars): string {
+        return labelTemplate(this.config.labels, key) === '' ? '' : this.label(key, vars);
+    }
+
+    /** A counted announcement label (`<key>One` for exactly one); the count goes in raw. */
+    protected announceCount(key: CountedLabelKey & `announce${string}`, count: number): string {
+        return this.announceLabel(count === 1 ? `${key}One` as DropzoneLabelKey : key, { count });
+    }
+
+    /** Announce the non-empty parts as ONE polite message (a newer message replaces an unread one). */
+    protected announceParts(parts: readonly string[]): void {
+        if (this.isDestroyed) return;
+        const text = parts.filter(Boolean).join('. ');
+        if (text) announce(text, { document: this.contextElement.ownerDocument });
+    }
+
+    /** The upload pool drained: "Upload complete: N files" / "N uploaded, M failed". */
+    protected announceDrainEnd(): void {
+        const ids = this.drainFileIds;
+        this.drainFileIds = new Set();
+        let done = 0;
+        let failed = 0;
+        for (const file of this.files) {
+            if (!ids.has(file.id)) continue;
+            if (file.status === 'complete') done++;
+            else if (file.status === 'error') failed++;
+        }
+        if (done + failed === 0) return;
+        this.announceParts([failed > 0
+            ? this.announceLabel('announceUploadFailed', { done, failed })
+            : this.announceCount('announceUploadDone', done)]);
     }
 
     // ========================================================================
