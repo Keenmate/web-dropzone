@@ -274,7 +274,7 @@ const EVENTS: readonly EventDef[] = [
  */
 export type DropzoneElementConfig = Omit<
     DropzoneConfig,
-    | 'isHeadless' | 'container' | 'hostElement'
+    | 'isHeadless' | 'container' | 'hostElement' | 'attachLayerStyles'
     | 'accept' | 'icon' | 'cancelIcon' | 'removeIcon' | 'overlayIcon' | 'name' | 'storageKey'
     | 'renderMode' | 'selectorAppearance' | 'listAppearance' | 'cardSize' | 'isThumbnailsShown'
     | 'controls' | 'itemControls' | 'labels'
@@ -337,6 +337,8 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
     #container: HTMLElement;
     /** Core's custom-CSS handle (page layer + instance layer), made on the first build. */
     #customStyles: CustomStylesHandle | null = null;
+    /** Live extra-root handles (the open drag overlay layer), refreshed with `#customStyles`. */
+    readonly #layerStyles = new Set<CustomStylesHandle>();
     /** Unsubscribe from the shared page-drag tracker (set while `highlight-on-page-drag` is live). */
     #unsubscribePageDrag?: () => void;
     /** A file drag is over the page (core `watchPageDrag`). */
@@ -447,6 +449,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
      * per build.
      */
     #applyCustomStyles(): void {
+        for (const handle of this.#layerStyles) handle.refresh();
         if (this.#customStyles) return this.#customStyles.refresh();
         this.#customStyles = createCustomStyles(this, this.#shadow, {
             cssClass: 'dz-custom-styles',
@@ -456,6 +459,32 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
                 callback: this.config.getCustomStylesCallback as ((ctx: object) => string | null | undefined) | null,
             }),
         });
+    }
+
+    /**
+     * The same custom CSS (page + instance layers) for a shadow root outside the
+     * host — the drag overlay's core layer. `shouldShareLayers: false`: an extra
+     * root, so the host's shared entry (what satellites read as owner CSS) stays
+     * the main handle's. Refreshed with the main one while open; the engine
+     * destroys it with the layer.
+     */
+    #attachLayerStyles(root: ShadowRoot): { destroy(): void } {
+        const handle = createCustomStyles(this, root, {
+            cssClass: 'dz-custom-styles',
+            shouldShareLayers: false,
+            getContext: () => this.withContext({}),
+            getInstanceStyles: () => ({
+                css: this.config.customStyles as string | null,
+                callback: this.config.getCustomStylesCallback as ((ctx: object) => string | null | undefined) | null,
+            }),
+        });
+        this.#layerStyles.add(handle);
+        return {
+            destroy: () => {
+                this.#layerStyles.delete(handle);
+                handle.destroy();
+            },
+        };
     }
 
     /**
@@ -480,7 +509,10 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
         }
 
         // Custom styles are a shadow-root concern, not a store change.
-        if ('customStyles' in partial || 'getCustomStylesCallback' in partial) this.#customStyles?.refresh();
+        if ('customStyles' in partial || 'getCustomStylesCallback' in partial) {
+            this.#customStyles?.refresh();
+            for (const handle of this.#layerStyles) handle.refresh();
+        }
 
         const storePartial: Record<string, unknown> = {};
         for (const [key, value] of Object.entries(partial)) {
@@ -692,6 +724,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
         // Shadow DOM container for popover anchoring + form-element host.
         cfg.container = this.#container;
         cfg.hostElement = this;
+        cfg.attachLayerStyles = (root: ShadowRoot) => this.#attachLayerStyles(root);
         return cfg as DropzoneConfig;
     }
 

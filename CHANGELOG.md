@@ -25,10 +25,13 @@ Needs `@keenmate/web-components-core` `^1.0.0-rc25`.
   every style copied inline, it renders in its own shadow root carrying the component
   stylesheet, in the overlay container (`<body>`, or the open modal `<dialog>` the dropzone sits
   in, so a modal no longer covers it), with the host's theme. Hover look and fade-in are CSS
-  (`.dz__overlay--hover`, `dz-overlay-fade-in`). Page CSS that styled `.dz__overlay` in the light
-  DOM no longer reaches it — theme it with the `--dz-overlay-*` variables (per-instance values
-  set on the dropzone are carried over through core's `createLayer` `cssVars`, re-read on a theme
-  change). `overlay-enter` / `overlay-leave` still pass
+  (`.dz__overlay--hover`, `dz-overlay-fade-in`). **BREAKING:** the drag overlay is a core layer:
+  page CSS no longer reaches `.dz__overlay`; style it with `--dz-overlay-*` or `customStyles`.
+  The `--dz-overlay-*` values set on the dropzone are carried over through core's `createLayer`
+  `cssVars` (re-read on a theme change); the dropzone's `customStyles` / `getCustomStylesCallback`
+  (page-wide `window.components['web-dropzone']` and instance) are written into the layer's shadow
+  root as well (core `createCustomStyles` with `shouldShareLayers: false`), live while it's open.
+  `overlay-enter` / `overlay-leave` still pass
   `overlayElement` (now the element inside the layer).
 - **New `--dz-overlay-hover-filter` / `-hover-border` / `-hover-shadow`** (were hard-coded
   JS fallbacks). **`--dz-overlay-z-index` defaults to the popover tier**

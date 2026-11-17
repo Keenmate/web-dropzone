@@ -89,9 +89,23 @@ The page signal (`data-theme`, `data-bs-theme`, `.dark` / `.light` on `<html>` t
 element named by the core `theme-source` attribute) is mirrored onto the host as `data-context-theme`,
 which `dark-mode.css` reads — a replacement for `:host-context()`, which Firefox and Safari don't support.
 
-The `overlay-target` drag overlay lives on `<body>`, outside the shadow root, and takes the
-**host's** resolved `color-scheme` (kept live while it's shown) — a `data-theme="dark"` dropzone on a
-light page gets a dark overlay.
+The `overlay-target` drag overlay is a core layer (`createLayer`): its own shadow root in the overlay
+container (`<body>`, or the open modal `<dialog>` the dropzone sits in), outside the dropzone's shadow
+root. It takes the **host's** resolved `color-scheme` (kept live while it's shown) — a
+`data-theme="dark"` dropzone on a light page gets a dark overlay.
+
+**Page CSS does not reach `.dz__overlay`** (it's inside the layer's shadow root). Style the overlay
+with:
+
+- the `--dz-overlay-*` variables ([overlay tokens](#overlay-tokens)) — on `:root`, or on the dropzone
+  element for one instance (their values at the host are copied onto the layer, re-read on a theme
+  change);
+- [`customStyles` / `getCustomStylesCallback`](#extra-css-for-the-shadow-root), page-wide or per instance — the same
+  CSS is written into the layer's shadow root too, and follows live changes while the overlay is open:
+
+```js
+window.components['web-dropzone'].customStyles = `.dz__overlay { border-style: dotted; }`;
+```
 
 ## Shared theme layer (`--base-*`)
 
@@ -168,6 +182,9 @@ window.components['web-dropzone-picker'].customStyles = `.dz__dropzone-text { fo
   renders everything in its own shadow root. To style every satellite of one tag, use its page layer —
   `window.components['web-dropzone-picker'].customStyles`, `['web-dropzone-list']`,
   `['web-dropzone-progress']` (`:host([managed]) …` targets only mounted satellites).
+- **The drag overlay takes the dropzone's CSS too.** Its core layer gets the same two layers (page →
+  instance) in its own shadow root while it's open, so `.dz__overlay`, `.dz__overlay--hover`,
+  `.dz__overlay-icon`, `.dz__overlay-text` are reachable from `custom-styles`.
 - Selectors: the flat BEM classes below (`.dz__file-item-name`, never `.dz__file-item__name`).
 
 ## Shadow parts and BEM hooks
@@ -186,7 +203,7 @@ Inside the shadow root every class is flat BEM under the `dz__` prefix (`.dz__dr
 
 Every transition and animation uses the contract's four speeds (`--dz-transition-fast|normal|medium|slow`
 → `--base-duration-*`, 0.1 / 0.15 / 0.25 / 0.3s) and easings (`--dz-easing-snappy` / `--dz-easing-out` →
-`--base-ease-*`), including the drag overlay on `<body>` (timed from the host's variables). Turn it off
+`--base-ease-*`), including the drag overlay layer (timed from the host's variables). Turn it off
 with CSS, or with the core `motion` attribute / `window.components.motion`:
 
 ```css

@@ -830,6 +830,12 @@ export interface DropzoneConfig {
     container?: HTMLElement | null;
     /** Host element for appending hidden inputs (for form integration with shadow DOM) */
     hostElement?: HTMLElement;
+    /**
+     * Engine wiring (set by `<web-dropzone>`): the element's custom CSS for a shadow
+     * root the engine renders outside the host (the drag overlay's core layer). Called
+     * when the layer opens; the returned handle is destroyed with the layer.
+     */
+    attachLayerStyles?: (root: ShadowRoot) => { destroy(): void };
 }
 
 /**

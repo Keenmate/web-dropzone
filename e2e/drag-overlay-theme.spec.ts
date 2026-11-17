@@ -80,3 +80,35 @@ test('a per-instance --dz-overlay-* token set on the host reaches the overlay la
     await expect(overlay(page)).toHaveCount(1);
     expect((await overlayScheme(page)).bg).toBe('rgb(0, 128, 0)');
 });
+
+// The overlay is a core layer (its own shadow root): page CSS can't reach `.dz__overlay`,
+// the component's customStyles (page-wide + instance) do.
+
+test('page CSS for .dz__overlay does not reach the layer', async ({ page }) => {
+    await page.addStyleTag({ content: '.dz__overlay { outline: 7px solid rgb(1, 2, 3) !important; }' });
+    await dragFiles(page.locator('body'), 'dragenter');
+    await expect(overlay(page)).toHaveCount(1);
+    expect(await overlay(page).evaluate((el) => getComputedStyle(el).outlineWidth)).not.toBe('7px');
+});
+
+test('instance customStyles targeting .dz__overlay styles the overlay (live while open)', async ({ page }) => {
+    await page.locator('#dz').evaluate((el: any) => { el.customStyles = '.dz__overlay { outline: 7px solid rgb(1, 2, 3); }'; });
+    await dragFiles(page.locator('body'), 'dragenter');
+    await expect(overlay(page)).toHaveCount(1);
+    expect(await overlay(page).evaluate((el) => getComputedStyle(el).outlineWidth)).toBe('7px');
+    // a change while the overlay is open refreshes the layer's copy
+    await page.locator('#dz').evaluate((el: any) => { el.customStyles = '.dz__overlay { outline: 3px solid rgb(1, 2, 3); }'; });
+    await expect.poll(() => overlay(page).evaluate((el) => getComputedStyle(el).outlineWidth)).toBe('3px');
+});
+
+test('page-wide window.components customStyles styles the overlay; closing removes the layer', async ({ page }) => {
+    await page.evaluate(() => { (window as any).components['web-dropzone'].customStyles = '.dz__overlay { outline: 5px solid rgb(1, 2, 3); }'; });
+    await dragFiles(page.locator('body'), 'dragenter');
+    await expect(overlay(page)).toHaveCount(1);
+    expect(await overlay(page).evaluate((el) => getComputedStyle(el).outlineWidth)).toBe('5px');
+    await page.evaluate(() => { (window as any).components['web-dropzone'].getCustomStylesCallback = () => '.dz__overlay { outline: 9px solid rgb(1, 2, 3); }'; });
+    await expect.poll(() => overlay(page).evaluate((el) => getComputedStyle(el).outlineWidth)).toBe('9px');
+    await page.keyboard.press('Escape');
+    await expect(overlay(page)).toHaveCount(0);
+    await expect(page.locator('.km-layer')).toHaveCount(0);
+});
