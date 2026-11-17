@@ -19,7 +19,7 @@
  */
 
 import styles from './css/main.css?inline';
-import { adoptStyles, applyArmedState, watchPageDrag, toBool, toEnum, toFunction, toText, toValue, type InputDef } from '@keenmate/web-components-core';
+import { adoptStyles, applyArmedState, ICON_CSS, watchPageDrag, toBool, toEnum, toFunction, toText, toValue, type InputDef } from '@keenmate/web-components-core';
 import {
     SatelliteElement,
     SATELLITE_INPUTS,
@@ -27,6 +27,7 @@ import {
     type SatelliteElementConfig
 } from './satellite-base';
 import { escapeHtml, UI_ICONS } from '@keenmate/web-dropzone-core';
+import { renderDzIcon } from './row-templates';
 import type { DropzoneElement } from './web-component';
 import type {
     SelectorAppearance,
@@ -49,7 +50,7 @@ const INPUTS: readonly InputDef[] = [
     { configKey: 'cardSize', attribute: 'card-size', converter: toEnum(CARD_SIZES, { default: 'compact' }), shouldReflect: true, on: 'update', description: 'Card size for the card appearance.' },
     { configKey: 'accept', attribute: 'accept', converter: toText({ isNullable: true }), shouldReflect: true, on: 'update', description: 'Accepted file types for this picker\'s file dialog. Unset = the bound store\'s `accept` (the store validates every file either way).' },
     { configKey: 'isMultiple', attribute: 'multiple', converter: toBool('tristate'), on: 'update', type: 'boolean | null', description: 'Allow choosing several files in the dialog. Unset = the bound store\'s `multiple`.' },
-    { configKey: 'icon', attribute: 'icon', converter: toText({ isNullable: true }), shouldReflect: true, on: 'update', description: 'Prompt icon (raw HTML — NOT sanitized). Unset = the bound store\'s `icon`, else the built-in upload icon.' },
+    { configKey: 'icon', attribute: 'icon', converter: toText({ isNullable: true }), shouldReflect: true, on: 'update', description: 'Prompt icon — markup (starts with `<`, inserted raw — NOT sanitized), an icon name (masked from `--base-icon-<name>`), or text (an emoji). Unset = the bound store\'s `icon`, else the built-in upload icon.' },
     { configKey: 'isDisabled', attribute: 'disabled', converter: toBool('presence'), shouldReflect: true, on: 'update', type: 'boolean', description: 'Disable this picker (like a native control: no clicks / drops, not focusable, greyed). A disabled store disables it too.' },
     { configKey: 'isReadonly', attribute: 'readonly', converter: toBool('presence'), shouldReflect: true, on: 'update', type: 'boolean', description: 'Read-only (like a native control): this picker adds no files, but stays visible and focusable. A read-only store makes it read-only too.' },
     { configKey: 'isFilesInside', attribute: 'inside', converter: toBool('default-false'), on: 'update', type: 'boolean', description: 'Files-inside layout: the card slots its light-DOM children (a `<web-dropzone-list nested>`) below the prompt. Set by the store when it mounts the picker itself.' },
@@ -96,6 +97,7 @@ export class DropzonePickerElement extends SatelliteElement {
         // the convenience-form picker (inside <web-dropzone>) and the
         // satellite — one constructed sheet shared by every instance.
         adoptStyles(this.shadow, styles);
+        adoptStyles(this.shadow, ICON_CSS);
 
         this.container = document.createElement('div');
         this.container.className = 'dz__host';
@@ -175,7 +177,7 @@ export class DropzonePickerElement extends SatelliteElement {
         const acceptAttr = (this.config.accept as string | null) ?? storeCfg.accept ?? '';
         const multipleAttr = (this.config.isMultiple as boolean | null) ?? storeCfg.isMultiple ?? true;
         const label = this.label('selectFiles');
-        const icon = (this.config.icon as string | null) ?? storeCfg.icon ?? DEFAULT_ICON;
+        const icon = renderDzIcon((this.config.icon as string | null) ?? storeCfg.icon ?? DEFAULT_ICON);
         const hint = this.label('hint');
 
         // Card: the hidden input IS the keyboard control — name it after the

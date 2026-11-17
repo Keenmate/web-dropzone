@@ -24,7 +24,7 @@
 
 import { createLayer, createPopover } from '@keenmate/web-components-core/positioning';
 import type { Layer, Placement, PopoverHandle } from '@keenmate/web-components-core/positioning';
-import { adoptStyles, animateOut, deepActiveElement, dispatch, SHEET_CHROME_CSS, startSheetSession, watchPageDrag, Z_INDEX, type SheetSession } from '@keenmate/web-components-core';
+import { adoptStyles, animateOut, deepActiveElement, dispatch, ICON_CSS, SHEET_CHROME_CSS, startSheetSession, watchPageDrag, Z_INDEX, type SheetSession } from '@keenmate/web-components-core';
 import styles from './css/main.css?inline';
 import { isPhoneSheet, observePhoneSheet } from './phone-sheet';
 import {
@@ -244,6 +244,12 @@ export class WebDropzone extends DropzoneEngine {
         this.boundHandleWindowBlur = this.removeOverlay.bind(this);
 
         initLogger.debug('WebDropzone initialized', { config: this.config });
+
+        // Named icons (`icon`, `cancel-icon`, `remove-icon`) draw through core's
+        // `.km-icon` rule — adopted into the root the store renders in (the
+        // element's shadow root, or the document for a light-DOM mount).
+        const root = element.getRootNode();
+        if (root instanceof Document || root instanceof ShadowRoot) adoptStyles(root, ICON_CSS);
 
         this.render();
         this.attachEventListeners();
@@ -602,7 +608,7 @@ export class WebDropzone extends DropzoneEngine {
         }
 
         if (appearance === 'minimal') {
-            const icon = this.config.icon || DEFAULT_CONFIG.icon;
+            const icon = RowTemplate.renderDzIcon(this.config.icon || DEFAULT_CONFIG.icon);
             const count = this.files.length;
             const ariaLabel = escapeHtml(this.label('prompt'));
             return `
@@ -660,7 +666,7 @@ export class WebDropzone extends DropzoneEngine {
             ? this.label('dragActive')
             : this.label('prompt');
 
-        const icon = this.config.icon || DEFAULT_CONFIG.icon;
+        const icon = RowTemplate.renderDzIcon(this.config.icon || DEFAULT_CONFIG.icon);
         const hintText = this.label('hint');
         const hint = hintText
             ? `<div class="dz__dropzone-hint">${escapeHtml(hintText)}</div>`
@@ -1856,6 +1862,7 @@ export class WebDropzone extends DropzoneEngine {
         const containerRoot = container.getRootNode();
         if (containerRoot instanceof Document || containerRoot instanceof ShadowRoot) {
             adoptStyles(containerRoot, SHEET_CHROME_CSS);
+            adoptStyles(containerRoot, ICON_CSS);   // a named `remove-icon` in the popover rows
         }
 
         // Create popover
@@ -2713,14 +2720,14 @@ export class WebDropzone extends DropzoneEngine {
         if (!this.overlayTarget || this.dragOverlay) return;
 
         const host = this.config.hostElement ?? this.element;
-        const icon = this.config.overlayIcon || DEFAULT_CONFIG.overlayIcon;
+        const icon = RowTemplate.renderDzIcon(this.config.overlayIcon || DEFAULT_CONFIG.overlayIcon);
         const text = this.label('overlay');
 
         // A core layer: its own shadow root with the component stylesheet, in
         // the overlay container (body, or the open modal dialog the host is in),
         // theme attributes copied from the host.
         const layer = createLayer(host, {
-            css: styles,
+            css: [styles, ICON_CSS],
             className: 'dz__overlay',
             zIndex: `var(--dz-overlay-z-index, ${Z_INDEX.popover})`,
             cssVars: WebDropzone.OVERLAY_VARS,

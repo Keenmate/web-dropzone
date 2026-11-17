@@ -474,7 +474,7 @@
             },
             {
               "name": "icon",
-              "description": "Prompt icon (raw HTML — NOT sanitized). Unset = the bound store's `icon`, else the built-in upload icon.",
+              "description": "Prompt icon — markup (starts with `<`, inserted raw — NOT sanitized), an icon name (masked from `--base-icon-<name>`), or text (an emoji). Unset = the bound store's `icon`, else the built-in upload icon.",
               "value": { "type": "string | null" }
             },
             {
@@ -581,7 +581,7 @@
               },
               {
                 "name": "icon",
-                "description": "Prompt icon (raw HTML — NOT sanitized). Unset = the bound store's `icon`, else the built-in upload icon.",
+                "description": "Prompt icon — markup (starts with `<`, inserted raw — NOT sanitized), an icon name (masked from `--base-icon-<name>`), or text (an emoji). Unset = the bound store's `icon`, else the built-in upload icon.",
                 "type": "string | null"
               },
               {
@@ -980,17 +980,17 @@
             },
             {
               "name": "cancel-icon",
-              "description": "HTML for the row Cancel (⊘) button glyph (raw HTML — NOT sanitized). Unset = built-in icon.",
+              "description": "Row Cancel (⊘) button glyph — markup (starts with `<`, inserted raw — NOT sanitized), an icon name (masked from `--base-icon-<name>`), or text (an emoji). Unset = built-in icon.",
               "value": { "type": "string" }
             },
             {
               "name": "remove-icon",
-              "description": "HTML for the row Remove (✕) button glyph (raw HTML — NOT sanitized). Unset = built-in icon.",
+              "description": "Row Remove (✕) button glyph — markup (starts with `<`, inserted raw — NOT sanitized), an icon name (masked from `--base-icon-<name>`), or text (an emoji). Unset = built-in icon.",
               "value": { "type": "string" }
             },
             {
               "name": "icon",
-              "description": "Prompt icon (emoji or markup).",
+              "description": "Prompt icon — markup (starts with `<`, inserted raw), an icon name (masked from `--base-icon-<name>`), or text (an emoji).",
               "value": { "type": "string" }
             },
             {
@@ -1013,7 +1013,7 @@
             },
             {
               "name": "overlay-icon",
-              "description": "Icon shown in the drag overlay.",
+              "description": "Drag-overlay icon — markup (starts with `<`, inserted raw), an icon name (masked from `--base-icon-<name>`), or text (an emoji).",
               "value": { "type": "string" }
             },
             {
@@ -1381,15 +1381,15 @@
               },
               {
                 "name": "cancelIcon",
-                "description": "HTML for the row Cancel (⊘) button glyph (raw HTML — NOT sanitized). Unset = built-in icon."
+                "description": "Row Cancel (⊘) button glyph — markup (starts with `<`, inserted raw — NOT sanitized), an icon name (masked from `--base-icon-<name>`), or text (an emoji). Unset = built-in icon."
               },
               {
                 "name": "removeIcon",
-                "description": "HTML for the row Remove (✕) button glyph (raw HTML — NOT sanitized). Unset = built-in icon."
+                "description": "Row Remove (✕) button glyph — markup (starts with `<`, inserted raw — NOT sanitized), an icon name (masked from `--base-icon-<name>`), or text (an emoji). Unset = built-in icon."
               },
               {
                 "name": "icon",
-                "description": "Prompt icon (emoji or markup)."
+                "description": "Prompt icon — markup (starts with `<`, inserted raw), an icon name (masked from `--base-icon-<name>`), or text (an emoji)."
               },
               {
                 "name": "labels",
@@ -1408,7 +1408,7 @@
               },
               {
                 "name": "overlayIcon",
-                "description": "Icon shown in the drag overlay."
+                "description": "Drag-overlay icon — markup (starts with `<`, inserted raw), an icon name (masked from `--base-icon-<name>`), or text (an emoji)."
               },
               {
                 "name": "shouldHighlightOnPageDrag",

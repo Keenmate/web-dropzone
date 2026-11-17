@@ -35,6 +35,7 @@
 import {
     BlissElement,
     adoptStyles,
+    ICON_CSS,
     createCustomStyles,
     createStateStore,
     toBool,
@@ -177,9 +178,9 @@ const INPUTS: readonly InputDef[] = [
     { configKey: 'cardSize',                attribute: 'card-size',           converter: toEnum(['minimal', 'compact', 'big'] as const),                               shouldReflect: true, on: 'update', description: 'Card size for the card selector appearance.' },
     { configKey: 'isThumbnailsShown', attribute: 'show-thumbnails',     converter: toBool('tristate'),                                                           on: 'update', type: 'boolean', description: 'Force image thumbnails on/off. Property-only tristate: unset (undefined) means auto (on for grid, icons elsewhere).' },
     { configKey: 'isFilesInside',    attribute: 'files-inside',        converter: toBool('default-false'),                                                      on: 'update', type: 'boolean', description: 'Render the file list inside the drop area.' },
-    { configKey: 'cancelIcon',              attribute: 'cancel-icon',         converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'HTML for the row Cancel (⊘) button glyph (raw HTML — NOT sanitized). Unset = built-in icon.' },
-    { configKey: 'removeIcon',              attribute: 'remove-icon',         converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'HTML for the row Remove (✕) button glyph (raw HTML — NOT sanitized). Unset = built-in icon.' },
-    { configKey: 'icon',                    attribute: 'icon',                converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'Prompt icon (emoji or markup).' },
+    { configKey: 'cancelIcon',              attribute: 'cancel-icon',         converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'Row Cancel (⊘) button glyph — markup (starts with `<`, inserted raw — NOT sanitized), an icon name (masked from `--base-icon-<name>`), or text (an emoji). Unset = built-in icon.' },
+    { configKey: 'removeIcon',              attribute: 'remove-icon',         converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'Row Remove (✕) button glyph — markup (starts with `<`, inserted raw — NOT sanitized), an icon name (masked from `--base-icon-<name>`), or text (an emoji). Unset = built-in icon.' },
+    { configKey: 'icon',                    attribute: 'icon',                converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'Prompt icon — markup (starts with `<`, inserted raw), an icon name (masked from `--base-icon-<name>`), or text (an emoji).' },
     { configKey: 'labels',                  attribute: 'labels',              converter: labelsConverter,                                                              on: 'update', type: 'Partial<DropzoneLabels>', description: 'Every UI string (see `DropzoneLabels` / `DEFAULT_LABELS`), merged per key over the built-in English; `{name}` / `{count}` / `{size}` / … placeholders: prompt, hint, empty, summary, status names, row + bulk buttons, popover, limits line, progress strip, validation messages. Satellites inherit them (and take their own `labels` on top). Property (object) or JSON attribute. Live.' },
 
     // ── Compact mode ──────────────────────────────────────────────────────────
@@ -196,7 +197,7 @@ const INPUTS: readonly InputDef[] = [
             toAttribute: (v) => (typeof v === 'string' && v !== '' ? v : null),
         },
     ), shouldReflect: true, on: 'update', type: 'HTMLElement | string', description: 'Element (or selector string) that acts as the full-viewport drag-overlay target. Assign an HTMLElement via the property; a selector string via the `overlay-target` attribute.' },
-    { configKey: 'overlayIcon',             attribute: 'overlay-icon',        converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'Icon shown in the drag overlay.' },
+    { configKey: 'overlayIcon',             attribute: 'overlay-icon',        converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'Drag-overlay icon — markup (starts with `<`, inserted raw), an icon name (masked from `--base-icon-<name>`), or text (an emoji).' },
     { configKey: 'shouldHighlightOnPageDrag', attribute: 'highlight-on-page-drag', converter: toBool('default-false'),                                         on: 'update', type: 'boolean', description: 'Arm the drop target while FILES are dragged anywhere over the page: the host gets the `armed` attribute + `:state(armed)` and the card takes `--dz-dropzone-bg-armed` (the card under the pointer keeps `--dz-dropzone-bg-active`). Cleared on drop anywhere, when the drag leaves the window, on Escape / `dragend`, and on disconnect. Never armed while disabled / read-only; text and other non-file drags never arm. One shared page listener for all instances.' },
 
     // ── Form integration ──────────────────────────────────────────────────────
@@ -385,6 +386,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
         // Shadow DOM + the shared base stylesheet (one constructed sheet for every instance).
         this.#shadow = this.attachShadow({ mode: 'open' });
         adoptStyles(this.#shadow, styles);
+        adoptStyles(this.#shadow, ICON_CSS);   // named icons (core renderIcon, SPEC §12.33)
 
         // Container the core store renders into.
         this.#container = document.createElement('div');

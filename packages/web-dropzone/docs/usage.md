@@ -115,13 +115,13 @@ shadow root (`custom-styles` / `getCustomStylesCallback`, page-wide per tag) is 
 | `card-size` | `cardSize` | `'minimal' \| 'compact' \| 'big' \| null` |  | Card size for the card selector appearance. |
 | `show-thumbnails` | `isThumbnailsShown` | `boolean` | `null` | Force image thumbnails on/off. Property-only tristate: unset (undefined) means auto (on for grid, icons elsewhere). |
 | `files-inside` | `isFilesInside` | `boolean` | `false` | Render the file list inside the drop area. |
-| `cancel-icon` | `cancelIcon` |  |  | HTML for the row Cancel (⊘) button glyph (raw HTML — NOT sanitized). Unset = built-in icon. |
-| `remove-icon` | `removeIcon` |  |  | HTML for the row Remove (✕) button glyph (raw HTML — NOT sanitized). Unset = built-in icon. |
+| `cancel-icon` | `cancelIcon` |  |  | Row Cancel (⊘) button glyph — markup (starts with `<`, inserted raw — NOT sanitized), an icon name (masked from `--base-icon-<name>`), or text (an emoji). Unset = built-in icon. See [Icons](#icons). |
+| `remove-icon` | `removeIcon` |  |  | Row Remove (✕) button glyph — markup (starts with `<`, inserted raw — NOT sanitized), an icon name (masked from `--base-icon-<name>`), or text (an emoji). Unset = built-in icon. See [Icons](#icons). |
 | `icon` | `icon` |  |  | Prompt icon (emoji or markup). |
 | `labels` | `labels` | `Partial<DropzoneLabels>` |  | Every UI string (see `DropzoneLabels` / `DEFAULT_LABELS`), merged per key over the built-in English; `{name}` / `{count}` / `{size}` / … placeholders: prompt, hint, empty, summary, status names, row + bulk buttons, popover, limits line, progress strip, validation messages. Satellites inherit them (and take their own `labels` on top). Property (object) or JSON attribute. Live. |
 | `popover-placement` | `popoverPlacement` | `'top' \| 'top-start' \| 'top-end' \| 'bottom' \| 'bottom-start' \| 'bottom-end' \| 'left' \| 'left-start' \| 'left-end' \| 'right' \| 'right-start' \| 'right-end'` | `'bottom-start'` | Placement of the compact-mode popover relative to the summary (floating-ui placement). |
 | `overlay-target` | `overlayTarget` | `HTMLElement \| string` |  | Element (or selector string) that acts as the full-viewport drag-overlay target. Assign an HTMLElement via the property; a selector string via the `overlay-target` attribute. |
-| `overlay-icon` | `overlayIcon` |  |  | Icon shown in the drag overlay. |
+| `overlay-icon` | `overlayIcon` |  |  | Drag-overlay icon — markup (starts with `<`, inserted raw — NOT sanitized), an icon name (masked from `--base-icon-<name>`), or text (an emoji). See [Icons](#icons). |
 | `highlight-on-page-drag` | `shouldHighlightOnPageDrag` | `boolean` | `false` | Arm the drop target while FILES are dragged anywhere over the page: the host gets the `armed` attribute + `:state(armed)` and the card takes `--dz-dropzone-bg-armed` (the card under the pointer keeps `--dz-dropzone-bg-active`). Cleared on drop anywhere, when the drag leaves the window, on Escape / `dragend`, and on disconnect. Never armed while disabled / read-only; text and other non-file drags never arm. One shared page listener for all instances. |
 | `name` | `name` |  |  | Form field name. Files submit as real FormData blobs under this name. |
 | `concurrency` | `concurrency` | `number` | `1` | Maximum concurrent uploads through the worker pool. |
@@ -365,6 +365,24 @@ dropzone.getFileIconCallback = ({ file }) =>
 
 > ⚠️ Icon values are **raw HTML** inserted via `innerHTML` and are **NOT sanitized**. Only pass markup you control — never untrusted / user-supplied strings. See the [HTML injection (XSS) notice](#html-injection-xss-notice).
 
+## Icons
+
+The icon inputs — `icon`, `cancel-icon`, `remove-icon`, `overlay-icon` (and the picker satellite's `icon`) — follow
+core's one icon rule (`renderIcon`):
+
+| Value | Renders as |
+|-------|-----------|
+| starts with `<` (`<svg …>`, `<img …>`, `<i class="fa …">`) | the markup, inserted raw (NOT sanitized) |
+| an ASCII name (`upload`, `trash-2`) | `<span class="km-icon dz__icon dz__icon--<name>">` — a glyph masked from the `--base-icon-<name>` token, drawn in `currentColor` (nothing when the token is unset) |
+| anything else (`📎`, `+`) | escaped text |
+
+```html
+<style>
+  :root { --base-icon-trash: url("data:image/svg+xml,…"); }
+</style>
+<web-dropzone remove-icon="trash" overlay-icon="📎"></web-dropzone>
+```
+
 ## HTML injection (XSS) notice
 
 The following properties / callbacks accept **raw HTML** and are intentionally **NOT XSS-safe** — this gives you full control over rendering but means you must sanitize any untrusted data before passing it in:
@@ -373,9 +391,9 @@ The following properties / callbacks accept **raw HTML** and are intentionally *
 |---------------------|----------------|------|
 | `fileIcons` (map values) | File-row icon slot (innerHTML) | HTML injection |
 | `getFileIconCallback` | File-row icon slot (innerHTML) | HTML injection |
-| `icon` attr / property | Drop-zone + minimal prompt (innerHTML) | HTML injection |
-| `overlay-icon` attr / property | Drag overlay (innerHTML) | HTML injection |
-| `cancel-icon` / `remove-icon` attr / property | Row Cancel / Remove buttons (innerHTML) | HTML injection |
+| `icon` attr / property | Drop-zone + minimal prompt (innerHTML when the value starts with `<`) | HTML injection |
+| `overlay-icon` attr / property | Drag overlay (innerHTML when the value starts with `<`) | HTML injection |
+| `cancel-icon` / `remove-icon` attr / property | Row Cancel / Remove buttons (innerHTML when the value starts with `<`) | HTML injection |
 | `renderFileItemCallback` | File rows (innerHTML) | HTML injection |
 | `renderListWrapperCallback` | List wrapper (innerHTML) | HTML injection |
 | `renderPromptCallback` | Drop-area prompt (innerHTML) | HTML injection |

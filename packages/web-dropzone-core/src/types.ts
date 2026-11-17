@@ -541,7 +541,7 @@ export interface DropzoneConfig {
     isThumbnailsShown?: boolean;
     /** Show files inside the dropzone area instead of a separate list below (HTML attr: `files-inside`) */
     isFilesInside?: boolean;
-    /** Icon or emoji for the dropzone prompt */
+    /** Icon for the dropzone prompt. Read by core `renderIcon`: markup (starts with `<`) raw — ⚠️ NOT sanitized; an ASCII name (`upload`) masked from `--base-icon-<name>` in `currentColor`; anything else (an emoji) escaped text. */
     icon?: string;
     /**
      * UI strings (`labels` input) — a partial {@link DropzoneLabels} object
@@ -565,7 +565,7 @@ export interface DropzoneConfig {
 
     /** Element or element ID that triggers a drag overlay (ultra-compact form integration) */
     overlayTarget?: HTMLElement | string | null;
-    /** Icon for the drag overlay */
+    /** Icon for the drag overlay. Read by core `renderIcon`: markup (starts with `<`) raw — ⚠️ NOT sanitized; an ASCII name (`upload`) masked from `--base-icon-<name>` in `currentColor`; anything else (an emoji) escaped text. */
     overlayIcon?: string;
     /**
      * Arm the drop target while files are dragged anywhere over the page
@@ -696,11 +696,12 @@ export interface DropzoneConfig {
     cancelTimeout?: number;
     /** What a cancel that timed out does — see {@link CancelTimeoutBehavior}. Default `'error'`. */
     cancelTimeoutBehavior?: CancelTimeoutBehavior;
-    /** HTML for the row Cancel (⊘) button glyph. Unset → the built-in icon.
-     *  ⚠️ Raw HTML — NOT sanitized. */
+    /** The row Cancel (⊘) button glyph. Unset → the built-in icon.
+     * Read by core `renderIcon`: markup (starts with `<`) raw — ⚠️ NOT sanitized; an ASCII name (`upload`) masked from `--base-icon-<name>` in `currentColor`; anything else (an emoji) escaped text. */
     cancelIcon?: string;
-    /** HTML for the row Remove (✕) button glyph. Unset → the built-in
-     *  (CSS-masked `--dz-icon-remove`) glyph. ⚠️ Raw HTML — NOT sanitized. */
+    /** The row Remove (✕) button glyph. Unset → the built-in
+     *  (CSS-masked `--dz-icon-remove`) glyph.
+     * Read by core `renderIcon`: markup (starts with `<`) raw — ⚠️ NOT sanitized; an ASCII name (`upload`) masked from `--base-icon-<name>` in `currentColor`; anything else (an emoji) escaped text. */
     removeIcon?: string;
     /**
      * Whether the user can remove files that have already finished uploading

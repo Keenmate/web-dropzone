@@ -379,6 +379,10 @@ Every spec runs in three Playwright projects — chromium, firefox and webkit
 | `fileIcons` by extension (case/dot-insensitive) and category  | ✓      | `icons.spec.ts` | `icons.html` |
 | `getFileIconCallback` wins; `null` falls back; ctx shape      | ✓      | `icons.spec.ts` | `icons.html` |
 | `fileIcons` assigned after rows exist re-renders              | ✓      | `icons.spec.ts` | `icons.html` |
+| Icon inputs (`icon` / `cancel-icon` / `remove-icon`): a name → masked `.km-icon` (ICON_CSS) | ✓ | `icons.spec.ts` | `icons.html` |
+| Icon inputs: markup raw, emoji / other text escaped           | ✓      | `icons.spec.ts` | `icons.html` |
+| Named icons in satellites (picker `icon`, list `remove-icon`) | ✓      | `icons.spec.ts` | `icons.html` |
+| Named `overlay-icon` drawn in the drag-overlay layer          | ✓      | `icons.spec.ts` | `icons.html` |
 
 ## 22. Keyboard + accessibility
 

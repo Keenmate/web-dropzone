@@ -11,6 +11,16 @@ No stable 1.0.0 is published, so the break ships as the next release
 candidate — but `^1.0.0-rc02` consumers will pull it: the event,
 callback and store-access API below is breaking.
 
+### Changed (icons read by core `renderIcon`, 2026-11-17)
+
+- **BREAKING (visible): the icon inputs `icon`, `cancel-icon`, `remove-icon`, `overlay-icon`** (and
+  `<web-dropzone-picker icon>`) follow core's one icon rule. Markup (a value starting with `<`: `<svg>`,
+  `<img>`, `<i class="…">`) is inserted raw as before; an ASCII name (`upload`, `trash-2`) is now a glyph
+  masked from the `--base-icon-<name>` token in `currentColor` (`<span class="km-icon dz__icon
+  dz__icon--<name>">`; it used to show the word); anything else (an emoji, `1 < 2`) is escaped text (it
+  used to be inserted as HTML). Core `ICON_CSS` is adopted in every root an icon renders in: the
+  element's shadow root, the picker / list satellites, the popover's root and the drag-overlay layer.
+
 ### Added (buttons through core `/actions`, 2026-11-17)
 
 - **`action` event + `beforeActionCallback`** on `<web-dropzone>` — every built-in button is a core

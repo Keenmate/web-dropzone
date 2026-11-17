@@ -20,7 +20,7 @@
  */
 
 import styles from './css/main.css?inline';
-import { adoptStyles, animateOut, createMicrotaskScheduler, toBool, toEnum, type EventDef, type InputDef } from '@keenmate/web-components-core';
+import { adoptStyles, animateOut, ICON_CSS, createMicrotaskScheduler, toBool, toEnum, type EventDef, type InputDef } from '@keenmate/web-components-core';
 import {
     SatelliteElement,
     SATELLITE_INPUTS,
@@ -148,6 +148,7 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
         super();
         this.shadow = this.attachShadow({ mode: 'open' });
         adoptStyles(this.shadow, styles);
+        adoptStyles(this.shadow, ICON_CSS);
         this.container = document.createElement('div');
         this.container.className = 'dz__host dz__host--list-only';
         this.shadow.appendChild(this.container);

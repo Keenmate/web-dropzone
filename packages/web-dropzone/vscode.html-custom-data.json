@@ -194,7 +194,7 @@
         },
         {
           "name": "icon",
-          "description": "Prompt icon (raw HTML — NOT sanitized). Unset = the bound store's `icon`, else the built-in upload icon.",
+          "description": "Prompt icon — markup (starts with `<`, inserted raw — NOT sanitized), an icon name (masked from `--base-icon-<name>`), or text (an emoji). Unset = the bound store's `icon`, else the built-in upload icon.",
           "values": []
         },
         {
@@ -452,17 +452,17 @@
         },
         {
           "name": "cancel-icon",
-          "description": "HTML for the row Cancel (⊘) button glyph (raw HTML — NOT sanitized). Unset = built-in icon.",
+          "description": "Row Cancel (⊘) button glyph — markup (starts with `<`, inserted raw — NOT sanitized), an icon name (masked from `--base-icon-<name>`), or text (an emoji). Unset = built-in icon.",
           "values": []
         },
         {
           "name": "remove-icon",
-          "description": "HTML for the row Remove (✕) button glyph (raw HTML — NOT sanitized). Unset = built-in icon.",
+          "description": "Row Remove (✕) button glyph — markup (starts with `<`, inserted raw — NOT sanitized), an icon name (masked from `--base-icon-<name>`), or text (an emoji). Unset = built-in icon.",
           "values": []
         },
         {
           "name": "icon",
-          "description": "Prompt icon (emoji or markup).",
+          "description": "Prompt icon — markup (starts with `<`, inserted raw), an icon name (masked from `--base-icon-<name>`), or text (an emoji).",
           "values": []
         },
         {
@@ -495,7 +495,7 @@
         },
         {
           "name": "overlay-icon",
-          "description": "Icon shown in the drag overlay.",
+          "description": "Drag-overlay icon — markup (starts with `<`, inserted raw), an icon name (masked from `--base-icon-<name>`), or text (an emoji).",
           "values": []
         },
         {

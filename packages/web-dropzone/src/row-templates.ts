@@ -31,6 +31,19 @@ import {
     fileStatusLabel
 } from '@keenmate/web-dropzone-core';
 import type { FileState, FileItemPart, FileIconOverrides, LabelFn, RowAction, FileStatus } from '@keenmate/web-dropzone-core';
+import { renderIcon } from '@keenmate/web-components-core';
+
+/**
+ * An icon input (`icon`, `cancel-icon`, `remove-icon`, `overlay-icon`) → HTML,
+ * through core's one icon rule (SPEC §12.33): a value starting with `<` is
+ * markup, inserted raw; an ASCII name (`upload`, `x`) is a `.km-icon` glyph
+ * masked from the `--base-icon-<name>` token in `currentColor` (classes
+ * `dz__icon dz__icon--<name>`); anything else (an emoji) is escaped text.
+ * `''` for none. Every root an icon renders in adopts core `ICON_CSS`.
+ */
+export function renderDzIcon(icon: string | null | undefined): string {
+    return renderIcon(icon, { prefix: 'dz' });
+}
 
 /** The label key of a row action button (aria-label / tooltip, `{name}` = file). */
 export const ACTION_LABEL_KEYS = { pause: 'pauseFile', resume: 'resumeFile', retry: 'retryFile' } as const satisfies Record<RowAction, string>;
@@ -125,9 +138,9 @@ export interface RowTemplateOptions {
      * (no handler) every file stays `pending` and there is nothing to cancel.
      */
     hasUploadHandler?: boolean;
-    /** `cancel-icon` — HTML for the Cancel glyph (default {@link CANCEL_ICON}). */
+    /** `cancel-icon` — the Cancel glyph, read by {@link renderDzIcon} (default {@link CANCEL_ICON}). */
     cancelIcon?: string;
-    /** `remove-icon` — HTML for the Remove glyph (default: the CSS-masked ✕). */
+    /** `remove-icon` — the Remove glyph, read by {@link renderDzIcon} (default: the CSS-masked ✕). */
     removeIcon?: string;
     /** UI-string lookup (the store's `labels`); default: built-in English. */
     label?: LabelFn;
@@ -160,17 +173,19 @@ export function renderCancelButton(file: FileState, baseClass: string, opts: Row
     const inert = offered ? '' : ' tabindex="-1" aria-hidden="true"';
     const disabled = file.status === 'cancelling' || opts.isDisabled ? ' disabled' : '';
     const text = escapeHtml((opts.label ?? defaultLabel)('cancelFile', { name: file.name }));
-    return `<button type="button" class="${cls}" data-dz-action="cancel" data-file-id="${file.id}" aria-label="${text}" title="${text}"${inert}${disabled}>${opts.cancelIcon || CANCEL_ICON}</button>`;
+    return `<button type="button" class="${cls}" data-dz-action="cancel" data-file-id="${file.id}" aria-label="${text}" title="${text}"${inert}${disabled}>${renderDzIcon(opts.cancelIcon) || CANCEL_ICON}</button>`;
 }
 
 /**
  * Per-row Remove (✕) button — always rendered; `--hidden` (layout kept) when
  * the file isn't user-removable, disabled while `cancelling`. A `remove-icon`
- * replaces the CSS-masked glyph (`data-custom-icon` switches the mask off).
+ * (read by {@link renderDzIcon}) replaces the CSS-masked glyph
+ * (`data-custom-icon` switches the mask off).
  */
-export function renderRemoveButton(file: FileState, baseClass: string, removable = true, icon?: string, label: LabelFn = defaultLabel, isDisabled = false): string {
-    const custom = icon ? ' data-custom-icon' : '';
-    return `<button type="button" ${removeButtonAttrs(file, baseClass, removable, label, isDisabled)}${custom}>${icon ?? ''}</button>`;
+export function renderRemoveButton(file: FileState, baseClass: string, removable = true, icon?: string | null, label: LabelFn = defaultLabel, isDisabled = false): string {
+    const html = renderDzIcon(icon);
+    const custom = html ? ' data-custom-icon' : '';
+    return `<button type="button" ${removeButtonAttrs(file, baseClass, removable, label, isDisabled)}${custom}>${html}</button>`;
 }
 
 /**

@@ -4,7 +4,12 @@
     <meta charset="UTF-8">
     <title>Test — file icons</title>
     <link rel="stylesheet" href="test-fixtures.css">
-    <style>web-dropzone { display: block; max-width: 420px; }</style>
+    <style>
+        web-dropzone, web-dropzone-list, web-dropzone-picker { display: block; max-width: 420px; }
+        /* A named icon token (core renderIcon masks .km-icon from --base-icon-<name>). */
+        :root { --base-icon-star: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Crect width='1' height='1'/%3E%3C/svg%3E"); }
+        #ov-target { block-size: 60px; border: 1px dashed; }
+    </style>
 </head>
 <body>
     <h1>fileIcons map + getFileIconCallback</h1>
@@ -23,6 +28,30 @@
     <div class="fixture">
         <div class="fixture-label">getFileIconCallback (returns null for non-.csv → falls back to fileIcons / default)</div>
         <web-dropzone id="cb" accept="*/*" display-mode="detailed"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">icon inputs through core renderIcon: a name (star) → masked .km-icon</div>
+        <web-dropzone id="named" accept="*/*" list-appearance="list" icon="star" remove-icon="star" cancel-icon="star"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">markup (raw) / emoji / other text (escaped)</div>
+        <web-dropzone id="raw" accept="*/*" list-appearance="list" icon="&lt;b class=&quot;raw-icon&quot;&gt;R&lt;/b&gt;" remove-icon="🗑"></web-dropzone>
+        <web-dropzone id="lt" accept="*/*" list-appearance="list" icon="1 &lt; 2"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">satellites: a picker (icon="star") + a list (store remove-icon="star")</div>
+        <web-dropzone id="sat-store" accept="*/*" list-appearance="none" remove-icon="star"></web-dropzone>
+        <web-dropzone-picker id="sat-picker" for="sat-store" icon="star"></web-dropzone-picker>
+        <web-dropzone-list id="sat-list" for="sat-store" list-appearance="list"></web-dropzone-list>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">drag overlay (overlay-icon="star") — rendered in a core layer</div>
+        <div id="ov-target">overlay target</div>
+        <web-dropzone id="ov" accept="*/*" overlay-target="ov-target" overlay-icon="star"></web-dropzone>
     </div>
 
     <script type="module">
