@@ -91,6 +91,8 @@ export {
     DEFAULT_LABELS,
     resolveLabel,
     createLabelFn,
+    pageLabelsFor,
+    LABELS_TAG,
     defaultLabel,
     statusLabel,
     fileStatusLabel,

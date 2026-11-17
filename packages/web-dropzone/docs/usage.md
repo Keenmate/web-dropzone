@@ -531,8 +531,27 @@ popover limits line `limitMaxFileSize` / `limitMinFileSize` / `limitMaxTotalSize
 `indicatorDone`; validation `errorMaxFileSize` / `errorMinFileSize` / `errorFileType` /
 `errorRejected` / `errorMaxFileCount(One)` / `errorDuplicate` / `errorMaxTotalSize` / `errorUpload`;
 form validity `errorMinFileCount(One)`. `…One` variants are used when the count is 1
-(`countLabel()`). Every lookup goes through `resolveLabel(sources, key, vars)` (exported) —
-page-wide localisation will plug in there.
+(`countLabel()`).
+
+**Page-wide (core `/locale`).** One assignment translates every dropzone on the page, live (the
+elements re-render through core's `localeChanged()`):
+
+```javascript
+window.components.locale = {
+  locale: 'cs-CZ',                       // file sizes: "1,5 MB"
+  labels: {
+    'web-dropzone': { prompt: 'Přetáhněte soubory sem', cancelFile: 'Zrušit {name}' },
+    'web-dropzone-indicator': { indicatorTitle: 'Fronta' },   // one satellite only
+  },
+  formatLabelCallback: ({ key, params }) => i18next.t(`dropzone.${key}`, params),  // optional
+};
+```
+
+Per key: the element's `labels` → (a satellite) the page-wide labels of its own tag → its store's
+`labels` → `window.components.locale.labels['web-dropzone']` → built-in English. Labels are text:
+the component escapes them where it builds HTML. `formatFileSize()` uses the resolved decimal
+separator (core `formatNumber`). The element-less lookup is `resolveLabel(sources, key, vars)`
+(exported).
 
 A label set to `''` is deliberately empty and renders nothing (e.g. `noData: ''` hides the empty-list
 text); a missing / `undefined` key falls back to English. Labels are **text** — always inserted escaped

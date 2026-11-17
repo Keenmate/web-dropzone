@@ -2,17 +2,21 @@
  * UI strings — the `labels` input (Keenmate cross-component i18n model).
  *
  * Every user-visible string the dropzone renders by itself comes from ONE
- * lookup, {@link resolveLabel}: the element's `labels` overrides (a partial
- * object, merged per key) → the built-in English {@link DEFAULT_LABELS}.
- * Placeholders in `{braces}` (`{name}`, `{count}`, `{status}`) are filled
- * from the call's `vars`.
- *
- * Seam for page-wide localisation: a future web-components-core `/locale`
- * layer slots in between the element overrides and the defaults inside
- * `resolveLabel` — callers don't change.
+ * lookup, core `/locale` (SPEC §12.24): the element's `labels` overrides (a
+ * partial object, merged per key; a satellite: its own, the page-wide labels of
+ * its own tag, then its store's) → the page-wide
+ * `window.components.locale.labels['web-dropzone']` → the built-in English
+ * {@link DEFAULT_LABELS}. Placeholders in `{braces}` (`{name}`, `{count}`,
+ * `{status}`) are filled from the call's `vars` — or by the page's
+ * `formatLabelCallback` (ICU / i18next). Labels are TEXT: every renderer
+ * escapes them where it builds HTML.
  */
 
+import { createLabels, formatLabel, getPageLocale, resolveLabel as resolveCoreLabel, type Labels } from '@keenmate/web-components-core/locale';
 import type { FileState, FileStatus } from './types';
+
+/** The tag the page-wide labels of the whole dropzone family are keyed by. */
+export const LABELS_TAG = 'web-dropzone';
 
 /** Every UI string `<web-dropzone>` and its satellites render by themselves. */
 export interface DropzoneLabels {
@@ -220,34 +224,56 @@ export type LabelSources =
     | undefined
     | ReadonlyArray<Partial<DropzoneLabels> | null | undefined>;
 
+/** The sources merged into one partial (the first source that has a key wins). */
+function mergeSources(overrides: LabelSources): Partial<DropzoneLabels> | null {
+    const sources = (Array.isArray(overrides) ? overrides : [overrides]) as ReadonlyArray<Partial<DropzoneLabels> | null | undefined>;
+    let merged: Partial<DropzoneLabels> | null = null;
+    for (let i = sources.length - 1; i >= 0; i--) {
+        const source = sources[i];
+        if (source && typeof source === 'object') merged = { ...(merged ?? {}), ...source };
+    }
+    return merged;
+}
+
 /**
- * THE label lookup: the first source that has `key` (the element's `labels`;
- * for a satellite its own `labels`, then its store's) → (future: page-wide
- * `/locale`) → {@link DEFAULT_LABELS}; then `{placeholder}`s are filled from
- * `vars` (unknown placeholders are left as written).
+ * THE label lookup without an element: the first source that has `key` (the
+ * element's `labels`; for a satellite its own `labels`, then its store's) →
+ * the page-wide `window.components.locale.labels['web-dropzone']` →
+ * {@link DEFAULT_LABELS}; then `{placeholder}`s are filled from `vars`
+ * (unknown placeholders are left as written). Elements go through
+ * {@link createLabelFn} (adds the page's `formatLabelCallback`).
  */
 export function resolveLabel(
     overrides: LabelSources,
     key: DropzoneLabelKey,
     vars?: LabelVars
 ): string {
-    let template: string = DEFAULT_LABELS[key];
-    const sources = (Array.isArray(overrides) ? overrides : [overrides]) as ReadonlyArray<Partial<DropzoneLabels> | null | undefined>;
-    for (const source of sources) {
-        const own = source?.[key];
-        if (typeof own === 'string') {
-            template = own;
-            break;
-        }
-    }
-    if (!vars) return template;
-    return template.replace(/\{(\w+)\}/g, (match, name: string) =>
-        Object.prototype.hasOwnProperty.call(vars, name) ? String(vars[name]) : match);
+    return formatLabel(resolveCoreLabel(LABELS_TAG, DEFAULT_LABELS, mergeSources(overrides), key), vars);
 }
 
-/** Bind {@link resolveLabel} to a labels source (read on every call, so live changes apply). */
-export function createLabelFn(getOverrides: () => LabelSources): LabelFn {
-    return (key, vars) => resolveLabel(getOverrides(), key, vars);
+/**
+ * Bind the lookup to a labels source (read on every call, so live changes
+ * apply) and the element it renders for (core `createLabels`: the page-wide
+ * labels + `formatLabelCallback`, the element's locale). `getHost` is read
+ * lazily — an engine creates its label function before its element is set.
+ */
+export function createLabelFn(getOverrides: () => LabelSources, getHost?: () => Element | null | undefined): LabelFn {
+    let labels: Labels<DropzoneLabels> | null = null;
+    let labelsHost: Element | null = null;
+    return (key, vars) => {
+        const host = getHost?.() ?? (typeof document !== 'undefined' ? document.documentElement : null);
+        if (!host) return resolveLabel(getOverrides(), key, vars);
+        if (!labels || labelsHost !== host) {
+            labels = createLabels(host, DEFAULT_LABELS, () => mergeSources(getOverrides()), { tag: LABELS_TAG });
+            labelsHost = host;
+        }
+        return labels.text(key, vars);
+    };
+}
+
+/** The page-wide labels of a satellite's own tag (`window.components.locale.labels[tag]`). */
+export function pageLabelsFor(tag: string): Partial<DropzoneLabels> | undefined {
+    return getPageLocale()?.labels?.[tag] as Partial<DropzoneLabels> | undefined;
 }
 
 /** The built-in English lookup (no overrides). */

@@ -12,7 +12,7 @@
 
 import type { DropzoneElement } from './web-component';
 import type { DropzoneController, DropzoneContext, DropzoneLabels, LabelFn } from '@keenmate/web-dropzone-core';
-import { createLabelFn } from '@keenmate/web-dropzone-core';
+import { createLabelFn, pageLabelsFor } from '@keenmate/web-dropzone-core';
 import { BlissElement, createCustomStyles, toFunction, toText, withComponentContext, type CustomStylesHandle, type EventMap, type InputDef } from '@keenmate/web-components-core';
 import { storeControllerOf, STORE_BUILD_EVENT } from './store-link';
 import { labelsConverter } from './inputs';
@@ -209,11 +209,16 @@ export abstract class SatelliteElement<TEvents extends EventMap = Record<string,
     /** After the binding was torn down on disconnect. Default no-op. */
     protected deactivated(): void { /* override */ }
 
-    /** UI strings: own `labels` → the bound store's `labels` → built-in English. */
+    /**
+     * UI strings (core `/locale`): own `labels` → the page-wide labels of this
+     * satellite's tag → the bound store's `labels` → the page-wide
+     * `web-dropzone` labels → built-in English.
+     */
     protected readonly label: LabelFn = createLabelFn(() => [
         this.config.labels as Partial<DropzoneLabels> | null | undefined,
+        pageLabelsFor(this.localName),
         this.store?.getConfig().labels
-    ]);
+    ], () => this);
 
     /**
      * Build (core `reinit()`): custom CSS, the canonical way (core usage

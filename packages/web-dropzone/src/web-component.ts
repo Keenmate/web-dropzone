@@ -502,6 +502,18 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
     }
 
     /**
+     * Page-wide locale / labels changed (`window.components.locale`, core
+     * `/locale`): re-render with the same config — the store's labels resolve
+     * the new page-wide strings — and the bound satellites follow on the
+     * store's config-changed signal. The validity message is re-stamped too.
+     */
+    protected override localeChanged(): void {
+        if (!this.#dropzone) return;
+        this.#dropzone.updateConfig({});
+        this.#syncValidity(this.#dropzone.getFiles().length);
+    }
+
+    /**
      * Activate: (re)start the store's page-level wiring. The store itself is
      * built once by `reinit()` and survives a DOM move — files, in-flight
      * uploads and popover state are kept (decision D1). Only a store torn down

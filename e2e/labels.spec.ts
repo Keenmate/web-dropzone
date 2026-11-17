@@ -97,3 +97,37 @@ test('satellites (list + progress) follow the store labels, live', async ({ page
     await expect(satRow.locator('[data-dz-action="cancel"]')).toHaveAttribute('aria-label', 'Stop x.txt');
     await expect(page.locator('#progress-sat').locator('[data-dz-action="cancel-all"]')).toHaveText('Stop everything');
 });
+
+test.describe('page-wide labels + locale (core /locale)', () => {
+    test.afterEach(async ({ page }) => {
+        await page.evaluate(() => { (window as any).components.locale = null; });
+    });
+
+    test('window.components.locale.labels["web-dropzone"] re-renders live; the instance labels win per key', async ({ page }) => {
+        await page.evaluate(() => {
+            (window as any).components.locale = { labels: { 'web-dropzone': { prompt: 'Soubory sem', cancelAll: 'Zrušit vše' } } };
+        });
+        await expect(dz(page, 'q').locator('.dz__dropzone-text')).toHaveText('Soubory sem');
+        await dz(page, 'q').evaluate(async (el: any) => { el.labels = { prompt: 'Own prompt' }; await el.whenSettled(); });
+        await expect(dz(page, 'q').locator('.dz__dropzone-text')).toHaveText('Own prompt');
+        await addNamed(page, 'q', ['a.txt']);
+        await expect(dz(page, 'q').locator('[data-dz-action="cancel-all"]')).toHaveText('Zrušit vše');
+    });
+
+    test('a satellite tag has its own page-wide entry; formatLabelCallback formats; file sizes use the page decimal separator', async ({ page }) => {
+        await addNamed(page, 'list-store', ['x.txt']);
+        await expect.poll(() => pendingNames(page)).toContain('x.txt');
+        await page.evaluate(() => {
+            (window as any).components.locale = {
+                decimalSeparator: ',',
+                labels: { 'web-dropzone-progress': { cancelAll: 'Progress: stop' } },
+                formatLabelCallback: ({ key, template, params }: any) => key === 'cancelFile' ? `[${params.name}]` : template.replace(/\{(\w+)\}/g, (_: string, n: string) => String(params[n] ?? '')),
+            };
+        });
+        await expect(page.locator('#progress-sat').locator('[data-dz-action="cancel-all"]')).toHaveText('Progress: stop');
+        const satRow = page.locator('#list-sat').locator('.dz__file-item:has(.dz__file-item-name:text-is("x.txt"))');
+        await expect(satRow.locator('[data-dz-action="cancel"]')).toHaveAttribute('aria-label', '[x.txt]');
+        const size = await page.evaluate(async () => (await import('/packages/web-dropzone-core/src/index.ts' as any)).formatFileSize(1536));
+        expect(size).toBe('1,5 KB');
+    });
+});

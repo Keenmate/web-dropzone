@@ -61,6 +61,14 @@ Needs `@keenmate/web-components-core` `^1.0.0-rc25`.
   when its own keyframe ends — at once with motion off) instead of a fixed 500 ms timer.
 - **File ids from core `createId('file')`** (was `file-${Date.now()}-${Math.random()…}`); ids
   stay opaque strings.
+- **Labels through core `/locale`** — every UI string resolves per key: the element's `labels` →
+  (a satellite) the page-wide labels of its own tag → its store's `labels` →
+  `window.components.locale.labels['web-dropzone']` → built-in English, formatted by the page's
+  `formatLabelCallback` when set. Assigning `window.components.locale` re-renders every dropzone
+  and its satellites live (`localeChanged()`). `formatFileSize()` uses the resolved decimal
+  separator (core `formatNumber`: `1,5 MB` for a Czech page — was always `1.5 MB`).
+  `resolveLabel` / `createLabelFn` keep their shape (`createLabelFn` takes an optional
+  `getHost`); new `pageLabelsFor(tag)` / `LABELS_TAG`.
 - **Stacking on core's tiers** — `--dz-popover-z-index` (was `10000`) and the new
   `--dz-indicator-z-index` (the chip, was `100000`) default to the popover tier
   `var(--base-z-popover, 7600)`; the inline drawer uses `--dz-popover-z-index`, the edge drawer

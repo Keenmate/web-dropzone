@@ -17,6 +17,7 @@ import type {
 } from './types';
 import type { FileIconContext } from './interaction';
 import { createId } from '@keenmate/web-components-core';
+import { formatNumber } from '@keenmate/web-components-core/locale';
 import { FILE_TYPE_ICONS, UI_ICONS } from './icons';
 
 /**
@@ -76,15 +77,18 @@ export function generateFileId(): string {
 }
 
 /**
- * Format file size to human-readable string
+ * Format a file size for people: `1.5 MB`, with the page's decimal separator
+ * (core `formatNumber`: `window.components.locale` → the browser — `1,5 MB` in
+ * Czech). Binary steps (1024), one decimal above bytes, no grouping.
  */
 export function formatFileSize(bytes: number): string {
     if (bytes === 0) return '0 B';
     const units = ['B', 'KB', 'MB', 'GB', 'TB'];
     const k = 1024;
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    const i = Math.min(units.length - 1, Math.floor(Math.log(bytes) / Math.log(k)));
     const size = bytes / Math.pow(k, i);
-    return `${size.toFixed(i > 0 ? 1 : 0)} ${units[i]}`;
+    const digits = i > 0 ? 1 : 0;
+    return `${formatNumber(size, { minimumFractionDigits: digits, maximumFractionDigits: digits, shouldGroup: false })} ${units[i]}`;
 }
 
 /**

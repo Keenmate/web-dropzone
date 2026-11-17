@@ -185,7 +185,7 @@ export class DropzoneEngine {
      * English) — `label('cancelFile', { name })`. Reads the live config, so a
      * `labels` change applies on the next render.
      */
-    readonly label: LabelFn = createLabelFn(() => this.config.labels);
+    readonly label: LabelFn = createLabelFn(() => this.config.labels, () => this.config.hostElement ?? this.element);
 
     constructor(element: HTMLElement, config: DropzoneConfig = {}, host?: DropzoneEngineHost) {
         this.element = element;
