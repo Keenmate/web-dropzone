@@ -1,14 +1,25 @@
 /**
- * The phone line of the overlay panels (responsive-overlay.md D-RO-3 = A, 600px).
- * Below it the indicator drawer and the compact popover are full-screen sheets —
- * drawn by `css/sheet.css` (`@media (max-width: 600px)`, the same literal); the
- * popover reads this query to un-anchor itself so the sheet CSS places it.
+ * The phone presentation of the overlay panels (the indicator drawer and the
+ * compact popover): core's device classification decides it (SPEC §12.9,
+ * `resolvePresentation('auto', env)` → `'fullscreen'` on a phone), not a width
+ * literal — a narrowed desktop window keeps the anchored panel. The sheet look
+ * is `css/sheet.css`, keyed on the `--sheet` modifier classes the panels get
+ * while they are presented as a sheet.
  */
-export const PHONE_MEDIA_QUERY = '(max-width: 600px)';
+import { getEnvironment, observeEnvironment, resolvePresentation } from '@keenmate/web-components-core';
 
-/** The phone-line media query list, or `null` without `matchMedia` (SSR, old jsdom). */
-export function getPhoneMediaQuery(): MediaQueryList | null {
-    return typeof window !== 'undefined' && typeof window.matchMedia === 'function'
-        ? window.matchMedia(PHONE_MEDIA_QUERY)
-        : null;
+/** Whether an overlay panel opened now is a full-screen phone sheet. */
+export function isPhoneSheet(): boolean {
+    return resolvePresentation('auto', getEnvironment()) === 'fullscreen';
+}
+
+/**
+ * Follow the phone presentation while a panel is open: `listener(isSheet)` on
+ * every device / breakpoint change (not called on subscribe). Returns the
+ * unsubscribe.
+ */
+export function observePhoneSheet(listener: (isSheet: boolean) => void): () => void {
+    return observeEnvironment((env) => listener(resolvePresentation('auto', env) === 'fullscreen'), {
+        shouldFireImmediately: false,
+    });
 }

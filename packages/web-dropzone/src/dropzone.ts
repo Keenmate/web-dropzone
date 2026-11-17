@@ -24,9 +24,9 @@
 
 import { createLayer, createPopover } from '@keenmate/web-components-core/positioning';
 import type { Layer, Placement, PopoverHandle } from '@keenmate/web-components-core/positioning';
-import { adoptStyles, deepActiveElement, dispatch, SHEET_CHROME_CSS, watchPageDrag, Z_INDEX } from '@keenmate/web-components-core';
+import { adoptStyles, deepActiveElement, dispatch, SHEET_CHROME_CSS, startSheetSession, watchPageDrag, Z_INDEX, type SheetSession } from '@keenmate/web-components-core';
 import styles from './css/main.css?inline';
-import { getPhoneMediaQuery } from './phone-sheet';
+import { isPhoneSheet, observePhoneSheet } from './phone-sheet';
 import {
     initLogger,
     uiLogger,
@@ -153,9 +153,10 @@ export class WebDropzone extends DropzoneEngine {
     /** Debounce handle for the resize → save flow. ResizeObserver fires on
      *  every drag tick; we only want to persist the final dimension. */
     private popoverSaveTimer: number | null = null;
-    /** The phone-line query while the popover is open (a sheet below it, un-anchored). */
-    private popoverPhoneQuery: MediaQueryList | null = null;
-    private readonly onPopoverPhoneChange = (): void => this.applyPopoverPresentation();
+    /** Follows core's phone presentation while the popover is open (a sheet on a phone, un-anchored). */
+    private stopPopoverPhoneWatch: (() => void) | null = null;
+    /** Core sheet session while the popover is a phone sheet: Back closes it, page scroll locked, keyboard inset. */
+    private popoverSheetSession: SheetSession | null = null;
     /** Whether the open popover is presented as a phone sheet (null while closed). */
     private popoverIsSheet: boolean | null = null;
     /** The anchored panel's inline width / height (persisted or user-resized), put away while it is a sheet. */
@@ -1934,12 +1935,12 @@ export class WebDropzone extends DropzoneEngine {
         this.isPopoverOpen = true;
         const focused = deepActiveElement();
         this.popoverReturnFocus = focused instanceof HTMLElement ? focused : null;
-        // On a phone the popover is a full-screen sheet (css/sheet.css, like the
-        // indicator drawer): opened un-anchored, re-decided when the line is crossed.
+        // On a phone (core's device classification) the popover is a full-screen
+        // sheet (css/sheet.css, like the indicator drawer): opened un-anchored,
+        // re-decided when the device / breakpoint changes.
         this.popoverHandle.setAnchored(false);
         this.popoverHandle.open();
-        this.popoverPhoneQuery = getPhoneMediaQuery();
-        this.popoverPhoneQuery?.addEventListener('change', this.onPopoverPhoneChange);
+        this.stopPopoverPhoneWatch = observePhoneSheet(() => this.applyPopoverPresentation());
         this.applyPopoverPresentation();
 
         // Add event handlers
@@ -2318,8 +2319,10 @@ export class WebDropzone extends DropzoneEngine {
     private closePopover(): void {
         if (!this.isPopoverOpen || !this.popover) return;
         this.isPopoverOpen = false;
-        this.popoverPhoneQuery?.removeEventListener('change', this.onPopoverPhoneChange);
-        this.popoverPhoneQuery = null;
+        this.stopPopoverPhoneWatch?.();
+        this.stopPopoverPhoneWatch = null;
+        this.popoverSheetSession?.end();
+        this.popoverSheetSession = null;
         this.popoverIsSheet = null;
         this.popoverAnchoredSize = { width: '', height: '' };
         this.popoverReturnFocus = null;
@@ -2359,9 +2362,9 @@ export class WebDropzone extends DropzoneEngine {
         });
     }
 
-    /** Whether the open popover is a phone sheet (below the 600px line, css/sheet.css). */
+    /** Whether the open popover is a phone sheet (core's device classification, css/sheet.css). */
     private isPopoverSheet(): boolean {
-        return !!this.popoverPhoneQuery?.matches;
+        return this.popoverIsSheet ?? isPhoneSheet();
     }
 
     /**
@@ -2372,7 +2375,7 @@ export class WebDropzone extends DropzoneEngine {
      */
     private applyPopoverPresentation(): void {
         if (!this.popover || !this.popoverHandle) return;
-        const isSheet = this.isPopoverSheet();
+        const isSheet = isPhoneSheet();
         if (isSheet !== this.popoverIsSheet) {
             const style = this.popover.style;
             if (isSheet) {
@@ -2384,6 +2387,13 @@ export class WebDropzone extends DropzoneEngine {
                 style.height = this.popoverAnchoredSize.height;
             }
             this.popoverIsSheet = isSheet;
+            this.popover.classList.toggle('dz__popover--sheet', isSheet);
+            // A sheet runs a core sheet session: the phone Back gesture closes
+            // it, the page behind doesn't scroll, the keyboard inset is kept.
+            this.popoverSheetSession?.end();
+            this.popoverSheetSession = isSheet
+                ? startSheetSession(this.popover, { onBack: () => this.closePopover(), logSource: this.config.hostElement ?? undefined })
+                : null;
         }
         this.popoverHandle.setAnchored(this.isActive && !isSheet);
     }

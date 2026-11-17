@@ -39,7 +39,8 @@
  * interactive (drawer="auto"); status-only chips look like text. */
 .dz__indicator-chip {
     position: fixed;
-    z-index: 100000;
+    /* A floating status badge: the popover tier (under dialogs / drawers). */
+    z-index: var(--dz-indicator-z-index);
     display: inline-flex;
     align-items: center;
     gap: calc(0.6 * var(--dz-rem, 10px));
@@ -183,48 +184,59 @@
 /* ==========================================================================
    DRAWER
    ========================================================================== */
-/* Drawer — fixed-position panel that slides in from the same edge as the
- * chip. Closed by default (translated off-screen + visibility hidden so it
- * doesn't trap focus). */
+/* Drawer. An EDGE position (right / left / top / bottom) opens core's drawer
+ * preset (.km-drawer + .km-drawer--<side> from SHEET_CHROME_CSS, in a core
+ * modal session with a backdrop): the modal tier, the slide in / out, safe
+ * areas. Sized + coloured here through core's --_km-sheet-drawer-* hooks. On a
+ * phone every position is a full-screen sheet (sheet.css). The INLINE position
+ * is a drop-down under the chip. Closed = not displayed (edge) / hidden. */
 .dz__indicator-drawer {
-    position: fixed;
-    z-index: 99999;
+    --_km-sheet-drawer-size: min(40rem, 90dvw);
+    --_km-sheet-drawer-max-height: min(60dvh, 50rem);
+    --_km-sheet-drawer-bg: var(--dz-surface-color);
+    --_km-sheet-drawer-color: var(--dz-text-color-1);
+    --_km-sheet-drawer-shadow: 0 calc(0.8 * var(--dz-rem, 10px)) calc(3 * var(--dz-rem, 10px)) var(--dz-shadow-color);
     background: var(--dz-surface-color);
+    color: var(--dz-text-color-1);
     border: 1px solid var(--dz-border-color);
     box-shadow: 0 calc(0.8 * var(--dz-rem, 10px)) calc(3 * var(--dz-rem, 10px)) var(--dz-shadow-color);
     display: flex;
     flex-direction: column;
-    transition: transform var(--dz-transition-normal) var(--dz-easing-snappy), opacity var(--dz-transition-normal) var(--dz-easing-snappy);
-    visibility: hidden;
-    opacity: 0;
 }
 
-/* Per-edge drawer geometry: occupy a strip along the edge, slide off-screen
- * in the closed state. */
-:host([data-position='right'])  .dz__indicator-drawer { top: 0; right: 0; bottom: 0; width: min(40rem, 90dvw); transform: translateX(100%); border-right: none; }
-:host([data-position='left'])   .dz__indicator-drawer { top: 0; left: 0; bottom: 0;  width: min(40rem, 90dvw); transform: translateX(-100%); border-left: none; }
-:host([data-position='top'])    .dz__indicator-drawer { top: 0; left: 0; right: 0;   height: min(60dvh, 50rem); transform: translateY(-100%); border-top: none; }
-:host([data-position='bottom']) .dz__indicator-drawer { bottom: 0; left: 0; right: 0; height: min(60dvh, 50rem); transform: translateY(100%); border-bottom: none; }
+/* An edge drawer exists only while open (or sliding out). */
+:host(:not([data-position='inline'])) .dz__indicator-drawer:not(.km-drawer):not(.dz__indicator-drawer--sheet) {
+    display: none;
+}
+.dz__indicator-drawer.km-drawer {
+    border-block: none;
+}
+.dz__indicator-drawer.km-drawer--start,
+.dz__indicator-drawer.km-drawer--end {
+    border-inline: none;
+}
 
-/* Inline-mode drawer: behaves like a popover anchored to the chip rather
- * than a viewport-edge slab. Drops down below the chip, fades in instead
- * of sliding from off-screen (no off-screen position to slide from when
- * the chip is mid-page). The host is `display: inline-block` so we can
- * anchor with `position: absolute; top: 100%`. */
+/* Inline-mode drawer: a drop-down anchored to the chip rather than a
+ * viewport-edge slab — fades in under the chip. The host is
+ * `display: inline-block` so we can anchor with `position: absolute; top: 100%`. */
 :host([data-position='inline']) {
     position: relative;
 }
-:host([data-position='inline']) .dz__indicator-drawer {
+:host([data-position='inline']) .dz__indicator-drawer:not(.dz__indicator-drawer--sheet) {
     position: absolute;
+    z-index: var(--dz-popover-z-index);
     top: calc(100% + calc(0.4 * var(--dz-rem, 10px)));
     left: 0;
     width: min(36rem, 92dvw);
     max-height: min(60dvh, 40rem);
     border-radius: calc(0.6 * var(--dz-rem, 10px));
     transform: translateY(calc(-0.4 * var(--dz-rem, 10px)));
+    visibility: hidden;
+    opacity: 0;
+    transition: transform var(--dz-transition-normal) var(--dz-easing-snappy), opacity var(--dz-transition-normal) var(--dz-easing-snappy);
 }
 
-:host([data-drawer-open='true']) .dz__indicator-drawer {
+:host([data-position='inline'][data-drawer-open='true']) .dz__indicator-drawer {
     transform: translate(0, 0);
     visibility: visible;
     opacity: 1;

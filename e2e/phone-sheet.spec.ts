@@ -2,7 +2,8 @@ import { test, expect, dz, addNamed, type Page } from './fixtures';
 
 /**
  * Compact popover on a phone: the same sheet presentation as the indicator
- * drawer (full screen below the 600px line, a close button). Desktop keeps the
+ * drawer (full screen on a phone — core's device classification: touch + a short
+ * side under the tablet line — a close button, Back closes it). Desktop keeps the
  * anchored panel with no close button.
  *
  * Fixture: test/popover.html (`#pop`, compact display mode).
@@ -49,6 +50,15 @@ test.describe('phone viewport', () => {
         await expect.poll(async () => (await closeButton(page).boundingBox())?.width).toBe(44);
         await dz(page, 'pop').evaluate((el) => (el as HTMLElement).style.setProperty('--dz-sheet-close-size', '50px'));
         await expect.poll(async () => (await closeButton(page).boundingBox())?.width).toBe(50);
+    });
+
+    test('the phone Back gesture closes the sheet (core sheet session) and the page behind does not scroll', async ({ page }) => {
+        await open(page);
+        expect(await page.evaluate(() => getComputedStyle(document.documentElement).overflow
+            + getComputedStyle(document.body).overflow)).toContain('hidden');
+        await page.goBack();
+        await expect(popover(page)).toHaveCount(0);
+        await expect(page).toHaveURL(new RegExp(PAGE.replace(/\//g, '\/')));
     });
 
     test('widening past the phone line while open anchors it again', async ({ page }) => {

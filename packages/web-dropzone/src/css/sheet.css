@@ -2,9 +2,10 @@
    PHONE SHEET — the indicator drawer and the compact popover on a phone
    ==============================================================================
    One presentation for both overlay panels (responsive-overlay.md: D-RO-2 = A
-   full-screen, D-RO-3 = A 600px — the only phone literal in the package; the
-   JS twin is PHONE_MEDIA_QUERY in src/phone-sheet.ts, which un-anchors the
-   popover at the same line). Imported by main.css into the `overrides` layer,
+   full-screen). A phone is core's device classification (src/phone-sheet.ts,
+   `resolvePresentation('auto', env)` → fullscreen), not a width: the panels
+   carry `dz__indicator-drawer--sheet` / `dz__popover--sheet` while they are a
+   sheet (the popover is un-anchored then). Imported by main.css into the `overrides` layer,
    so it beats the panels' own geometry (popover.css, indicator.css — both in
    `component`) and the inline position core's anchor() wrote is gone first
    (the popover is un-anchored on a phone). Also shows / hides the popover's
@@ -31,28 +32,27 @@
    translate(0, 0) is untouched. box-sizing + four-edge env(safe-area-inset-*)
    keep the header and rows out of the notch / home indicator / landscape side
    bars while the background stays full-bleed. */
-@media (max-width: 600px) {
-    .dz__indicator-drawer,
-    .dz__popover {
-        --dz-popover-border-radius: 0;
-        position: fixed;
-        inset: 0;
-        box-sizing: border-box;
-        width: 100dvw;
-        height: 100dvh;
-        min-width: 0;
-        min-height: 0;
-        max-width: none;
-        max-height: none;
-        padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-        border: none;
-        border-radius: 0;
-        box-shadow: none;
-        resize: none;
-    }
+/* A phone sheet: every drawer position and the compact popover. */
+.dz__indicator-drawer--sheet,
+.dz__popover--sheet {
+    --dz-popover-border-radius: 0;
+    position: fixed;
+    inset: 0;
+    box-sizing: border-box;
+    width: 100dvw;
+    height: 100dvh;
+    min-width: 0;
+    min-height: 0;
+    max-width: none;
+    max-height: none;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    resize: none;
+}
 
-    /* The chip is 44px (--base-touch-target-min) by core's sheet chrome (D-RO-7 = A). */
-    .dz__popover-close {
-        display: inline-flex;
-    }
+/* The chip is 44px (--base-touch-target-min) by core's sheet chrome (D-RO-7 = A). */
+.dz__popover--sheet .dz__popover-close {
+    display: inline-flex;
 }

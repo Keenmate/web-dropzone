@@ -115,6 +115,28 @@ test.describe('<web-dropzone-indicator> drawer — core overlay tree', () => {
     const isOpen = (page: Page, open: boolean) =>
         expect(dz(page, 'ind-left')).toHaveAttribute('data-drawer-open', String(open));
 
+    test("an edge position opens core's modal drawer: the side class, an inert page, Tab kept inside", async ({ page }) => {
+        const drawer = dz(page, 'ind-left').locator('.dz__indicator-drawer');
+        await chip(page).click();
+        await isOpen(page, true);
+        await expect(drawer).toHaveClass(/\bkm-drawer\b/);
+        await expect(drawer).toHaveClass(/\bkm-drawer--start\b/); // left = the inline start in a LTR page
+        await expect(drawer).toHaveAttribute('aria-modal', 'true');
+        // The rest of the page is inert while it is open.
+        expect(await page.locator('#sat').evaluate((el) => !!el.closest('[inert]'))).toBe(true);
+        for (let i = 0; i < 6; i++) await page.keyboard.press('Tab');
+        expect(await dz(page, 'ind-left').evaluate((host) => {
+            let a: Element | null = document.activeElement;
+            while (a?.shadowRoot?.activeElement) a = a.shadowRoot.activeElement;
+            return host.shadowRoot!.querySelector('.dz__indicator-drawer')!.contains(a) || (a !== null && a.closest('web-dropzone-list') !== null);
+        })).toBe(true);
+        await page.keyboard.press('Escape');
+        await isOpen(page, false);
+        await expect(drawer).toBeHidden();
+        expect(await page.locator('#sat').evaluate((el) => !!el.closest('[inert]'))).toBe(false);
+        await expect(chip(page)).toBeFocused();
+    });
+
     test('the chip carries aria-expanded; opening moves focus into the drawer', async ({ page }) => {
         await expect(chip(page)).toHaveAttribute('aria-expanded', 'false');
         await chip(page).click();

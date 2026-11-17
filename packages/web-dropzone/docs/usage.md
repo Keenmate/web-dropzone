@@ -205,7 +205,8 @@ Image preview grid with thumbnails. Perfect for image uploads.
 ### Compact Mode
 
 Minimal inline display showing file count and total size. Click to open a popover with the full file list
-(on a phone-width viewport, ≤ 600px, a full-screen sheet with a Close button — like the indicator drawer).
+(on a phone — core's device classification, not a width — a full-screen sheet with a Close button that the
+phone Back gesture also closes, like the indicator drawer).
 The popover opens only from that summary line (or the indicator chip). A `button` / `minimal` selector
 always opens the file dialog — also with `list-appearance="popover"` and files already added.
 
@@ -767,10 +768,13 @@ The shared inputs, plus:
 Indicator strings (`labels`): `indicatorTitle`, `indicatorIdle`, `indicatorStatus` / `indicatorQueue`
 (aria), `close`, `indicatorFailed` / `…Uploading` / `…Paused` / `…Queued` / `…Done`.
 Host attributes `data-position`, `data-drawer`, `data-drawer-open`; shadow parts `::part(chip)`,
-`::part(drawer)`. The chip (`aria-expanded`) hides while a non-inline drawer is open; on a phone-width
-viewport the drawer is a full-screen sheet. The drawer is in core's overlay tree: <kbd>Esc</kbd> and an
-outside click close it (topmost overlay first), opening another Keenmate overlay closes it; focus moves
-into it on open and back to the chip on close. The drawer embeds a `<web-dropzone-list>` (style it with
+`::part(drawer)`. The chip (`aria-expanded`) hides while a non-inline drawer is open. An edge position
+(`right` / `left` / `top` / `bottom`) opens core's drawer (`.km-drawer`, sliding in from the chip's edge)
+as a **modal**: a backdrop, the page behind inert, <kbd>Tab</kbd> kept inside; <kbd>Esc</kbd>, a backdrop
+click or the phone Back gesture close it. `position="inline"` is a drop-down under the chip in core's
+overlay tree (<kbd>Esc</kbd> and an outside click close it, topmost overlay first). On a phone (core's
+device classification) every position is a full-screen sheet. Focus moves into it on open and back to
+the chip on close. The drawer embeds a `<web-dropzone-list>` (style it with
 `window.components['web-dropzone-list'].customStyles`). The callbacks follow the status-surface
 contract below.
 

@@ -219,8 +219,10 @@ icon show the CSS-only `.dz__loader--inline` while uploading (the row carries `a
 
 ## Phone presentation
 
-On a phone-width viewport (`@media (max-width: 600px)`) the `<web-dropzone-indicator>` drawer and the
-compact-mode popover become the same edge-to-edge full-screen sheet (`100dvw` × `100dvh`, no border /
+On a phone (core's device classification — touch-primary with a short side under the tablet line, so a
+narrowed desktop window keeps the anchored panel) the `<web-dropzone-indicator>` drawer and the
+compact-mode popover become the same edge-to-edge full-screen sheet (`.dz__indicator-drawer--sheet` /
+`.dz__popover--sheet`) (`100dvw` × `100dvh`, no border /
 radius / shadow, no resize handle), with `env(safe-area-inset-*)` padding on all four edges and a close
 button (`.dz__indicator-drawer-close` / `.dz__popover-close` — the popover's shows on a phone only).
 The drawer header, its title and both close buttons are core's shared sheet chrome
@@ -228,8 +230,10 @@ The drawer header, its title and both close buttons are core's shared sheet chro
 with the masked `--base-icon-close`; the `dz__` classes stay as hooks). Theme it page-wide with
 `--km-sheet-*` on `:root`, or per element with the `--dz-sheet-*` variables below (unset by default,
 mapped onto core's private `--_km-sheet-*`). The popover is not anchored to its
-trigger while it is a sheet and ignores its persisted size; crossing the line while it is open
-switches between the two. Its list and the compact-mode popover's
+trigger while it is a sheet and ignores its persisted size; a device / breakpoint change while it is
+open switches between the two. The edge drawer on a desktop / tablet is core's `.km-drawer` (modal
+tier, slide in / out); its width / height / background come from the indicator stylesheet through
+core's `--_km-sheet-drawer-*` hooks. Its list and the compact-mode popover's
 list use `overscroll-behavior: contain`, so a fling at the list edge doesn't scroll the page behind.
 
 ## Popover gap

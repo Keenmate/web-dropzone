@@ -45,7 +45,8 @@ import {
     fileStatusLabel,
     statusLabel
 } from '@keenmate/web-dropzone-core';
-import { adoptStyles, createMicrotaskScheduler, renderLoader, SHEET_CHROME_CSS, toEnum, toFunction, type InputDef } from '@keenmate/web-components-core';
+import { adoptStyles, animateOut, createMicrotaskScheduler, renderLoader, SHEET_CHROME_CSS, startModalSession, toEnum, toFunction, type InputDef, type ModalSession } from '@keenmate/web-components-core';
+import { isPhoneSheet } from './phone-sheet';
 import { createPopover, type PopoverHandle } from '@keenmate/web-components-core/positioning';
 import {
     buildStatusSurfaceArgs,
@@ -135,12 +136,20 @@ export class DropzoneIndicatorElement extends SatelliteElement {
     private drawerCloseBtn: HTMLButtonElement | null = null;
     private drawerOpen = false;
     /**
-     * Core `createPopover()` handle of the drawer (null when `drawer="off"`): kept
-     * mounted and un-anchored (the drawer CSS places it), it only joins the page's
-     * overlay tree — Escape / an outside click close it, topmost overlay first, and
-     * opening another Keenmate overlay closes it (like the compact popover).
+     * Core `createPopover()` handle of the INLINE drop-down drawer (`position="inline"`
+     * on a desktop / tablet; null otherwise): kept mounted and un-anchored (the drawer
+     * CSS places it under the chip), it only joins the page's overlay tree — Escape /
+     * an outside click close it, topmost overlay first.
      */
     private drawerHandle: PopoverHandle | null = null;
+    /**
+     * Core modal session of an EDGE drawer (`.km-drawer` from the chip's edge) or a
+     * phone sheet while open: the page behind is inert, Tab stays inside, Escape /
+     * the backdrop / the phone Back gesture close it, focus returns to the chip.
+     */
+    private drawerSession: ModalSession | null = null;
+    /** The closing animation of an edge drawer (cancelled when it reopens). */
+    private drawerExit: { cancel(): void } | null = null;
 
     /**
      * Coalesces aggregate recomputation. A bulk drop with N files
@@ -187,7 +196,12 @@ export class DropzoneIndicatorElement extends SatelliteElement {
      * render callback drops its memoized slot, then one refresh.
      */
     protected override inputsChanged(partial: Record<string, unknown>): void {
-        if ('position' in partial) this.applyPosition();
+        if ('position' in partial) {
+            this.applyPosition();
+            // Inline = a popover in the overlay tree; an edge = a modal drawer.
+            this.destroyDrawerHandle();
+            if (this.resolvePosition() === 'inline') this.createInlineDrawerHandle();
+        }
         if ('drawer' in partial) {
             this.applyDrawerMode();
             this.bindEmbeddedList();
@@ -269,26 +283,36 @@ export class DropzoneIndicatorElement extends SatelliteElement {
             this.drawerEl.setAttribute('aria-label', this.label('indicatorQueue'));
             this.populateDrawer();
             this.shadow.appendChild(this.drawerEl);
-            this.drawerHandle = createPopover({
-                reference: this.chipEl,
-                panel: this.drawerEl,
-                shouldKeepMounted: true,
-                isAnchored: false,
-                visibleClass: 'dz__indicator-drawer--open',
-                inheritThemeFrom: false, // inside the shadow root: inherits the host's theme
-                // Only while attached; Escape gives focus back to the chip (the reference).
-                shouldCloseOnEscape: () => this.isConnected,
-                shouldCloseOnOutsideClick: () => this.isConnected,
-                onClose: () => this.syncDrawerClosed(),
-            });
+            if (this.resolvePosition() === 'inline') this.createInlineDrawerHandle();
         }
     }
 
-    /** Leave the overlay tree (drawer flip, disconnect, destroy). */
+    /** The inline drop-down drawer joins the overlay tree through a kept-mounted core popover. */
+    private createInlineDrawerHandle(): void {
+        if (!this.drawerEl) return;
+        this.drawerHandle = createPopover({
+            reference: this.chipEl,
+            panel: this.drawerEl,
+            shouldKeepMounted: true,
+            isAnchored: false,
+            visibleClass: 'dz__indicator-drawer--open',
+            inheritThemeFrom: false, // inside the shadow root: inherits the host's theme
+            // Only while attached; Escape gives focus back to the chip (the reference).
+            shouldCloseOnEscape: () => this.isConnected,
+            shouldCloseOnOutsideClick: () => this.isConnected,
+            onClose: () => this.syncDrawerClosed(),
+        });
+    }
+
+    /** Leave the overlay tree / end the modal session (drawer flip, position change, disconnect, destroy). */
     private destroyDrawerHandle(): void {
         const handle = this.drawerHandle;
         this.drawerHandle = null;
         handle?.destroy();
+        this.endDrawerSession(false);
+        this.drawerExit?.cancel();
+        this.drawerExit = null;
+        this.resetDrawerPresentation();
         this.syncDrawerClosed();
     }
 
@@ -575,19 +599,102 @@ export class DropzoneIndicatorElement extends SatelliteElement {
     }
 
     private setDrawerOpen(open: boolean): void {
-        if (!this.drawerEl || !this.drawerHandle) return;
+        if (!this.drawerEl) return;
         if (this.drawerOpen === open) return;
         if (!open) {
-            this.drawerHandle.close(); // → onClose → syncDrawerClosed()
+            if (this.drawerSession) return this.closeModalDrawer();
+            this.drawerHandle?.close(); // → onClose → syncDrawerClosed()
             return;
         }
+        const isSheet = isPhoneSheet();
+        if (this.resolvePosition() === 'inline' && !isSheet) {
+            if (!this.drawerHandle) return;
+            this.markDrawerOpen();
+            this.drawerHandle.open();
+        } else {
+            this.openModalDrawer(isSheet);
+        }
+        // Focus moves into the dialog (its Close button); it comes back to the
+        // chip on Escape and on Close.
+        this.drawerCloseBtn?.focus({ preventScroll: true });
+    }
+
+    private markDrawerOpen(): void {
         this.drawerOpen = true;
         this.shadow.host.setAttribute('data-drawer-open', 'true');
         this.chipEl.setAttribute('aria-expanded', 'true');
-        this.drawerHandle.open();
-        // Focus moves into the dialog (its Close button); it comes back to the
-        // chip on Escape (core) and on Close.
-        this.drawerCloseBtn?.focus({ preventScroll: true });
+    }
+
+    /**
+     * An edge drawer (core `.km-drawer` from the chip's edge, with a backdrop) or,
+     * on a phone, a full-screen sheet — both in a core modal session.
+     */
+    private openModalDrawer(isSheet: boolean): void {
+        const drawer = this.drawerEl!;
+        this.drawerExit?.cancel();
+        this.drawerExit = null;
+        this.resetDrawerPresentation();
+        if (isSheet) {
+            drawer.classList.add('dz__indicator-drawer--sheet');
+        } else {
+            drawer.classList.add('km-drawer', `km-drawer--${this.drawerSide()}`);
+        }
+        this.markDrawerOpen();
+        this.drawerSession = startModalSession(drawer, {
+            backdrop: !isSheet,
+            onDismiss: () => this.closeModalDrawer(),
+            trigger: this.chipEl,
+            returnFocusTo: this.chipEl,
+            initialFocus: this.drawerCloseBtn ?? undefined,
+            shouldObserveKeyboardInset: isSheet,
+            logSource: this,
+        });
+    }
+
+    private closeModalDrawer(): void {
+        const drawer = this.drawerEl;
+        // The chip shows again first, so the session can give focus back to it.
+        this.syncDrawerClosed();
+        this.endDrawerSession(true);
+        if (!drawer || !drawer.classList.contains('km-drawer')) {
+            this.resetDrawerPresentation();
+            return;
+        }
+        // The drawer slides back out (core's closing keyframes; instant at motion none).
+        drawer.setAttribute('data-closing', '');
+        this.drawerExit = animateOut([drawer], {
+            className: 'km-drawer--closing',
+            onDone: () => {
+                this.drawerExit = null;
+                this.resetDrawerPresentation();
+            },
+        });
+    }
+
+    private endDrawerSession(shouldReturnFocus: boolean): void {
+        const session = this.drawerSession;
+        this.drawerSession = null;
+        session?.end({ shouldReturnFocus });
+    }
+
+    /** Back to the closed, unclassed drawer. */
+    private resetDrawerPresentation(): void {
+        const drawer = this.drawerEl;
+        if (!drawer) return;
+        drawer.removeAttribute('data-closing');
+        drawer.classList.remove('km-drawer', 'km-drawer--start', 'km-drawer--end', 'km-drawer--top', 'km-drawer--bottom',
+            'km-drawer--closing', 'dz__indicator-drawer--sheet');
+    }
+
+    /**
+     * The core drawer side for the chip's (physical) edge: `right` is the inline
+     * end in a left-to-right page and the start in a right-to-left one.
+     */
+    private drawerSide(): 'start' | 'end' | 'top' | 'bottom' {
+        const position = this.resolvePosition();
+        if (position === 'top' || position === 'bottom') return position;
+        const isRight = position === 'right';
+        return isRight !== this.isRtl ? 'end' : 'start';
     }
 
     /** The drawer closed (any reason): state, host attribute, the chip's aria-expanded. */

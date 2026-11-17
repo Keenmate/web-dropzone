@@ -32,6 +32,26 @@ Needs `@keenmate/web-components-core` `^1.0.0-rc25`.
 - **New `--dz-overlay-hover-filter` / `-hover-border` / `-hover-shadow`** (were hard-coded
   JS fallbacks). **`--dz-overlay-z-index` defaults to the popover tier**
   `var(--base-z-popover, 7600)` (was `9999`).
+- **The indicator's edge drawer is core's modal drawer** — `position="right|left|top|bottom"`
+  opens `.km-drawer km-drawer--<side>` (SHEET_CHROME_CSS: modal tier, slide in / out through
+  `animateOut`, safe areas) in a core `startModalSession`: a backdrop, the page behind inert,
+  Tab kept inside, Escape / backdrop click / phone Back close it, focus back to the chip. It
+  used to be a non-modal panel that only joined the overlay tree through a dummy
+  `createPopover` (an outside click closed it; the page stayed interactive). `position="inline"`
+  stays a drop-down in the overlay tree. The drawer's size / colours are unchanged (core's
+  `--_km-sheet-drawer-*` hooks).
+- **Phone presentation from core's device classification** — the drawer and the compact popover
+  are full-screen sheets on a phone (`resolvePresentation('auto', env)` → `fullscreen`: touch-primary
+  with a short side under the tablet line) instead of below a `max-width: 600px` literal, so a
+  narrowed desktop window keeps the anchored panel. The sheet CSS keys on
+  `.dz__indicator-drawer--sheet` / `.dz__popover--sheet`. The popover sheet runs a core
+  `startSheetSession`: the phone Back gesture closes it, the page behind doesn't scroll, the
+  keyboard inset is followed (Back used to navigate away). `PHONE_MEDIA_QUERY` /
+  `getPhoneMediaQuery()` (internal) are gone.
+- **Stacking on core's tiers** — `--dz-popover-z-index` (was `10000`) and the new
+  `--dz-indicator-z-index` (the chip, was `100000`) default to the popover tier
+  `var(--base-z-popover, 7600)`; the inline drawer uses `--dz-popover-z-index`, the edge drawer
+  core's modal tier (was `99999`).
 
 ### Internal — core 1.0.0-rc24 (2026-11-15)
 - core `^1.0.0-rc24` (was `^1.0.0-rc22`).
