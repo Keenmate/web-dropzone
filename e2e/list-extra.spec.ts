@@ -184,6 +184,15 @@ test.describe('rolling-rotation', () => {
         await expect(r.locator('.dz__rolling-current--leaving')).toHaveCount(0, { timeout: 2000 });
     });
 
+    test('motion="none": the outgoing row is removed at once (core animateOut, no fixed 500 ms timer)', async ({ page }) => {
+        await addNamed(page, 'roll-v', ['a.txt', 'b.txt']);
+        const r = dz(page, 'roll-v');
+        await r.evaluate(async (el: any) => { el.setAttribute('motion', 'none'); await el.whenSettled(); });
+        await removeFront(page, 'roll-v');
+        await expect(r.locator('.dz__rolling-current .dz__file-item-name')).toHaveText('b.txt');
+        expect(await r.locator('.dz__rolling-current--leaving').count()).toBe(0); // no 500 ms leftover
+    });
+
     test('a live rolling-rotation change applies to the wrapper', async ({ page }) => {
         await addNamed(page, 'roll-v', ['a.txt']);
         await dz(page, 'roll-v').evaluate(async (el: any) => { el.setAttribute('rolling-rotation', 'horizontal'); await el.whenSettled(); });

@@ -20,7 +20,7 @@
  */
 
 import styles from './css/main.css?inline';
-import { adoptStyles, createMicrotaskScheduler, toBool, toEnum, type EventDef, type InputDef } from '@keenmate/web-components-core';
+import { adoptStyles, animateOut, createMicrotaskScheduler, toBool, toEnum, type EventDef, type InputDef } from '@keenmate/web-components-core';
 import {
     SatelliteElement,
     SATELLITE_INPUTS,
@@ -600,12 +600,11 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
         if (previousCurrent && rotation !== 'slide-in') {
             // True rotation — outgoing slot keeps mounted so its keyframe
             // (translateX/Y out) plays in parallel with the incoming one.
-            previousCurrent.classList.add('dz__rolling-current--leaving');
             wrapper.insertBefore(newCurrentEl, previousCurrent);
             const toRemove = previousCurrent;
-            // ~200ms over the 0.3s (--dz-transition-slow) animation; spare margin so we
-            // never yank a node mid-keyframe.
-            setTimeout(() => { toRemove.remove(); }, 500);
+            // Removed when its own leaving keyframe ends (core animateOut reads the
+            // duration from CSS — at once with motion off / reduced motion).
+            animateOut([toRemove], { className: 'dz__rolling-current--leaving', onDone: () => toRemove.remove() });
         } else if (previousCurrent) {
             previousCurrent.replaceWith(newCurrentEl);
         } else {

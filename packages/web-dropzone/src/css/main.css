@@ -35,7 +35,6 @@
 @import url('./overlay.css')     layer(component);
 @import url('./popover.css')     layer(component);
 @import url('./progress.css')    layer(component);
-@import url('./rtl.css')         layer(component);
 
 /* === OVERRIDES === */
 @import url('./dark-mode.css')   layer(overrides);

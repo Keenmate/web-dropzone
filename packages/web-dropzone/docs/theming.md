@@ -196,7 +196,9 @@ web-dropzone { --dz-transition-fast: 0s; --dz-transition-normal: 0s;
         --base-duration-medium: 0s; --base-duration-slow: 0s; }         /* the whole page */
 ```
 
-`prefers-reduced-motion: reduce` sets them to `0s` (and the uploading-row pulse). The loader keeps
+`prefers-reduced-motion: reduce` and `motion="none"` set them to `0s` through core's motion presets
+(`MOTION_CSS`, adopted by every core element — `--base-duration-*` → `0s`), and with them the
+uploading-row pulse (`--dz-uploading-pulse-duration` = 10 × the normal speed). The loader keeps
 turning — it shows that an upload is running; the contract slows it (`--base-loader-duration` 1.5s).
 
 ## Loader
@@ -450,7 +452,7 @@ as `@keenmate/web-dropzone/manifest`).
 | `--dz-transition-medium` | speed medium 0.25s (base: --base-duration-medium); 0s = motion off |
 | `--dz-transition-normal` | speed normal 0.15s (base: --base-duration-normal); 0s = motion off |
 | `--dz-transition-slow` | speed slow 0.3s (base: --base-duration-slow); 0s = motion off |
-| `--dz-uploading-pulse-duration` | uploading-row pulse loop (1.5s; 0s under reduced motion) |
+| `--dz-uploading-pulse-duration` | uploading-row pulse loop (`calc(10 * var(--dz-transition-normal))` = 1.5s; 0s with motion off / reduced motion) |
 
 #### empty-state tokens
 

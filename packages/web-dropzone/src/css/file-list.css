@@ -143,7 +143,7 @@
   /* Reserve room on the right for the corner badge so the file-item's
      remove button doesn't end up underneath it. Width matches the badge's
      padding + count chip + a little breathing room. */
-  padding-right: calc(4.5 * var(--dz-rem, 10px));
+  padding-inline-end: calc(4.5 * var(--dz-rem, 10px));
 }
 
 /* Slide-in (default): only the incoming slot is mounted; old one was
@@ -196,7 +196,7 @@
 .dz__rolling-queue {
   position: absolute;
   top: var(--dz-rolling-queue-offset);
-  right: var(--dz-rolling-queue-offset);
+  inset-inline-end: var(--dz-rolling-queue-offset);
   z-index: 1;
   display: inline-flex;
   align-items: center;

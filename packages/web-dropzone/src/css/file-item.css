@@ -70,7 +70,7 @@
 .dz__file-item-progress-text {
   flex: 0 0 auto;
   min-width: var(--dz-item-progress-text-width);
-  text-align: right;
+  text-align: end;
   font-size: var(--dz-font-size-xs);
   color: var(--dz-text-color-3);
   font-variant-numeric: tabular-nums;
@@ -300,8 +300,10 @@
   background: var(--dz-badge-text-bg);
   color: var(--dz-badge-text-color);
   border: var(--dz-badge-text-border);
-  border-right: none;
-  border-radius: var(--dz-badge-border-radius) 0 0 var(--dz-badge-border-radius);
+  border-inline-end: none;
+  border-radius: 0;
+  border-start-start-radius: var(--dz-badge-border-radius);
+  border-end-start-radius: var(--dz-badge-border-radius);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -423,8 +425,10 @@
   background: var(--dz-badge-remove-bg);
   color: var(--dz-badge-remove-color);
   border: var(--dz-badge-remove-border);
-  border-left: none;
-  border-radius: 0 var(--dz-badge-border-radius) var(--dz-badge-border-radius) 0;
+  border-inline-start: none;
+  border-radius: 0;
+  border-start-end-radius: var(--dz-badge-border-radius);
+  border-end-end-radius: var(--dz-badge-border-radius);
   cursor: pointer;
   transition: background-color var(--dz-transition-normal) var(--dz-easing-snappy);
 }
@@ -564,8 +568,8 @@
 .dz__preview-item-overlay {
   position: absolute;
   bottom: 0;
-  left: 0;
-  right: 0;
+  inset-inline-start: 0;
+  inset-inline-end: 0;
   padding: var(--dz-preview-overlay-padding);
   background: var(--dz-preview-overlay-bg);
   color: var(--dz-preview-overlay-color);
@@ -665,7 +669,7 @@
 .dz__preview-item-status {
   position: absolute;
   top: var(--dz-preview-remove-offset);
-  left: var(--dz-preview-remove-offset);
+  inset-inline-start: var(--dz-preview-remove-offset);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -712,8 +716,8 @@
 .dz__preview-item-progress-bar {
   position: absolute;
   bottom: 0;
-  left: 0;
-  right: 0;
+  inset-inline-start: 0;
+  inset-inline-end: 0;
   height: var(--dz-progress-height);
   background: var(--dz-progress-bg);
   overflow: hidden;

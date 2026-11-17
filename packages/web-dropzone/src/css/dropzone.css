@@ -219,7 +219,7 @@
 .dz__button-badge {
   position: absolute;
   top: calc(-0.4 * var(--dz-rem, 10px));
-  right: calc(-0.4 * var(--dz-rem, 10px));
+  inset-inline-end: calc(-0.4 * var(--dz-rem, 10px));
   min-width: calc(1.8 * var(--dz-rem, 10px));
   height: calc(1.8 * var(--dz-rem, 10px));
   padding: 0 calc(0.4 * var(--dz-rem, 10px));
@@ -289,7 +289,7 @@
 .dz__minimal-badge {
   position: absolute;
   top: calc(-0.4 * var(--dz-rem, 10px));
-  right: calc(-0.4 * var(--dz-rem, 10px));
+  inset-inline-end: calc(-0.4 * var(--dz-rem, 10px));
   min-width: calc(1.8 * var(--dz-rem, 10px));
   height: calc(1.8 * var(--dz-rem, 10px));
   padding: 0 calc(0.4 * var(--dz-rem, 10px));

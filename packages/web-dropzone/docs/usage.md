@@ -626,7 +626,9 @@ form.addEventListener('submit', (e) => {
 
 ## RTL
 
-Full support for right-to-left languages:
+Full support for right-to-left languages — the layout uses logical CSS (`inset-inline-*`,
+`padding-inline-*`, `text-align: start / end`), so it follows the direction the dropzone inherits,
+from a `dir` on itself or on any ancestor:
 
 ```html
 <web-dropzone dir="rtl"></web-dropzone>

@@ -92,6 +92,19 @@ test.describe('RTL layout', () => {
         );
         expect(dir).toBe('rtl');
     });
+
+    test('a row follows the inherited direction: the icon at the inline start (right), remove at the end (left)', async ({ page }) => {
+        await dz(page, 'rtl-dz').evaluate((el: any) => el.addFiles([new File([new Uint8Array(16)], 'report.pdf', { type: 'application/pdf' })]));
+        const row = dz(page, 'rtl-dz').locator('.dz__file-item').first();
+        const icon = await row.locator('.dz__file-item-icon').boundingBox();
+        const remove = await row.locator('.dz__file-item-remove').boundingBox();
+        expect(icon!.x).toBeGreaterThan(remove!.x);
+        // dir on the host itself: the same order (the old rtl.css row-reverse flipped it back to LTR).
+        await dz(page, 'rtl-dz').evaluate((el) => { el.parentElement!.removeAttribute('dir'); el.setAttribute('dir', 'rtl'); });
+        const icon2 = await row.locator('.dz__file-item-icon').boundingBox();
+        const remove2 = await row.locator('.dz__file-item-remove').boundingBox();
+        expect(icon2!.x).toBeGreaterThan(remove2!.x);
+    });
 });
 
 test.describe('motion + disabled dimming follow the contract', () => {
@@ -118,8 +131,8 @@ test.describe('motion + disabled dimming follow the contract', () => {
         await page.emulateMedia({ reducedMotion: 'reduce' });
         expect((await cardTiming(page, 'scaled-default')).duration.split(', ')).toEqual(['0s', '0s']);
         expect(await cssvar(page, 'scaled-default', '--dz-transition-slow')).toBe('0s');
-        // The uploading-row pulse is decoration — it stops; the loader never does.
-        expect(await cssvar(page, 'scaled-default', '--dz-uploading-pulse-duration')).toBe('0s');
+        // The uploading-row pulse is decoration — it stops (10 × the 0s speed); the loader never does.
+        expect(await cssvar(page, 'scaled-default', '--dz-uploading-pulse-duration')).toMatch(/^calc\(10 \* 0s\)$/);
         expect(await cssvar(page, 'scaled-default', '--dz-loader-duration')).not.toBe('0s');
     });
 

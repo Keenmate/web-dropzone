@@ -342,8 +342,8 @@
   --dz-loader-duration: var(--base-loader-duration, 0.8s);
   --dz-loader-size: var(--base-loader-size, 1.25em);
   --dz-loader-inline-size: calc(var(--dz-loader-size) * 0.75);
-  /* The uploading-row pulse is decoration, not a loader: 0s under reduced motion. */
-  --dz-uploading-pulse-duration: 1.5s;
+  /* Decoration: 10 × the normal speed (1.5s), so it stops with motion. */
+  --dz-uploading-pulse-duration: calc(10 * var(--dz-transition-normal));
   /* Sheet chrome (indicator drawer header + close, phone popover close) is core's
      SHEET_CHROME_CSS. Each --dz-sheet-* is UNSET by default (core's --km-sheet-* /
      --base-* defaults apply, e.g. the 44px --base-touch-target-min close chip);
@@ -597,8 +597,8 @@
   /* ==========================================================================
      TRANSITIONS
      ========================================================================== */
-  /* The contract's four speeds + easings. Motion off: these 0s (or
-     --base-duration-*: 0s page-wide); reduced motion does it (block below). */
+  /* The contract's four speeds + easings. Motion off / reduced motion: core's
+     MOTION_CSS sets --base-duration-* to 0s, so these are 0s. */
   --dz-transition-fast: var(--base-duration-fast, 0.1s);
   --dz-transition-normal: var(--base-duration-normal, 0.15s);
   --dz-transition-medium: var(--base-duration-medium, 0.25s);
@@ -628,15 +628,6 @@
   --dz-overlay-hover-shadow: 0 10px 36px var(--dz-shadow-color);
 }
 
-/* Reduced motion: no transitions / animations; the uploading-row pulse stops
-   (the loader keeps turning, slower — --base-loader-duration). Holds without the contract on the page. Same selector as
-   the token block (managed satellites inherit from the store host). */
-@media (prefers-reduced-motion: reduce) {
-  :host(:not([managed])) {
-    --dz-transition-fast: 0s;
-    --dz-transition-normal: 0s;
-    --dz-transition-medium: 0s;
-    --dz-transition-slow: 0s;
-    --dz-uploading-pulse-duration: 0s;
-  }
-}
+/* Reduced motion / motion="none": core's MOTION_CSS (adopted by every core element)
+   turns --base-duration-* to 0s, so the --dz-transition-* speeds and the uploading-row
+   pulse (derived from them) stop; the loader keeps turning, slower (--base-loader-duration). */

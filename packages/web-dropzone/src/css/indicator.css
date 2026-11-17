@@ -226,7 +226,7 @@
     position: absolute;
     z-index: var(--dz-popover-z-index);
     top: calc(100% + calc(0.4 * var(--dz-rem, 10px)));
-    left: 0;
+    inset-inline-start: 0;
     width: min(36rem, 92dvw);
     max-height: min(60dvh, 40rem);
     border-radius: calc(0.6 * var(--dz-rem, 10px));

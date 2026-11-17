@@ -210,7 +210,7 @@
 .dz__popover-cell--icon {
   width: var(--dz-popover-icon-size);
   text-align: center;
-  padding-right: 0;
+  padding-inline-end: 0;
 }
 
 /* Popover row's icon / thumbnail slot — a fixed square inside the icon cell.
@@ -251,7 +251,7 @@
 .dz__popover-cell--size {
   color: var(--dz-text-color-3);
   white-space: nowrap;
-  text-align: right;
+  text-align: end;
 }
 
 /* Action + status sit next to each other on the right edge — tighten the
@@ -260,20 +260,20 @@
 .dz__popover-cell--action {
   width: var(--dz-item-action-size);
   text-align: center;
-  padding-left: 0;
-  padding-right: calc(0.2 * var(--dz-rem, 10px));
+  padding-inline-start: 0;
+  padding-inline-end: calc(0.2 * var(--dz-rem, 10px));
 }
 
 .dz__popover-cell--status {
-  padding-left: 0.3rem;
-  padding-right: 0.3rem;
+  padding-inline-start: 0.3rem;
+  padding-inline-end: 0.3rem;
 }
 
 .dz__popover-cell--actions {
   width: calc(3.2 * var(--dz-rem, 10px));
   text-align: center;
-  padding-left: 0;
-  padding-right: 0;
+  padding-inline-start: 0;
+  padding-inline-end: 0;
 }
 
 /* Per-row pause / resume / retry button. Mirrors .dz__file-item-action —
@@ -381,10 +381,10 @@
 .dz__popover-progress-text {
   display: inline-block;
   width: calc(3 * var(--dz-rem, 10px));
-  text-align: right;
+  text-align: end;
   font-size: var(--dz-font-size-xs);
   color: var(--dz-text-color-3);
-  margin-left: calc(0.4 * var(--dz-rem, 10px));
+  margin-inline-start: calc(0.4 * var(--dz-rem, 10px));
   vertical-align: middle;
 }
 

@@ -48,6 +48,19 @@ Needs `@keenmate/web-components-core` `^1.0.0-rc25`.
   `startSheetSession`: the phone Back gesture closes it, the page behind doesn't scroll, the
   keyboard inset is followed (Back used to navigate away). `PHONE_MEDIA_QUERY` /
   `getPhoneMediaQuery()` (internal) are gone.
+- **Right-to-left from the inherited direction** — the stylesheet uses logical properties
+  (`inset-inline-*`, `padding-inline-*`, `border-inline-*`, logical corner radii,
+  `text-align: start / end`) instead of `rtl.css`, whose `:host([dir="rtl"])` rules only matched a
+  `dir` on the dropzone itself (a `dir` on an ancestor didn't flip the popover cells, the
+  preview remove button, the rolling queue badge…). `rtl.css` is gone.
+- **Motion from core** — the own `prefers-reduced-motion` block is gone: core's `MOTION_CSS`
+  (adopted by every core element) turns `--base-duration-*` to `0s` for reduced motion and
+  `motion="none"`, so the `--dz-transition-*` speeds follow it. `--dz-uploading-pulse-duration`
+  is `calc(10 * var(--dz-transition-normal))` (1.5s; it stops with motion — before, only reduced
+  motion stopped it). The rolling list's outgoing row goes through core `animateOut` (removed
+  when its own keyframe ends — at once with motion off) instead of a fixed 500 ms timer.
+- **File ids from core `createId('file')`** (was `file-${Date.now()}-${Math.random()…}`); ids
+  stay opaque strings.
 - **Stacking on core's tiers** — `--dz-popover-z-index` (was `10000`) and the new
   `--dz-indicator-z-index` (the chip, was `100000`) default to the popover tier
   `var(--base-z-popover, 7600)`; the inline drawer uses `--dz-popover-z-index`, the edge drawer

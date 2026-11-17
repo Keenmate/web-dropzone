@@ -140,7 +140,7 @@
 .dz__overall-progress-percent {
   flex: 0 0 auto;
   min-width: var(--dz-overall-progress-percent-min-width);
-  text-align: right;
+  text-align: end;
   color: var(--dz-overall-progress-percent-color);
   font-weight: var(--dz-overall-progress-percent-font-weight);
 }

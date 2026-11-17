@@ -16,6 +16,7 @@ import type {
     FileIconOverrides
 } from './types';
 import type { FileIconContext } from './interaction';
+import { createId } from '@keenmate/web-components-core';
 import { FILE_TYPE_ICONS, UI_ICONS } from './icons';
 
 /**
@@ -67,10 +68,11 @@ export const DEFAULT_CONFIG: Required<Omit<DropzoneConfig, 'fileIcons' | 'getFil
 export const FILE_ICONS: Record<FileTypeCategory, string> = FILE_TYPE_ICONS;
 
 /**
- * Generate a unique ID for a file
+ * Generate a page-unique ID for a file (core `createId`: a counter + random
+ * suffix — no `Date.now()` / `Math.random()` collisions in a burst).
  */
 export function generateFileId(): string {
-    return `file-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    return createId('file');
 }
 
 /**
