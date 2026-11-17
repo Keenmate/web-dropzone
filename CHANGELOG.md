@@ -27,7 +27,8 @@ Needs `@keenmate/web-components-core` `^1.0.0-rc25`.
   in, so a modal no longer covers it), with the host's theme. Hover look and fade-in are CSS
   (`.dz__overlay--hover`, `dz-overlay-fade-in`). Page CSS that styled `.dz__overlay` in the light
   DOM no longer reaches it — theme it with the `--dz-overlay-*` variables (per-instance values
-  set on the dropzone are carried over). `overlay-enter` / `overlay-leave` still pass
+  set on the dropzone are carried over through core's `createLayer` `cssVars`, re-read on a theme
+  change). `overlay-enter` / `overlay-leave` still pass
   `overlayElement` (now the element inside the layer).
 - **New `--dz-overlay-hover-filter` / `-hover-border` / `-hover-shadow`** (were hard-coded
   JS fallbacks). **`--dz-overlay-z-index` defaults to the popover tier**
@@ -258,9 +259,10 @@ Requires `@keenmate/web-components-core` `^1.0.0-rc21` (was `^1.0.0-rc15`). No c
 - **The `overlay-target` drag overlay takes the dropzone's color scheme, not the page's.** It is
   mounted on `<body>` (it has to cover any target on the page), outside the host's `dark-mode.css`
   rules, so a dark dropzone on a light page (or the reverse) resolved its `light-dark()` colors
-  (e.g. a `light-dark()` `--base-primary-color`) against the page. The overlay now copies the host's
-  resolved `color-scheme` (`data-theme` > `data-context-theme` > inherited) and follows it live
-  while shown. e2e: `drag-overlay-theme.spec.ts`.
+  (e.g. a `light-dark()` `--base-primary-color`) against the page. The overlay now takes the host's
+  color scheme (`data-theme` > `data-context-theme` > inherited) and follows it live while shown —
+  since core rc25 through the host's theme attributes on the layer and `dark-mode.css` (no inline
+  `color-scheme` copy). e2e: `drag-overlay-theme.spec.ts`.
 
 ### Changed (popover gap, 2026-11-09)
 

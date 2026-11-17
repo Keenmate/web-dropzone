@@ -2712,12 +2712,11 @@ export class WebDropzone extends DropzoneEngine {
     }
 
     /**
-     * The `--dz-*` tokens the overlay reads, copied from the host onto the layer.
-     * A core layer (createLayer) isn't the host's descendant, so per-instance
-     * custom properties set on the dropzone (or an ancestor) wouldn't reach it —
-     * only `:root` tokens and the theme do (core gap, reported). The layer's own
-     * shadow root carries the component stylesheet, whose `:host` defaults apply
-     * when the host has nothing of its own.
+     * The `--dz-*` tokens the overlay reads — core's `createLayer` `cssVars`
+     * copies the host's computed values onto the layer (a layer isn't the host's
+     * descendant, so per-instance overrides wouldn't reach it otherwise). The
+     * layer's own shadow root carries the component stylesheet, whose `:host`
+     * defaults apply when the host has nothing of its own.
      */
     private static readonly OVERLAY_VARS = [
         '--dz-overlay-bg', '--dz-overlay-border', '--dz-overlay-border-radius', '--dz-overlay-color',
@@ -2741,20 +2740,8 @@ export class WebDropzone extends DropzoneEngine {
             css: styles,
             className: 'dz__overlay',
             zIndex: `var(--dz-overlay-z-index, ${Z_INDEX.popover})`,
+            cssVars: WebDropzone.OVERLAY_VARS,
         });
-        const hostStyles = getComputedStyle(host);
-        for (const name of WebDropzone.OVERLAY_VARS) {
-            const value = hostStyles.getPropertyValue(name).trim();
-            if (value) layer.layer.style.setProperty(name, value);
-        }
-        // The host's resolved color-scheme, inline: core's layer resets its host
-        // with an unlayered `all: initial`, so the stylesheet's layered
-        // `:host([data-theme])` / `[data-context-theme]` rules (dark-mode.css)
-        // can't set it on the layer (core gap, reported).
-        const syncScheme = (): void => {
-            layer.layer.style.colorScheme = getComputedStyle(host).colorScheme;
-        };
-        syncScheme();
         layer.place(this.overlayTarget.getBoundingClientRect());
         this.overlayLayer = layer;
         this.dragOverlay = layer.element;
@@ -2767,10 +2754,7 @@ export class WebDropzone extends DropzoneEngine {
 
         // The page can flip the host's theme mid-drag; core re-writes
         // `data-context-theme` on a page / theme-source change.
-        this.overlaySchemeObserver = new MutationObserver(() => {
-            layer.syncTheme();
-            syncScheme();
-        });
+        this.overlaySchemeObserver = new MutationObserver(() => layer.syncTheme());
         this.overlaySchemeObserver.observe(host, {
             attributes: true,
             attributeFilter: ['data-theme', 'data-context-theme', 'data-motion'],
