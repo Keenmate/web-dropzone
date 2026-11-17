@@ -4547,7 +4547,7 @@
               "name": "inputs",
               "privacy": "protected",
               "static": true,
-              "default": "[ ...SATELLITE_INPUTS, { configKey: 'position', attribute: 'position', converter: toEnum(POSITIONS, { default: 'right' }), shouldReflect: true, on: 'update', description: 'Where the chip sits: fixed to a viewport edge (right, left, top, bottom) or inline in the page flow.' }, { configKey: 'drawer', attribute: 'drawer', converter: toEnum(DRAWER_MODES, { default: 'auto' }), shouldReflect: true, on: 'update', description: '`auto`: the chip is a button opening a slide-out drawer with the full file list; `off`: a non-interactive `role=\"status\"` chip, no drawer.' }, { configKey: 'renderBodyCallback', converter: toFunction(), on: 'update', type: 'StatusSurfaceCallback | null', description: 'Replace the whole chip body (`args`: `StatusSurfaceArgs`). Return a string / element, `null` for the default, `false` to hide the chip. When set, the default file-info / progress slots are not mounted.' }, { configKey: 'renderFileInfoCallback', converter: toFunction(), on: 'update', type: 'StatusSurfaceCallback | null', description: 'Replace the chip\\'s file-info slot (default body only). `args.currentFile`, `currentFilePercent`, `currentFileStatus`.' }, { configKey: 'renderProgressCallback', converter: toFunction(), on: 'update', type: 'StatusSurfaceCallback | null', description: 'Replace the chip\\'s progress slot (default body only): per-file and overall slices.' }, ]",
+              "default": "[ ...SATELLITE_INPUTS, { configKey: 'position', attribute: 'position', converter: toEnum(POSITIONS, { default: 'right' }), shouldReflect: true, on: 'update', description: 'Where the chip sits: fixed to a viewport edge (right, left, top, bottom) or inline in the page flow.' }, { configKey: 'drawer', attribute: 'drawer', converter: toEnum(DRAWER_MODES, { default: 'auto' }), shouldReflect: true, on: 'update', description: '`auto`: the chip is a button opening a slide-out drawer with the full file list; `off`: a non-interactive `role=\"status\"` chip, no drawer.' }, { configKey: 'drawerMode', attribute: 'drawer-mode', converter: toEnum(DRAWER_PRESENTATIONS, { default: 'non-modal' }), shouldReflect: true, on: 'update', description: 'How an edge drawer (`position` right / left / top / bottom) opens. `non-modal` (default): the page stays usable — Escape, a click outside or the phone Back gesture close it. `modal`: a backdrop, the page behind inert, Tab kept inside; Escape, a backdrop click or Back close it. A change while the drawer is open applies on the next open. The inline drop-down and the phone sheet are unaffected.' }, { configKey: 'renderBodyCallback', converter: toFunction(), on: 'update', type: 'StatusSurfaceCallback | null', description: 'Replace the whole chip body (`args`: `StatusSurfaceArgs`). Return a string / element, `null` for the default, `false` to hide the chip. When set, the default file-info / progress slots are not mounted.' }, { configKey: 'renderFileInfoCallback', converter: toFunction(), on: 'update', type: 'StatusSurfaceCallback | null', description: 'Replace the chip\\'s file-info slot (default body only). `args.currentFile`, `currentFilePercent`, `currentFileStatus`.' }, { configKey: 'renderProgressCallback', converter: toFunction(), on: 'update', type: 'StatusSurfaceCallback | null', description: 'Replace the chip\\'s progress slot (default body only): per-file and overall slices.' }, ]",
               "type": {
                 "text": "readonly InputDef[]"
               }
@@ -4661,11 +4661,11 @@
               "kind": "field",
               "name": "drawerSession",
               "type": {
-                "text": "ModalSession | null"
+                "text": "ModalSession | PanelSession | null"
               },
               "privacy": "private",
               "default": "null",
-              "description": "Core modal session of an EDGE drawer (`.km-drawer` from the chip's edge) or a\nphone sheet while open: the page behind is inert, Tab stays inside, Escape /\nthe backdrop / the phone Back gesture close it, focus returns to the chip."
+              "description": "Core session of an EDGE drawer (`.km-drawer` from the chip's edge) or a phone\nsheet while open. `drawer-mode=\"non-modal\"` edge drawer: a panel session (the\npage stays usable; Escape / an outside click / Back close it). `modal` and the\nphone sheet: a modal session (the page behind inert, Tab kept inside, Escape /\nthe backdrop / Back close it). Focus returns to the chip."
             },
             {
               "kind": "field",
@@ -5130,7 +5130,7 @@
                   }
                 }
               ],
-              "description": "An edge drawer (core `.km-drawer` from the chip's edge, with a backdrop) or,\non a phone, a full-screen sheet — both in a core modal session."
+              "description": "An edge drawer (core `.km-drawer` from the chip's edge, with a backdrop) or,\non a phone, a full-screen sheet — a core panel session (`drawer-mode=\"non-modal\"`\nedge drawer) or a modal session (`modal`, every phone sheet)."
             },
             {
               "kind": "method",
@@ -5140,7 +5140,16 @@
                 "type": {
                   "text": "void"
                 }
-              }
+              },
+              "parameters": [
+                {
+                  "name": "reason",
+                  "optional": true,
+                  "type": {
+                    "text": "PanelDismissReason"
+                  }
+                }
+              ]
             },
             {
               "kind": "method",
@@ -5286,6 +5295,18 @@
               "attribute": "drawer",
               "reflects": true,
               "description": "`auto`: the chip is a button opening a slide-out drawer with the full file list; `off`: a non-interactive `role=\"status\"` chip, no drawer."
+            },
+            {
+              "kind": "field",
+              "name": "drawerMode",
+              "privacy": "public",
+              "type": {
+                "text": "'non-modal' | 'modal'"
+              },
+              "default": "'non-modal'",
+              "attribute": "drawer-mode",
+              "reflects": true,
+              "description": "How an edge drawer (`position` right / left / top / bottom) opens. `non-modal` (default): the page stays usable — Escape, a click outside or the phone Back gesture close it. `modal`: a backdrop, the page behind inert, Tab kept inside; Escape, a backdrop click or Back close it. A change while the drawer is open applies on the next open. The inline drop-down and the phone sheet are unaffected."
             },
             {
               "kind": "field",
@@ -5919,6 +5940,15 @@
               },
               "default": "'auto'",
               "description": "`auto`: the chip is a button opening a slide-out drawer with the full file list; `off`: a non-interactive `role=\"status\"` chip, no drawer."
+            },
+            {
+              "name": "drawer-mode",
+              "fieldName": "drawerMode",
+              "type": {
+                "text": "'non-modal' | 'modal'"
+              },
+              "default": "'non-modal'",
+              "description": "How an edge drawer (`position` right / left / top / bottom) opens. `non-modal` (default): the page stays usable — Escape, a click outside or the phone Back gesture close it. `modal`: a backdrop, the page behind inert, Tab kept inside; Escape, a backdrop click or Back close it. A change while the drawer is open applies on the next open. The inline drop-down and the phone sheet are unaffected."
             },
             {
               "name": "defer",

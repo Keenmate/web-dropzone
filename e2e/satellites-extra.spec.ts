@@ -115,8 +115,67 @@ test.describe('<web-dropzone-indicator> drawer — core overlay tree', () => {
     const isOpen = (page: Page, open: boolean) =>
         expect(dz(page, 'ind-left')).toHaveAttribute('data-drawer-open', String(open));
 
-    test("an edge position opens core's modal drawer: the side class, an inert page, Tab kept inside", async ({ page }) => {
+    test('drawer-mode defaults to non-modal: the page stays usable; an outside click and Escape close it', async ({ page }) => {
+        const ind = dz(page, 'ind-left');
+        const drawer = ind.locator('.dz__indicator-drawer');
+        expect(await ind.evaluate((el: any) => el.drawerMode)).toBe('non-modal');
+        await chip(page).click();
+        await isOpen(page, true);
+        await expect(drawer).toHaveClass(/\bkm-drawer\b/);
+        await expect(drawer).toHaveClass(/\bkm-drawer--start\b/);
+        await expect(drawer).toHaveAttribute('role', 'dialog');
+        await expect(drawer).not.toHaveAttribute('aria-modal', 'true');
+        // No inert page, no backdrop: the page behind stays interactive.
+        expect(await page.locator('#sat').evaluate((el) => !!el.closest('[inert]'))).toBe(false);
+        expect(await page.evaluate(() => document.querySelectorAll('[inert]').length)).toBe(0);
+        // A click on the page lands (and closes the drawer as an outside click).
+        await page.evaluate(() => {
+            const b = document.createElement('button');
+            b.id = 'outside-btn';
+            b.textContent = 'outside';
+            b.style.cssText = 'position: fixed; inset-inline-end: 1rem; inset-block-end: 1rem; z-index: 1';
+            (window as any).__outsideClicks = 0;
+            b.addEventListener('click', () => { (window as any).__outsideClicks++; });
+            document.body.append(b);
+        });
+        await page.locator('#outside-btn').click();
+        expect(await page.evaluate(() => (window as any).__outsideClicks)).toBe(1);
+        await isOpen(page, false);
+        await expect(drawer).toBeHidden();
+        // Escape closes it too, focus back to the chip.
+        await chip(page).click();
+        await isOpen(page, true);
+        await page.keyboard.press('Escape');
+        await isOpen(page, false);
+        await expect(chip(page)).toBeFocused();
+    });
+
+    test('drawer-mode is an enum: an unknown value is refused, a change applies on the next open', async ({ page }) => {
+        const ind = dz(page, 'ind-left');
+        const rejected = await ind.evaluate((el: any) => {
+            const seen: string[] = [];
+            el.addEventListener('input-rejected', (e: any) => seen.push(e.detail.configKey));
+            el.setAttribute('drawer-mode', 'sometimes');
+            return seen;
+        });
+        expect(rejected).toEqual(['drawerMode']);
+        await chip(page).click();
+        await isOpen(page, true);
+        await ind.evaluate((el: any) => { el.drawerMode = 'modal'; });
+        await expect(ind).toHaveAttribute('drawer-mode', 'modal');
+        // Still the non-modal session while open.
+        expect(await page.locator('#sat').evaluate((el) => !!el.closest('[inert]'))).toBe(false);
+        await page.keyboard.press('Escape');
+        await isOpen(page, false);
+        await chip(page).click();
+        await isOpen(page, true);
+        await expect(ind.locator('.dz__indicator-drawer')).toHaveAttribute('aria-modal', 'true');
+        expect(await page.locator('#sat').evaluate((el) => !!el.closest('[inert]'))).toBe(true);
+    });
+
+    test("drawer-mode=\"modal\" opens core's modal drawer: the side class, an inert page, Tab kept inside", async ({ page }) => {
         const drawer = dz(page, 'ind-left').locator('.dz__indicator-drawer');
+        await dz(page, 'ind-left').evaluate((el) => el.setAttribute('drawer-mode', 'modal'));
         await chip(page).click();
         await isOpen(page, true);
         await expect(drawer).toHaveClass(/\bkm-drawer\b/);
@@ -171,15 +230,18 @@ test.describe('<web-dropzone-indicator> drawer — core overlay tree', () => {
         await expect(chip(page)).toBeFocused();
     });
 
-    test('a click outside closes it; a click inside does not', async ({ page }) => {
-        await chip(page).click();
-        await isOpen(page, true);
-        await dz(page, 'ind-left').locator('.dz__indicator-drawer-title').click();
-        await isOpen(page, true);
-        await page.mouse.click(1300, 500); // the left drawer is min(40rem, 90dvw) wide
-        await isOpen(page, false);
-        await expect(chip(page)).toHaveAttribute('aria-expanded', 'false');
-    });
+    for (const mode of ['non-modal', 'modal'] as const) {
+        test(`drawer-mode="${mode}": a click outside closes it; a click inside does not`, async ({ page }) => {
+            await dz(page, 'ind-left').evaluate((el, m) => el.setAttribute('drawer-mode', m), mode);
+            await chip(page).click();
+            await isOpen(page, true);
+            await dz(page, 'ind-left').locator('.dz__indicator-drawer-title').click();
+            await isOpen(page, true);
+            await page.mouse.click(1300, 500); // the left drawer is min(40rem, 90dvw) wide
+            await isOpen(page, false);
+            await expect(chip(page)).toHaveAttribute('aria-expanded', 'false');
+        });
+    }
 
     test('Escape closes the topmost overlay first: one opened from inside the drawer, then the drawer', async ({ page }) => {
         await chip(page).click();

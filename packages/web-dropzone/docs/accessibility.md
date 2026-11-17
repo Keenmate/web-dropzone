@@ -79,8 +79,10 @@ Form validity (`min-file-count`) uses the native constraint API — `valueMissin
 - The compact popover keeps focus on its trigger when it opens; when it closes on <kbd>Esc</kbd> while
   focus is inside it, focus returns to the trigger (core `createPopover()`). On a phone-width viewport
   it is a full-screen sheet with a Close button, which also gives focus back to the trigger.
-- The indicator drawer (`role="dialog"`) moves focus to its Close button when it opens (it doesn't
-  trap it); <kbd>Esc</kbd> or the Close button closes it and focus returns to the chip, an outside
+- The indicator drawer (`role="dialog"`) moves focus to its Close button when it opens. With
+  `drawer-mode="non-modal"` (default) it doesn't trap it and the page stays usable; with
+  `drawer-mode="modal"` it is `aria-modal`, the page behind is inert and <kbd>Tab</kbd> stays inside.
+  <kbd>Esc</kbd> or the Close button closes it and focus returns to the chip, an outside (or backdrop)
   click closes it without moving focus. On a phone-width viewport the open drawer is a full-screen
   sheet — see [theming.md](./theming.md#phone-presentation).
 - A DOM move of the element keeps its UI state (no rebuild), so focus inside it is not reset by a

@@ -11,6 +11,10 @@
  *     `<web-dropzone-list>`); `off` → non-interactive `<div role="status">`,
  *     no drawer DOM. Suits a "rotating indicator that something is
  *     happening" widget.
+ *   - `drawer-mode="non-modal|modal"` — how an EDGE drawer opens:
+ *     `non-modal` (default) leaves the page usable (core panel session),
+ *     `modal` adds a backdrop, an inert page and a Tab trap (core modal
+ *     session).
  *   - Structural render callbacks (`renderBodyCallback`,
  *     `renderFileInfoCallback`, `renderProgressCallback`) — replace any
  *     of the three default parts piecemeal. See `./status-surface.ts`
@@ -45,7 +49,7 @@ import {
     fileStatusLabel,
     statusLabel
 } from '@keenmate/web-dropzone-core';
-import { adoptStyles, animateOut, createMicrotaskScheduler, renderLoader, SHEET_CHROME_CSS, startModalSession, toEnum, toFunction, type InputDef, type ModalSession } from '@keenmate/web-components-core';
+import { adoptStyles, animateOut, createMicrotaskScheduler, renderLoader, SHEET_CHROME_CSS, startModalSession, startPanelSession, toEnum, toFunction, type InputDef, type ModalSession, type PanelSession, type PanelDismissReason } from '@keenmate/web-components-core';
 import { isPhoneSheet } from './phone-sheet';
 import { createPopover, type PopoverHandle } from '@keenmate/web-components-core/positioning';
 import {
@@ -65,11 +69,15 @@ type IndicatorPosition = typeof POSITIONS[number];
 const DRAWER_MODES = ['auto', 'off'] as const;
 type DrawerMode = typeof DRAWER_MODES[number];
 
+const DRAWER_PRESENTATIONS = ['non-modal', 'modal'] as const;
+type DrawerPresentation = typeof DRAWER_PRESENTATIONS[number];
+
 /** `<web-dropzone-indicator>` inputs. */
 const INPUTS: readonly InputDef[] = [
     ...SATELLITE_INPUTS,
     { configKey: 'position', attribute: 'position', converter: toEnum(POSITIONS, { default: 'right' }), shouldReflect: true, on: 'update', description: 'Where the chip sits: fixed to a viewport edge (right, left, top, bottom) or inline in the page flow.' },
     { configKey: 'drawer', attribute: 'drawer', converter: toEnum(DRAWER_MODES, { default: 'auto' }), shouldReflect: true, on: 'update', description: '`auto`: the chip is a button opening a slide-out drawer with the full file list; `off`: a non-interactive `role="status"` chip, no drawer.' },
+    { configKey: 'drawerMode', attribute: 'drawer-mode', converter: toEnum(DRAWER_PRESENTATIONS, { default: 'non-modal' }), shouldReflect: true, on: 'update', description: 'How an edge drawer (`position` right / left / top / bottom) opens. `non-modal` (default): the page stays usable — Escape, a click outside or the phone Back gesture close it. `modal`: a backdrop, the page behind inert, Tab kept inside; Escape, a backdrop click or Back close it. A change while the drawer is open applies on the next open. The inline drop-down and the phone sheet are unaffected.' },
     { configKey: 'renderBodyCallback', converter: toFunction(), on: 'update', type: 'StatusSurfaceCallback | null', description: 'Replace the whole chip body (`args`: `StatusSurfaceArgs`). Return a string / element, `null` for the default, `false` to hide the chip. When set, the default file-info / progress slots are not mounted.' },
     { configKey: 'renderFileInfoCallback', converter: toFunction(), on: 'update', type: 'StatusSurfaceCallback | null', description: 'Replace the chip\'s file-info slot (default body only). `args.currentFile`, `currentFilePercent`, `currentFileStatus`.' },
     { configKey: 'renderProgressCallback', converter: toFunction(), on: 'update', type: 'StatusSurfaceCallback | null', description: 'Replace the chip\'s progress slot (default body only): per-file and overall slices.' },
@@ -79,6 +87,8 @@ const INPUTS: readonly InputDef[] = [
 export interface DropzoneIndicatorElementConfig extends SatelliteElementConfig {
     position?: IndicatorPosition;
     drawer?: DrawerMode;
+    /** How an edge drawer opens: `non-modal` (default) keeps the page usable; `modal` = backdrop + inert page + Tab trap. */
+    drawerMode?: DrawerPresentation;
     renderBodyCallback?: StatusSurfaceCallback | null;
     renderFileInfoCallback?: StatusSurfaceCallback | null;
     renderProgressCallback?: StatusSurfaceCallback | null;
@@ -143,11 +153,13 @@ export class DropzoneIndicatorElement extends SatelliteElement {
      */
     private drawerHandle: PopoverHandle | null = null;
     /**
-     * Core modal session of an EDGE drawer (`.km-drawer` from the chip's edge) or a
-     * phone sheet while open: the page behind is inert, Tab stays inside, Escape /
-     * the backdrop / the phone Back gesture close it, focus returns to the chip.
+     * Core session of an EDGE drawer (`.km-drawer` from the chip's edge) or a phone
+     * sheet while open. `drawer-mode="non-modal"` edge drawer: a panel session (the
+     * page stays usable; Escape / an outside click / Back close it). `modal` and the
+     * phone sheet: a modal session (the page behind inert, Tab kept inside, Escape /
+     * the backdrop / Back close it). Focus returns to the chip.
      */
-    private drawerSession: ModalSession | null = null;
+    private drawerSession: ModalSession | PanelSession | null = null;
     /** The closing animation of an edge drawer (cancelled when it reopens). */
     private drawerExit: { cancel(): void } | null = null;
 
@@ -627,7 +639,8 @@ export class DropzoneIndicatorElement extends SatelliteElement {
 
     /**
      * An edge drawer (core `.km-drawer` from the chip's edge, with a backdrop) or,
-     * on a phone, a full-screen sheet — both in a core modal session.
+     * on a phone, a full-screen sheet — a core panel session (`drawer-mode="non-modal"`
+     * edge drawer) or a modal session (`modal`, every phone sheet).
      */
     private openModalDrawer(isSheet: boolean): void {
         const drawer = this.drawerEl!;
@@ -640,6 +653,20 @@ export class DropzoneIndicatorElement extends SatelliteElement {
             drawer.classList.add('km-drawer', `km-drawer--${this.drawerSide()}`);
         }
         this.markDrawerOpen();
+        // drawer-mode="non-modal" (default): the page stays usable — core panel
+        // session (Escape / outside click / Back). A phone sheet covers the page,
+        // so it stays modal in both modes.
+        if (!isSheet && this.config.drawerMode !== 'modal') {
+            this.drawerSession = startPanelSession(drawer, {
+                onDismiss: (reason) => this.closeModalDrawer(reason),
+                trigger: this.chipEl,
+                returnFocusTo: this.chipEl,
+                initialFocus: this.drawerCloseBtn ?? undefined,
+                // A click on the indicator itself (chip, drawer) is not "outside".
+                getInsideElements: () => [this],
+            });
+            return;
+        }
         this.drawerSession = startModalSession(drawer, {
             backdrop: !isSheet,
             onDismiss: () => this.closeModalDrawer(),
@@ -651,11 +678,12 @@ export class DropzoneIndicatorElement extends SatelliteElement {
         });
     }
 
-    private closeModalDrawer(): void {
+    private closeModalDrawer(reason?: PanelDismissReason): void {
         const drawer = this.drawerEl;
-        // The chip shows again first, so the session can give focus back to it.
+        // The chip shows again first, so the session can give focus back to it
+        // (not after a click outside a non-modal drawer: the page took focus).
         this.syncDrawerClosed();
-        this.endDrawerSession(true);
+        this.endDrawerSession(reason !== 'outside-click');
         if (!drawer || !drawer.classList.contains('km-drawer')) {
             this.resetDrawerPresentation();
             return;

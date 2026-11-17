@@ -234,7 +234,7 @@ with the masked `--base-icon-close`; the `dz__` classes stay as hooks). Theme it
 mapped onto core's private `--_km-sheet-*`). The popover is not anchored to its
 trigger while it is a sheet and ignores its persisted size; a device / breakpoint change while it is
 open switches between the two. The edge drawer on a desktop / tablet is core's `.km-drawer` (modal
-tier, slide in / out); its width / height / background come from the indicator stylesheet through
+tier, slide in / out; a backdrop only with `drawer-mode="modal"`); its width / height / background come from the indicator stylesheet through
 core's `--_km-sheet-drawer-*` hooks. Its list and the compact-mode popover's
 list use `overscroll-behavior: contain`, so a fling at the list edge doesn't scroll the page behind.
 

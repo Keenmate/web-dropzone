@@ -473,7 +473,11 @@
                 <p style="font-size:0.85rem; color:var(--kmwc-text-color-3); margin-top:1rem; margin-bottom:0;">↘ A floating chip is pinned to the right edge of the page. Click it to slide out the queue.</p>
             </div>
 
+            <p>The edge drawer is <strong>non-modal</strong> by default (<code>drawer-mode="non-modal"</code>): the page stays usable, and <kbd>Esc</kbd> or a click outside closes it. <code>drawer-mode="modal"</code> adds a backdrop, makes the page inert and keeps <kbd>Tab</kbd> inside. Currently <code id="ar06-drawer-mode">non-modal</code> —
+                <button type="button" class="btn-outline" onclick="(() => { const ind = document.getElementById('ar06-indicator'); ind.drawerMode = ind.drawerMode === 'modal' ? 'non-modal' : 'modal'; document.getElementById('ar06-drawer-mode').textContent = ind.drawerMode; })()">Toggle drawer-mode</button></p>
+
             <web-dropzone-indicator
+                id="ar06-indicator"
                 for="dz-indicator"
                 position="right"
             ></web-dropzone-indicator>

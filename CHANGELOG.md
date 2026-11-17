@@ -33,14 +33,18 @@ Needs `@keenmate/web-components-core` `^1.0.0-rc25`.
 - **New `--dz-overlay-hover-filter` / `-hover-border` / `-hover-shadow`** (were hard-coded
   JS fallbacks). **`--dz-overlay-z-index` defaults to the popover tier**
   `var(--base-z-popover, 7600)` (was `9999`).
-- **The indicator's edge drawer is core's modal drawer** — `position="right|left|top|bottom"`
-  opens `.km-drawer km-drawer--<side>` (SHEET_CHROME_CSS: modal tier, slide in / out through
-  `animateOut`, safe areas) in a core `startModalSession`: a backdrop, the page behind inert,
-  Tab kept inside, Escape / backdrop click / phone Back close it, focus back to the chip. It
-  used to be a non-modal panel that only joined the overlay tree through a dummy
-  `createPopover` (an outside click closed it; the page stayed interactive). `position="inline"`
-  stays a drop-down in the overlay tree. The drawer's size / colours are unchanged (core's
-  `--_km-sheet-drawer-*` hooks).
+- **The indicator's edge drawer is core's `.km-drawer`, with a new `drawer-mode`** —
+  `position="right|left|top|bottom"` opens `.km-drawer km-drawer--<side>` (SHEET_CHROME_CSS:
+  slide in / out through `animateOut`, safe areas) instead of a panel that joined the overlay
+  tree through a dummy `createPopover`. The new `drawer-mode` input (`drawerMode`, reflects)
+  picks the session: **`non-modal`** (default — the behaviour so far) runs a core
+  `startPanelSession`: the page stays usable, Escape / an outside click / the phone Back
+  gesture close it (a click on the indicator itself doesn't); **`modal`** runs a core
+  `startModalSession`: a backdrop, the page behind inert, Tab kept inside, Escape / backdrop
+  click / Back close it. Focus moves to the Close button on open and back to the chip on close
+  (not after an outside click). A change while the drawer is open applies on the next open.
+  `position="inline"` stays a drop-down in the overlay tree, and a phone sheet is modal in both
+  modes. The drawer's size / colours are unchanged (core's `--_km-sheet-drawer-*` hooks).
 - **Phone presentation from core's device classification** — the drawer and the compact popover
   are full-screen sheets on a phone (`resolvePresentation('auto', env)` → `fullscreen`: touch-primary
   with a short side under the tablet line) instead of below a `max-width: 600px` literal, so a

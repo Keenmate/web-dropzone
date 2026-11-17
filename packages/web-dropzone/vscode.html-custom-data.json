@@ -38,6 +38,11 @@
           "values": [{ "name": "auto" }, { "name": "off" }]
         },
         {
+          "name": "drawer-mode",
+          "description": "How an edge drawer (`position` right / left / top / bottom) opens. `non-modal` (default): the page stays usable — Escape, a click outside or the phone Back gesture close it. `modal`: a backdrop, the page behind inert, Tab kept inside; Escape, a backdrop click or Back close it. A change while the drawer is open applies on the next open. The inline drop-down and the phone sheet are unaffected.",
+          "values": [{ "name": "non-modal" }, { "name": "modal" }]
+        },
+        {
           "name": "defer",
           "description": "Hold the first build (core, SPEC §6.3): while set when the element first connects, nothing is built and every input, callback and listener assigned meanwhile accumulates; `release()` (or removing the attribute) then builds once. Latched after the first build.",
           "values": []

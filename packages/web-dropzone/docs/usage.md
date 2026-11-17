@@ -782,6 +782,7 @@ The shared inputs, plus:
 |---|---|---|---|---|
 | `position` | `position` | `right` \| `left` \| `top` \| `bottom` \| `inline` | `right` | Fixed to a viewport edge, or inline in the flow |
 | `drawer` | `drawer` | `auto` \| `off` | `auto` | `auto`: the chip is a button toggling a slide-out drawer (`role="dialog"`) with the file list; `off`: a non-interactive `role="status"` chip |
+| `drawer-mode` | `drawerMode` | `non-modal` \| `modal` | `non-modal` | How an edge drawer opens: `non-modal` keeps the page usable; `modal` adds a backdrop, an inert page and a <kbd>Tab</kbd> trap. A change while it is open applies on the next open |
 | — | `renderBodyCallback` | `StatusSurfaceCallback \| null` |  | Replace the whole chip body; `false` hides the chip |
 | — | `renderFileInfoCallback` | `StatusSurfaceCallback \| null` |  | Replace the chip's file-info slot (default body only) |
 | — | `renderProgressCallback` | `StatusSurfaceCallback \| null` |  | Replace the chip's progress slot (default body only) |
@@ -790,9 +791,11 @@ Indicator strings (`labels`): `indicatorTitle`, `indicatorIdle`, `indicatorStatu
 (aria), `close`, `indicatorFailed` / `…Uploading` / `…Paused` / `…Queued` / `…Done`.
 Host attributes `data-position`, `data-drawer`, `data-drawer-open`; shadow parts `::part(chip)`,
 `::part(drawer)`. The chip (`aria-expanded`) hides while a non-inline drawer is open. An edge position
-(`right` / `left` / `top` / `bottom`) opens core's drawer (`.km-drawer`, sliding in from the chip's edge)
-as a **modal**: a backdrop, the page behind inert, <kbd>Tab</kbd> kept inside; <kbd>Esc</kbd>, a backdrop
-click or the phone Back gesture close it. `position="inline"` is a drop-down under the chip in core's
+(`right` / `left` / `top` / `bottom`) opens core's drawer (`.km-drawer`, sliding in from the chip's edge).
+`drawer-mode="non-modal"` (default) leaves the page usable (core `startPanelSession`): <kbd>Esc</kbd>, a click
+outside the indicator or the phone Back gesture close it. `drawer-mode="modal"` (core `startModalSession`) adds a
+backdrop, makes the page behind inert and keeps <kbd>Tab</kbd> inside; <kbd>Esc</kbd>, a backdrop click or Back
+close it. `position="inline"` is a drop-down under the chip in core's
 overlay tree (<kbd>Esc</kbd> and an outside click close it, topmost overlay first). On a phone (core's
 device classification) every position is a full-screen sheet. Focus moves into it on open and back to
 the chip on close. The drawer embeds a `<web-dropzone-list>` (style it with
