@@ -13,6 +13,7 @@ import type {
     BeforeFilesAddContext,
     BeforeFilesRemoveContext,
     BeforeFilesCancelContext,
+    DropzoneActionEventDetail,
     FileIconContext,
     FileUploadContext,
     FileItemRenderContext,
@@ -641,6 +642,15 @@ export interface DropzoneConfig {
      *  Internal cancels (removing a running file, element removal) skip it. */
     beforeFilesCancelCallback?:
         ((ctx: BeforeFilesCancelContext) => false | void | Promise<false | void>) | null;
+    /** Runs before any dropzone button activates (row ✕ / ⊘ / pause / resume /
+     *  retry, the progress strip's bulk buttons, the popover's Clear all /
+     *  Add more) — core `/actions`: `beforeActionCallback` → item `onClick` →
+     *  built-in → `action` event. Return `false` to cancel all of it; any
+     *  other return value is ignored (core: an action has nothing to replace).
+     *  May be async. Runs BEFORE the per-purpose gates
+     *  (`beforeFilesRemoveCallback`, …), which the built-in still asks. */
+    beforeActionCallback?:
+        ((detail: DropzoneActionEventDetail) => false | void | Promise<false | void>) | null;
     /**
      * Per-file upload handler. When set, the component takes ownership of the
      * upload lifecycle: a worker pool runs queued files at the configured

@@ -11,6 +11,21 @@ No stable 1.0.0 is published, so the break ships as the next release
 candidate — but `^1.0.0-rc02` consumers will pull it: the event,
 callback and store-access API below is breaking.
 
+### Added (buttons through core `/actions`, 2026-11-17)
+
+- **`action` event + `beforeActionCallback`** on `<web-dropzone>` — every built-in button is a core
+  action item and runs through core `runAction`: `beforeActionCallback` (`false` cancels everything) →
+  item `onClick` → the built-in → the `action` event (`onAction` twin), a notification after the fact,
+  like every Keenmate component. Actions: row `remove` / `cancel` / `pause` / `resume` / `retry`
+  (`source: 'row-toolbar'`, `file` in the detail), bulk `pause-all` / `resume-all` / `cancel-all` /
+  `retry-all` / `clear` / `add-more` (`source: 'toolbar'`); `files` is the state the built-in left.
+  The buttons of a bound `<web-dropzone-list>` / `<web-dropzone-progress>` route through the store,
+  so their `action` fires on `<web-dropzone>` too. Additive: `file-remove`, `file-cancel`,
+  `file-retry`, … still fire, and the built-ins still ask `beforeFilesRemoveCallback` /
+  `beforeFilesCancelCallback`. Headless: `DropzoneEngine.activateAction(request)`; new types
+  `DropzoneAction`, `DropzoneActionContext`, `DropzoneActionItem`, `DropzoneActionEventDetail`,
+  `DropzoneActionRequest`.
+
 ### Added (screen-reader announcements, 2026-11-17)
 
 - **Announcements through core `announce()`** (the page's one shared polite live region): files

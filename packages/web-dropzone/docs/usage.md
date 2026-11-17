@@ -153,6 +153,7 @@ Properties with no attribute (objects, callbacks, read-only state). Callbacks ar
 | `beforeFilesAddCallback` | `(ctx: BeforeFilesAddContext) => false \| File[] \| void \| Promise<false \| File[] \| void>` | Gate before a validated batch is added. `ctx`: `{ files, existingFiles }`. `false` cancels (files reported in `file-reject` with code `rejected`); a `File[]` replaces the batch (validated again); may be async. |
 | `beforeFilesRemoveCallback` | `(ctx: BeforeFilesRemoveContext) => false \| void \| Promise<false \| void>` | Gate before a user-initiated removal (row ✕, Clear all) or `removeFile` / `clear` with `{ confirm: true }`. `ctx`: `{ files, allFiles }`. `false` cancels; may be async. |
 | `beforeFilesCancelCallback` | `(ctx: BeforeFilesCancelContext) => false \| void \| Promise<false \| void>` | Gate before a cancel: `cancelFile(id)` / the row Cancel button (`files: [file]`) and `cancelAll()` / "Cancel all" (once, every file). `ctx`: `{ files, allFiles }`. `false` vetoes; may be async. Internal cancels (removing a running file, element removal) skip it. |
+| `beforeActionCallback` | `(detail: DropzoneActionEventDetail) => false \| void \| Promise<false \| void>` | Runs before any dropzone button activates — row ✕ / Cancel / Pause / Resume / Retry, the progress strip's bulk buttons, the popover's Clear all / Add more; on a bound satellite's buttons too (core `/actions`). `false` cancels the item `onClick`, the built-in and the `action` event; another return value is ignored. May be async. The built-in still asks its own gate (`beforeFilesRemoveCallback`, `beforeFilesCancelCallback`). |
 | `uploadFileCallback` | `(ctx: FileUploadContext) => Promise<void \| FileUploadResult>` | Component-driven upload handler; added files run through the worker pool. `ctx`: `{ file, signal, setProgress, startBytes, startPercent, metadata, setMetadata, uploadMetadata }`. |
 | `retryPolicy` | `RetryPolicy` | Retry policy applied when uploadFileCallback rejects. Property-only object. |
 | `fileIcons` | `Record<string, string>` | Icon overrides keyed by extension or category (raw HTML — NOT sanitized). Property-only object. |
@@ -260,6 +261,7 @@ Every event bubbles and is **not composed**, fires on `<web-dropzone>`, and has 
 | `file-upload` | `onFileUpload` | `{ file }` | `uploadFileCallback` resolved for a file |
 | `file-delete` | `onFileDelete` | `{ file }` | **Server** state: a removed file had been uploaded (or stashed metadata) — fires right after its `file-remove`; wire your server DELETE here |
 | `file-cancel` | `onFileCancel` | `{ file, result, uploadedBytes, metadata }` | A cancel finished — `result`: `cancelled` \| `timeout-error` \| `timeout-remove` |
+| `action` | `onAction` | `{ action, item, source, file?, files, sourceEvent, triggerElement, dataset }` | A dropzone button was activated — here or on a bound `<web-dropzone-list>` / `<web-dropzone-progress>` (they route through the store). Core `/actions` order: `beforeActionCallback` → item `onClick` → built-in → this event, a notification after the fact (`files` = the state the built-in left). `action`: `remove` \| `cancel` \| `pause` \| `resume` \| `retry` \| `pause-all` \| `resume-all` \| `cancel-all` \| `retry-all` \| `clear` \| `add-more`; `source`: `row-toolbar` (row buttons, `file` set) \| `toolbar` (bulk). The per-purpose events (`file-remove`, `file-cancel`, …) still fire |
 | `overlay-enter` / `overlay-leave` | `onOverlayEnter` / `onOverlayLeave` | `{ overlayElement }` | A drag entered / left the drag overlay |
 | `ready` | `onReady` | — (context only) | Core: fired once, after the first build (`el.controller` is live). The host gets the `ready` attribute + `:state(ready)`; `await el.whenReady()` is the promise form. A mode-flip rebuild or a DOM move doesn't fire it again |
 
@@ -293,6 +295,13 @@ dropzone.addEventListener('file-reject', (e) => {
 
 // Any change to the selection — the twin gets the same detail
 dropzone.onChange = ({ files }) => updateUI(files);
+
+// Any button (row ✕ / ⊘ / pause / resume / retry, Retry all, Clear all, …) — after it ran
+dropzone.addEventListener('action', ({ detail }) => {
+  console.log(detail.action, detail.source, detail.file?.name);
+});
+// …and the one place to veto any of them
+dropzone.beforeActionCallback = ({ action }) => (action === 'clear' ? false : undefined);
 ```
 
 ## Callbacks
@@ -305,6 +314,7 @@ Every callback takes **one** `ctx` object that also carries `controller` / `elem
 | `beforeFilesAddCallback` | `{ files, existingFiles }` | `false` vetoes (→ `file-reject`, code `rejected`); a `File[]` replaces the batch (validated again) |
 | `beforeFilesRemoveCallback` | `{ files, allFiles }` | `false` vetoes (row ✕, Clear all, `removeFile(s)` / `clear` with `{ confirm: true }`) |
 | `beforeFilesCancelCallback` | `{ files, allFiles }` | `false` vetoes (`cancelFile`, row ⊘; `cancelAll` / Cancel all ask once) |
+| `beforeActionCallback` | the `action` event detail (`{ action, item, source, file?, files, … }`) | `false` cancels the button (no `onClick`, no built-in, no `action` event); runs before the per-purpose gates above |
 | `uploadFileCallback` | `{ file, signal, setProgress, startBytes, startPercent, metadata, setMetadata, uploadMetadata }` | `Promise<void \| { metadata, downloadUrl, previewUrl, name }>` |
 | `getFileIconCallback` | `{ file }` | icon HTML, or `null` to fall through |
 | `renderFileItemCallback` | `{ file, fileIndex, displayMode, isInPopover }` | `string \| HTMLElement` (structural mode) |

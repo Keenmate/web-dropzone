@@ -787,8 +787,7 @@ export class WebDropzone extends DropzoneEngine {
             btn.dataset.dzBoundRemove = '1';
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                const id = btn.dataset.fileId;
-                if (id) this.handleUserRemoveClick(id);
+                void this.handleUserRemoveClick(btn, e);
             });
         });
         root.querySelectorAll<HTMLElement>('[data-dz-action="row-action"]').forEach(btn => {
@@ -796,8 +795,7 @@ export class WebDropzone extends DropzoneEngine {
             btn.dataset.dzBoundRowAction = '1';
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                const id = btn.dataset.fileId;
-                if (id) this.handleUserActionClick(id);
+                this.handleUserActionClick(btn, e);
             });
         });
         root.querySelectorAll<HTMLElement>('[data-dz-action="cancel"]').forEach(btn => {
@@ -805,8 +803,7 @@ export class WebDropzone extends DropzoneEngine {
             btn.dataset.dzBoundCancel = '1';
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                const id = btn.dataset.fileId;
-                if (id && !this.config.isDisabled) void this.cancelFile(id); // asks beforeFilesCancelCallback
+                this.handleUserCancelClick(btn, e);
             });
         });
     }
@@ -822,11 +819,9 @@ export class WebDropzone extends DropzoneEngine {
      * after a per-row X click.
      */
     private bindPopoverRemoveHandlers(root: ParentNode): void {
-        root.querySelectorAll('[data-dz-action="remove"]').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const id = (btn as HTMLElement).dataset.fileId;
-                if (!id) return;
-                void this.handleUserRemoveClick(id).then(() => {
+        root.querySelectorAll<HTMLElement>('[data-dz-action="remove"]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                void this.handleUserRemoveClick(btn, e).then(() => {
                     if (!this.popover) return;
                     if (this.files.length === 0) {
                         this.closePopover();
@@ -841,18 +836,16 @@ export class WebDropzone extends DropzoneEngine {
         // takes care of the in-place patch (button swap + status pill swap),
         // so the row stays put and the click registered on the button doesn't
         // get torn out from under the user.
-        root.querySelectorAll('[data-dz-action="row-action"]').forEach(btn => {
+        root.querySelectorAll<HTMLElement>('[data-dz-action="row-action"]').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                const id = (btn as HTMLElement).dataset.fileId;
-                if (id) this.handleUserActionClick(id);
+                this.handleUserActionClick(btn, e);
             });
         });
-        root.querySelectorAll('[data-dz-action="cancel"]').forEach(btn => {
+        root.querySelectorAll<HTMLElement>('[data-dz-action="cancel"]').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                const id = (btn as HTMLElement).dataset.fileId;
-                if (id && !this.config.isDisabled) void this.cancelFile(id); // asks beforeFilesCancelCallback
+                this.handleUserCancelClick(btn, e);
             });
         });
     }
@@ -863,14 +856,16 @@ export class WebDropzone extends DropzoneEngine {
      * handler gets the signal and up to `cancel-timeout`), then the file is
      * removed. Cancelling without removing is the row's ⊘ Cancel button.
      */
-    private handleUserRemoveClick(id: string): Promise<void> {
-        // No user remove while disabled / read-only (a consumer-rendered row button too).
-        if (this.config.isDisabled || this.config.isReadonly) return Promise.resolve();
-        const file = this.files.find(f => f.id === id);
-        if (!file || file.status === 'cancelling') return Promise.resolve();
-        // User-initiated remove runs the confirm gate (if set). Programmatic
-        // `removeFile(id)` callers stay un-gated unless they opt in.
-        return this.removeFile(id, { confirm: true });
+    private async handleUserRemoveClick(btn: HTMLElement, e: Event): Promise<void> {
+        const id = btn.dataset.fileId;
+        // Guards (disabled / read-only / gone / cancelling) live in activateAction.
+        if (id) await this.activateAction({ action: 'remove', fileId: id, source: 'row-toolbar', triggerElement: btn, sourceEvent: e });
+    }
+
+    /** Row ⊘ click — `cancel` through core `runAction`; the built-in asks `beforeFilesCancelCallback`. */
+    private handleUserCancelClick(btn: HTMLElement, e: Event): void {
+        const id = btn.dataset.fileId;
+        if (id) void this.activateAction({ action: 'cancel', fileId: id, source: 'row-toolbar', triggerElement: btn, sourceEvent: e });
     }
 
     /** The file has an upload handler (store-level or per-file, Mode B). */
@@ -1604,14 +1599,11 @@ export class WebDropzone extends DropzoneEngine {
     /** Row action click (see `actionForStatus`) — uploading→pauseFile,
      *  paused→resumeFile, error / cancelled→retryFile. Other statuses are
      *  no-ops (the button is rendered inert via `--hidden`). */
-    private handleUserActionClick(id: string): void {
-        if (this.config.isDisabled) return; // a consumer-rendered row button too
-        const file = this.files.find(f => f.id === id);
-        if (!file) return;
-        const action = actionForStatus(file.status);
-        if (action === 'pause')  this.pauseFile(id);
-        if (action === 'resume') this.resumeFile(id);
-        if (action === 'retry')  this.retryFile(id);
+    private handleUserActionClick(btn: HTMLElement, e: Event): void {
+        const id = btn.dataset.fileId;
+        const file = id ? this.files.find(f => f.id === id) : undefined;
+        const action = file ? actionForStatus(file.status) : null;
+        if (id && action) void this.activateAction({ action, fileId: id, source: 'row-toolbar', triggerElement: btn, sourceEvent: e });
     }
 
     /**
@@ -1951,23 +1943,30 @@ export class WebDropzone extends DropzoneEngine {
             if (returnFocus?.isConnected) returnFocus.focus({ preventScroll: true });
         });
 
-        this.popover.querySelector('[data-dz-action="clear"]')?.addEventListener('click', async () => {
+        const clearBtn = this.popover.querySelector<HTMLElement>('[data-dz-action="clear"]');
+        clearBtn?.addEventListener('click', async (e) => {
             // User-initiated clear runs the confirm gate (if set). Popover
             // stays open until the user resolves so the dialog has surrounding
             // context, then closes.
-            await this.clear({ confirm: true });
+            await this.activateAction({ action: 'clear', source: 'toolbar', triggerElement: clearBtn, sourceEvent: e });
             this.closePopover();
         });
 
-        this.popover.querySelector('[data-dz-action="add-more"]')?.addEventListener('click', () => {
-            // Open the native file picker without dismissing the popover: the
-            // synthesised click on the hidden input has no press of its own,
-            // so the overlay tree never counts it as an outside click.
-            if (this.satellitePickerEl?.openFileDialog) {
-                this.satellitePickerEl.openFileDialog();
-            } else {
-                this.inputEl?.click();
-            }
+        const addMoreBtn = this.popover.querySelector<HTMLElement>('[data-dz-action="add-more"]');
+        addMoreBtn?.addEventListener('click', (e) => {
+            void this.activateAction({
+                action: 'add-more', source: 'toolbar', triggerElement: addMoreBtn, sourceEvent: e,
+                // Open the native file picker without dismissing the popover: the
+                // synthesised click on the hidden input has no press of its own,
+                // so the overlay tree never counts it as an outside click.
+                runBuiltIn: () => {
+                    if (this.satellitePickerEl?.openFileDialog) {
+                        this.satellitePickerEl.openFileDialog();
+                    } else {
+                        this.inputEl?.click();
+                    }
+                }
+            });
         });
 
         // Fill the (empty) overall-progress container inside the footer.
@@ -2213,28 +2212,11 @@ export class WebDropzone extends DropzoneEngine {
      * the initial popover render, and the popover's footer refresh.
      */
     private bindOverallProgressHandlers(root: ParentNode): void {
-        root.querySelectorAll('[data-dz-action="retry-all"]').forEach(btn => {
+        root.querySelectorAll<HTMLElement>('[data-dz-action="retry-all"], [data-dz-action="pause-all"], [data-dz-action="resume-all"], [data-dz-action="cancel-all"]').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                this.retryAll();
-            });
-        });
-        root.querySelectorAll('[data-dz-action="pause-all"]').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.pauseAll();
-            });
-        });
-        root.querySelectorAll('[data-dz-action="resume-all"]').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                void this.resumeAll();
-            });
-        });
-        root.querySelectorAll('[data-dz-action="cancel-all"]').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                void this.cancelAll();
+                const action = btn.dataset.dzAction as 'retry-all' | 'pause-all' | 'resume-all' | 'cancel-all';
+                void this.activateAction({ action, source: 'toolbar', triggerElement: btn, sourceEvent: e });
             });
         });
     }

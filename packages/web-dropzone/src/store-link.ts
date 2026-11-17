@@ -14,7 +14,7 @@
  * see `index.ts`).
  */
 
-import type { DropzoneController, FileState } from '@keenmate/web-dropzone-core';
+import type { DropzoneActionRequest, DropzoneController, FileState } from '@keenmate/web-dropzone-core';
 
 const links = new WeakMap<HTMLElement, DropzoneController>();
 
@@ -56,4 +56,22 @@ export function linkStoreReorder(storeEl: HTMLElement, isReorderEligible: (file:
 /** Whether `file`'s row belongs in the store's "complete" reorder bucket. */
 export function isStoreFileReorderEligible(storeEl: HTMLElement, file: FileState): boolean {
     return reorderLinks.get(storeEl)?.(file) ?? false;
+}
+
+const actionLinks = new WeakMap<HTMLElement, (request: DropzoneActionRequest) => Promise<boolean>>();
+
+/**
+ * Called by `<web-dropzone>` once, at construction: how a satellite's button
+ * activates through the store (core `runAction` — the store's
+ * `beforeActionCallback`, then the `action` event on `<web-dropzone>`).
+ * Internal — consumers listen on the store element.
+ */
+export function linkStoreActions(storeEl: HTMLElement, activate: (request: DropzoneActionRequest) => Promise<boolean>): void {
+    actionLinks.set(storeEl, activate);
+}
+
+/** Activate a button through its store; resolves `false` when nothing ran (no store, cancelled). */
+export function runStoreAction(storeEl: HTMLElement | null | undefined, request: DropzoneActionRequest): Promise<boolean> {
+    const activate = storeEl ? actionLinks.get(storeEl) : undefined;
+    return activate ? activate(request) : Promise.resolve(false);
 }

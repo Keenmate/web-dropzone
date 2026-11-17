@@ -46,7 +46,7 @@ import {
     patchRemoveButton,
     syncRowButtonsDisabled
 } from './row-patching';
-import { isStoreFileReorderEligible } from './store-link';
+import { isStoreFileReorderEligible, runStoreAction } from './store-link';
 import {
     renderListItem,
     renderDetailedItem,
@@ -688,14 +688,14 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
         // Action button (pause / resume / retry). Slot is always in the DOM;
         // only react when `data-row-action` is set (i.e. not the hidden /
         // inert placeholder shape).
+        // Every row button goes through the store (core `runAction`): its
+        // `beforeActionCallback`, then the `action` event on `<web-dropzone>`.
         const actionBtn = target.closest<HTMLElement>('[data-dz-action="row-action"]');
         if (actionBtn) {
             const id = actionBtn.getAttribute('data-file-id');
             const action = actionBtn.getAttribute('data-row-action');
-            if (!id || !action) return;
-            if (action === 'pause')  this.store.pauseFile(id);
-            if (action === 'resume') this.store.resumeFile(id);
-            if (action === 'retry')  this.store.retryFile(id);
+            if (!id || (action !== 'pause' && action !== 'resume' && action !== 'retry')) return;
+            void runStoreAction(this.storeEl, { action, fileId: id, source: 'row-toolbar', triggerElement: actionBtn, sourceEvent: e });
             return;
         }
 
@@ -704,7 +704,7 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
         const cancelBtn = target.closest<HTMLElement>('[data-dz-action="cancel"]');
         if (cancelBtn) {
             const id = cancelBtn.getAttribute('data-file-id');
-            if (id) void this.store.cancelFile(id);
+            if (id) void runStoreAction(this.storeEl, { action: 'cancel', fileId: id, source: 'row-toolbar', triggerElement: cancelBtn, sourceEvent: e });
             return;
         }
 
@@ -714,10 +714,8 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
         const removeBtn = target.closest<HTMLElement>('[data-dz-action="remove"]');
         if (removeBtn) {
             const id = removeBtn.getAttribute('data-file-id');
-            if (!id) return;
-            const file = this.store.getFileById(id);
-            if (!file || file.status === 'cancelling' || this.store.getConfig().isReadonly) return;
-            void this.store.removeFile(id, { confirm: true });
+            // Guards (read-only / gone / cancelling) live in the store's activateAction.
+            if (id) void runStoreAction(this.storeEl, { action: 'remove', fileId: id, source: 'row-toolbar', triggerElement: removeBtn, sourceEvent: e });
         }
     };
 

@@ -27,7 +27,7 @@ the validation limits (`accept`, `maxFileSize`, `minFileSize`, `maxTotalSize`, `
 `minFileCount`, `dedupeMode`, `isMultiple`), the upload pipeline (`uploadFileCallback`, `concurrency`,
 `shouldAutoUpload`, `retryPolicy`, `cancelTimeout`, `cancelTimeoutBehavior`, `progressMode`,
 `progressThrottle`), the gates (`validateCallback`, `beforeFilesAddCallback`,
-`beforeFilesRemoveCallback`, `beforeFilesCancelCallback`), `labels`, and persistence (`storageKey`,
+`beforeFilesRemoveCallback`, `beforeFilesCancelCallback`, `beforeActionCallback`), `labels`, and persistence (`storageKey`,
 `saveStateCallback`, `loadStateCallback`). Display options are carried too but only a renderer reads
 them. The meaning of each option is documented once, on the element:
 [`@keenmate/web-dropzone` usage → Attributes](https://github.com/keenmate/web-dropzone/blob/main/packages/web-dropzone/docs/usage.md#attributes).
@@ -78,6 +78,7 @@ Standalone, the engine dispatches on `hostElement` — bubbling, **not composed*
 | `file-update` | `{ file }` — another field changed (preview generated, upload result merged) |
 | `file-retry` / `file-upload` / `file-delete` | `{ file }` |
 | `file-cancel` | `{ file, result, uploadedBytes, metadata }` — `result`: `cancelled` / `timeout-error` / `timeout-remove` |
+| `action` | `{ action, item, source, file?, files, sourceEvent, triggerElement, dataset }` — a button ran through `engine.activateAction(request)` (core `/actions`: `beforeActionCallback` → item `onClick` → built-in → this event). Your own buttons call `activateAction({ action, fileId?, source, triggerElement, sourceEvent })` to get the same gate + event; `runBuiltIn` replaces the built-in (`add-more` has none headless) |
 
 `DropzoneEventMap` types them for `addEventListener`.
 
@@ -92,6 +93,7 @@ be async; returning `false` cancels.
 | `beforeFilesAddCallback` | `{ files, existingFiles }` | `false` vetoes (→ `file-reject`, code `rejected`); a `File[]` replaces the batch |
 | `beforeFilesRemoveCallback` | `{ files, allFiles }` | `false` vetoes |
 | `beforeFilesCancelCallback` | `{ files, allFiles }` | `false` vetoes |
+| `beforeActionCallback` | the `action` detail | `false` cancels the button (onClick, built-in, `action` event) |
 | `uploadFileCallback` | `{ file, signal, setProgress, startBytes, startPercent, metadata, setMetadata, uploadMetadata }` | `Promise<void \| FileUploadResult>` |
 | `saveStateCallback` / `loadStateCallback` | `{ key, state }` (the WHOLE state) / `{ key }` | — / `DropzoneState \| null` |
 

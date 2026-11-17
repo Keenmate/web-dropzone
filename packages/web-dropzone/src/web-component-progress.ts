@@ -31,6 +31,7 @@ import {
     type SatelliteElementConfig
 } from './satellite-base';
 import { escapeHtml, formatFileSize } from '@keenmate/web-dropzone-core';
+import { runStoreAction } from './store-link';
 import type { DropzoneElement } from './web-component';
 import type { OverallProgress } from '@keenmate/web-dropzone-core';
 
@@ -220,29 +221,13 @@ export class DropzoneProgressElement extends SatelliteElement {
 
     private bindActionHandlers(root: ParentNode): void {
         if (!this.store) return;
-        const store = this.store;
-        root.querySelectorAll('[data-dz-action="retry-all"]').forEach(btn => {
+        // Through the store (core `runAction`): its `beforeActionCallback`,
+        // then the `action` event on `<web-dropzone>`.
+        root.querySelectorAll<HTMLElement>('[data-dz-action="retry-all"], [data-dz-action="pause-all"], [data-dz-action="resume-all"], [data-dz-action="cancel-all"]').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                store.retryAll();
-            });
-        });
-        root.querySelectorAll('[data-dz-action="pause-all"]').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                store.pauseAll();
-            });
-        });
-        root.querySelectorAll('[data-dz-action="resume-all"]').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                void store.resumeAll();
-            });
-        });
-        root.querySelectorAll('[data-dz-action="cancel-all"]').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                void store.cancelAll();
+                const action = btn.dataset.dzAction as 'retry-all' | 'pause-all' | 'resume-all' | 'cancel-all';
+                void runStoreAction(this.storeEl, { action, source: 'toolbar', triggerElement: btn, sourceEvent: e });
             });
         });
     }

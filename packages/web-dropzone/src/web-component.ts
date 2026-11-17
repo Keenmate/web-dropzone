@@ -56,7 +56,7 @@ import {
     type SaveStateCallback,
 } from '@keenmate/web-components-core';
 import { WebDropzone } from './dropzone';
-import { linkStoreController, linkStoreReorder, announceStoreBuild } from './store-link';
+import { linkStoreController, linkStoreReorder, linkStoreActions, announceStoreBuild } from './store-link';
 import { initLogger, createDropzoneController, countLabel, defaultLabel } from '@keenmate/web-dropzone-core';
 import { labelsConverter } from './inputs';
 import type {
@@ -65,6 +65,7 @@ import type {
     DropzoneEventMap,
     FileAddEventDetail,
     FileRemoveEventDetail,
+    DropzoneActionEventDetail,
     FilesChangeEventDetail,
     ChangeEventDetail,
     FileRejectEventDetail,
@@ -223,6 +224,7 @@ const INPUTS: readonly InputDef[] = [
     { configKey: 'beforeFilesAddCallback',        converter: cb(),      on: 'update', type: '(ctx: BeforeFilesAddContext) => false | File[] | void | Promise<false | File[] | void>', description: 'Gate before a validated batch is added. `ctx`: `{ files, existingFiles }`. `false` cancels (files reported in `file-reject` with code `rejected`); a `File[]` replaces the batch (validated again); may be async.' },
     { configKey: 'beforeFilesRemoveCallback',     converter: cb(),      on: 'update', type: '(ctx: BeforeFilesRemoveContext) => false | void | Promise<false | void>', description: 'Gate before a user-initiated removal (row ✕, Clear all) or `removeFile` / `clear` with `{ confirm: true }`. `ctx`: `{ files, allFiles }`. `false` cancels; may be async.' },
     { configKey: 'beforeFilesCancelCallback',      converter: cb(),      on: 'update', type: '(ctx: BeforeFilesCancelContext) => false | void | Promise<false | void>', description: 'Gate before a cancel: `cancelFile(id)` / the row Cancel button (`files: [file]`) and `cancelAll()` / "Cancel all" (once, every file). `ctx`: `{ files, allFiles }`. `false` vetoes; may be async. Internal cancels (removing a running file, element removal) skip it.' },
+    { configKey: 'beforeActionCallback',          converter: cb(),      on: 'update', type: '(detail: DropzoneActionEventDetail) => false | void | Promise<false | void>', description: 'Runs before any dropzone button activates — row ✕ / Cancel / Pause / Resume / Retry, the progress strip’s bulk buttons, the popover’s Clear all / Add more; on a bound satellite’s buttons too (core `/actions`). `false` cancels the item `onClick`, the built-in and the `action` event; another return value is ignored. May be async. The built-in still asks its own gate (`beforeFilesRemoveCallback`, `beforeFilesCancelCallback`).' },
     { configKey: 'uploadFileCallback',            converter: cb(),      on: 'update', type: '(ctx: FileUploadContext) => Promise<void | FileUploadResult>', description: 'Component-driven upload handler; added files run through the worker pool. `ctx`: `{ file, signal, setProgress, startBytes, startPercent, metadata, setMetadata, uploadMetadata }`.' },
     { configKey: 'retryPolicy',                   converter: toValue(), on: 'update', type: 'RetryPolicy', description: 'Retry policy applied when uploadFileCallback rejects. Property-only object.' },
     { configKey: 'fileIcons',                     converter: toValue(), on: 'update', type: 'Record<string, string>', description: 'Icon overrides keyed by extension or category (raw HTML — NOT sanitized). Property-only object.' },
@@ -261,6 +263,7 @@ const EVENTS: readonly EventDef[] = [
     { name: 'file-update', description: 'A file field other than progress / status changed (preview generated, upload result merged). `detail`: `{ file }`. Twin: `onFileUpdate(detail)`.' },
     { name: 'overlay-enter', description: 'A drag entered the drag overlay (`overlay-target`). `detail`: `{ overlayElement }`. Twin: `onOverlayEnter(detail)`.' },
     { name: 'overlay-leave', description: 'A drag left the drag overlay. `detail`: `{ overlayElement }`. Twin: `onOverlayLeave(detail)`.' },
+    { name: 'action', description: 'A dropzone button was activated — here or on a bound satellite (`<web-dropzone-list>`, `<web-dropzone-progress>`). Core `/actions` order: `beforeActionCallback` → item `onClick` → built-in → this event (a notification after the fact; `files` is the state the built-in left, so a remove the `beforeFilesRemoveCallback` vetoed still reports, with the file still there). `detail`: `action` (`remove` | `cancel` | `pause` | `resume` | `retry` | `pause-all` | `resume-all` | `cancel-all` | `retry-all` | `clear` | `add-more`), `item`, `source` (`row-toolbar` | `toolbar`), `file` (row actions), `files`, `sourceEvent`, `triggerElement`, `dataset`. The per-purpose events (`file-remove`, `file-cancel`, `file-retry`, …) still fire. Twin: `onAction(detail)`.' },
     { name: 'ready', description: 'Core lifecycle event: fired ONCE, after the first build (the store is live, `el.controller` works). A later rebuild (mode flip) or a DOM move does not fire it again. The host gets the `ready` attribute and `:state(ready)`; `await el.whenReady()` is the promise form. Hold the first build with the `defer` attribute and `release()`. `detail`: `controller` / `element`. Twin: `onReady(detail)`.' },
 ];
 
@@ -330,6 +333,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
     declare onFileUpdate: ((detail: FileUpdateEventDetail) => void) | null;
     declare onOverlayEnter: ((detail: OverlayEventDetail) => void) | null;
     declare onOverlayLeave: ((detail: OverlayEventDetail) => void) | null;
+    declare onAction: ((detail: DropzoneActionEventDetail) => void) | null;
     declare onReady: ((detail: ReadyEventDetail) => void) | null;
 
     #shadow: ShadowRoot;
@@ -391,6 +395,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
         // (see store-link.ts): they read the store while it is emitting.
         linkStoreController(this, createDropzoneController(() => this.#dropzone));
         linkStoreReorder(this, (file) => this.#dropzone?.isReorderEligible(file) ?? false);
+        linkStoreActions(this, (request) => this.#dropzone?.activateAction(request) ?? Promise.resolve(false));
     }
 
     /**

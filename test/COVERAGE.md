@@ -323,6 +323,16 @@ Every spec runs in three Playwright projects — chromium, firefox and webkit
 | Disabled: Add more hidden, Clear all kept                     | ✓      | `toolbar.spec.ts` | `toolbar.html` |
 | Button/minimal + popover with files: click opens the file dialog; summary chip opens the popover | ✓ | `toolbar.spec.ts` (NOTES #11) | `toolbar.html` |
 
+## 16a. Buttons through core `/actions` (`action` event, `beforeActionCallback`)
+
+| Feature                                                       | Status | Spec             | Fixture        |
+| ------------------------------------------------------------- | :----: | ---------------- | -------------- |
+| Row remove fires `action` (`remove`, `row-toolbar`, the file, `files` after the built-in) | ✓ | `actions.spec.ts` | `actions.html` |
+| `file-remove` still fires; order before → file-remove → action | ✓     | `actions.spec.ts` | `actions.html` |
+| `beforeActionCallback` → `false` keeps the file (no file-remove, no action) | ✓ | `actions.spec.ts` | `actions.html` |
+| A `<web-dropzone-list>` button routes through the store (`action` on `<web-dropzone>`) | ✓ | `actions.spec.ts` | `actions.html` |
+| Bulk / popover buttons (`retry-all`, `clear`, `add-more`, …) emit `action` | △ | `toolbar.spec.ts` (behaviour only) | `toolbar.html` |
+
 ## 17. Lifecycle (DOM move — decision D1: keep state)
 
 | Feature                                                       | Status | Spec               | Fixture          |

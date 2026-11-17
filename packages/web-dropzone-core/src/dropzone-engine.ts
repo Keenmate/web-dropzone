@@ -23,7 +23,12 @@ import { fileLogger, initLogger, uiLogger } from './logger';
 import { announce, createStateStore, dispatch, runBeforeCallback, withComponentContext, type StateStore } from '@keenmate/web-components-core';
 import { createDropzoneController, type DropzoneController } from './controller';
 import { createLabelFn, countLabel, labelTemplate, type CountedLabelKey, type DropzoneLabelKey, type LabelFn, type LabelVars } from './labels';
+import { runAction, type ActionSource } from '@keenmate/web-components-core/actions';
 import type {
+    DropzoneAction,
+    DropzoneActionContext,
+    DropzoneActionEventDetail,
+    DropzoneActionItem,
     DropzoneContext,
     DropzoneEngineEventName,
     EngineEventDetail,
@@ -79,6 +84,45 @@ export interface DropzoneEngineHost {
      */
     stateStore?: StateStore<DropzoneState>;
 }
+
+/**
+ * One button activation for {@link DropzoneEngine.activateAction} — what a
+ * renderer (the store, a satellite, a headless UI) passes when its button is
+ * clicked.
+ */
+export interface DropzoneActionRequest {
+    /** The built-in action. */
+    action: DropzoneAction;
+    /** The row's file id — row actions (`remove`, `cancel`, `pause`, `resume`, `retry`). */
+    fileId?: string;
+    /** Where it was triggered — `'row-toolbar'` for row buttons, `'toolbar'` for bulk ones. */
+    source: ActionSource;
+    /** The clicked button. */
+    triggerElement?: HTMLElement;
+    /** The click / keydown that triggered it. */
+    sourceEvent?: Event;
+    /**
+     * Replaces the engine's built-in for this activation (a renderer-only
+     * behaviour, e.g. `add-more` opening the file dialog). Runs in the
+     * built-in slot: after `beforeActionCallback` and the item's `onClick`.
+     */
+    runBuiltIn?: (detail: DropzoneActionEventDetail) => void | Promise<void>;
+}
+
+/** The label key of each action's item text (row actions take `{ name }`). */
+const ACTION_TEXT_KEYS = {
+    'remove': 'removeFile',
+    'cancel': 'cancelFile',
+    'pause': 'pauseFile',
+    'resume': 'resumeFile',
+    'retry': 'retryFile',
+    'pause-all': 'pauseAll',
+    'resume-all': 'resumeAll',
+    'cancel-all': 'cancelAll',
+    'retry-all': 'retryAll',
+    'clear': 'clearAll',
+    'add-more': 'addMore'
+} as const satisfies Record<DropzoneAction, DropzoneLabelKey>;
 
 /**
  * Non-rendering store. `WebDropzone` extends this and adds DOM rendering.
@@ -467,6 +511,88 @@ export class DropzoneEngine {
      */
     clear(opts?: { confirm?: boolean }): Promise<void> {
         return this.removeFiles(this.files.map(f => f.id), opts);
+    }
+
+    // ========================================================================
+    // ACTIONS (core `/actions`, SPEC §12.12)
+    // ========================================================================
+
+    /** Bulk action items, one per action (the busy guard is per item). */
+    private readonly bulkActionItems = new Map<DropzoneAction, DropzoneActionItem>();
+    /** Row action items, one per (file, action) — a pending remove of one row never blocks another. */
+    private readonly rowActionItems = new WeakMap<FileState, Map<DropzoneAction, DropzoneActionItem>>();
+
+    private actionItemFor(action: DropzoneAction, file: FileState | undefined): DropzoneActionItem {
+        const cache = file
+            ? (this.rowActionItems.get(file) ?? this.rowActionItems.set(file, new Map()).get(file)!)
+            : this.bulkActionItems;
+        let item = cache.get(action);
+        if (!item) cache.set(action, item = { action });
+        // Same object every time (the busy key); the text follows the current labels.
+        item.text = this.label(ACTION_TEXT_KEYS[action], file ? { name: file.name } : undefined);
+        return item;
+    }
+
+    /**
+     * Activate a dropzone button through core `runAction`:
+     * `beforeActionCallback` (`false` cancels everything) → the item's
+     * `onClick` → the built-in (which still asks its own gate —
+     * `beforeFilesRemoveCallback`, `beforeFilesCancelCallback`) → the
+     * `action` event (a notification after the fact: `files` is the state the
+     * built-in left). Nothing runs while the store is disabled, nor a row
+     * action on a file that is gone / cancelling, nor `remove` / `clear`
+     * while read-only. Resolves `true` when the action ran (not cancelled).
+     */
+    activateAction(request: DropzoneActionRequest): Promise<boolean> {
+        if (this.isDestroyed || this.config.isDisabled) return Promise.resolve(false);
+        const { action, fileId } = request;
+        const file = fileId !== undefined ? this.files.find(f => f.id === fileId) : undefined;
+        if (fileId !== undefined && (!file || file.status === 'cancelling')) return Promise.resolve(false);
+        if ((action === 'remove' || action === 'clear') && this.config.isReadonly) return Promise.resolve(false);
+
+        const item = this.actionItemFor(action, file);
+        const detail = this.ctx({
+            ...(file ? { file } : {}),
+            files: this.getFiles(),
+            action,
+            item,
+            source: request.source,
+            ...(request.sourceEvent ? { sourceEvent: request.sourceEvent } : {}),
+            ...(request.triggerElement ? { triggerElement: request.triggerElement } : {}),
+            // Built-in buttons carry only internal data-* (data-dz-action, data-file-id).
+            dataset: {}
+        }) as DropzoneActionEventDetail;
+
+        return runAction<DropzoneActionContext, DropzoneAction>({
+            detail,
+            beforeActionCallback: this.config.beforeActionCallback ?? undefined,
+            runBuiltIn: (d) => {
+                // An async beforeActionCallback may outlive the store (a rebuild / destroy).
+                if (this.isDestroyed) return;
+                return request.runBuiltIn ? request.runBuiltIn(d) : this.runBuiltInAction(d.action, d.file?.id);
+            },
+            emitAction: (d) => {
+                d.files = this.getFiles();
+                this.notify('action', d);
+            }
+        });
+    }
+
+    /** The built-in behaviour of each action (`add-more` has none in a headless store). */
+    protected runBuiltInAction(action: DropzoneAction | 'custom', id: string | undefined): void | Promise<void> {
+        switch (action) {
+            case 'remove': return id !== undefined ? this.removeFile(id, { confirm: true }) : undefined;
+            case 'cancel': return id !== undefined ? this.cancelFile(id) : undefined; // asks beforeFilesCancelCallback
+            case 'pause': if (id !== undefined) this.pauseFile(id); return;
+            case 'resume': return id !== undefined ? this.resumeFile(id) : undefined;
+            case 'retry': if (id !== undefined) this.retryFile(id); return;
+            case 'pause-all': this.pauseAll(); return;
+            case 'resume-all': return this.resumeAll();
+            case 'cancel-all': return this.cancelAll();
+            case 'retry-all': this.retryAll(); return;
+            case 'clear': return this.clear({ confirm: true });
+            default: return;
+        }
     }
 
     /**

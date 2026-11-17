@@ -13,7 +13,7 @@
 
 // ---- Engine (standalone / headless use) + public controller facade -------
 export { DropzoneEngine } from './dropzone-engine';
-export type { DropzoneEngineHost } from './dropzone-engine';
+export type { DropzoneEngineHost, DropzoneActionRequest } from './dropzone-engine';
 export { createDropzoneController } from './controller';
 export type { DropzoneController } from './controller';
 
@@ -31,6 +31,10 @@ export type {
     PromptRenderContext,
     SummaryRenderContext,
     CustomStylesContext,
+    DropzoneAction,
+    DropzoneActionContext,
+    DropzoneActionItem,
+    DropzoneActionEventDetail,
     FileAddEventDetail,
     FileRemoveEventDetail,
     FilesChangeEventDetail,

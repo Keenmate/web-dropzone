@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — core /actions (action event, beforeActionCallback)</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-dropzone { display: block; max-width: 420px; }
+    </style>
+</head>
+<body>
+    <h1>Buttons through core /actions</h1>
+    <p>Targeted by <code>e2e/actions.spec.ts</code>.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">#acts — action + file-remove logged; beforeActionCallback gated by window.__cancelActions</div>
+        <web-dropzone id="acts" list-appearance="list" accept="*/*" max-file-count="10" auto-upload="false"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">#sat-store + a &lt;web-dropzone-list&gt; satellite — the action fires on the store</div>
+        <web-dropzone id="sat-store" list-appearance="none" accept="*/*" max-file-count="10" auto-upload="false"></web-dropzone>
+        <web-dropzone-list id="sat-list" for="sat-store" list-appearance="detailed"></web-dropzone-list>
+    </div>
+
+    <script type="module">
+        import '/src/index.ts';
+        import { installAddNamed } from './fixture-kit.js';
+        installAddNamed();
+
+        window.__log = [];
+        window.__cancelActions = false;
+        await customElements.whenDefined('web-dropzone');
+        for (const id of ['acts', 'sat-store']) {
+            const el = document.getElementById(id);
+            el.beforeActionCallback = (d) => {
+                window.__log.push({ id, type: 'before', action: d.action, file: d.file?.name ?? null });
+                return window.__cancelActions ? false : undefined;
+            };
+            el.addEventListener('action', (e) => {
+                const d = e.detail;
+                window.__log.push({
+                    id, type: 'action', action: d.action, source: d.source,
+                    file: d.file?.name ?? null, files: d.files.length,
+                    hasItem: !!d.item && d.item.action === d.action,
+                    hasTrigger: d.triggerElement instanceof HTMLElement,
+                    hasController: !!d.controller, element: d.element === el,
+                });
+            });
+            el.addEventListener('file-remove', (e) => {
+                window.__log.push({ id, type: 'file-remove', file: e.detail.file.name });
+            });
+        }
+        window.__ready = true;
+    </script>
+</body>
+</html>

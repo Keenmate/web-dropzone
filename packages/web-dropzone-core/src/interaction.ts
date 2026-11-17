@@ -16,6 +16,7 @@
  */
 
 import type { ComponentContext } from '@keenmate/web-components-core';
+import type { ActionEventDetail, ActionItem } from '@keenmate/web-components-core/actions';
 import type { DropzoneController } from './controller';
 import type { FileState, RejectedFile, DisplayMode, DropzoneState, FileCancelResult } from './types';
 
@@ -240,6 +241,38 @@ export interface OverlayEventDetail extends DropzoneContext {
     overlayElement: HTMLElement;
 }
 
+/**
+ * The built-in actions behind the dropzone's buttons (core `/actions`, SPEC
+ * §12.12). Per row: `remove` (✕), `cancel` (⊘), `pause` / `resume` / `retry`
+ * (the row action button). Bulk: `pause-all` / `resume-all` / `cancel-all` /
+ * `retry-all` (the overall-progress strip), `clear` / `add-more` (the
+ * compact popover footer).
+ */
+export type DropzoneAction =
+    | 'remove' | 'cancel' | 'pause' | 'resume' | 'retry'
+    | 'pause-all' | 'resume-all' | 'cancel-all' | 'retry-all'
+    | 'clear' | 'add-more';
+
+/** The surface context of an action: the row's file (row buttons) and every file. */
+export interface DropzoneActionContext extends DropzoneContext {
+    /** The row's file — row buttons only (`remove`, `cancel`, `pause`, `resume`, `retry`). */
+    file?: FileState;
+    /** Snapshot of every file (in the `action` event: the state the built-in left). */
+    files: FileState[];
+}
+
+/** A dropzone button as a core action item. */
+export type DropzoneActionItem = ActionItem<DropzoneActionContext, DropzoneAction>;
+
+/**
+ * `action` — a dropzone button was activated (core `runAction`:
+ * `beforeActionCallback` → item `onClick` → built-in → this event, a
+ * notification after the fact). Also the argument of `beforeActionCallback`
+ * and of the item's `onClick`. `source`: `'row-toolbar'` (row buttons) or
+ * `'toolbar'` (progress strip / popover footer).
+ */
+export type DropzoneActionEventDetail = ActionEventDetail<DropzoneActionContext, DropzoneAction>;
+
 /** `ready` — the store was (re)built and is resolvable via `el.controller`. */
 export type ReadyEventDetail = DropzoneContext;
 
@@ -274,6 +307,7 @@ export type DropzoneEventMap = {
     'file-update': FileUpdateEventDetail;
     'overlay-enter': OverlayEventDetail;
     'overlay-leave': OverlayEventDetail;
+    'action': DropzoneActionEventDetail;
     'ready': ReadyEventDetail;
 };
 
