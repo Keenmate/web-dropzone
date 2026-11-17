@@ -295,6 +295,14 @@ export class DropzoneEngine {
     }
 
     /**
+     * Always `true` on a live engine — the controller facade reads it (and
+     * answers `false` while the element has no engine yet / any more).
+     */
+    get isReady(): boolean {
+        return true;
+    }
+
+    /**
      * `true` while any file is `pending`, `uploading`, `paused` or
      * `cancelling` — work that leaving the page would lose. Guard
      * navigation with it (an app `beforeunload` listener, an SPA router guard).

@@ -74,6 +74,7 @@ Needs `@keenmate/web-components-core` `^1.0.0-rc25`.
   `--dz-indicator-z-index` (the chip, was `100000`) default to the popover tier
   `var(--base-z-popover, 7600)`; the inline drawer uses `--dz-popover-z-index`, the edge drawer
   core's modal tier (was `99999`).
+- **`el.controller` is core's `createControllerFacade` and is now frozen** — same members (methods, `isReady`, `hasActiveUploads`, empty answers before the first build); adding or overwriting properties on it no longer sticks (throws in strict mode).
 
 ### Internal — core 1.0.0-rc24 (2026-11-15)
 - core `^1.0.0-rc24` (was `^1.0.0-rc22`).

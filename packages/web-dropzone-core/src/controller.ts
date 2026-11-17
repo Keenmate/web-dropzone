@@ -2,12 +2,14 @@
  * `DropzoneController` — the public facade (`el.controller`, and the
  * `controller` on every callback ctx / event detail).
  *
- * Built once per host from a method-name list; every call delegates to the
- * CURRENT engine (`getTarget()`), so a controller captured in a closure keeps
- * working across store rebuilds (a mode flip, a DOM move). Reads before the
- * first build return empty defaults; mutators are no-ops.
+ * Built once per host over core `createControllerFacade` (SPEC §12.34); every
+ * call delegates to the CURRENT engine (`getTarget()`), so a controller
+ * captured in a closure keeps working across store rebuilds (a mode flip, a
+ * DOM move). Reads before the first build return empty defaults; mutators are
+ * no-ops. The facade is frozen.
  */
 
+import { createControllerFacade } from '@keenmate/web-components-core';
 import type { DropzoneEngine } from './dropzone-engine';
 import type { AddFilesOptions, DropzoneConfig, FileState, OverallProgress } from './types';
 import { DEFAULT_CONFIG } from './dropzone-shared';
@@ -76,7 +78,7 @@ const EMPTY_PROGRESS: OverallProgress = Object.freeze({
 }) satisfies OverallProgress;
 
 /** Methods forwarded verbatim; the value is the result when there is no engine yet. */
-const METHODS = {
+const EMPTY_RESULTS = {
     addFiles: () => Promise.resolve(),
     removeFile: () => Promise.resolve(),
     removeFiles: () => Promise.resolve(),
@@ -99,26 +101,19 @@ const METHODS = {
     retryAll: () => undefined
 } satisfies Record<Exclude<keyof DropzoneController, 'isReady' | 'hasActiveUploads'>, () => unknown>;
 
+/** Every forwarded method (the keys of {@link EMPTY_RESULTS}). */
+const METHODS = Object.keys(EMPTY_RESULTS);
+
 /**
  * Build a controller that delegates to `getTarget()` on every call. The
  * element passes `() => { this.flush(); return this.#engine }`; a standalone
  * engine passes `() => this`.
  */
 export function createDropzoneController(getTarget: () => DropzoneEngine | undefined): DropzoneController {
-    const controller = {} as Record<string, unknown>;
-    for (const [name, fallback] of Object.entries(METHODS)) {
-        controller[name] = (...args: unknown[]) => {
-            const target = getTarget() as unknown as Record<string, (...a: unknown[]) => unknown> | undefined;
-            return target ? target[name](...args) : (fallback as () => unknown)();
-        };
-    }
-    Object.defineProperty(controller, 'isReady', {
-        enumerable: true,
-        get: () => !!getTarget()
+    return createControllerFacade<DropzoneController>(getTarget, {
+        methods: METHODS,
+        // Answered while there is no engine; a live engine reports its own.
+        state: { isReady: false, hasActiveUploads: false },
+        emptyResults: EMPTY_RESULTS
     });
-    Object.defineProperty(controller, 'hasActiveUploads', {
-        enumerable: true,
-        get: () => !!getTarget()?.hasActiveUploads
-    });
-    return controller as unknown as DropzoneController;
 }

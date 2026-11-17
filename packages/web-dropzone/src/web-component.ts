@@ -392,9 +392,10 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
     }
 
     /**
-     * The public facade (`el.controller`): built once, delegates to the live
-     * store (flushing pending input writes first), so it survives rebuilds.
-     * Satellites bind through it too.
+     * The public facade (`el.controller`): built once over core
+     * `createControllerFacade` (frozen), delegates to the live store (flushing
+     * pending input writes first), so it survives rebuilds. Satellites bind
+     * through the non-flushing twin instead (see store-link.ts).
      */
     protected override createController(): DropzoneController {
         return createDropzoneController(() => {
