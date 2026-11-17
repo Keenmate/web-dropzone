@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — render callbacks through core renderSlot</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-dropzone, web-dropzone-list, web-dropzone-indicator { display: block; max-width: 420px; }
+    </style>
+</head>
+<body>
+    <h1>render*Callback results: string = HTML, Node = mounted, null / undefined = default, false = hidden</h1>
+    <p>Targeted by <code>e2e/render-slots.spec.ts</code>. Each callback reads its result from <code>window.__mode[id]</code>.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">#items — renderFileItemCallback per file: "def*" → null (built-in row), "skip*" → false (no row), else a string</div>
+        <web-dropzone id="items" render-mode="structural" list-appearance="list" accept="*/*"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">#prompt — renderPromptCallback; #wrap — renderListWrapperCallback</div>
+        <web-dropzone id="prompt" render-mode="structural" list-appearance="list" accept="*/*"></web-dropzone>
+        <web-dropzone id="wrap" render-mode="structural" list-appearance="list" accept="*/*"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">#summary — renderSummaryCallback (card + popover)</div>
+        <web-dropzone id="summary" render-mode="structural" selector-appearance="card" list-appearance="popover" accept="*/*"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">#roll — the store's rolling list (structural); #roll-store + #roll-list — the satellite's (same shared renderer)</div>
+        <web-dropzone id="roll" render-mode="structural" list-appearance="rolling" accept="*/*"></web-dropzone>
+        <web-dropzone id="roll-store" list-appearance="none" accept="*/*"></web-dropzone>
+        <web-dropzone-list id="roll-list" for="roll-store" list-appearance="rolling"></web-dropzone-list>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">#ind-store + #ind — indicator renderFileInfoCallback</div>
+        <web-dropzone id="ind-store" list-appearance="none" accept="*/*"></web-dropzone>
+        <web-dropzone-indicator id="ind" for="ind-store" position="inline"></web-dropzone-indicator>
+    </div>
+
+    <script type="module">
+        import '/src/index.ts';
+        import { installAddNamed } from './fixture-kit.js';
+        installAddNamed();
+
+        // window.__mode[key]: 'string' | 'node' | 'null' | 'undefined' | 'false'
+        window.__mode = {};
+        window.__calls = {};
+        // One cached node per key — a Node result returned on every tick.
+        const nodes = {};
+        const result = (key, html) => {
+            window.__calls[key] = (window.__calls[key] ?? 0) + 1;
+            switch (window.__mode[key] ?? 'null') {
+                case 'string': return `<span class="cb-${key}">${html}</span>`;
+                case 'node': {
+                    if (!nodes[key]) {
+                        const n = document.createElement('span');
+                        n.className = `cb-${key} cb-node`;
+                        n.textContent = html;
+                        n.addEventListener('click', () => { window.__nodeClicks = (window.__nodeClicks ?? 0) + 1; });
+                        nodes[key] = n;
+                    }
+                    return nodes[key];
+                }
+                case 'false': return false;
+                case 'undefined': return undefined;
+                default: return null;
+            }
+        };
+        window.__nodes = nodes;
+
+        await customElements.whenDefined('web-dropzone');
+        const $ = (id) => document.getElementById(id);
+
+        $('items').renderFileItemCallback = ({ file }) =>
+            file.name.startsWith('def') ? null
+            : file.name.startsWith('skip') ? false
+            : `<div class="dz__file-item my-row" data-file-id="${file.id}">CB:${file.name}</div>`;
+
+        $('prompt').renderPromptCallback = () => result('prompt', 'PROMPT');
+        $('wrap').renderListWrapperCallback = ({ rowsHtml }) => result('wrap', 'WRAP');
+        $('summary').renderSummaryCallback = ({ files }) => result('summary', `SUM:${files.length}`);
+        $('roll').renderRollingBodyCallback = () => result('roll-body', 'BODY');
+        $('roll').renderRollingFileInfoCallback = () => result('roll-info', 'INFO');
+        $('roll-store').renderRollingBodyCallback = () => result('sat-body', 'BODY');
+        $('roll-store').renderRollingFileInfoCallback = () => result('sat-info', 'INFO');
+        await customElements.whenDefined('web-dropzone-indicator');
+        $('ind').renderFileInfoCallback = () => result('ind-info', 'IND');
+
+        // Re-run a callback: assign a fresh wrapper (an `on: 'update'` input).
+        window.__rerun = async (id, key) => {
+            const el = $(id);
+            const fn = el[key];
+            el[key] = (...a) => fn(...a);
+            await el.whenSettled();
+        };
+        window.__ready = true;
+    </script>
+</body>
+</html>

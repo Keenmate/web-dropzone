@@ -20,7 +20,7 @@
  */
 
 import styles from './css/main.css?inline';
-import { adoptStyles, animateOut, ICON_CSS, createMicrotaskScheduler, toBool, toEnum, type EventDef, type InputDef } from '@keenmate/web-components-core';
+import { adoptStyles, ICON_CSS, createMicrotaskScheduler, toBool, toEnum, type EventDef, type InputDef } from '@keenmate/web-components-core';
 import {
     SatelliteElement,
     SATELLITE_INPUTS,
@@ -43,8 +43,7 @@ import {
     patchStatusIcon,
     patchActionButton,
     patchCancelButton,
-    patchRemoveButton,
-    syncRowButtonsDisabled
+    patchRemoveButton
 } from './row-patching';
 import { isStoreFileReorderEligible, runStoreAction } from './store-link';
 import {
@@ -56,8 +55,7 @@ import {
 } from './row-templates';
 import type { RowTemplateOptions } from './row-templates';
 import type { DropzoneContext, DropzoneListEventMap, QueueOpenEventDetail, SummaryActivateEventDetail } from '@keenmate/web-dropzone-core';
-import { buildStatusSurfaceArgs, StatusSurface } from './status-surface';
-import type { StatusSurfaceArgs } from './status-surface';
+import { buildStatusSurfaceArgs, renderRollingSurface } from './status-surface';
 import type { DropzoneElement } from './web-component';
 import type { FileState, GridLayout, GridStatus, ListAppearance, RollingRotation } from '@keenmate/web-dropzone-core';
 
@@ -118,12 +116,6 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
     private readonly renderScheduler = createMicrotaskScheduler();
     private readonly renderAllTask = (): void => this.renderAll();
     private scheduleRenderAll(): void { this.renderScheduler.schedule(this.renderAllTask); }
-    /**
-     * Memoization snapshots for the rolling appearance's three callback
-     * slots (body / file-info / progress). Lets cached WAAPI spinners
-     * survive across ticks the same way the indicator satellite does.
-     */
-    private rollingSurface = new StatusSurface();
     /**
      * When `max-visible-file-count` is in effect and the queue exceeds it, the
      * list collapses to the first N rows + a "Show N more" toggle. Click
@@ -233,9 +225,6 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
                 return;
             }
             const emptyMessage = this.label('noData');
-            // Rolling memoization snapshots are stale once the list empties
-            // out — drop them so the next non-empty render starts fresh.
-            if (appearance === 'rolling') this.rollingSurface.reset();
             // labels.noData '' = deliberately empty: render nothing.
             this.container.innerHTML = emptyMessage ? `<div class="dz__empty">${escapeHtml(emptyMessage)}</div>` : '';
             return;
@@ -537,105 +526,21 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
             // inside the wrapper without rebinding on each rotation.
             this.bindRowHandlers();
         }
-        wrapper.dataset.rotation = rotation;
 
-        // Status-surface body callback — when set, the user owns the entire
-        // rolling container (no animation slots, no queue badge). Returning
-        // `false` hides the surface; `null` falls through to the default.
-        const args = buildStatusSurfaceArgs(files, this.storeEl!.controller, this.storeEl!);
-        const bodyResult = cfg.renderRollingBodyCallback
-            ? cfg.renderRollingBodyCallback(args)
-            : null;
-        const { current, previous } = this.rollingSurface.applyBody(wrapper, bodyResult);
-        if (current === 'hidden') return;
-        if (current === 'custom') {
-            wrapper.hidden = false;
-            this.rollingSurface.resetSlots();
-            return;
-        }
-        if (previous === 'custom') {
-            // We were rendering a custom body; switch back to default by
-            // wiping whatever the callback put inside.
-            wrapper.innerHTML = '';
-        }
-        wrapper.hidden = false;
-
-        const front = this.getFrontFile(files);
-        if (!front) {
-            wrapper.innerHTML = '';
-            this.rollingSurface.resetSlots();
-            return;
-        }
-
-        const queueCount = files.length;
-        const showQueueBtn = queueCount > 1;
-
-        // The "settled" current slot — not one mid-rotation-out. That's
-        // the right thing to compare against to decide whether the front
-        // actually changed.
-        const previousCurrent = wrapper.querySelector<HTMLElement>(
-            '.dz__rolling-current:not(.dz__rolling-current--leaving)'
-        );
-        const previousFrontId = previousCurrent?.dataset.frontId;
-
-        if (previousCurrent && previousFrontId === front.id) {
-            // Same front file. Per-row ticks land via patchRow; here we
-            // just refresh the queue count + re-apply slot callbacks so
-            // a render driven by file-status-change picks up the new
-            // status / progress numbers inside the slot subtrees.
-            this.applyRollingSlots(previousCurrent, args);
-            syncRowButtonsDisabled(previousCurrent, front, this.isStoreDisabled);
-            this.updateRollingQueueButton(wrapper, queueCount, showQueueBtn);
-            return;
-        }
-
-        const newCurrentEl = document.createElement('div');
-        newCurrentEl.className = 'dz__rolling-current';
-        newCurrentEl.dataset.frontId = front.id;
-        newCurrentEl.innerHTML = renderListItem(front);
-        // Slot memoization is stale — the new slot's DOM is fresh; the
-        // prev snapshots came from the OUTGOING row's subtrees.
-        this.rollingSurface.resetSlots();
-        this.applyRollingSlots(newCurrentEl, args);
-
-        if (previousCurrent && rotation !== 'slide-in') {
-            // True rotation — outgoing slot keeps mounted so its keyframe
-            // (translateX/Y out) plays in parallel with the incoming one.
-            wrapper.insertBefore(newCurrentEl, previousCurrent);
-            const toRemove = previousCurrent;
-            // Removed when its own leaving keyframe ends (core animateOut reads the
-            // duration from CSS — at once with motion off / reduced motion).
-            animateOut([toRemove], { className: 'dz__rolling-current--leaving', onDone: () => toRemove.remove() });
-        } else if (previousCurrent) {
-            previousCurrent.replaceWith(newCurrentEl);
-        } else {
-            wrapper.insertBefore(newCurrentEl, wrapper.firstChild);
-        }
-        this.updateRollingQueueButton(wrapper, queueCount, showQueueBtn);
-    }
-
-    /**
-     * Apply the rolling file-info + progress callbacks (if set) into the
-     * row inside `currentEl`. The list-item template's `.dz__file-item-name`
-     * span hosts the file-info slot; `.dz__file-item-progress` hosts the
-     * progress slot. Routed through the shared memoizer so cached element
-     * returns (e.g. WAAPI spinners) survive across ticks.
-     */
-    private applyRollingSlots(currentEl: HTMLElement, args: StatusSurfaceArgs): void {
-        const cfg = this.store?.getConfig();
-        if (!cfg) return;
-
-        const fileInfoCb = cfg.renderRollingFileInfoCallback;
-        const fileInfoSlot = currentEl.querySelector<HTMLElement>('.dz__file-item-name');
-        if (fileInfoCb && fileInfoSlot) {
-            this.rollingSurface.applyFileInfo(fileInfoSlot, fileInfoCb(args));
-        }
-
-        const progressCb = cfg.renderRollingProgressCallback;
-        const progressSlot = currentEl.querySelector<HTMLElement>('.dz__file-item-progress');
-        if (progressCb && progressSlot) {
-            this.rollingSurface.applyProgress(progressSlot, progressCb(args));
-        }
+        // The shared rolling renderer (status-surface.ts) — the same one the
+        // store's in-class list uses; callbacks through core `renderSlot`.
+        renderRollingSurface(wrapper, {
+            args: buildStatusSurfaceArgs(files, this.storeEl!.controller, this.storeEl!),
+            front: this.getFrontFile(files),
+            rotation,
+            bodyCallback: cfg.renderRollingBodyCallback,
+            fileInfoCallback: cfg.renderRollingFileInfoCallback,
+            progressCallback: cfg.renderRollingProgressCallback,
+            renderRow: (file) => this.renderRow(file, 'rolling'),
+            label: this.label,
+            isDisabled: this.isStoreDisabled,
+            updateQueueButton: (w, count, show) => this.updateRollingQueueButton(w, count, show),
+        });
     }
 
     /**

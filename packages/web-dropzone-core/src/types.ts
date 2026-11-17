@@ -22,7 +22,7 @@ import type {
     SummaryRenderContext,
     CustomStylesContext
 } from './interaction';
-import type { StatusSurfaceCallback } from './store-api';
+import type { RenderCallbackResult, StatusSurfaceCallback } from './store-api';
 import type { DropzoneLabels } from './labels';
 
 /**
@@ -780,20 +780,23 @@ export interface DropzoneConfig {
      * Custom renderer for a single file row —
      * `renderFileItemCallback({ file, fileIndex, displayMode, isInPopover })`.
      *
-     * Return type drives the framework's update strategy:
-     *  - **string** — framework swaps `outerHTML` on every state change.
-     *    Simple, but listeners attached via `innerHTML += "<button …>"`
-     *    style are lost on every tick.
-     *  - **HTMLElement** — framework preserves the element across state
-     *    changes and instead dispatches `file-row-update` events on it
-     *    (detail: `{ file }` + `controller` / `element`; bubbles, not
-     *    composed — listen on the row). Listeners attached during the
-     *    initial render survive; the consumer mutates the existing DOM
-     *    inside the event handler.
+     * Result — the row (core `renderSlot` reading, SPEC §12.35):
+     *  - **string** — the row's HTML; framework swaps `outerHTML` on every
+     *    state change. Simple, but listeners attached via
+     *    `innerHTML += "<button …>"` style are lost on every tick.
+     *  - **HTMLElement** — the row, mounted as itself: framework preserves the
+     *    element across state changes and instead dispatches `file-row-update`
+     *    events on it (detail: `{ file }` + `controller` / `element`; bubbles,
+     *    not composed — listen on the row). Listeners attached during the
+     *    initial render survive; the consumer mutates the existing DOM inside
+     *    the event handler. (In the popover and under a
+     *    `renderListWrapperCallback` the element is serialized — markup only.)
+     *  - **`null` / `undefined`** — the built-in row for this appearance.
+     *  - **`false`** — no row for this file.
      *
      * Only honored when `renderMode === 'structural'`. See `DropzoneRenderMode`.
      */
-    renderFileItemCallback?: ((ctx: FileItemRenderContext) => string | HTMLElement) | null;
+    renderFileItemCallback?: ((ctx: FileItemRenderContext) => RenderCallbackResult) | null;
     /**
      * Custom renderer for the list wrapper —
      * `renderListWrapperCallback({ rowsHtml, files })`. Returns the wrapper
@@ -805,30 +808,43 @@ export interface DropzoneConfig {
      *         <tbody>${rowsHtml}</tbody>
      *       </table>`;
      *
+     * Result (core `renderSlot`, SPEC §12.35): a **string** = HTML; a **Node** =
+     * mounted; **`null` / `undefined`** = the plain rows; **`false`** = the list hidden.
+     *
      * Only honored when `renderMode === 'structural'`. Note: combining this
      * with an HTMLElement-returning `renderFileItemCallback` falls back
      * to the string path — element identity is not preserved when the
      * wrapper callback is set.
      */
-    renderListWrapperCallback?: ((ctx: ListWrapperRenderContext) => string | HTMLElement) | null;
-    /** Custom renderer for the drop-area prompt — `renderPromptCallback(ctx)` (context only). */
-    renderPromptCallback?: ((ctx: PromptRenderContext) => string | HTMLElement) | null;
-    /** Custom renderer for the compact summary — `renderSummaryCallback({ files })`. */
-    renderSummaryCallback?: ((ctx: SummaryRenderContext) => string | HTMLElement) | null;
+    renderListWrapperCallback?: ((ctx: ListWrapperRenderContext) => RenderCallbackResult) | null;
+    /**
+     * Custom renderer for the drop-area prompt — `renderPromptCallback(ctx)` (context only).
+     * Result (core `renderSlotHtml` — the card is one HTML string): a **string** = HTML;
+     * a **Node** = its markup (serialized — listeners don't survive); **`null` /
+     * `undefined`** = the built-in prompt; **`false`** = no prompt.
+     */
+    renderPromptCallback?: ((ctx: PromptRenderContext) => RenderCallbackResult) | null;
+    /**
+     * Custom renderer for the compact summary — `renderSummaryCallback({ files })`.
+     * Result (core `renderSlot`, SPEC §12.35): a **string** = HTML; a **Node** =
+     * mounted; **`null` / `undefined`** = the built-in rendering; **`false`** = hidden.
+     */
+    renderSummaryCallback?: ((ctx: SummaryRenderContext) => RenderCallbackResult) | null;
     /**
      * Custom rendering for the rolling list appearance (structural mode).
      * Three callbacks share the `StatusSurfaceCallback` contract of the
      * `<web-dropzone-indicator>`'s `render{Body,FileInfo,Progress}Callback`
      * — one `StatusSurfaceArgs` ctx (+ `controller` / `element`).
-     * Each part is replaceable piecemeal; `null` returns yield to the
-     * library's polished default. `false` from body hides the rolling
-     * block (useful while idle). Memoization rules: string equality
-     * skips DOM writes, element identity preserves WAAPI animations.
+     * Each part is replaceable piecemeal. Result (core `renderSlot`): a
+     * **string** = HTML (skipped when unchanged); a **Node** = mounted
+     * (skipped when already mounted — a cached element keeps its WAAPI
+     * animation); **`null` / `undefined`** = the library default;
+     * **`false`** = hidden (from body: the whole rolling block, useful while idle).
      */
     renderRollingBodyCallback?: StatusSurfaceCallback | null;
-    /** File-info slot inside the rolling current row — name, icon, status. */
+    /** File-info slot inside the rolling current row — name, icon, status. string = HTML, Node = mounted, `null` / `undefined` = the row's name, `false` = hidden. */
     renderRollingFileInfoCallback?: StatusSurfaceCallback | null;
-    /** Progress slot inside the rolling current row — bar + percent. */
+    /** Progress slot inside the rolling current row — bar + percent. string = HTML, Node = mounted, `null` / `undefined` = the row's bar, `false` = hidden. */
     renderRollingProgressCallback?: StatusSurfaceCallback | null;
     /** `getCustomStylesCallback(ctx)` — return CSS injected into the shadow root (prepended). */
     getCustomStylesCallback?: ((ctx: CustomStylesContext) => string | null | undefined) | null;

@@ -120,17 +120,17 @@
               },
               {
                 "name": "renderBodyCallback",
-                "description": "Replace the whole chip body (`args`: `StatusSurfaceArgs`). Return a string / element, `null` for the default, `false` to hide the chip. When set, the default file-info / progress slots are not mounted.",
+                "description": "Replace the whole chip body (`args`: `StatusSurfaceArgs`). Result: string = HTML, Node = mounted, `null` / `undefined` = the default body, `false` = the chip hidden. A custom body replaces the default file-info / progress slots.",
                 "type": "StatusSurfaceCallback | null"
               },
               {
                 "name": "renderFileInfoCallback",
-                "description": "Replace the chip's file-info slot (default body only). `args.currentFile`, `currentFilePercent`, `currentFileStatus`.",
+                "description": "Replace the chip's file-info slot (default body only). `args.currentFile`, `currentFilePercent`, `currentFileStatus`. Result: string = HTML, Node = mounted, `null` / `undefined` = the default status glyph / loader, `false` = hidden.",
                 "type": "StatusSurfaceCallback | null"
               },
               {
                 "name": "renderProgressCallback",
-                "description": "Replace the chip's progress slot (default body only): per-file and overall slices.",
+                "description": "Replace the chip's progress slot (default body only): per-file and overall slices. Result: string = HTML, Node = mounted, `null` / `undefined` = the default percent, `false` = hidden.",
                 "type": "StatusSurfaceCallback | null"
               },
               {
@@ -1515,37 +1515,37 @@
               },
               {
                 "name": "renderFileItemCallback",
-                "description": "Custom render for a single file row (structural mode). `ctx`: `{ file, fileIndex, displayMode, isInPopover }`.",
-                "type": "(ctx: FileItemRenderContext) => string | HTMLElement"
+                "description": "Custom render for a single file row (structural mode). `ctx`: `{ file, fileIndex, displayMode, isInPopover }`. Result: string = the row HTML, HTMLElement = the row itself (kept across updates; `file-row-update` fires on it), `null` / `undefined` = the built-in row, `false` = no row.",
+                "type": "(ctx: FileItemRenderContext) => RenderCallbackResult"
               },
               {
                 "name": "renderListWrapperCallback",
-                "description": "Custom wrapper around the rendered file rows (structural mode). `ctx`: `{ rowsHtml, files }`.",
-                "type": "(ctx: ListWrapperRenderContext) => string | HTMLElement"
+                "description": "Custom wrapper around the rendered file rows (structural mode). `ctx`: `{ rowsHtml, files }`. Result: string = HTML, Node = mounted, `null` / `undefined` = the plain rows, `false` = the list hidden.",
+                "type": "(ctx: ListWrapperRenderContext) => RenderCallbackResult"
               },
               {
                 "name": "renderPromptCallback",
-                "description": "Custom render for the drop-area prompt (structural mode). `ctx`: context only.",
-                "type": "(ctx: PromptRenderContext) => string | HTMLElement"
+                "description": "Custom render for the drop-area prompt (structural mode). `ctx`: context only. Result: string = HTML, Node = its markup (serialized), `null` / `undefined` = the built-in prompt, `false` = no prompt.",
+                "type": "(ctx: PromptRenderContext) => RenderCallbackResult"
               },
               {
                 "name": "renderSummaryCallback",
-                "description": "Custom render for the compact-mode summary (structural mode). `ctx`: `{ files }`.",
-                "type": "(ctx: SummaryRenderContext) => string | HTMLElement"
+                "description": "Custom render for the compact-mode summary (structural mode). `ctx`: `{ files }`. Result: string = HTML, Node = mounted, `null` / `undefined` = the built-in summary line, `false` = hidden.",
+                "type": "(ctx: SummaryRenderContext) => RenderCallbackResult"
               },
               {
                 "name": "renderRollingBodyCallback",
-                "description": "Rolling list appearance (structural mode): replace the whole rolling body. `ctx`: `StatusSurfaceArgs`. `null` → default, `false` → hide.",
+                "description": "Rolling list appearance (structural mode): replace the whole rolling body. `ctx`: `StatusSurfaceArgs`. Result: string = HTML, Node = mounted, `null` / `undefined` = the built-in rolling block, `false` = hidden.",
                 "type": "StatusSurfaceCallback"
               },
               {
                 "name": "renderRollingFileInfoCallback",
-                "description": "Rolling list appearance (structural mode): the file-info slot of the current row. `ctx`: `StatusSurfaceArgs`.",
+                "description": "Rolling list appearance (structural mode): the file-info slot of the current row. `ctx`: `StatusSurfaceArgs`. Result: string = HTML, Node = mounted, `null` / `undefined` = the built-in file name, `false` = hidden.",
                 "type": "StatusSurfaceCallback"
               },
               {
                 "name": "renderRollingProgressCallback",
-                "description": "Rolling list appearance (structural mode): the progress slot of the current row. `ctx`: `StatusSurfaceArgs`.",
+                "description": "Rolling list appearance (structural mode): the progress slot of the current row. `ctx`: `StatusSurfaceArgs`. Result: string = HTML, Node = mounted, `null` / `undefined` = the built-in bar + percent, `false` = hidden.",
                 "type": "StatusSurfaceCallback"
               },
               {

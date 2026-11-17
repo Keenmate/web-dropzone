@@ -110,7 +110,8 @@ export type {
     StatusAggregate,
     StatusSurfaceArgs,
     StatusSurfaceCallback,
-    StatusSurfaceResult
+    StatusSurfaceResult,
+    RenderCallbackResult
 } from './store-api';
 
 // ---- Domain types ------------------------------------------------------

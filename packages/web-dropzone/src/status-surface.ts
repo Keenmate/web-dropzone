@@ -26,33 +26,37 @@
  * library calling its own defaults through the same hooks — every part is
  * replaceable piecemeal without rebuilding the whole surface.
  *
- * Return-value semantics (consistent across all three):
- *   - `null`  / `undefined`   → library default
- *   - `false`                 → hide this part (or, for body, the whole surface)
- *   - `string`                → set as `innerHTML` (memoized: skipped when
- *                               equal to the previous string)
- *   - `HTMLElement`           → replace children (identity-checked: skipped
- *                               when the returned node is already mounted)
+ * Return-value semantics — core `renderSlot` (SPEC §12.35), the same for
+ * every `render*Callback` of every Keenmate component:
+ *   - `string`                → HTML (skipped when equal to the previous string)
+ *   - `Node`                  → mounted (skipped when it is already the only child)
+ *   - `null`  / `undefined`   → the library default
+ *   - `false`                 → hidden (or, for body, the whole surface)
  *
- * The memoization is what makes this safe to call at progress-tick frequency.
+ * The skip rules are what make this safe to call at progress-tick frequency.
  * Cache your spinner / element outside the callback and return the same
  * instance each tick — the surface will skip the DOM swap.
  *
- * This module owns the IMPLEMENTATION (compute / pick / build helpers and
- * the `StatusSurface` memoization class). The PUBLIC TYPES
+ * This module owns the IMPLEMENTATION (compute / pick / build helpers, the
+ * slot helpers over `renderSlot`, and the rolling renderer shared by
+ * `<web-dropzone>` and `<web-dropzone-list>`). The PUBLIC TYPES
  * (`StatusSurfaceArgs`, `StatusSurfaceCallback`,
  * `StatusSurfaceResult`, `StatusAggregate`) live in `core/store-api.ts` so
  * `core/types.ts`'s `DropzoneConfig` can reference them without crossing
  * the eventual package boundary back into the renderer.
  */
 
-import { withComponentContext } from '@keenmate/web-components-core';
-import type { FileState, DropzoneController } from '@keenmate/web-dropzone-core';
+import { animateOut, renderSlot, withComponentContext, type SlotKind } from '@keenmate/web-components-core';
+import { escapeHtml } from '@keenmate/web-dropzone-core';
+import type { FileState, DropzoneController, LabelFn } from '@keenmate/web-dropzone-core';
 import type {
     StatusAggregate,
     StatusSurfaceArgs,
+    StatusSurfaceCallback,
     StatusSurfaceResult
 } from '@keenmate/web-dropzone-core';
+import { listProgressInner } from './row-templates';
+import { syncRowButtonsDisabled } from './row-patching';
 
 // Re-export the public surface types so existing renderer-internal imports
 // keep working — they import these symbols from `./status-surface` today.
@@ -157,154 +161,153 @@ export function buildStatusSurfaceArgs(
     }, controller, element);
 }
 
-/**
- * Apply a `StatusSurfaceResult` into `target`, honoring the memoization
- * semantics. Tracks state via `prev` so a caller can decide on subsequent
- * ticks whether to skip the DOM write. Returns the new `prev` snapshot.
- *
- * `prev` shape:
- *   - `{ kind: 'string', value }` — last applied as innerHTML
- *   - `{ kind: 'element', value }` — last applied as a single child node
- *   - `{ kind: 'hidden' }` — last call returned `false` (target hidden)
- *   - `{ kind: 'default' }` — last call returned `null` (defer to caller)
- *   - `undefined` — never applied
- */
-export type StatusSurfacePrev =
-    | { kind: 'string'; value: string }
-    | { kind: 'element'; value: HTMLElement }
-    | { kind: 'hidden' }
-    | { kind: 'default' }
-    | undefined;
+/** Last default string written per slot — skips an unchanged default (progress ticks). */
+const defaultHtml = new WeakMap<HTMLElement, string>();
 
 /**
- * Convenience wrapper that encapsulates the three `*Prev` memoization
- * snapshots that every status surface (indicator chip, rolling block,
- * future surfaces) would otherwise hand-track.
- *
- * Surfaces still own:
- *   - their slot DOM (where the body / fileInfo / progress live)
- *   - their library default rendering (how to fill the slots when the
- *     callback returns `null` or no callback is set)
- *
- * The surface delegates only the "apply this callback's return value to
- * this element with memoization" step. The discriminator returned from
- * `applyBody` lets surfaces branch on which path was taken without
- * inspecting the internal `*Prev` state.
+ * Render one surface slot through core `renderSlot`: the callback's result
+ * (string = HTML, Node = mounted, `null` / `undefined` = `renderDefaultContent()`,
+ * `false` = hidden). The default is a string (skipped when unchanged) or a
+ * Node (skipped when already mounted — a cached loader keeps animating).
+ * Without `renderDefaultContent` a default result leaves the slot as it is.
  */
-export class StatusSurface {
-    private bodyPrev: StatusSurfacePrev = undefined;
-    private fileInfoPrev: StatusSurfacePrev = undefined;
-    private progressPrev: StatusSurfacePrev = undefined;
-
-    /** Reset all three memoization snapshots — e.g. on `disconnectedCallback`. */
-    reset(): void {
-        this.bodyPrev = undefined;
-        this.fileInfoPrev = undefined;
-        this.progressPrev = undefined;
-    }
-
-    /** Reset just the slot memoizations — e.g. when the slot DOM is rebuilt. */
-    resetSlots(): void {
-        this.fileInfoPrev = undefined;
-        this.progressPrev = undefined;
-    }
-
-    /** Reset just the file-info memoization — e.g. when its callback changes. */
-    resetFileInfo(): void {
-        this.fileInfoPrev = undefined;
-    }
-
-    /** Reset just the progress memoization. */
-    resetProgress(): void {
-        this.progressPrev = undefined;
-    }
-
-    /**
-     * Apply a body callback's result to `target`. The returned object tells
-     * the caller which branch was taken AND which branch was active last
-     * time — useful for surfaces that need to clear stale custom DOM when
-     * the body transitions back to the default path.
-     */
-    applyBody(target: HTMLElement, result: StatusSurfaceResult): {
-        current: 'hidden' | 'custom' | 'default';
-        previous: 'hidden' | 'custom' | 'default' | 'unset';
-    } {
-        const previous: 'hidden' | 'custom' | 'default' | 'unset' =
-            this.bodyPrev === undefined ? 'unset'
-            : this.bodyPrev.kind === 'hidden' ? 'hidden'
-            : this.bodyPrev.kind === 'default' ? 'default'
-            : 'custom';
-        this.bodyPrev = applyStatusSurfaceResult(target, result, this.bodyPrev);
-        const current: 'hidden' | 'custom' | 'default' =
-            result === false ? 'hidden'
-            : result != null ? 'custom'
-            : 'default';
-        return { current, previous };
-    }
-
-    /**
-     * Apply a fileInfo callback's result to a slot element. `fallback` is
-     * used when `result` is null (callback returned "library default" or
-     * no callback was set); when no fallback is given a null result is a
-     * no-op, leaving whatever DOM already lives in the slot untouched
-     * (used by the rolling block where the row template already drew the
-     * default name span).
-     */
-    applyFileInfo(
-        target: HTMLElement,
-        result: StatusSurfaceResult,
-        fallback?: () => string | HTMLElement
-    ): void {
-        const next = result == null
-            ? (fallback ? fallback() : undefined)
-            : result;
-        if (next === undefined) return;
-        this.fileInfoPrev = applyStatusSurfaceResult(target, next, this.fileInfoPrev);
-    }
-
-    /** Mirror of `applyFileInfo` for the progress slot. */
-    applyProgress(
-        target: HTMLElement,
-        result: StatusSurfaceResult,
-        fallback?: () => string | HTMLElement
-    ): void {
-        const next = result == null
-            ? (fallback ? fallback() : undefined)
-            : result;
-        if (next === undefined) return;
-        this.progressPrev = applyStatusSurfaceResult(target, next, this.progressPrev);
-    }
+export function applySurfaceSlot(
+    el: HTMLElement,
+    result: StatusSurfaceResult | (() => StatusSurfaceResult),
+    renderDefaultContent?: () => string | Node
+): SlotKind {
+    const kind = renderSlot(el, result, {
+        renderDefault: (c) => {
+            if (!renderDefaultContent) return;
+            const v = renderDefaultContent();
+            if (typeof v === 'string') {
+                if (defaultHtml.get(c) !== v) { c.innerHTML = v; defaultHtml.set(c, v); }
+            } else {
+                defaultHtml.delete(c);
+                if (c.firstChild !== v || c.childNodes.length !== 1) c.replaceChildren(v);
+            }
+        },
+    });
+    if (kind !== 'default') defaultHtml.delete(el);
+    return kind;
 }
 
-export function applyStatusSurfaceResult(
-    target: HTMLElement,
-    result: StatusSurfaceResult,
-    prev: StatusSurfacePrev
-): StatusSurfacePrev {
-    if (result === false) {
-        if (prev?.kind === 'hidden') return prev;
-        target.hidden = true;
-        return { kind: 'hidden' };
+/** What each restorable slot / rolling body showed last (absent = the template's own default). */
+const lastKinds = new WeakMap<HTMLElement, SlotKind>();
+
+/**
+ * A slot whose default the row template already drew: `null` / `undefined`
+ * leaves it alone, unless a custom / hidden result replaced it — then
+ * `restore()` writes the default back.
+ */
+function applyRestorableSlot(el: HTMLElement, result: () => StatusSurfaceResult, restore: () => string): void {
+    const prev = lastKinds.get(el);
+    const kind = renderSlot(el, result, {
+        renderDefault: (c) => { if (prev !== undefined && prev !== 'default') c.innerHTML = restore(); },
+    });
+    lastKinds.set(el, kind);
+}
+
+/** Inputs of {@link renderRollingSurface} — what differs between the store and the list satellite. */
+export interface RollingSurfaceOptions {
+    args: StatusSurfaceArgs;
+    /** The file in the front slot (each caller's own pick); none → the block is emptied. */
+    front: FileState | null | undefined;
+    rotation: string;
+    bodyCallback?: StatusSurfaceCallback | null;
+    fileInfoCallback?: StatusSurfaceCallback | null;
+    progressCallback?: StatusSurfaceCallback | null;
+    /** The front row's HTML (a list row). */
+    renderRow: (file: FileState) => string;
+    label?: LabelFn;
+    isDisabled: boolean;
+    /** Create / refresh the queue badge inside the block. */
+    updateQueueButton: (wrapper: HTMLElement, count: number, show: boolean) => void;
+    /** A fresh front row was mounted (bind its buttons). */
+    onRowMounted?: (row: HTMLElement) => void;
+}
+
+/**
+ * The rolling list appearance — ONE renderer for `<web-dropzone>` and
+ * `<web-dropzone-list>`. A stable block (the popover anchor) holds the front
+ * file's row; a new front overlaps the outgoing row in the same grid cell so
+ * the rotation keyframes play together; the queue badge floats in a corner.
+ *
+ * `renderRollingBodyCallback` owns the whole block (core `renderSlot`: string
+ * HTML, Node mounted, `null` / `undefined` → this default, `false` → hidden);
+ * the file-info / progress callbacks replace the row's `.dz__file-item-name` /
+ * `.dz__file-item-progress` (`null` keeps the row's own default).
+ */
+export function renderRollingSurface(wrapper: HTMLElement, o: RollingSurfaceOptions): void {
+    wrapper.dataset.rotation = o.rotation;
+    const prev = lastKinds.get(wrapper);
+    const body = o.bodyCallback;
+    const kind = renderSlot(wrapper, body ? () => body(o.args) : null, {
+        renderDefault: (w) => {
+            // Back from a custom body: start the default block afresh.
+            if (prev === 'custom') w.replaceChildren();
+            renderRollingDefault(w, o);
+        },
+    });
+    lastKinds.set(wrapper, kind);
+}
+
+function renderRollingDefault(wrapper: HTMLElement, o: RollingSurfaceOptions): void {
+    const front = o.front;
+    if (!front) {
+        wrapper.replaceChildren();
+        return;
     }
-    if (result == null) {
-        // 'default' is a signal — caller handles its own default rendering.
-        // We don't unhide here because the caller will write its content.
-        return { kind: 'default' };
+    const queueCount = o.args.files.length;
+    const showQueueBtn = queueCount > 1;
+
+    // The "settled" current slot — not one mid-rotation-out: what decides
+    // whether the front file actually changed.
+    const previousCurrent = wrapper.querySelector<HTMLElement>(
+        '.dz__rolling-current:not(.dz__rolling-current--leaving)'
+    );
+    if (previousCurrent && previousCurrent.dataset.frontId === front.id) {
+        // Same front: per-row ticks land via the row patchers; refresh the
+        // slot callbacks (a status change re-renders them) + the badge.
+        applyRollingSlots(previousCurrent, o, front);
+        syncRowButtonsDisabled(previousCurrent, front, o.isDisabled);
+        o.updateQueueButton(wrapper, queueCount, showQueueBtn);
+        return;
     }
-    if (target.hidden) target.hidden = false;
-    if (typeof result === 'string') {
-        if (prev?.kind === 'string' && prev.value === result) return prev;
-        target.innerHTML = result;
-        return { kind: 'string', value: result };
+
+    const newCurrentEl = document.createElement('div');
+    newCurrentEl.className = 'dz__rolling-current';
+    newCurrentEl.dataset.frontId = front.id;
+    newCurrentEl.innerHTML = o.renderRow(front);
+    applyRollingSlots(newCurrentEl, o, front);
+
+    if (previousCurrent && o.rotation !== 'slide-in') {
+        // True rotation — the outgoing slot stays mounted so its keyframe
+        // (translateX/Y out) plays in parallel with the incoming one; removed
+        // when it ends (core animateOut — at once with motion off / reduced).
+        wrapper.insertBefore(newCurrentEl, previousCurrent);
+        const toRemove = previousCurrent;
+        animateOut([toRemove], { className: 'dz__rolling-current--leaving', onDone: () => toRemove.remove() });
+    } else if (previousCurrent) {
+        // slide-in: snap-replace; the new slot's keyframe is the only motion.
+        previousCurrent.replaceWith(newCurrentEl);
+    } else {
+        wrapper.insertBefore(newCurrentEl, wrapper.firstChild);
     }
-    // HTMLElement — identity-checked to allow callers to cache their element
-    // and have the indicator skip the DOM swap (preserves WAAPI animations,
-    // focus, transitions in flight, etc.).
-    if (prev?.kind === 'element' && prev.value === result
-        && target.firstChild === result
-        && target.childNodes.length === 1) {
-        return prev;
+    o.onRowMounted?.(newCurrentEl);
+    o.updateQueueButton(wrapper, queueCount, showQueueBtn);
+}
+
+/** The rolling file-info + progress callbacks into the front row's slots (only when set). */
+function applyRollingSlots(currentEl: HTMLElement, o: RollingSurfaceOptions, front: FileState): void {
+    const fileInfo = o.fileInfoCallback;
+    const fileInfoSlot = currentEl.querySelector<HTMLElement>('.dz__file-item-name');
+    if (fileInfo && fileInfoSlot) {
+        applyRestorableSlot(fileInfoSlot, () => fileInfo(o.args), () => escapeHtml(front.name));
     }
-    target.replaceChildren(result);
-    return { kind: 'element', value: result };
+    const progress = o.progressCallback;
+    const progressSlot = currentEl.querySelector<HTMLElement>('.dz__file-item-progress');
+    if (progress && progressSlot) {
+        applyRestorableSlot(progressSlot, () => progress(o.args), () => listProgressInner(front, o.label));
+    }
 }

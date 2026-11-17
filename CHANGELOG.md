@@ -11,7 +11,26 @@ No stable 1.0.0 is published, so the break ships as the next release
 candidate — but `^1.0.0-rc02` consumers will pull it: the event,
 callback and store-access API below is breaking.
 
-### Changed (icons read by core `renderIcon`, 2026-11-17)
+### Changed (render callbacks read by core `renderSlot`, 2026-11-18)
+
+- **Every content-returning `render*Callback` reads its result the core way** (`renderSlot` /
+  `renderSlotHtml`, SPEC §12.35): a **string** = HTML; a **Node** = mounted; **`null` / `undefined`** = the
+  built-in rendering; **`false`** = hidden. Covers `renderFileItemCallback`, `renderListWrapperCallback`,
+  `renderPromptCallback`, `renderSummaryCallback`, `renderRolling{Body,FileInfo,Progress}Callback` and the
+  indicator's `render{Body,FileInfo,Progress}Callback`; their return type is the new exported
+  `RenderCallbackResult` (`StatusSurfaceResult` is now an alias of it).
+- **BREAKING: `renderFileItemCallback` returning `null` / `undefined`** now renders the built-in row (it
+  rendered nothing in the inline list and threw in the popover); return **`false`** for "no row".
+  `renderPromptCallback` / `renderListWrapperCallback` returning `null` used to throw / print `null` — now
+  the built-in prompt / the plain rows; `false` = no prompt / the list hidden.
+- **Visible: `renderSummaryCallback` returning an element mounts it** (listeners survive; it used to be
+  serialized through `outerHTML`); an unchanged string isn't rewritten.
+- `false` from a status-surface part (rolling / indicator) now also empties the slot (it used to keep the old
+  content behind `hidden`); a rolling file-info / progress slot returning to `null` after a custom result shows
+  the row's own name / bar again (it used to keep the custom content).
+- Internal: one rolling renderer (`renderRollingSurface`) for `<web-dropzone>` and `<web-dropzone-list>` (the
+  two copies are gone); the satellite's front row now gets the store's labels / icons / disabled state.
+
 
 - **BREAKING (visible): the icon inputs `icon`, `cancel-icon`, `remove-icon`, `overlay-icon`** (and
   `<web-dropzone-picker icon>`) follow core's one icon rule. Markup (a value starting with `<`: `<svg>`,

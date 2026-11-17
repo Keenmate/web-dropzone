@@ -24,7 +24,7 @@
 
 import { createLayer, createPopover } from '@keenmate/web-components-core/positioning';
 import type { Layer, Placement, PopoverHandle } from '@keenmate/web-components-core/positioning';
-import { adoptStyles, animateOut, deepActiveElement, dispatch, ICON_CSS, SHEET_CHROME_CSS, startSheetSession, watchPageDrag, Z_INDEX, type SheetSession } from '@keenmate/web-components-core';
+import { adoptStyles, deepActiveElement, dispatch, ICON_CSS, renderSlot, renderSlotHtml, SHEET_CHROME_CSS, startSheetSession, watchPageDrag, Z_INDEX, type SheetSession } from '@keenmate/web-components-core';
 import styles from './css/main.css?inline';
 import { isPhoneSheet, observePhoneSheet } from './phone-sheet';
 import {
@@ -45,8 +45,7 @@ import {
     patchProgressText,
     patchStatusIcon,
     patchActionButton as patchRowActionButton,
-    patchCancelButton,
-    syncRowButtonsDisabled
+    patchCancelButton
 } from './row-patching';
 import type {
     DropzoneConfig,
@@ -85,13 +84,7 @@ import type { RowTemplateOptions } from './row-templates';
 // Shared status-surface contract — the rolling list uses the same three
 // callbacks (body / fileInfo / progress) as the indicator satellite, so
 // templates port across surfaces unchanged. See ./status-surface.ts.
-import {
-    buildStatusSurfaceArgs,
-    StatusSurface
-} from './status-surface';
-import type {
-    StatusSurfaceArgs
-} from './status-surface';
+import { buildStatusSurfaceArgs, renderRollingSurface } from './status-surface';
 
 /**
  * Expand `displayMode` shorthand into the three orthogonal axes. Explicit
@@ -199,11 +192,6 @@ export class WebDropzone extends DropzoneEngine {
      */
     private fileRowElements: Map<string, HTMLElement> = new Map();
 
-    // Rolling list status-surface memoization. Encapsulates the three
-    // `*Prev` snapshots (body / fileInfo / progress) so identical results
-    // on subsequent ticks skip the DOM write — see `StatusSurface` in
-    // ./status-surface.ts.
-    private rollingSurface = new StatusSurface();
 
     // Drag overlay elements
     private overlayTarget: HTMLElement | null = null;
@@ -657,11 +645,15 @@ export class WebDropzone extends DropzoneEngine {
      * `renderPromptCallback` if provided.
      */
     private renderCardContent(cardSize: CardSize): string {
-        if (this.isStructuralMode() && this.config.renderPromptCallback) {
-            const result = this.config.renderPromptCallback(this.ctx({}));
-            return typeof result === 'string' ? result : result.outerHTML;
-        }
+        // `renderPromptCallback` through core `renderSlotHtml` (the card is one
+        // HTML string): string = HTML, Node = its markup, null / undefined =
+        // the default prompt below, false = no prompt.
+        const cb = this.isStructuralMode() ? this.config.renderPromptCallback : null;
+        return renderSlotHtml(cb ? () => cb(this.ctx({})) : null, () => this.renderDefaultCardContent(cardSize)).html;
+    }
 
+    /** The built-in card prompt: icon, text, Browse button (big), hint. */
+    private renderDefaultCardContent(cardSize: CardSize): string {
         const text = this.dragActive
             ? this.label('dragActive')
             : this.label('prompt');
@@ -1175,7 +1167,11 @@ export class WebDropzone extends DropzoneEngine {
             this.fileRowElements.clear();
             // labels.noData '' = deliberately empty: render nothing.
             const noData = this.config.isFilesInside ? '' : this.label('noData');
-            targetEl.innerHTML = noData ? `<div class="dz__empty">${escapeHtml(noData)}</div>` : '';
+            // Through renderSlot (a default) — every write to the list goes
+            // through it, so a later same-string wrapper result isn't skipped.
+            renderSlot(targetEl, null, {
+                renderDefault: (el) => { el.innerHTML = noData ? `<div class="dz__empty">${escapeHtml(noData)}</div>` : ''; },
+            });
             return;
         }
 
@@ -1220,35 +1216,33 @@ export class WebDropzone extends DropzoneEngine {
 
         const hasElementRow = rows.some(r => r.node instanceof HTMLElement);
 
-        if (wrapperCb) {
-            // Wrapper callback path. Element identity is sacrificed here
-            // because the wrapper signature is string-based — documented.
-            const itemsHtml = rows.map(r => typeof r.node === 'string' ? r.node : r.node.outerHTML).join('');
-            const wrapped = wrapperCb(this.ctx({ rowsHtml: itemsHtml, files: visible }));
-            if (typeof wrapped === 'string') {
-                targetEl.innerHTML = wrapped + toggle;
-            } else {
-                targetEl.replaceChildren(wrapped);
-                if (toggle) targetEl.insertAdjacentHTML('beforeend', toggle);
+        // The rows themselves — strings in one innerHTML, or (an element row
+        // in play) node by node so element rows keep their identity.
+        const renderRows = (el: HTMLElement): void => {
+            if (!hasElementRow) {
+                el.innerHTML = rows.map(r => r.node as string).join('') + toggle;
+                return;
             }
-        } else if (hasElementRow) {
-            // Element-preserving path — no wrapper callback in play, but
-            // at least one row is an HTMLElement. Use replaceChildren so
-            // we keep the same DOM nodes (and their listeners) across
-            // re-renders.
-            targetEl.replaceChildren();
+            el.replaceChildren();
             for (const r of rows) {
-                if (typeof r.node === 'string') {
-                    targetEl.insertAdjacentHTML('beforeend', r.node);
-                } else {
-                    targetEl.appendChild(r.node);
-                }
+                if (typeof r.node === 'string') el.insertAdjacentHTML('beforeend', r.node);
+                else el.appendChild(r.node);
             }
+            if (toggle) el.insertAdjacentHTML('beforeend', toggle);
+        };
+
+        // `renderListWrapperCallback` through core `renderSlot`: string =
+        // HTML, Node = mounted, null / undefined = the plain rows, false =
+        // the list hidden. Element identity of the rows is sacrificed in the
+        // wrapper (`rowsHtml` is a string) — documented.
+        const kind = renderSlot(targetEl, wrapperCb
+            ? () => wrapperCb(this.ctx({ rowsHtml: rows.map(r => typeof r.node === 'string' ? r.node : r.node.outerHTML).join(''), files: visible }))
+            : null, { renderDefault: renderRows });
+        if (kind === 'custom') {
+            // The show-more toggle sits after the wrapper (an unchanged
+            // wrapper string isn't rewritten — drop the old toggle first).
+            targetEl.querySelectorAll(':scope > [data-dz-action="toggle-visible"]').forEach(b => b.remove());
             if (toggle) targetEl.insertAdjacentHTML('beforeend', toggle);
-        } else {
-            // Default fast path — all rows are strings, single innerHTML.
-            const items = rows.map(r => r.node as string).join('');
-            targetEl.innerHTML = items + toggle;
         }
 
         this.bindListRemoveHandlers(targetEl);
@@ -1270,12 +1264,21 @@ export class WebDropzone extends DropzoneEngine {
      */
     private renderFileItemForList(file: FileState, index: number): string | HTMLElement {
         const { listAppearance } = resolveDisplayConfig(this.config);
-        if (this.isStructuralMode() && this.config.renderFileItemCallback) {
+        const cb = this.isStructuralMode() ? this.config.renderFileItemCallback : null;
+        if (cb) {
             const displayMode = this.config.displayMode ?? this.deriveLegacyDisplayMode(listAppearance);
-            return this.config.renderFileItemCallback(this.ctx({ file, fileIndex: index, displayMode, isInPopover: false }));
+            const result = cb(this.ctx({ file, fileIndex: index, displayMode, isInPopover: false }));
+            // An element row is mounted as itself (identity → `file-row-update`).
+            if (result instanceof HTMLElement) return result;
+            // Everything else reads like core `renderSlotHtml`: string = HTML,
+            // null / undefined = the built-in row, false = no row.
+            return renderSlotHtml(result as string | null | undefined | false, () => this.renderDefaultListRow(file, listAppearance)).html;
         }
-        // Fall through to the string-only path — same selection logic as
-        // renderFileItem, popover branch removed.
+        return this.renderDefaultListRow(file, listAppearance);
+    }
+
+    /** The built-in row for the inline list (the string path). */
+    private renderDefaultListRow(file: FileState, listAppearance: ListAppearance): string {
         switch (listAppearance) {
             case 'grid':     return this.renderGridItem(file);
             case 'detailed': return this.renderDetailedItem(file);
@@ -1331,129 +1334,22 @@ export class WebDropzone extends DropzoneEngine {
      * the queue count.
      */
     private renderRollingList(targetEl: HTMLElement): void {
-        const rotation = (this.config.rollingRotation ?? 'slide-in') as RollingRotation;
-        targetEl.dataset.rotation = rotation;
-
-        // Status-surface body callback: lets users own the entire rolling
-        // container (no animation slots, no queue badge). Skipped when
-        // returns null (library default). `false` hides the rolling block.
-        const args = buildStatusSurfaceArgs(this.files, this.controller, this.contextElement);
-        const bodyResult = this.isStructuralMode() && this.config.renderRollingBodyCallback
-            ? this.config.renderRollingBodyCallback(args)
-            : null;
-        const { current, previous } = this.rollingSurface.applyBody(targetEl, bodyResult);
-        if (current === 'hidden') return;
-        if (current === 'custom') {
-            targetEl.hidden = false;
-            // Slot memoization is stale — custom body wiped the default slots.
-            this.rollingSurface.resetSlots();
-            return;
-        }
-
-        // current === 'default'. If we were previously in custom-body mode the
-        // targetEl still has the custom content; clear it before the default
-        // path repopulates.
-        if (previous === 'custom') {
-            targetEl.innerHTML = '';
-        }
-        targetEl.hidden = false;
-
-        const front = this.getFrontFile();
-        if (!front) {
-            targetEl.innerHTML = '';
-            this.rollingSurface.resetSlots();
-            return;
-        }
-
-        const queueCount = this.files.length;
-        const showQueueBtn = queueCount > 1;
-
-        // Find the "settled" current slot — not one already animating out.
-        // This is what we compare against to decide whether the front
-        // file actually changed.
-        const previousCurrent = targetEl.querySelector(
-            '.dz__rolling-current:not(.dz__rolling-current--leaving)'
-        ) as HTMLElement | null;
-        const previousFrontId = previousCurrent?.dataset.frontId;
-
-        if (previousCurrent && previousFrontId === front.id) {
-            // Same front, nothing to animate. Per-row tick updates land via
-            // patchInlineRowInPlace elsewhere; here we just keep the badge
-            // count fresh + refresh slot callbacks (so a re-render driven
-            // by file-status-change picks up the new state).
-            this.applyRollingSlots(previousCurrent, args);
-            syncRowButtonsDisabled(previousCurrent, front, !!this.config.isDisabled);
-            this.updateRollingQueueButton(targetEl, queueCount, showQueueBtn);
-            return;
-        }
-
-        // Build the new current slot.
-        const newCurrentEl = document.createElement('div');
-        newCurrentEl.className = 'dz__rolling-current';
-        newCurrentEl.dataset.frontId = front.id;
-        newCurrentEl.innerHTML = this.renderListItem(front);
-        // After the row HTML is in place, swap the file-info / progress
-        // slot subtrees if the user supplied callbacks. Reset memoization
-        // because this is a fresh slot — prev snapshots came from the
-        // OUTGOING row's subtrees.
-        this.rollingSurface.resetSlots();
-        this.applyRollingSlots(newCurrentEl, args);
-
-        if (previousCurrent && rotation !== 'slide-in') {
-            // True rotation — the outgoing slot stays mounted so its keyframe
-            // can play (translateX/Y out) in parallel with the incoming one.
-            // Both share the same grid cell, so they overlap visually.
-            targetEl.insertBefore(newCurrentEl, previousCurrent);
-            const toRemove = previousCurrent;
-            // Removed when its own leaving keyframe ends (core animateOut reads the
-            // duration from CSS — at once with motion off / reduced motion).
-            animateOut([toRemove], { className: 'dz__rolling-current--leaving', onDone: () => toRemove.remove() });
-        } else if (previousCurrent) {
-            // slide-in: snap-replace the old slot; the new slot's keyframe
-            // is the only motion.
-            previousCurrent.replaceWith(newCurrentEl);
-        } else {
-            // First render. Insert at the top; the queue badge (added below
-            // / reused) sits after it but is absolute-positioned, so DOM
-            // order is purely cosmetic.
-            targetEl.insertBefore(newCurrentEl, targetEl.firstChild);
-        }
-
-        this.bindListRemoveHandlers(newCurrentEl);
-        this.updateRollingQueueButton(targetEl, queueCount, showQueueBtn);
-    }
-
-    /**
-     * Apply the rolling file-info + progress callbacks (if set) into the
-     * row inside `currentEl`. The row template's existing
-     * `.dz__file-item-name` span hosts the file-info slot; the
-     * `.dz__file-item-progress` block hosts the progress slot. Each is
-     * routed through the shared memoizer so cached element returns
-     * (e.g. WAAPI spinners) survive across ticks.
-     *
-     * When a callback isn't set or returns null, the corresponding slot
-     * keeps the polished default contents that `renderListItem` already
-     * generated — no DOM write.
-     */
-    private applyRollingSlots(currentEl: HTMLElement, args: StatusSurfaceArgs): void {
-        // File-info slot — replace `.dz__file-item-name` with the callback's
-        // content. No fallback: a null result leaves the row template's
-        // pre-rendered name span alone (covers the common case where users
-        // only want to customize progress).
+        // The shared rolling renderer (status-surface.ts) — the same one the
+        // `<web-dropzone-list>` satellite uses; callbacks through core `renderSlot`.
         const structural = this.isStructuralMode();
-        const fileInfoCb = structural ? this.config.renderRollingFileInfoCallback : null;
-        const fileInfoSlot = currentEl.querySelector<HTMLElement>('.dz__file-item-name');
-        if (fileInfoCb && fileInfoSlot) {
-            this.rollingSurface.applyFileInfo(fileInfoSlot, fileInfoCb(args));
-        }
-
-        // Progress slot — same pattern. Default is the bar + percent text
-        // that came out of renderListItem.
-        const progressCb = structural ? this.config.renderRollingProgressCallback : null;
-        const progressSlot = currentEl.querySelector<HTMLElement>('.dz__file-item-progress');
-        if (progressCb && progressSlot) {
-            this.rollingSurface.applyProgress(progressSlot, progressCb(args));
-        }
+        renderRollingSurface(targetEl, {
+            args: buildStatusSurfaceArgs(this.files, this.controller, this.contextElement),
+            front: this.getFrontFile(),
+            rotation: (this.config.rollingRotation ?? 'slide-in') as RollingRotation,
+            bodyCallback: structural ? this.config.renderRollingBodyCallback : null,
+            fileInfoCallback: structural ? this.config.renderRollingFileInfoCallback : null,
+            progressCallback: structural ? this.config.renderRollingProgressCallback : null,
+            renderRow: (file) => this.renderListItem(file),
+            label: this.label,
+            isDisabled: !!this.config.isDisabled,
+            updateQueueButton: (w, count, show) => this.updateRollingQueueButton(w, count, show),
+            onRowMounted: (row) => this.bindListRemoveHandlers(row),
+        });
     }
 
     /**
@@ -1543,12 +1439,20 @@ export class WebDropzone extends DropzoneEngine {
         // The custom renderer keeps its legacy `displayMode` field for backward
         // compatibility — populated from the shorthand if set, otherwise
         // derived from listAppearance.
-        if (this.isStructuralMode() && this.config.renderFileItemCallback) {
+        // `renderFileItemCallback` through core `renderSlotHtml` (rows are HTML
+        // strings here): string = HTML, Node = its markup, null / undefined =
+        // the built-in row, false = no row.
+        const cb = this.isStructuralMode() ? this.config.renderFileItemCallback : null;
+        if (cb) {
             const displayMode = this.config.displayMode ?? this.deriveLegacyDisplayMode(listAppearance);
-            const result = this.config.renderFileItemCallback(this.ctx({ file, fileIndex: index, displayMode, isInPopover }));
-            return typeof result === 'string' ? result : result.outerHTML;
+            return renderSlotHtml(() => cb(this.ctx({ file, fileIndex: index, displayMode, isInPopover })),
+                () => this.renderDefaultFileItem(file, listAppearance, isInPopover)).html;
         }
+        return this.renderDefaultFileItem(file, listAppearance, isInPopover);
+    }
 
+    /** The built-in row (string path): the popover's table row, else the list appearance's row. */
+    private renderDefaultFileItem(file: FileState, listAppearance: ListAppearance, isInPopover: boolean): string {
         // The popover always uses the compact (table-row) item shape regardless
         // of what the inline list looks like — that's its dedicated layout.
         if (isInPopover) return this.renderCompactItem(file);
@@ -1746,31 +1650,23 @@ export class WebDropzone extends DropzoneEngine {
         if (!this.summaryEl) return;
 
         if (this.files.length === 0) {
-            this.summaryEl.innerHTML = '';
+            renderSlot(this.summaryEl, '');
             return;
         }
 
-        let content: string;
-        if (this.isStructuralMode() && this.config.renderSummaryCallback) {
-            const result = this.config.renderSummaryCallback(this.ctx({ files: this.getFiles() }));
-            content = typeof result === 'string' ? result : result.outerHTML;
-        } else {
-            const totalSize = this.files.reduce((sum, f) => sum + f.size, 0);
-            const text = this.label('summary', { count: this.files.length, size: formatFileSize(totalSize) });
+        // `renderSummaryCallback` through core `renderSlot`: string = HTML
+        // (skipped when unchanged), Node = mounted, null / undefined = the
+        // built-in summary line, false = the summary hidden.
+        const cb = this.isStructuralMode() ? this.config.renderSummaryCallback : null;
+        renderSlot(this.summaryEl, cb ? () => cb(this.ctx({ files: this.getFiles() })) : null, {
+            renderDefault: (el) => { el.innerHTML = this.renderDefaultSummary(); },
+        });
 
-            content = `
-                <div class="dz__summary-line" ${this.config.isDisabled ? 'tabindex="-1" aria-disabled="true"' : 'tabindex="0"'} role="button" aria-label="${escapeHtml(this.label('viewFiles'))}">
-                    ${this.renderSummaryIcon()}
-                    <span class="dz__summary-text">${escapeHtml(text)}</span>
-                </div>
-            `;
-        }
-
-        this.summaryEl.innerHTML = content;
-
-        // Add click handler for popover
-        const summaryLine = this.summaryEl.querySelector('.dz__summary-line');
-        if (summaryLine) {
+        // Add click handler for popover (once per line element — an unchanged
+        // custom summary keeps its elements).
+        const summaryLine = this.summaryEl.querySelector<HTMLElement>('.dz__summary-line');
+        if (summaryLine && !summaryLine.dataset.dzBoundSummary) {
+            summaryLine.dataset.dzBoundSummary = '1';
             summaryLine.addEventListener('click', () => {
                 if (!this.config.isDisabled) this.togglePopover();
             });
@@ -1782,6 +1678,18 @@ export class WebDropzone extends DropzoneEngine {
                 }
             });
         }
+    }
+
+    /** The built-in summary line: status icon + "N files (size)" — opens the popover. */
+    private renderDefaultSummary(): string {
+        const totalSize = this.files.reduce((sum, f) => sum + f.size, 0);
+        const text = this.label('summary', { count: this.files.length, size: formatFileSize(totalSize) });
+        return `
+            <div class="dz__summary-line" ${this.config.isDisabled ? 'tabindex="-1" aria-disabled="true"' : 'tabindex="0"'} role="button" aria-label="${escapeHtml(this.label('viewFiles'))}">
+                ${this.renderSummaryIcon()}
+                <span class="dz__summary-text">${escapeHtml(text)}</span>
+            </div>
+        `;
     }
 
     /**

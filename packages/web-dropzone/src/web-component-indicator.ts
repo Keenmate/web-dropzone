@@ -27,11 +27,11 @@
  * is replaceable independently — you can override progress but keep the
  * built-in file info, or vice versa.
  *
- * Memoization is consistent across all three callbacks (see
- * `applyStatusSurfaceResult`): string returns are skipped when equal to
- * the previous string; element returns are skipped when the returned
- * node is already mounted as the only child. That's what lets a cached
- * loader survive across 50ms progress ticks without restarting.
+ * All three callbacks go through core `renderSlot` (`applySurfaceSlot`):
+ * string = HTML (skipped when equal to the previous string), Node = mounted
+ * (skipped when already the only child), `null` / `undefined` = the default,
+ * `false` = hidden. That's what lets a cached loader survive across 50ms
+ * progress ticks without restarting.
  */
 
 import styles from './css/main.css?inline';
@@ -49,13 +49,10 @@ import {
     fileStatusLabel,
     statusLabel
 } from '@keenmate/web-dropzone-core';
-import { adoptStyles, animateOut, createMicrotaskScheduler, renderLoader, SHEET_CHROME_CSS, startModalSession, startPanelSession, toEnum, toFunction, type InputDef, type ModalSession, type PanelSession, type PanelDismissReason } from '@keenmate/web-components-core';
+import { adoptStyles, animateOut, createMicrotaskScheduler, renderLoader, renderSlot, SHEET_CHROME_CSS, startModalSession, startPanelSession, toEnum, toFunction, type InputDef, type ModalSession, type PanelSession, type PanelDismissReason } from '@keenmate/web-components-core';
 import { isPhoneSheet } from './phone-sheet';
 import { createPopover, type PopoverHandle } from '@keenmate/web-components-core/positioning';
-import {
-    buildStatusSurfaceArgs,
-    StatusSurface
-} from './status-surface';
+import { applySurfaceSlot, buildStatusSurfaceArgs } from './status-surface';
 import type {
     StatusSurfaceArgs,
     StatusSurfaceCallback
@@ -78,9 +75,9 @@ const INPUTS: readonly InputDef[] = [
     { configKey: 'position', attribute: 'position', converter: toEnum(POSITIONS, { default: 'right' }), shouldReflect: true, on: 'update', description: 'Where the chip sits: fixed to a viewport edge (right, left, top, bottom) or inline in the page flow.' },
     { configKey: 'drawer', attribute: 'drawer', converter: toEnum(DRAWER_MODES, { default: 'auto' }), shouldReflect: true, on: 'update', description: '`auto`: the chip is a button opening a slide-out drawer with the full file list; `off`: a non-interactive `role="status"` chip, no drawer.' },
     { configKey: 'drawerMode', attribute: 'drawer-mode', converter: toEnum(DRAWER_PRESENTATIONS, { default: 'non-modal' }), shouldReflect: true, on: 'update', description: 'How an edge drawer (`position` right / left / top / bottom) opens. `non-modal` (default): the page stays usable — Escape, a click outside or the phone Back gesture close it. `modal`: a backdrop, the page behind inert, Tab kept inside; Escape, a backdrop click or Back close it. A change while the drawer is open applies on the next open. The inline drop-down and the phone sheet are unaffected.' },
-    { configKey: 'renderBodyCallback', converter: toFunction(), on: 'update', type: 'StatusSurfaceCallback | null', description: 'Replace the whole chip body (`args`: `StatusSurfaceArgs`). Return a string / element, `null` for the default, `false` to hide the chip. When set, the default file-info / progress slots are not mounted.' },
-    { configKey: 'renderFileInfoCallback', converter: toFunction(), on: 'update', type: 'StatusSurfaceCallback | null', description: 'Replace the chip\'s file-info slot (default body only). `args.currentFile`, `currentFilePercent`, `currentFileStatus`.' },
-    { configKey: 'renderProgressCallback', converter: toFunction(), on: 'update', type: 'StatusSurfaceCallback | null', description: 'Replace the chip\'s progress slot (default body only): per-file and overall slices.' },
+    { configKey: 'renderBodyCallback', converter: toFunction(), on: 'update', type: 'StatusSurfaceCallback | null', description: 'Replace the whole chip body (`args`: `StatusSurfaceArgs`). Result: string = HTML, Node = mounted, `null` / `undefined` = the default body, `false` = the chip hidden. A custom body replaces the default file-info / progress slots.' },
+    { configKey: 'renderFileInfoCallback', converter: toFunction(), on: 'update', type: 'StatusSurfaceCallback | null', description: 'Replace the chip\'s file-info slot (default body only). `args.currentFile`, `currentFilePercent`, `currentFileStatus`. Result: string = HTML, Node = mounted, `null` / `undefined` = the default status glyph / loader, `false` = hidden.' },
+    { configKey: 'renderProgressCallback', converter: toFunction(), on: 'update', type: 'StatusSurfaceCallback | null', description: 'Replace the chip\'s progress slot (default body only): per-file and overall slices. Result: string = HTML, Node = mounted, `null` / `undefined` = the default percent, `false` = hidden.' },
 ];
 
 /** Every `<web-dropzone-indicator>` input, keyed by `configKey` (its typed properties). */
@@ -130,12 +127,6 @@ export class DropzoneIndicatorElement extends SatelliteElement {
     private fileInfoSlotEl: HTMLElement | null = null;
     private progressSlotEl: HTMLElement | null = null;
 
-    /**
-     * Per-callback memoization snapshots. See `applyStatusSurfaceResult`.
-     * One entry per slot — when a callback returns the same value two
-     * ticks in a row the slot's DOM is left untouched.
-     */
-    private surface = new StatusSurface();
     /** Snapshot of the last default-body state, used to skip rebuilds. */
     private bodyDefaultMounted = false;
 
@@ -186,7 +177,6 @@ export class DropzoneIndicatorElement extends SatelliteElement {
     }
 
     private resetMemoization(): void {
-        this.surface.reset();
         this.bodyDefaultMounted = false;
     }
 
@@ -219,8 +209,6 @@ export class DropzoneIndicatorElement extends SatelliteElement {
             this.bindEmbeddedList();
         }
         if ('renderBodyCallback' in partial) this.resetMemoization();
-        if ('renderFileInfoCallback' in partial) this.surface.resetFileInfo();
-        if ('renderProgressCallback' in partial) this.surface.resetProgress();
         if (this.store) this.scheduleRefresh();
     }
 
@@ -424,36 +412,23 @@ export class DropzoneIndicatorElement extends SatelliteElement {
             this.chipEl.disabled = !!this.store.getConfig().isDisabled;
         }
 
-        // ---- Body callback (or default) ---------------------------------
-        const bodyResult = this.bodyCallback
-            ? this.bodyCallback(args)
-            : null;
-
-        const { current } = this.surface.applyBody(this.chipEl, bodyResult);
-        if (current === 'hidden') {
-            this.bodyDefaultMounted = false;
-            return;
-        }
-        if (current === 'custom') {
-            this.chipEl.hidden = false;
-            this.bodyDefaultMounted = false;
-            return;
-        }
-
-        // current === 'default' — render the polished OOB body. Build slots
-        // once and patch in place from there.
-        this.chipEl.hidden = false;
-        if (!this.bodyDefaultMounted
-            || !this.fileInfoSlotEl
-            || !this.progressSlotEl
-            || this.fileInfoSlotEl.parentNode !== this.chipEl) {
-            this.buildDefaultBodyShell(args);
-            // Reset slot memoization so the next callback call writes
-            // fresh content into the just-built slots.
-            this.surface.resetSlots();
-        }
-        this.refreshFileInfoSlot(args);
-        this.refreshProgressSlot(args);
+        // ---- Body callback (or default) — core renderSlot ----------------
+        const body = this.bodyCallback;
+        const kind = renderSlot(this.chipEl, body ? () => body(args) : null, {
+            // The polished OOB body: slots built once, patched in place after.
+            renderDefault: () => {
+                if (!this.bodyDefaultMounted
+                    || !this.fileInfoSlotEl
+                    || !this.progressSlotEl
+                    || this.fileInfoSlotEl.parentNode !== this.chipEl) {
+                    this.buildDefaultBodyShell(args);
+                }
+                this.refreshFileInfoSlot(args);
+                this.refreshProgressSlot(args);
+            },
+        });
+        // A custom / hidden body replaced (or emptied) the default shell.
+        if (kind !== 'default') this.bodyDefaultMounted = false;
     }
 
     /**
@@ -496,26 +471,14 @@ export class DropzoneIndicatorElement extends SatelliteElement {
 
     private refreshFileInfoSlot(args: StatusSurfaceArgs): void {
         if (!this.fileInfoSlotEl) return;
-        const result = this.fileInfoCallback
-            ? this.fileInfoCallback(args)
-            : null;
-        this.surface.applyFileInfo(
-            this.fileInfoSlotEl,
-            result,
-            () => this.defaultFileInfo(args)
-        );
+        const cb = this.fileInfoCallback;
+        applySurfaceSlot(this.fileInfoSlotEl, cb ? () => cb(args) : null, () => this.defaultFileInfo(args));
     }
 
     private refreshProgressSlot(args: StatusSurfaceArgs): void {
         if (!this.progressSlotEl) return;
-        const result = this.progressCallback
-            ? this.progressCallback(args)
-            : null;
-        this.surface.applyProgress(
-            this.progressSlotEl,
-            result,
-            () => this.defaultProgress(args)
-        );
+        const cb = this.progressCallback;
+        applySurfaceSlot(this.progressSlotEl, cb ? () => cb(args) : null, () => this.defaultProgress(args));
 
         // The label sits between the two slots and reads from the
         // aggregate. Auto-hide it when the consumer has provided either a
@@ -571,7 +534,7 @@ export class DropzoneIndicatorElement extends SatelliteElement {
      * filled by core `renderLoader()` — the store's `renderLoadingCallback`,
      * else `window.components.renderLoadingCallback`, else the default
      * `.dz__loader`. Drawn once per upload run and reused across refreshes so
-     * the animation never restarts (`applyStatusSurfaceResult` short-circuits
+     * the animation never restarts (`applySurfaceSlot` short-circuits
      * when the returned element is already mounted); released (hook cleanup)
      * when the focal file stops uploading or the store binding goes away.
      */

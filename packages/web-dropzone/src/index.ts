@@ -25,6 +25,7 @@ export type {
     StatusSurfaceArgs,
     StatusSurfaceCallback,
     StatusSurfaceResult,
+    RenderCallbackResult,
     StatusAggregate
 } from '@keenmate/web-dropzone-core';
 export { STATUS_ICONS, ACTION_ICONS, CANCEL_ICON, actionForStatus } from '@keenmate/web-dropzone-core';

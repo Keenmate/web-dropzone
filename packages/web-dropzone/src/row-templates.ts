@@ -248,16 +248,20 @@ export function renderListItem(file: FileState, opts: RowTemplateOptions = {}): 
             ${showPart(p, 'name') ? `<span class="dz__file-item-name">${escapeHtml(file.name)}</span>` : ''}
             ${showPart(p, 'action') ? renderRowActionButton(file, 'dz__file-item-action', label, opts.isDisabled) : ''}
             ${showPart(p, 'cancel') ? renderCancelButton(file, 'dz__file-item-action', opts) : ''}
-            ${showPart(p, 'progress') ? `<div class="dz__file-item-progress">
-                <div class="dz__file-item-progress-bar">
-                    <div class="dz__file-item-progress-fill" style="width: ${file.progress}%"></div>
-                </div>
-                <span class="dz__file-item-progress-text">${escapeHtml(progressLabel(file, label))}</span>
-            </div>` : ''}
+            ${showPart(p, 'progress') ? `<div class="dz__file-item-progress">${listProgressInner(file, label)}</div>` : ''}
             ${showPart(p, 'status') ? renderStatusPill(file, 'dz__file-item-status', label) : ''}
             ${showPart(p, 'remove') ? renderRemoveButton(file, 'dz__file-item-remove', removable, opts.removeIcon, label, opts.isDisabled) : ''}
         </div>
     `;
+}
+
+/**
+ * The inside of a list row's `.dz__file-item-progress` block (bar + text) —
+ * also what the rolling progress slot restores when its callback goes back
+ * to the default.
+ */
+export function listProgressInner(file: FileState, label: LabelFn = defaultLabel): string {
+    return `<div class="dz__file-item-progress-bar"><div class="dz__file-item-progress-fill" style="width: ${file.progress}%"></div></div><span class="dz__file-item-progress-text">${escapeHtml(progressLabel(file, label))}</span>`;
 }
 
 export function renderDetailedItem(file: FileState, opts: RowTemplateOptions = {}): string {

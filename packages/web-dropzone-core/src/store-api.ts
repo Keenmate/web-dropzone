@@ -62,16 +62,17 @@ export interface StatusSurfaceArgs extends DropzoneContext {
 }
 
 /**
- * Universal render-part return type. See `renderer/status-surface.ts` for
- * the memoization semantics:
- *   - `null` / `undefined` → library default
- *   - `false`              → hide this part (or, for body, the whole surface)
- *   - `string`             → set as `innerHTML` (memoized: skipped when
- *                            equal to the previous string)
- *   - `HTMLElement`        → replace children (identity-checked: skipped
- *                            when the returned node is already mounted)
+ * What every `render*Callback` returns — read by core `renderSlot` (SPEC §12.35),
+ * the same in every Keenmate component:
+ *   - `string`             → HTML (skipped when equal to the previous string)
+ *   - `Node`               → mounted (skipped when it is already the only child)
+ *   - `null` / `undefined` → the library default
+ *   - `false`              → hidden (for a surface body, the whole surface)
  */
-export type StatusSurfaceResult = string | HTMLElement | false | null | undefined;
+export type RenderCallbackResult = string | Node | false | null | undefined;
+
+/** A status-surface part's result — {@link RenderCallbackResult}. */
+export type StatusSurfaceResult = RenderCallbackResult;
 
 /**
  * One render callback. Three of these (body / fileInfo / progress) are

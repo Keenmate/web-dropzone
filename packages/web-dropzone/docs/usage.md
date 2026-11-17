@@ -158,13 +158,13 @@ Properties with no attribute (objects, callbacks, read-only state). Callbacks ar
 | `retryPolicy` | `RetryPolicy` | Retry policy applied when uploadFileCallback rejects. Property-only object. |
 | `fileIcons` | `Record<string, string>` | Icon overrides keyed by extension or category (raw HTML — NOT sanitized). Property-only object. |
 | `getFileIconCallback` | `(ctx: FileIconContext) => string \| null \| undefined` | Full-control file-icon resolver (raw HTML — NOT sanitized). `ctx`: `{ file }`. Return null to fall back to fileIcons / category. |
-| `renderFileItemCallback` | `(ctx: FileItemRenderContext) => string \| HTMLElement` | Custom render for a single file row (structural mode). `ctx`: `{ file, fileIndex, displayMode, isInPopover }`. |
-| `renderListWrapperCallback` | `(ctx: ListWrapperRenderContext) => string \| HTMLElement` | Custom wrapper around the rendered file rows (structural mode). `ctx`: `{ rowsHtml, files }`. |
-| `renderPromptCallback` | `(ctx: PromptRenderContext) => string \| HTMLElement` | Custom render for the drop-area prompt (structural mode). `ctx`: context only. |
-| `renderSummaryCallback` | `(ctx: SummaryRenderContext) => string \| HTMLElement` | Custom render for the compact-mode summary (structural mode). `ctx`: `{ files }`. |
-| `renderRollingBodyCallback` | `StatusSurfaceCallback` | Rolling list appearance (structural mode): replace the whole rolling body. `ctx`: `StatusSurfaceArgs`. `null` → default, `false` → hide. |
-| `renderRollingFileInfoCallback` | `StatusSurfaceCallback` | Rolling list appearance (structural mode): the file-info slot of the current row. `ctx`: `StatusSurfaceArgs`. |
-| `renderRollingProgressCallback` | `StatusSurfaceCallback` | Rolling list appearance (structural mode): the progress slot of the current row. `ctx`: `StatusSurfaceArgs`. |
+| `renderFileItemCallback` | `(ctx: FileItemRenderContext) => RenderCallbackResult` | Custom render for a single file row (structural mode). `ctx`: `{ file, fileIndex, displayMode, isInPopover }`. Result: string = the row HTML, HTMLElement = the row itself (kept; `file-row-update` fires on it), `null` / `undefined` = the built-in row, `false` = no row. |
+| `renderListWrapperCallback` | `(ctx: ListWrapperRenderContext) => RenderCallbackResult` | Custom wrapper around the rendered file rows (structural mode). `ctx`: `{ rowsHtml, files }`. Result: string = HTML, Node = mounted, `null` / `undefined` = the plain rows, `false` = the list hidden. |
+| `renderPromptCallback` | `(ctx: PromptRenderContext) => RenderCallbackResult` | Custom render for the drop-area prompt (structural mode). `ctx`: context only. Result: string = HTML, Node = its markup (serialized), `null` / `undefined` = the built-in prompt, `false` = no prompt. |
+| `renderSummaryCallback` | `(ctx: SummaryRenderContext) => RenderCallbackResult` | Custom render for the compact-mode summary (structural mode). `ctx`: `{ files }`. Result: string = HTML, Node = mounted, `null` / `undefined` = the built-in summary line, `false` = hidden. See [Render callback results](#render-callback-results). |
+| `renderRollingBodyCallback` | `StatusSurfaceCallback` | Rolling list appearance (structural mode): replace the whole rolling body. `ctx`: `StatusSurfaceArgs`. Result: string = HTML, Node = mounted, `null` / `undefined` = the built-in rolling block, `false` = hidden. See [Render callback results](#render-callback-results). |
+| `renderRollingFileInfoCallback` | `StatusSurfaceCallback` | Rolling list appearance (structural mode): the file-info slot of the current row. `ctx`: `StatusSurfaceArgs`. Result: string = HTML, Node = mounted, `null` / `undefined` = the built-in file name, `false` = hidden. See [Render callback results](#render-callback-results). |
+| `renderRollingProgressCallback` | `StatusSurfaceCallback` | Rolling list appearance (structural mode): the progress slot of the current row. `ctx`: `StatusSurfaceArgs`. Result: string = HTML, Node = mounted, `null` / `undefined` = the built-in bar + percent, `false` = hidden. See [Render callback results](#render-callback-results). |
 | `renderLoadingCallback` | `(ctx: LoaderRenderContext) => void \| (() => void)` | Draw the upload loader of the bound `<web-dropzone-indicator>` chip (`ctx.context` = `upload`): fill `ctx.containerElement`, optionally return a cleanup. Beats the page-wide `window.components.renderLoadingCallback`; unset = that, else the default `.dz__loader` (the shared `--base-loader-*` contract). The tiny per-row / summary loaders are CSS-only (`--dz-loader-*` tokens). Read when a loader is drawn. |
 | `getCustomStylesCallback` | `(ctx: CustomStylesContext) => string \| null \| undefined` | Returns extra CSS for the shadow root (raw CSS — NOT sanitized); wins over `customStyles`. Re-run on every build and when `customStyles` / this callback change. `ctx`: context only (`controller`, `element`). |
 | `loadStateCallback` | `LoadStateCallback<DropzoneState>` | Persisted UI state source (core SPEC §12.17): `(ctx) => DropzoneState \| null \| Promise<…>`, `ctx`: `{ key }` + context. Set both callbacks; either one alone switches `localStorage` off. Read when the popover first opens. |
@@ -317,14 +317,30 @@ Every callback takes **one** `ctx` object that also carries `controller` / `elem
 | `beforeActionCallback` | the `action` event detail (`{ action, item, source, file?, files, … }`) | `false` cancels the button (no `onClick`, no built-in, no `action` event); runs before the per-purpose gates above |
 | `uploadFileCallback` | `{ file, signal, setProgress, startBytes, startPercent, metadata, setMetadata, uploadMetadata }` | `Promise<void \| { metadata, downloadUrl, previewUrl, name }>` |
 | `getFileIconCallback` | `{ file }` | icon HTML, or `null` to fall through |
-| `renderFileItemCallback` | `{ file, fileIndex, displayMode, isInPopover }` | `string \| HTMLElement` (structural mode) |
-| `renderListWrapperCallback` | `{ rowsHtml, files }` | `string \| HTMLElement` (structural mode) |
-| `renderPromptCallback` | context only | `string \| HTMLElement` (structural mode) |
-| `renderSummaryCallback` | `{ files }` | `string \| HTMLElement` (structural mode) |
-| `renderRolling{Body,FileInfo,Progress}Callback` | `StatusSurfaceArgs` (`currentFile`, `aggregate`, `overallPercent`, …) | `string \| HTMLElement \| false \| null` (structural mode, rolling list) |
+| `renderFileItemCallback` | `{ file, fileIndex, displayMode, isInPopover }` | `RenderCallbackResult` (structural mode) |
+| `renderListWrapperCallback` | `{ rowsHtml, files }` | `RenderCallbackResult` (structural mode) |
+| `renderPromptCallback` | context only | `RenderCallbackResult` (structural mode) |
+| `renderSummaryCallback` | `{ files }` | `RenderCallbackResult` (structural mode) |
+| `renderRolling{Body,FileInfo,Progress}Callback` | `StatusSurfaceArgs` (`currentFile`, `aggregate`, `overallPercent`, …) | `RenderCallbackResult` (structural mode, rolling list) |
 | `getCustomStylesCallback` | context only | CSS string injected into the shadow root |
 | `renderLoadingCallback` | `{ component, context: 'upload', containerElement, element, label }` | fill `containerElement`; optional cleanup function — the indicator chip's upload loader (beats `window.components.renderLoadingCallback`) |
 | `saveStateCallback` / `loadStateCallback` | `{ key, state }` (the WHOLE state) / `{ key }` | — / `DropzoneState \| null` (may be async) |
+
+### Render callback results
+
+Every `render*Callback` (the four above, the rolling trio and the indicator's
+`render{Body,FileInfo,Progress}Callback`) returns a `RenderCallbackResult`, read by core
+`renderSlot` the same way in every Keenmate component:
+
+| Result | Renders as |
+|--------|-----------|
+| a string | HTML (an unchanged string isn't rewritten) |
+| a Node (`HTMLElement`, fragment) | mounted — listeners survive; returned again unchanged, it isn't touched (a cached spinner keeps animating) |
+| `null` / `undefined` | the built-in rendering |
+| `false` | hidden (the slot emptied + `hidden`; a row: no row) |
+
+Where the result lands inside an HTML string (`renderPromptCallback`, a row in the popover or
+under `renderListWrapperCallback`) a Node is serialized — markup only, listeners don't survive.
 
 ```javascript
 dropzone.beforeFilesAddCallback = async ({ files }) => {
@@ -814,9 +830,9 @@ The shared inputs, plus:
 | `position` | `position` | `right` \| `left` \| `top` \| `bottom` \| `inline` | `right` | Fixed to a viewport edge, or inline in the flow |
 | `drawer` | `drawer` | `auto` \| `off` | `auto` | `auto`: the chip is a button toggling a slide-out drawer (`role="dialog"`) with the file list; `off`: a non-interactive `role="status"` chip |
 | `drawer-mode` | `drawerMode` | `non-modal` \| `modal` | `non-modal` | How an edge drawer opens: `non-modal` keeps the page usable; `modal` adds a backdrop, an inert page and a <kbd>Tab</kbd> trap. A change while it is open applies on the next open |
-| — | `renderBodyCallback` | `StatusSurfaceCallback \| null` |  | Replace the whole chip body; `false` hides the chip |
-| — | `renderFileInfoCallback` | `StatusSurfaceCallback \| null` |  | Replace the chip's file-info slot (default body only) |
-| — | `renderProgressCallback` | `StatusSurfaceCallback \| null` |  | Replace the chip's progress slot (default body only) |
+| — | `renderBodyCallback` | `StatusSurfaceCallback \| null` |  | Replace the whole chip body: string = HTML, Node = mounted, `null` / `undefined` = the default body, `false` = the chip hidden |
+| — | `renderFileInfoCallback` | `StatusSurfaceCallback \| null` |  | Replace the chip's file-info slot (default body only): string = HTML, Node = mounted, `null` / `undefined` = the default glyph / loader, `false` = hidden |
+| — | `renderProgressCallback` | `StatusSurfaceCallback \| null` |  | Replace the chip's progress slot (default body only): string = HTML, Node = mounted, `null` / `undefined` = the default percent, `false` = hidden |
 
 Indicator strings (`labels`): `indicatorTitle`, `indicatorIdle`, `indicatorStatus` / `indicatorQueue`
 (aria), `close`, `indicatorFailed` / `…Uploading` / `…Paused` / `…Queued` / `…Done`.
@@ -836,13 +852,15 @@ contract below.
 ### Status-surface contract
 
 The indicator's callbacks and `<web-dropzone>`'s `renderRolling{Body,FileInfo,Progress}Callback`
-share one shape: `(args: StatusSurfaceArgs) => string | HTMLElement | false | null | undefined`.
+share one shape: `(args: StatusSurfaceArgs) => RenderCallbackResult`.
 `args`: `currentFile` (first uploading / cancelling, else first pending, else first paused / error /
 cancelled, else the last file), `currentFilePercent`, `currentFileStatus`, `aggregate`
 (`{ total, uploading, paused, pending, complete, error, cancelled, overallStatus }`),
 `overallPercent` (byte-weighted, rounded), `overallStatus`, `files`, plus `controller` / `element`.
-Returns: `null` / `undefined` = the library default; `false` = hide; a string = `innerHTML` (skipped
-when equal to the last one); an `HTMLElement` = mounted (skipped when already the slot's only child).
+Returns (core `renderSlot`, see [Render callback results](#render-callback-results)): a string = HTML
+(skipped when equal to the last one); a Node = mounted (skipped when already the slot's only child);
+`null` / `undefined` = the library default; `false` = hidden. One renderer draws the rolling block for
+both `<web-dropzone>` and `<web-dropzone-list>`.
 
 ## Logging
 

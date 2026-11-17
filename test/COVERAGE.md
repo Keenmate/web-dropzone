@@ -450,3 +450,14 @@ Every spec runs in three Playwright projects — chromium, firefox and webkit
 | Read-only button + popover: calls from code still add; the file list opens, the dialog never | ✓ | `core-alignment.spec.ts` | `core-alignment.html` |
 | Disabled card: the input is `disabled` (not focusable)          | ✓     | `core-alignment.spec.ts` | `core-alignment.html` |
 | Properties set before the upgrade apply (store, picker, indicator `renderBodyCallback`); the accessors are no longer shadowed | ✓ | `pre-upgrade.spec.ts` | `pre-upgrade.html` |
+
+## 26. Render callback results (core `renderSlot`)
+
+| Behaviour | Status | Spec | Fixture |
+|-----------|--------|------|---------|
+| `renderFileItemCallback`: string row, `null` built-in row, `false` no row | ✓ | `render-slots.spec.ts` | `render-slots.html` |
+| `renderPromptCallback`: `null` default, string, `false` no prompt | ✓ | `render-slots.spec.ts` | `render-slots.html` |
+| `renderListWrapperCallback`: `null` plain rows, Node mounted, `false` hidden | ✓ | `render-slots.spec.ts` | `render-slots.html` |
+| `renderSummaryCallback`: Node mounted (listener survives), `null` default, `false` hidden | ✓ | `render-slots.spec.ts` | `render-slots.html` |
+| Rolling body / file-info (store + list satellite, one renderer) | ✓ | `render-slots.spec.ts` | `render-slots.html` |
+| Indicator `renderFileInfoCallback`: string, `false`, `null` | ✓ | `render-slots.spec.ts` | `render-slots.html` |
