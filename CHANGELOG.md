@@ -75,6 +75,7 @@ Needs `@keenmate/web-components-core` `^1.0.0-rc25`.
   `var(--base-z-popover, 7600)`; the inline drawer uses `--dz-popover-z-index`, the edge drawer
   core's modal tier (was `99999`).
 - **`el.controller` is core's `createControllerFacade` and is now frozen** — same members (methods, `isReady`, `hasActiveUploads`, empty answers before the first build); adding or overwriting properties on it no longer sticks (throws in strict mode).
+- **Custom Elements Manifest + editor data regenerated** (`custom-elements.json`, `vscode.*-custom-data.json`, `web-types.json`) — no longer list the removed `page-file-drag.ts`; pick up the current inputs, descriptions and `--dz-*` variables.
 
 ### Internal — core 1.0.0-rc24 (2026-11-15)
 - core `^1.0.0-rc24` (was `^1.0.0-rc22`).

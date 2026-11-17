@@ -70,19 +70,23 @@
             },
             {
               "kind": "field",
-              "name": "popoverPhoneQuery",
+              "name": "stopPopoverPhoneWatch",
               "type": {
-                "text": "MediaQueryList | null"
+                "text": "(() => void) | null"
               },
               "privacy": "private",
               "default": "null",
-              "description": "The phone-line query while the popover is open (a sheet below it, un-anchored)."
+              "description": "Follows core's phone presentation while the popover is open (a sheet on a phone, un-anchored)."
             },
             {
               "kind": "field",
-              "name": "onPopoverPhoneChange",
+              "name": "popoverSheetSession",
+              "type": {
+                "text": "SheetSession | null"
+              },
               "privacy": "private",
-              "readonly": true
+              "default": "null",
+              "description": "Core sheet session while the popover is a phone sheet: Back closes it, page scroll locked, keyboard inset."
             },
             {
               "kind": "field",
@@ -230,52 +234,27 @@
                 "text": "HTMLElement | null"
               },
               "privacy": "private",
-              "default": "null"
+              "default": "null",
+              "description": "The overlay's element (inside its core layer) while a file drag is over the page."
             },
             {
               "kind": "field",
-              "name": "overlayLastDragoverAt",
+              "name": "overlayLayer",
               "type": {
-                "text": "number"
-              },
-              "privacy": "private",
-              "default": "0"
-            },
-            {
-              "kind": "field",
-              "name": "overlayHeartbeatTimer",
-              "type": {
-                "text": "ReturnType<typeof setInterval> | null"
+                "text": "Layer | null"
               },
               "privacy": "private",
               "default": "null"
             },
             {
               "kind": "field",
-              "name": "boundOverlayWindowDragover",
-              "type": {
-                "text": "((e: DragEvent) => void) | null"
-              },
-              "privacy": "private",
-              "default": "null"
-            },
-            {
-              "kind": "field",
-              "name": "boundOverlayWindowDragend",
+              "name": "stopOverlayDragWatch",
               "type": {
                 "text": "(() => void) | null"
               },
               "privacy": "private",
-              "default": "null"
-            },
-            {
-              "kind": "field",
-              "name": "boundOverlayDragEndedSignal",
-              "type": {
-                "text": "(() => void) | null"
-              },
-              "privacy": "private",
-              "default": "null"
+              "default": "null",
+              "description": "Core `watchPageDrag` subscription while an overlay target is set up."
             },
             {
               "kind": "field",
@@ -323,14 +302,6 @@
               "name": "boundHandleInputChange",
               "type": {
                 "text": "(e: Event) => void"
-              },
-              "privacy": "private"
-            },
-            {
-              "kind": "field",
-              "name": "boundHandleOverlayDragEnter",
-              "type": {
-                "text": "(e: DragEvent) => void"
               },
               "privacy": "private"
             },
@@ -1492,7 +1463,7 @@
                   "text": "boolean"
                 }
               },
-              "description": "Whether the open popover is a phone sheet (below the 600px line, css/sheet.css)."
+              "description": "Whether the open popover is a phone sheet (core's device classification, css/sheet.css)."
             },
             {
               "kind": "method",
@@ -1705,21 +1676,25 @@
             },
             {
               "kind": "method",
-              "name": "handleOverlayDragEnter",
+              "name": "showOverlay",
               "privacy": "private",
               "return": {
                 "type": {
                   "text": "void"
                 }
+              }
+            },
+            {
+              "kind": "field",
+              "name": "OVERLAY_VARS",
+              "type": {
+                "text": "array"
               },
-              "parameters": [
-                {
-                  "name": "e",
-                  "type": {
-                    "text": "DragEvent"
-                  }
-                }
-              ]
+              "privacy": "private",
+              "static": true,
+              "readonly": true,
+              "default": "[ '--dz-overlay-bg', '--dz-overlay-border', '--dz-overlay-border-radius', '--dz-overlay-color', '--dz-overlay-gap', '--dz-overlay-icon-size', '--dz-overlay-text-font-size', '--dz-overlay-text-font-weight', '--dz-overlay-z-index', '--dz-overlay-hover-filter', '--dz-overlay-hover-border', '--dz-overlay-hover-shadow', '--dz-accent-color', '--dz-text-on-accent', '--dz-dropzone-border-radius', '--dz-shadow-color', '--dz-transition-normal', '--dz-transition-fast', '--dz-easing-out', '--dz-easing-snappy', '--dz-rem', ]",
+              "description": "The `--dz-*` tokens the overlay reads — core's `createLayer` `cssVars`\ncopies the host's computed values onto the layer (a layer isn't the host's\ndescendant, so per-instance overrides wouldn't reach it otherwise). The\nlayer's own shadow root carries the component stylesheet, whose `:host`\ndefaults apply when the host has nothing of its own."
             },
             {
               "kind": "method",
@@ -1730,11 +1705,6 @@
                   "text": "void"
                 }
               }
-            },
-            {
-              "kind": "field",
-              "name": "handleOverlayKeyDown",
-              "privacy": "private"
             },
             {
               "kind": "method",
@@ -2615,11 +2585,21 @@
     },
     {
       "kind": "javascript-module",
-      "path": "src/page-file-drag.ts",
+      "path": "src/phone-sheet.ts",
       "declarations": [
         {
           "kind": "function",
-          "name": "subscribePageFileDrag",
+          "name": "isPhoneSheet",
+          "return": {
+            "type": {
+              "text": "boolean"
+            }
+          },
+          "description": "Whether an overlay panel opened now is a full-screen phone sheet."
+        },
+        {
+          "kind": "function",
+          "name": "observePhoneSheet",
           "return": {
             "type": {
               "text": "() => void"
@@ -2629,135 +2609,27 @@
             {
               "name": "listener",
               "type": {
-                "text": "PageFileDragListener"
+                "text": "(isSheet: boolean) => void"
               }
             }
           ],
-          "description": "Subscribe to page-wide file drags. The listener is NOT called with the\ncurrent state on subscribe — read isPageFileDragActive for that.\nReturns the unsubscribe function (idempotent)."
-        },
-        {
-          "kind": "function",
-          "name": "isPageFileDragActive",
-          "return": {
-            "type": {
-              "text": "boolean"
-            }
-          },
-          "description": "True while a file drag is in progress over the page (only tracked while someone is subscribed)."
-        },
-        {
-          "kind": "variable",
-          "name": "ARMED_STATE",
-          "type": {
-            "text": "string"
-          },
-          "default": "'armed'",
-          "description": "The host attribute / custom state that marks an armed drop target."
-        },
-        {
-          "kind": "function",
-          "name": "applyArmedState",
-          "return": {
-            "type": {
-              "text": "void"
-            }
-          },
-          "parameters": [
-            {
-              "name": "host",
-              "type": {
-                "text": "HTMLElement"
-              }
-            },
-            {
-              "name": "internals",
-              "type": {
-                "text": "ElementInternals | null"
-              }
-            },
-            {
-              "name": "isArmed",
-              "type": {
-                "text": "boolean"
-              }
-            }
-          ],
-          "description": "Expose the armed state on a host the way core exposes `ready`: the `armed`\nattribute (the portable CSS hook, `:host([armed])`) plus `:state(armed)`\nwhen the engine has CustomStateSet."
+          "description": "Follow the phone presentation while a panel is open: `listener(isSheet)` on\nevery device / breakpoint change (not called on subscribe). Returns the\nunsubscribe."
         }
       ],
       "exports": [
         {
           "kind": "js",
-          "name": "subscribePageFileDrag",
+          "name": "isPhoneSheet",
           "declaration": {
-            "name": "subscribePageFileDrag",
-            "module": "src/page-file-drag.ts"
-          }
-        },
-        {
-          "kind": "js",
-          "name": "isPageFileDragActive",
-          "declaration": {
-            "name": "isPageFileDragActive",
-            "module": "src/page-file-drag.ts"
-          }
-        },
-        {
-          "kind": "js",
-          "name": "ARMED_STATE",
-          "declaration": {
-            "name": "ARMED_STATE",
-            "module": "src/page-file-drag.ts"
-          }
-        },
-        {
-          "kind": "js",
-          "name": "applyArmedState",
-          "declaration": {
-            "name": "applyArmedState",
-            "module": "src/page-file-drag.ts"
-          }
-        }
-      ]
-    },
-    {
-      "kind": "javascript-module",
-      "path": "src/phone-sheet.ts",
-      "declarations": [
-        {
-          "kind": "variable",
-          "name": "PHONE_MEDIA_QUERY",
-          "type": {
-            "text": "string"
-          },
-          "default": "'(max-width: 600px)'",
-          "description": "The phone line of the overlay panels (responsive-overlay.md D-RO-3 = A, 600px).\nBelow it the indicator drawer and the compact popover are full-screen sheets —\ndrawn by `css/sheet.css` (`@media (max-width: 600px)`, the same literal); the\npopover reads this query to un-anchor itself so the sheet CSS places it."
-        },
-        {
-          "kind": "function",
-          "name": "getPhoneMediaQuery",
-          "return": {
-            "type": {
-              "text": "MediaQueryList | null"
-            }
-          },
-          "description": "The phone-line media query list, or `null` without `matchMedia` (SSR, old jsdom)."
-        }
-      ],
-      "exports": [
-        {
-          "kind": "js",
-          "name": "PHONE_MEDIA_QUERY",
-          "declaration": {
-            "name": "PHONE_MEDIA_QUERY",
+            "name": "isPhoneSheet",
             "module": "src/phone-sheet.ts"
           }
         },
         {
           "kind": "js",
-          "name": "getPhoneMediaQuery",
+          "name": "observePhoneSheet",
           "declaration": {
-            "name": "getPhoneMediaQuery",
+            "name": "observePhoneSheet",
             "module": "src/phone-sheet.ts"
           }
         }
@@ -3921,7 +3793,7 @@
               },
               "privacy": "protected",
               "readonly": true,
-              "description": "UI strings: own `labels` → the bound store's `labels` → built-in English."
+              "description": "UI strings (core `/locale`): own `labels` → the page-wide labels of this\nsatellite's tag → the bound store's `labels` → the page-wide\n`web-dropzone` labels → built-in English."
             },
             {
               "kind": "method",
@@ -4783,7 +4655,27 @@
               },
               "privacy": "private",
               "default": "null",
-              "description": "Core `createPopover()` handle of the drawer (null when `drawer=\"off\"`): kept\nmounted and un-anchored (the drawer CSS places it), it only joins the page's\noverlay tree — Escape / an outside click close it, topmost overlay first, and\nopening another Keenmate overlay closes it (like the compact popover)."
+              "description": "Core `createPopover()` handle of the INLINE drop-down drawer (`position=\"inline\"`\non a desktop / tablet; null otherwise): kept mounted and un-anchored (the drawer\nCSS places it under the chip), it only joins the page's overlay tree — Escape /\nan outside click close it, topmost overlay first."
+            },
+            {
+              "kind": "field",
+              "name": "drawerSession",
+              "type": {
+                "text": "ModalSession | null"
+              },
+              "privacy": "private",
+              "default": "null",
+              "description": "Core modal session of an EDGE drawer (`.km-drawer` from the chip's edge) or a\nphone sheet while open: the page behind is inert, Tab stays inside, Escape /\nthe backdrop / the phone Back gesture close it, focus returns to the chip."
+            },
+            {
+              "kind": "field",
+              "name": "drawerExit",
+              "type": {
+                "text": "{ cancel(): void } | null"
+              },
+              "privacy": "private",
+              "default": "null",
+              "description": "The closing animation of an edge drawer (cancelled when it reopens)."
             },
             {
               "kind": "field",
@@ -4953,6 +4845,17 @@
             },
             {
               "kind": "method",
+              "name": "createInlineDrawerHandle",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "description": "The inline drop-down drawer joins the overlay tree through a kept-mounted core popover."
+            },
+            {
+              "kind": "method",
               "name": "destroyDrawerHandle",
               "privacy": "private",
               "return": {
@@ -4960,7 +4863,7 @@
                   "text": "void"
                 }
               },
-              "description": "Leave the overlay tree (drawer flip, disconnect, destroy)."
+              "description": "Leave the overlay tree / end the modal session (drawer flip, position change, disconnect, destroy)."
             },
             {
               "kind": "method",
@@ -5202,6 +5105,85 @@
             },
             {
               "kind": "method",
+              "name": "markDrawerOpen",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "openModalDrawer",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "isSheet",
+                  "type": {
+                    "text": "boolean"
+                  }
+                }
+              ],
+              "description": "An edge drawer (core `.km-drawer` from the chip's edge, with a backdrop) or,\non a phone, a full-screen sheet — both in a core modal session."
+            },
+            {
+              "kind": "method",
+              "name": "closeModalDrawer",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "endDrawerSession",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "shouldReturnFocus",
+                  "type": {
+                    "text": "boolean"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "resetDrawerPresentation",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "description": "Back to the closed, unclassed drawer."
+            },
+            {
+              "kind": "method",
+              "name": "drawerSide",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "'start' | 'end' | 'top' | 'bottom'"
+                }
+              },
+              "description": "The core drawer side for the chip's (physical) edge: `right` is the inline\nend in a left-to-right page and the start in a right-to-left one."
+            },
+            {
+              "kind": "method",
               "name": "syncDrawerClosed",
               "privacy": "private",
               "return": {
@@ -5377,7 +5359,7 @@
               },
               "default": "null",
               "attribute": "responsive",
-              "description": "Instance responsive rules (core, SPEC §6.7): partial configs on two axes — `device` (keyed by device class `mobile` / `tablet` / `desktop`; a mouse device is `desktop` at any width) and `breakpoint` (keyed by the window-width bucket); the breakpoint entry applies first, the device entry over it (device wins). An object or a JSON attribute, e.g. `{\"device\":{\"tablet\":{\"presentation\":\"modal\"}},\"breakpoint\":{\"mobile\":{…}}}`. Beats page rules (`window.components.responsive*`) and values set on the element; never reflects. An entry of `null` ignores the page rules while it matches."
+              "description": "Instance responsive rules (core, SPEC §6.7): partial configs on three axes — `breakpoint` (keyed by the window-width bucket), `container` (keyed by the component's own width: `narrow` / `medium` / `wide`, lines `--base-container-narrow` / `-medium`, 480 / 768) and `device` (keyed by device class `mobile` / `tablet` / `desktop`; a mouse device is `desktop` at any width), applied in that order (a later axis wins). An object or a JSON attribute, e.g. `{\"device\":{\"tablet\":{\"presentation\":\"modal\"}},\"breakpoint\":{\"mobile\":{…}}}`. Beats page rules (`window.components.responsive*`) and values set on the element; never reflects. An entry of `null` ignores the page rules while it matches."
             },
             {
               "kind": "field",
@@ -5387,7 +5369,7 @@
                 "text": "ResponsiveCallback | null"
               },
               "default": "null",
-              "description": "Instance computed responsive rule (core, SPEC §6.7): `(ctx) => partial config | null | undefined`, ctx `{ env, deviceClass, breakpoint, element, component, config }` (`config` = base). Runs after `responsive` (wins key by key); re-runs on environment flips, throttled viewport-width changes, rule and config changes. `null` ignores every page rule."
+              "description": "Instance computed responsive rule (core, SPEC §6.7): `(ctx) => partial config | null | undefined`, ctx `{ env, deviceClass, breakpoint, container, width, element, component, config }` (`config` = base; `width` = its own box). Runs after `responsive` (wins key by key); re-runs on environment flips, throttled viewport-width and own-width changes, rule and config changes. `null` ignores every page rule."
             },
             {
               "kind": "field",
@@ -5723,7 +5705,7 @@
               },
               "privacy": "protected",
               "readonly": true,
-              "description": "UI strings: own `labels` → the bound store's `labels` → built-in English.",
+              "description": "UI strings (core `/locale`): own `labels` → the page-wide labels of this\nsatellite's tag → the bound store's `labels` → the page-wide\n`web-dropzone` labels → built-in English.",
               "inheritedFrom": {
                 "name": "SatelliteElement",
                 "module": "src/satellite-base.ts"
@@ -5970,7 +5952,7 @@
               "type": {
                 "text": "ResponsiveMap | null"
               },
-              "description": "Instance responsive rules (core, SPEC §6.7): partial configs on two axes — `device` (keyed by device class `mobile` / `tablet` / `desktop`; a mouse device is `desktop` at any width) and `breakpoint` (keyed by the window-width bucket); the breakpoint entry applies first, the device entry over it (device wins). An object or a JSON attribute, e.g. `{\"device\":{\"tablet\":{\"presentation\":\"modal\"}},\"breakpoint\":{\"mobile\":{…}}}`. Beats page rules (`window.components.responsive*`) and values set on the element; never reflects. An entry of `null` ignores the page rules while it matches."
+              "description": "Instance responsive rules (core, SPEC §6.7): partial configs on three axes — `breakpoint` (keyed by the window-width bucket), `container` (keyed by the component's own width: `narrow` / `medium` / `wide`, lines `--base-container-narrow` / `-medium`, 480 / 768) and `device` (keyed by device class `mobile` / `tablet` / `desktop`; a mouse device is `desktop` at any width), applied in that order (a later axis wins). An object or a JSON attribute, e.g. `{\"device\":{\"tablet\":{\"presentation\":\"modal\"}},\"breakpoint\":{\"mobile\":{…}}}`. Beats page rules (`window.components.responsive*`) and values set on the element; never reflects. An entry of `null` ignores the page rules while it matches."
             }
           ],
           "events": [
@@ -6563,6 +6545,18 @@
               "description": "overlay z index"
             },
             {
+              "name": "--dz-overlay-hover-filter",
+              "description": "overlay filter while a drag is over it"
+            },
+            {
+              "name": "--dz-overlay-hover-border",
+              "description": "overlay border while a drag is over it"
+            },
+            {
+              "name": "--dz-overlay-hover-shadow",
+              "description": "overlay shadow while a drag is over it"
+            },
+            {
               "name": "--dz-popover-action-bg-hover",
               "description": "popover action bg hover"
             },
@@ -6752,7 +6746,11 @@
             },
             {
               "name": "--dz-popover-z-index",
-              "description": "popover z index"
+              "description": "popover z index (default the popover tier var(--base-z-popover, 7600))"
+            },
+            {
+              "name": "--dz-indicator-z-index",
+              "description": "indicator chip z index (default the popover tier var(--base-z-popover, 7600))"
             },
             {
               "name": "--dz-preview-action-bg-hover",
@@ -8008,7 +8006,7 @@
               },
               "default": "null",
               "attribute": "responsive",
-              "description": "Instance responsive rules (core, SPEC §6.7): partial configs on two axes — `device` (keyed by device class `mobile` / `tablet` / `desktop`; a mouse device is `desktop` at any width) and `breakpoint` (keyed by the window-width bucket); the breakpoint entry applies first, the device entry over it (device wins). An object or a JSON attribute, e.g. `{\"device\":{\"tablet\":{\"presentation\":\"modal\"}},\"breakpoint\":{\"mobile\":{…}}}`. Beats page rules (`window.components.responsive*`) and values set on the element; never reflects. An entry of `null` ignores the page rules while it matches."
+              "description": "Instance responsive rules (core, SPEC §6.7): partial configs on three axes — `breakpoint` (keyed by the window-width bucket), `container` (keyed by the component's own width: `narrow` / `medium` / `wide`, lines `--base-container-narrow` / `-medium`, 480 / 768) and `device` (keyed by device class `mobile` / `tablet` / `desktop`; a mouse device is `desktop` at any width), applied in that order (a later axis wins). An object or a JSON attribute, e.g. `{\"device\":{\"tablet\":{\"presentation\":\"modal\"}},\"breakpoint\":{\"mobile\":{…}}}`. Beats page rules (`window.components.responsive*`) and values set on the element; never reflects. An entry of `null` ignores the page rules while it matches."
             },
             {
               "kind": "field",
@@ -8018,7 +8016,7 @@
                 "text": "ResponsiveCallback | null"
               },
               "default": "null",
-              "description": "Instance computed responsive rule (core, SPEC §6.7): `(ctx) => partial config | null | undefined`, ctx `{ env, deviceClass, breakpoint, element, component, config }` (`config` = base). Runs after `responsive` (wins key by key); re-runs on environment flips, throttled viewport-width changes, rule and config changes. `null` ignores every page rule."
+              "description": "Instance computed responsive rule (core, SPEC §6.7): `(ctx) => partial config | null | undefined`, ctx `{ env, deviceClass, breakpoint, container, width, element, component, config }` (`config` = base; `width` = its own box). Runs after `responsive` (wins key by key); re-runs on environment flips, throttled viewport-width and own-width changes, rule and config changes. `null` ignores every page rule."
             },
             {
               "kind": "field",
@@ -8384,7 +8382,7 @@
               },
               "privacy": "protected",
               "readonly": true,
-              "description": "UI strings: own `labels` → the bound store's `labels` → built-in English.",
+              "description": "UI strings (core `/locale`): own `labels` → the page-wide labels of this\nsatellite's tag → the bound store's `labels` → the page-wide\n`web-dropzone` labels → built-in English.",
               "inheritedFrom": {
                 "name": "SatelliteElement",
                 "module": "src/satellite-base.ts"
@@ -8678,7 +8676,7 @@
               "type": {
                 "text": "ResponsiveMap | null"
               },
-              "description": "Instance responsive rules (core, SPEC §6.7): partial configs on two axes — `device` (keyed by device class `mobile` / `tablet` / `desktop`; a mouse device is `desktop` at any width) and `breakpoint` (keyed by the window-width bucket); the breakpoint entry applies first, the device entry over it (device wins). An object or a JSON attribute, e.g. `{\"device\":{\"tablet\":{\"presentation\":\"modal\"}},\"breakpoint\":{\"mobile\":{…}}}`. Beats page rules (`window.components.responsive*`) and values set on the element; never reflects. An entry of `null` ignores the page rules while it matches."
+              "description": "Instance responsive rules (core, SPEC §6.7): partial configs on three axes — `breakpoint` (keyed by the window-width bucket), `container` (keyed by the component's own width: `narrow` / `medium` / `wide`, lines `--base-container-narrow` / `-medium`, 480 / 768) and `device` (keyed by device class `mobile` / `tablet` / `desktop`; a mouse device is `desktop` at any width), applied in that order (a later axis wins). An object or a JSON attribute, e.g. `{\"device\":{\"tablet\":{\"presentation\":\"modal\"}},\"breakpoint\":{\"mobile\":{…}}}`. Beats page rules (`window.components.responsive*`) and values set on the element; never reflects. An entry of `null` ignores the page rules while it matches."
             }
           ],
           "events": [
@@ -9279,6 +9277,18 @@
               "description": "overlay z index"
             },
             {
+              "name": "--dz-overlay-hover-filter",
+              "description": "overlay filter while a drag is over it"
+            },
+            {
+              "name": "--dz-overlay-hover-border",
+              "description": "overlay border while a drag is over it"
+            },
+            {
+              "name": "--dz-overlay-hover-shadow",
+              "description": "overlay shadow while a drag is over it"
+            },
+            {
               "name": "--dz-popover-action-bg-hover",
               "description": "popover action bg hover"
             },
@@ -9468,7 +9478,11 @@
             },
             {
               "name": "--dz-popover-z-index",
-              "description": "popover z index"
+              "description": "popover z index (default the popover tier var(--base-z-popover, 7600))"
+            },
+            {
+              "name": "--dz-indicator-z-index",
+              "description": "indicator chip z index (default the popover tier var(--base-z-popover, 7600))"
             },
             {
               "name": "--dz-preview-action-bg-hover",
@@ -10000,6 +10014,16 @@
             },
             {
               "kind": "field",
+              "name": "isPageDragging",
+              "type": {
+                "text": "boolean"
+              },
+              "privacy": "private",
+              "default": "false",
+              "description": "A file drag is over the page (core `watchPageDrag`)."
+            },
+            {
+              "kind": "field",
               "name": "isArmedState",
               "type": {
                 "text": "boolean"
@@ -10488,7 +10512,7 @@
               },
               "default": "null",
               "attribute": "responsive",
-              "description": "Instance responsive rules (core, SPEC §6.7): partial configs on two axes — `device` (keyed by device class `mobile` / `tablet` / `desktop`; a mouse device is `desktop` at any width) and `breakpoint` (keyed by the window-width bucket); the breakpoint entry applies first, the device entry over it (device wins). An object or a JSON attribute, e.g. `{\"device\":{\"tablet\":{\"presentation\":\"modal\"}},\"breakpoint\":{\"mobile\":{…}}}`. Beats page rules (`window.components.responsive*`) and values set on the element; never reflects. An entry of `null` ignores the page rules while it matches."
+              "description": "Instance responsive rules (core, SPEC §6.7): partial configs on three axes — `breakpoint` (keyed by the window-width bucket), `container` (keyed by the component's own width: `narrow` / `medium` / `wide`, lines `--base-container-narrow` / `-medium`, 480 / 768) and `device` (keyed by device class `mobile` / `tablet` / `desktop`; a mouse device is `desktop` at any width), applied in that order (a later axis wins). An object or a JSON attribute, e.g. `{\"device\":{\"tablet\":{\"presentation\":\"modal\"}},\"breakpoint\":{\"mobile\":{…}}}`. Beats page rules (`window.components.responsive*`) and values set on the element; never reflects. An entry of `null` ignores the page rules while it matches."
             },
             {
               "kind": "field",
@@ -10498,7 +10522,7 @@
                 "text": "ResponsiveCallback | null"
               },
               "default": "null",
-              "description": "Instance computed responsive rule (core, SPEC §6.7): `(ctx) => partial config | null | undefined`, ctx `{ env, deviceClass, breakpoint, element, component, config }` (`config` = base). Runs after `responsive` (wins key by key); re-runs on environment flips, throttled viewport-width changes, rule and config changes. `null` ignores every page rule."
+              "description": "Instance computed responsive rule (core, SPEC §6.7): `(ctx) => partial config | null | undefined`, ctx `{ env, deviceClass, breakpoint, container, width, element, component, config }` (`config` = base; `width` = its own box). Runs after `responsive` (wins key by key); re-runs on environment flips, throttled viewport-width and own-width changes, rule and config changes. `null` ignores every page rule."
             },
             {
               "kind": "field",
@@ -10849,7 +10873,7 @@
               },
               "privacy": "protected",
               "readonly": true,
-              "description": "UI strings: own `labels` → the bound store's `labels` → built-in English.",
+              "description": "UI strings (core `/locale`): own `labels` → the page-wide labels of this\nsatellite's tag → the bound store's `labels` → the page-wide\n`web-dropzone` labels → built-in English.",
               "inheritedFrom": {
                 "name": "SatelliteElement",
                 "module": "src/satellite-base.ts"
@@ -11186,7 +11210,7 @@
               "type": {
                 "text": "ResponsiveMap | null"
               },
-              "description": "Instance responsive rules (core, SPEC §6.7): partial configs on two axes — `device` (keyed by device class `mobile` / `tablet` / `desktop`; a mouse device is `desktop` at any width) and `breakpoint` (keyed by the window-width bucket); the breakpoint entry applies first, the device entry over it (device wins). An object or a JSON attribute, e.g. `{\"device\":{\"tablet\":{\"presentation\":\"modal\"}},\"breakpoint\":{\"mobile\":{…}}}`. Beats page rules (`window.components.responsive*`) and values set on the element; never reflects. An entry of `null` ignores the page rules while it matches."
+              "description": "Instance responsive rules (core, SPEC §6.7): partial configs on three axes — `breakpoint` (keyed by the window-width bucket), `container` (keyed by the component's own width: `narrow` / `medium` / `wide`, lines `--base-container-narrow` / `-medium`, 480 / 768) and `device` (keyed by device class `mobile` / `tablet` / `desktop`; a mouse device is `desktop` at any width), applied in that order (a later axis wins). An object or a JSON attribute, e.g. `{\"device\":{\"tablet\":{\"presentation\":\"modal\"}},\"breakpoint\":{\"mobile\":{…}}}`. Beats page rules (`window.components.responsive*`) and values set on the element; never reflects. An entry of `null` ignores the page rules while it matches."
             }
           ],
           "events": [
@@ -11779,6 +11803,18 @@
               "description": "overlay z index"
             },
             {
+              "name": "--dz-overlay-hover-filter",
+              "description": "overlay filter while a drag is over it"
+            },
+            {
+              "name": "--dz-overlay-hover-border",
+              "description": "overlay border while a drag is over it"
+            },
+            {
+              "name": "--dz-overlay-hover-shadow",
+              "description": "overlay shadow while a drag is over it"
+            },
+            {
               "name": "--dz-popover-action-bg-hover",
               "description": "popover action bg hover"
             },
@@ -11968,7 +12004,11 @@
             },
             {
               "name": "--dz-popover-z-index",
-              "description": "popover z index"
+              "description": "popover z index (default the popover tier var(--base-z-popover, 7600))"
+            },
+            {
+              "name": "--dz-indicator-z-index",
+              "description": "indicator chip z index (default the popover tier var(--base-z-popover, 7600))"
             },
             {
               "name": "--dz-preview-action-bg-hover",
@@ -12773,7 +12813,7 @@
               },
               "default": "null",
               "attribute": "responsive",
-              "description": "Instance responsive rules (core, SPEC §6.7): partial configs on two axes — `device` (keyed by device class `mobile` / `tablet` / `desktop`; a mouse device is `desktop` at any width) and `breakpoint` (keyed by the window-width bucket); the breakpoint entry applies first, the device entry over it (device wins). An object or a JSON attribute, e.g. `{\"device\":{\"tablet\":{\"presentation\":\"modal\"}},\"breakpoint\":{\"mobile\":{…}}}`. Beats page rules (`window.components.responsive*`) and values set on the element; never reflects. An entry of `null` ignores the page rules while it matches."
+              "description": "Instance responsive rules (core, SPEC §6.7): partial configs on three axes — `breakpoint` (keyed by the window-width bucket), `container` (keyed by the component's own width: `narrow` / `medium` / `wide`, lines `--base-container-narrow` / `-medium`, 480 / 768) and `device` (keyed by device class `mobile` / `tablet` / `desktop`; a mouse device is `desktop` at any width), applied in that order (a later axis wins). An object or a JSON attribute, e.g. `{\"device\":{\"tablet\":{\"presentation\":\"modal\"}},\"breakpoint\":{\"mobile\":{…}}}`. Beats page rules (`window.components.responsive*`) and values set on the element; never reflects. An entry of `null` ignores the page rules while it matches."
             },
             {
               "kind": "field",
@@ -12783,7 +12823,7 @@
                 "text": "ResponsiveCallback | null"
               },
               "default": "null",
-              "description": "Instance computed responsive rule (core, SPEC §6.7): `(ctx) => partial config | null | undefined`, ctx `{ env, deviceClass, breakpoint, element, component, config }` (`config` = base). Runs after `responsive` (wins key by key); re-runs on environment flips, throttled viewport-width changes, rule and config changes. `null` ignores every page rule."
+              "description": "Instance computed responsive rule (core, SPEC §6.7): `(ctx) => partial config | null | undefined`, ctx `{ env, deviceClass, breakpoint, container, width, element, component, config }` (`config` = base; `width` = its own box). Runs after `responsive` (wins key by key); re-runs on environment flips, throttled viewport-width and own-width changes, rule and config changes. `null` ignores every page rule."
             },
             {
               "kind": "field",
@@ -13149,7 +13189,7 @@
               },
               "privacy": "protected",
               "readonly": true,
-              "description": "UI strings: own `labels` → the bound store's `labels` → built-in English.",
+              "description": "UI strings (core `/locale`): own `labels` → the page-wide labels of this\nsatellite's tag → the bound store's `labels` → the page-wide\n`web-dropzone` labels → built-in English.",
               "inheritedFrom": {
                 "name": "SatelliteElement",
                 "module": "src/satellite-base.ts"
@@ -13407,7 +13447,7 @@
               "type": {
                 "text": "ResponsiveMap | null"
               },
-              "description": "Instance responsive rules (core, SPEC §6.7): partial configs on two axes — `device` (keyed by device class `mobile` / `tablet` / `desktop`; a mouse device is `desktop` at any width) and `breakpoint` (keyed by the window-width bucket); the breakpoint entry applies first, the device entry over it (device wins). An object or a JSON attribute, e.g. `{\"device\":{\"tablet\":{\"presentation\":\"modal\"}},\"breakpoint\":{\"mobile\":{…}}}`. Beats page rules (`window.components.responsive*`) and values set on the element; never reflects. An entry of `null` ignores the page rules while it matches."
+              "description": "Instance responsive rules (core, SPEC §6.7): partial configs on three axes — `breakpoint` (keyed by the window-width bucket), `container` (keyed by the component's own width: `narrow` / `medium` / `wide`, lines `--base-container-narrow` / `-medium`, 480 / 768) and `device` (keyed by device class `mobile` / `tablet` / `desktop`; a mouse device is `desktop` at any width), applied in that order (a later axis wins). An object or a JSON attribute, e.g. `{\"device\":{\"tablet\":{\"presentation\":\"modal\"}},\"breakpoint\":{\"mobile\":{…}}}`. Beats page rules (`window.components.responsive*`) and values set on the element; never reflects. An entry of `null` ignores the page rules while it matches."
             }
           ],
           "events": [
@@ -14000,6 +14040,18 @@
               "description": "overlay z index"
             },
             {
+              "name": "--dz-overlay-hover-filter",
+              "description": "overlay filter while a drag is over it"
+            },
+            {
+              "name": "--dz-overlay-hover-border",
+              "description": "overlay border while a drag is over it"
+            },
+            {
+              "name": "--dz-overlay-hover-shadow",
+              "description": "overlay shadow while a drag is over it"
+            },
+            {
               "name": "--dz-popover-action-bg-hover",
               "description": "popover action bg hover"
             },
@@ -14189,7 +14241,11 @@
             },
             {
               "name": "--dz-popover-z-index",
-              "description": "popover z index"
+              "description": "popover z index (default the popover tier var(--base-z-popover, 7600))"
+            },
+            {
+              "name": "--dz-indicator-z-index",
+              "description": "indicator chip z index (default the popover tier var(--base-z-popover, 7600))"
             },
             {
               "name": "--dz-preview-action-bg-hover",
@@ -14813,6 +14869,16 @@
             },
             {
               "kind": "field",
+              "name": "#isPageDragging",
+              "privacy": "private",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "A file drag is over the page (core `watchPageDrag`)."
+            },
+            {
+              "kind": "field",
               "name": "#isArmed",
               "privacy": "private",
               "type": {
@@ -14846,7 +14912,7 @@
                   "text": "DropzoneController"
                 }
               },
-              "description": "The public facade (`el.controller`): built once, delegates to the live\nstore (flushing pending input writes first), so it survives rebuilds.\nSatellites bind through it too."
+              "description": "The public facade (`el.controller`): built once over core\n`createControllerFacade` (frozen), delegates to the live store (flushing\npending input writes first), so it survives rebuilds. Satellites bind\nthrough the non-flushing twin instead (see store-link.ts)."
             },
             {
               "kind": "method",
@@ -14926,6 +14992,17 @@
                 }
               ],
               "description": "In-place change: patch the live store via `updateConfig`. A change to any\nof the four mode-determining inputs can flip the operating mode, which the\nstore can't apply in place — detect that and do a full rebuild instead\n(matching the pre-core behaviour, where a mode flip reset the selection)."
+            },
+            {
+              "kind": "method",
+              "name": "localeChanged",
+              "privacy": "protected",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "description": "Page-wide locale / labels changed (`window.components.locale`, core\n`/locale`): re-render with the same config — the store's labels resolve\nthe new page-wide strings — and the bound satellites follow on the\nstore's config-changed signal. The validity message is re-stamped too."
             },
             {
               "kind": "method",
@@ -16107,7 +16184,7 @@
               },
               "default": "null",
               "attribute": "responsive",
-              "description": "Instance responsive rules (core, SPEC §6.7): partial configs on two axes — `device` (keyed by device class `mobile` / `tablet` / `desktop`; a mouse device is `desktop` at any width) and `breakpoint` (keyed by the window-width bucket); the breakpoint entry applies first, the device entry over it (device wins). An object or a JSON attribute, e.g. `{\"device\":{\"tablet\":{\"presentation\":\"modal\"}},\"breakpoint\":{\"mobile\":{…}}}`. Beats page rules (`window.components.responsive*`) and values set on the element; never reflects. An entry of `null` ignores the page rules while it matches."
+              "description": "Instance responsive rules (core, SPEC §6.7): partial configs on three axes — `breakpoint` (keyed by the window-width bucket), `container` (keyed by the component's own width: `narrow` / `medium` / `wide`, lines `--base-container-narrow` / `-medium`, 480 / 768) and `device` (keyed by device class `mobile` / `tablet` / `desktop`; a mouse device is `desktop` at any width), applied in that order (a later axis wins). An object or a JSON attribute, e.g. `{\"device\":{\"tablet\":{\"presentation\":\"modal\"}},\"breakpoint\":{\"mobile\":{…}}}`. Beats page rules (`window.components.responsive*`) and values set on the element; never reflects. An entry of `null` ignores the page rules while it matches."
             },
             {
               "kind": "field",
@@ -16117,7 +16194,7 @@
                 "text": "ResponsiveCallback | null"
               },
               "default": "null",
-              "description": "Instance computed responsive rule (core, SPEC §6.7): `(ctx) => partial config | null | undefined`, ctx `{ env, deviceClass, breakpoint, element, component, config }` (`config` = base). Runs after `responsive` (wins key by key); re-runs on environment flips, throttled viewport-width changes, rule and config changes. `null` ignores every page rule."
+              "description": "Instance computed responsive rule (core, SPEC §6.7): `(ctx) => partial config | null | undefined`, ctx `{ env, deviceClass, breakpoint, container, width, element, component, config }` (`config` = base; `width` = its own box). Runs after `responsive` (wins key by key); re-runs on environment flips, throttled viewport-width and own-width changes, rule and config changes. `null` ignores every page rule."
             },
             {
               "kind": "field",
@@ -16733,7 +16810,7 @@
               "type": {
                 "text": "ResponsiveMap | null"
               },
-              "description": "Instance responsive rules (core, SPEC §6.7): partial configs on two axes — `device` (keyed by device class `mobile` / `tablet` / `desktop`; a mouse device is `desktop` at any width) and `breakpoint` (keyed by the window-width bucket); the breakpoint entry applies first, the device entry over it (device wins). An object or a JSON attribute, e.g. `{\"device\":{\"tablet\":{\"presentation\":\"modal\"}},\"breakpoint\":{\"mobile\":{…}}}`. Beats page rules (`window.components.responsive*`) and values set on the element; never reflects. An entry of `null` ignores the page rules while it matches."
+              "description": "Instance responsive rules (core, SPEC §6.7): partial configs on three axes — `breakpoint` (keyed by the window-width bucket), `container` (keyed by the component's own width: `narrow` / `medium` / `wide`, lines `--base-container-narrow` / `-medium`, 480 / 768) and `device` (keyed by device class `mobile` / `tablet` / `desktop`; a mouse device is `desktop` at any width), applied in that order (a later axis wins). An object or a JSON attribute, e.g. `{\"device\":{\"tablet\":{\"presentation\":\"modal\"}},\"breakpoint\":{\"mobile\":{…}}}`. Beats page rules (`window.components.responsive*`) and values set on the element; never reflects. An entry of `null` ignores the page rules while it matches."
             }
           ],
           "events": [
@@ -17382,6 +17459,18 @@
               "description": "overlay z index"
             },
             {
+              "name": "--dz-overlay-hover-filter",
+              "description": "overlay filter while a drag is over it"
+            },
+            {
+              "name": "--dz-overlay-hover-border",
+              "description": "overlay border while a drag is over it"
+            },
+            {
+              "name": "--dz-overlay-hover-shadow",
+              "description": "overlay shadow while a drag is over it"
+            },
+            {
               "name": "--dz-popover-action-bg-hover",
               "description": "popover action bg hover"
             },
@@ -17571,7 +17660,11 @@
             },
             {
               "name": "--dz-popover-z-index",
-              "description": "popover z index"
+              "description": "popover z index (default the popover tier var(--base-z-popover, 7600))"
+            },
+            {
+              "name": "--dz-indicator-z-index",
+              "description": "indicator chip z index (default the popover tier var(--base-z-popover, 7600))"
             },
             {
               "name": "--dz-preview-action-bg-hover",
