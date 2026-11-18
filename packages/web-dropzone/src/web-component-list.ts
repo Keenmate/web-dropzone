@@ -20,7 +20,7 @@
  */
 
 import styles from './css/main.css?inline';
-import { adoptStyles, ICON_CSS, createMicrotaskScheduler, toBool, toEnum, type EventDef, type InputDef } from '@keenmate/web-components-core';
+import { adoptStyles, ICON_CSS, createMicrotaskScheduler, keepScrollAcrossMove, toBool, toEnum, type EventDef, type InputDef } from '@keenmate/web-components-core';
 import {
     SatelliteElement,
     SATELLITE_INPUTS,
@@ -144,6 +144,8 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
         this.container = document.createElement('div');
         this.container.className = 'dz__host dz__host--list-only';
         this.shadow.appendChild(this.container);
+        // The rows keep their scroll position across a DOM move (core, SPEC §12.31).
+        keepScrollAcrossMove(this, () => this.container.querySelectorAll('.dz__file-list, .dz__files-inside'));
     }
 
     /** An own input changed (core `update()`): re-render. */
@@ -268,7 +270,23 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
             : '';
 
         const rows = visible.map(f => this.renderRow(f, appearance)).join('');
-        this.container.innerHTML = `<div class="${containerClass}" data-list-appearance="${appearance}"${gridAttrs}>${rows}${toggle}</div>`;
+        // The same wrapper (same class) is kept and only its rows are replaced: it is
+        // the scroll container, so its scroll position survives a re-render (a file
+        // added) and a DOM move (keepScrollAcrossMove tracks this element).
+        const existing = this.container.firstElementChild;
+        if (existing instanceof HTMLElement && this.container.childElementCount === 1 && existing.className === containerClass) {
+            existing.dataset.listAppearance = appearance;
+            if (appearance === 'grid') {
+                existing.dataset.gridLayout = this.config.gridLayout as GridLayout;
+                existing.dataset.gridStatus = this.config.gridStatus as GridStatus;
+            } else {
+                delete existing.dataset.gridLayout;
+                delete existing.dataset.gridStatus;
+            }
+            existing.innerHTML = `${rows}${toggle}`;
+        } else {
+            this.container.innerHTML = `<div class="${containerClass}" data-list-appearance="${appearance}"${gridAttrs}>${rows}${toggle}</div>`;
+        }
         this.bindRowHandlers();
         this.bindToggleHandler();
         this.attachPreviewLoaders(visible);

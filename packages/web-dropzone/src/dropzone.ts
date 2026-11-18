@@ -1790,6 +1790,10 @@ export class WebDropzone extends DropzoneEngine {
             if (typeof state.popoverWidth === 'number') size.width = `${state.popoverWidth}px`;
             if (typeof state.popoverHeight === 'number') size.height = `${state.popoverHeight}px`;
         });
+        // The header is shared by the anchored panel and the phone sheet (count +
+        // actions, themed by --dz-popover-header-*), so it keeps its own markup —
+        // core's createSheetHeader() would put the sheet bar on the desktop panel
+        // too. Only the close button is core's (.km-sheet-close, phones only).
         this.popover.innerHTML = `
             <div class="dz__popover-sticky-top">
                 <div class="dz__popover-header">

@@ -213,6 +213,43 @@
             </div>
         </div>
 
+        <!-- OVERLAY STYLING -->
+        <div class="card" data-demo="styled">
+            <h2>DO05 · Styling the overlay (<code>--dz-overlay-*</code> + <code>custom-styles</code>)</h2>
+            <label class="demo-toggle">
+                <input type="radio" name="active-demo" value="styled">
+                <span>Active demo</span>
+            </label>
+            <p>The overlay is a core layer with its own shadow root, so page CSS can't reach <code>.dz__overlay</code>. Style it two ways: the <code>--dz-overlay-*</code> variables (on <code>:root</code> or on the dropzone — read from the dropzone while the overlay is open), and <code>custom-styles</code> / the page-wide <code>window.components['web-dropzone'].customStyles</code>, which are written into the overlay's shadow root too (<code>.dz__overlay</code>, <code>.dz__overlay--hover</code>, <code>.dz__overlay-icon</code>, <code>.dz__overlay-text</code>).</p>
+
+            <kmwc-demo>
+                <web-dropzone
+                    id="overlay-styled"
+                    selector-appearance="button"
+                    list-appearance="none"
+                    accept="*/*"
+                    overlay-target="styled-target"
+                    overlay-icon="🗂️"
+                    labels='{"overlay": "Drop into the archive"}'
+                    style="--dz-overlay-bg: color-mix(in srgb, var(--kmwc-success-color) 88%, transparent); --dz-overlay-border-radius: 24px; --dz-overlay-text-font-size: 2rem;"
+                    custom-styles=".dz__overlay-text { text-transform: uppercase; letter-spacing: 0.08em; } .dz__overlay--hover { border-style: dotted; }">
+                </web-dropzone>
+                <div id="styled-target" class="demo-area">
+                    <p>Drag files over this area — the overlay takes the variables and the custom CSS above.</p>
+                    <web-dropzone-list for="overlay-styled" list-appearance="badges" labels='{"noData": "Nothing archived yet."}'></web-dropzone-list>
+                </div>
+            </kmwc-demo>
+
+            <table class="reference-table">
+                <thead><tr><th>API</th><th>What it does</th></tr></thead>
+                <tbody>
+                    <tr><td><code>--dz-overlay-bg</code>, <code>-border</code>, <code>-border-radius</code>, <code>-color</code>, <code>-icon-size</code>, <code>-text-font-size</code>, <code>-hover-*</code>, …</td><td>the overlay's look, read from the dropzone (see the theming docs for the full list)</td></tr>
+                    <tr><td><code>custom-styles</code> / <code>customStyles</code></td><td>instance CSS, also written into the overlay layer while it's open</td></tr>
+                    <tr><td><code>window.components['web-dropzone'].customStyles</code></td><td>page-wide CSS for every dropzone and its overlay (the instance CSS comes after it)</td></tr>
+                </tbody>
+            </table>
+        </div>
+
         <footer>
             <p><a href="index.html">← Back to Examples</a></p>
         </footer>
@@ -236,6 +273,7 @@
             form: document.getElementById('overlay-compact'),
             card: document.getElementById('overlay-card'),
             fullpage: document.getElementById('overlay-fullpage'),
+            styled: document.getElementById('overlay-styled'),
         }
         function applyActiveDemo(value) {
             for (const [key, el] of Object.entries(demoDropzones)) {

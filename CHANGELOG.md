@@ -11,6 +11,20 @@ No stable 1.0.0 is published, so the break ships as the next release
 candidate — but `^1.0.0-rc02` consumers will pull it: the event,
 callback and store-access API below is breaking.
 
+### Changed (scroll across a DOM move, sheet header, examples, 2026-11-18)
+
+- **Fixed: a scrolled file list keeps its position across a DOM move** (core `keepScrollAcrossMove`, SPEC
+  §12.31) — `<web-dropzone>` (list, files-inside, popover rows), `<web-dropzone-list>` and the indicator
+  drawer's body. The list satellite also keeps its list wrapper (the scroll container) when it re-renders,
+  so adding a file no longer jumps a scrolled list back to the top.
+- The indicator drawer's header is built by core `createSheetHeader()` (same classes, `dz__indicator-drawer-*`
+  hooks kept; the bar is now a `<div>`, was a `<header>`). The compact popover keeps its own header: it is
+  shared by the anchored panel and the phone sheet and holds the count + actions.
+- Examples: DC18 page-wide labels + screen-reader announcements, DC19 icon names, VA08 `action` event +
+  `beforeActionCallback`, DO05 overlay styling (`--dz-overlay-*` + `custom-styles`), SR08 `null` / `false`
+  from a render callback.
+- The variable manifest lists `--base-z-popover` (read since the z-tier change).
+
 ### Changed (render callbacks read by core `renderSlot`, 2026-11-18)
 
 - **Every content-returning `render*Callback` reads its result the core way** (`renderSlot` /

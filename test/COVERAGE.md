@@ -50,6 +50,7 @@ Every spec runs in three Playwright projects — chromium, firefox and webkit
 | `list-appearance="none"`                                      | ✓      | `list.spec.ts` | `list.html` |
 | `max-visible-file-count` "Show N more" toggle (satellite renderer) | ✓      | `list.spec.ts` | `list.html` |
 | `--dz-file-list-max-height` (works through satellite)         | ✓      | `list-extra.spec.ts` | `list-extra.html` |
+| list scroll position kept across a DOM move (core keepScrollAcrossMove) | ✓ | `list-extra.spec.ts` | `list-extra.html` |
 | `files-inside` layout                                         | ✓      | `list.spec.ts` | `list.html` |
 | `grid-layout="natural"` (equal-height justified rows)         | ✓      | `list-extra.spec.ts` | `list-extra.html` |
 | `grid-status="overlay"` (finished-tile veil + glyph)          | ✓      | `list-extra.spec.ts` | `list-extra.html` |

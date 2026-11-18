@@ -42,6 +42,7 @@ import {
     watchPageDrag,
     applyArmedState,
     toBytes,
+    keepScrollAcrossMove,
     toEnum,
     toInt,
     toText,
@@ -392,6 +393,8 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
         this.#container = document.createElement('div');
         this.#container.className = 'dz__host';
         this.#shadow.appendChild(this.#container);
+        // The file list / popover rows keep their scroll position across a DOM move (core, SPEC §12.31).
+        keepScrollAcrossMove(this, () => this.#container.querySelectorAll('.dz__file-list, .dz__files-inside, .dz__popover-body'));
 
         // Satellites bind through a NON-flushing twin of `el.controller`
         // (see store-link.ts): they read the store while it is emitting.

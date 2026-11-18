@@ -531,6 +531,47 @@
             </div>
         </div>
 
+        <!-- NULL / FALSE RESULTS -->
+        <div class="card">
+            <h2>SR08 · Built-in or hidden (<code>null</code> / <code>false</code> from a render callback)</h2>
+            <p>Every <code>render*Callback</code> answers the same way (core <code>renderSlot</code>): a string is HTML, a Node is mounted, <code>null</code> / <code>undefined</code> keeps the <strong>built-in</strong> rendering, <code>false</code> <strong>hides</strong> the slot (a row: no row). So a callback can customise some cases and leave the rest to the component. Below: images get a custom row, <code>.tmp</code> files get no row at all, everything else falls back to the built-in row; the prompt is built-in (<code>null</code>).</p>
+
+            <kmwc-demo>
+                <web-dropzone id="slot-results" render-mode="structural" display-mode="detailed" accept="*/*" auto-upload="false"></web-dropzone>
+                <div class="controls">
+                    <button type="button" class="btn-outline" id="slot-results-add">Add photo.jpg, notes.txt, cache.tmp</button>
+                </div>
+                <script type="module" data-kmwc-show>
+                    const el = document.getElementById('slot-results')
+
+                    el.renderPromptCallback = () => null   // the built-in prompt
+                    el.renderFileItemCallback = ({ file }) => {
+                        if (file.name.endsWith('.tmp')) return false                      // no row
+                        if (!file.type.startsWith('image/')) return null                  // the built-in row
+                        const row = document.createElement('div')                         // custom (a Node)
+                        row.textContent = `🖼️ ${file.name}`
+                        return row
+                    }
+
+                    document.getElementById('slot-results-add').onclick = () => el.addFiles([
+                        new File(['a'], 'photo.jpg', { type: 'image/jpeg' }),
+                        new File(['b'], 'notes.txt', { type: 'text/plain' }),
+                        new File(['c'], 'cache.tmp'),
+                    ])
+                </script>
+            </kmwc-demo>
+
+            <table class="reference-table">
+                <thead><tr><th>Result</th><th>Renders as</th></tr></thead>
+                <tbody>
+                    <tr><td><code>'&lt;b&gt;…&lt;/b&gt;'</code></td><td>HTML (an unchanged string isn't rewritten)</td></tr>
+                    <tr><td>a Node</td><td>mounted, listeners kept (serialized where the result lands inside an HTML string)</td></tr>
+                    <tr><td><code>null</code> / <code>undefined</code></td><td>the built-in rendering</td></tr>
+                    <tr><td><code>false</code></td><td>hidden (the slot emptied + <code>hidden</code>; a row: no row)</td></tr>
+                </tbody>
+            </table>
+        </div>
+
         <footer>
             <p><a href="index.html">← Back to Examples</a></p>
         </footer>

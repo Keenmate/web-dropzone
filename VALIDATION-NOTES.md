@@ -29,8 +29,8 @@ imports the auto-script pairs as "service → service" are:
   list / indicator satellites (`row-templates.ts`, `row-patching.ts`,
   `status-surface.ts`) — Side-layer helpers, so the rows look the same in every
   element;
-- `page-file-drag.ts`, the one shared page-wide drag tracker every armed
-  element subscribes to.
+- `phone-sheet.ts`, the phone-sheet decision over core's `resolvePresentation`
+  (the page-wide drag tracking is core's `watchPageDrag`).
 
 None of these holds per-instance business state; the store's state lives in
 `@keenmate/web-dropzone-core`. Same shape as web-treeview's subsystem split
@@ -102,3 +102,18 @@ them (`kmwc doctor`'s `[vars]` check also requires every `--dz-*` the CSS
 reads to be there). Same decision as web-treeview's `C-BV-3 / C-BV-6`
 entry. Rulebook gap: a manifest marker for "input variable" (the
 `rulebook-gaps-from-devkit.md` #1 item). PASS with note.
+
+## C-NC-8 — core's `.km-drawer` classes on the indicator's edge drawer
+
+The three non-`.dz` classes are `.km-drawer`, `.km-drawer--start` and `.km-drawer--end`: core's shared
+edge-drawer chrome (`SHEET_CHROME_CSS`, SPEC §12.29 — "an edge drawer is `.km-drawer km-drawer--<side>`
++ `startModalSession`"). The indicator's drawer carries them so core draws the slide-in panel, its
+backdrop and motion the same way in every Keenmate component; `indicator.css` positions the drawer
+through the core classes (logical `start` / `end` sides). The drawer keeps its own `dz__indicator-drawer`
+BEM hooks next to them. Same family as the `.km-sheet-*` header classes core owns. PASS with note.
+
+## C-CSS-7 — core's `.km-drawer` classes on the indicator's edge drawer
+
+The same three classes as C-NC-8 (`.km-drawer`, `.km-drawer--start`, `.km-drawer--end`): core's
+edge-drawer chrome, required by core's drawer pattern (SPEC §12.29); the dz BEM classes stay alongside
+as hooks. PASS with note.

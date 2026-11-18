@@ -146,6 +146,21 @@ test.describe('--dz-file-list-max-height', () => {
         expect(heights.client).toBeLessThan(heights.scroll);
         expect(heights.client).toBeLessThanOrEqual(120);
     });
+
+    test('the list keeps its scroll position across a DOM move (core keepScrollAcrossMove)', async ({ page }) => {
+        await addNamed(page, 'height-cap', ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']);
+        const list = dz(page, 'height-cap').locator('.dz__file-list');
+        await list.evaluate((el: HTMLElement) => { el.scrollTop = 40; });
+        await page.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));   // the scroll event lands
+        await page.evaluate(() => {
+            const host = document.getElementById('height-cap')!;
+            const parent = host.parentElement!;
+            host.remove();                // a synchronous move: detached …
+            void document.body.offsetHeight;   // … long enough for a layout (the box is gone) …
+            parent.append(host);          // … and back, no rebuild
+        });
+        await expect.poll(() => list.evaluate((el: HTMLElement) => el.scrollTop)).toBeGreaterThanOrEqual(39);
+    });
 });
 
 test.describe('popover content', () => {

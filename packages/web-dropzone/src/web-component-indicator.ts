@@ -49,7 +49,7 @@ import {
     fileStatusLabel,
     statusLabel
 } from '@keenmate/web-dropzone-core';
-import { adoptStyles, animateOut, createMicrotaskScheduler, renderLoader, renderSlot, SHEET_CHROME_CSS, startModalSession, startPanelSession, toEnum, toFunction, type InputDef, type ModalSession, type PanelSession, type PanelDismissReason } from '@keenmate/web-components-core';
+import { adoptStyles, animateOut, createMicrotaskScheduler, createSheetHeader, keepScrollAcrossMove, renderLoader, renderSlot, SHEET_CHROME_CSS, startModalSession, startPanelSession, toEnum, toFunction, type InputDef, type ModalSession, type PanelSession, type PanelDismissReason } from '@keenmate/web-components-core';
 import { isPhoneSheet } from './phone-sheet';
 import { createPopover, type PopoverHandle } from '@keenmate/web-components-core/positioning';
 import { applySurfaceSlot, buildStatusSurfaceArgs } from './status-surface';
@@ -191,6 +191,8 @@ export class DropzoneIndicatorElement extends SatelliteElement {
         // Chip is built on connect (and rebuilt on drawer flips) because
         // its element kind depends on attribute state.
         this.chipEl = document.createElement('button');
+        // The drawer's rows keep their scroll position across a DOM move (core, SPEC §12.31).
+        keepScrollAcrossMove(this, () => [this.drawerEl?.querySelector('.dz__indicator-drawer-body')]);
     }
 
     /**
@@ -342,20 +344,23 @@ export class DropzoneIndicatorElement extends SatelliteElement {
         // call `bindToStore` BEFORE the list is connected. Putting the
         // list in this innerHTML string would have its `connectedCallback`
         // fire mid-parse with no binding, logging "store not found".
-        this.drawerEl.innerHTML = `
-            <header class="dz__indicator-drawer-header km-sheet-header">
-                <span class="dz__indicator-drawer-title km-sheet-title">${escapeHtml(this.label('indicatorTitle'))}</span>
-                <button type="button" class="dz__indicator-drawer-close km-sheet-close" aria-label="${escapeHtml(this.label('close'))}"></button>
-            </header>
-            <div class="dz__indicator-drawer-body"></div>
-        `;
-        this.drawerCloseBtn = this.drawerEl.querySelector('.dz__indicator-drawer-close');
-        if (this.drawerCloseBtn) {
-            this.drawerCloseBtn.addEventListener('click', () => {
+        // The header bar is core's sheet header (title + close button); the dz
+        // classes stay as hooks (tests, page CSS).
+        const { header, title, close } = createSheetHeader({
+            title: this.label('indicatorTitle'),
+            closeLabel: this.label('close'),
+            onClose: () => {
                 this.setDrawerOpen(false);
                 this.chipEl.focus({ preventScroll: true });
-            });
-        }
+            },
+        });
+        header.classList.add('dz__indicator-drawer-header');
+        title?.classList.add('dz__indicator-drawer-title');
+        close.classList.add('dz__indicator-drawer-close');
+        const body = document.createElement('div');
+        body.className = 'dz__indicator-drawer-body';
+        this.drawerEl.replaceChildren(header, body);
+        this.drawerCloseBtn = close;
         // Try to mount immediately — no-op if storeEl isn't resolved yet
         // (populateDrawer runs during connectedCallback, before
         // whenStoreReady fires). The whenStoreReady callback re-invokes us.

@@ -207,6 +207,47 @@
             </div>
         </div>
 
+        <!-- BUTTON ACTIONS -->
+        <div class="card">
+            <h2>VA08 · Button actions (<code>action</code> event + <code>beforeActionCallback</code>)</h2>
+            <p>Every built-in button — a row's Remove / Cancel / Pause / Resume / Retry, the progress strip's bulk buttons, the popover's Clear all / Add more — goes through core <code>/actions</code>: <code>beforeActionCallback</code> first (<code>false</code> cancels the button), then the built-in, then the <code>action</code> event, a notification after the fact. A bound <code>&lt;web-dropzone-list&gt;</code> / <code>&lt;web-dropzone-progress&gt;</code> routes its buttons through the store, so one listener on the dropzone sees them all. The per-purpose gates and events (<code>beforeFilesRemoveCallback</code>, <code>file-remove</code>, …) still run.</p>
+
+            <div class="form-group">
+                <kmwc-demo>
+                    <web-dropzone id="action-demo" display-mode="detailed" accept="*/*" auto-upload="false"></web-dropzone>
+                    <div class="controls">
+                        <label><input type="checkbox" id="action-demo-lock" checked> Block Remove (<code>beforeActionCallback</code> returns <code>false</code>)</label>
+                        <button type="button" class="btn-outline" onclick="document.getElementById('action-demo').addFiles([new File(['x'], 'contract.pdf', { type: 'application/pdf' }), new File(['y'], 'photo.jpg', { type: 'image/jpeg' })])">Add files</button>
+                    </div>
+                    <div id="action-demo-log" class="log-panel" data-empty="Click a row button — every action is logged here."></div>
+                    <script type="module" data-kmwc-show>
+                        import { appendLogLine } from '@keenmate/web-components-devkit/examples'
+
+                        const el = document.getElementById('action-demo')
+                        const log = document.getElementById('action-demo-log')
+
+                        el.beforeActionCallback = ({ action, file }) => {
+                            if (action === 'remove' && document.getElementById('action-demo-lock').checked) {
+                                appendLogLine(log, { name: 'blocked', detail: `${action} ${file?.name ?? ''}`, variant: 'warning' })
+                                return false
+                            }
+                        }
+                        el.addEventListener('action', ({ detail }) => {
+                            appendLogLine(log, { name: 'action', detail: { action: detail.action, source: detail.source, file: detail.file?.name }, variant: 'success' })
+                        })
+                    </script>
+                </kmwc-demo>
+            </div>
+
+            <table class="reference-table">
+                <thead><tr><th>API</th><th>What it does</th></tr></thead>
+                <tbody>
+                    <tr><td><code>beforeActionCallback</code></td><td><code>(detail) =&gt; false | void | Promise&lt;…&gt;</code> — <code>false</code> cancels the button (no built-in, no <code>action</code> event); another return value is ignored</td></tr>
+                    <tr><td><code>action</code> / <code>onAction</code></td><td><code>{ action, item, source, file?, files, sourceEvent, triggerElement, dataset }</code>; <code>action</code>: <code>remove</code> | <code>cancel</code> | <code>pause</code> | <code>resume</code> | <code>retry</code> | <code>pause-all</code> | <code>resume-all</code> | <code>cancel-all</code> | <code>retry-all</code> | <code>clear</code> | <code>add-more</code>; <code>source</code>: <code>row-toolbar</code> | <code>toolbar</code></td></tr>
+                </tbody>
+            </table>
+        </div>
+
         <footer>
             <p><a href="index.html">← Back to Examples</a></p>
         </footer>
