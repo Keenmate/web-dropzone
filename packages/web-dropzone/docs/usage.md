@@ -118,7 +118,7 @@ shadow root (`custom-styles` / `getCustomStylesCallback`, page-wide per tag) is 
 | `cancel-icon` | `cancelIcon` |  |  | Row Cancel (⊘) button glyph — markup (starts with `<`, inserted raw — NOT sanitized), an icon name (masked from `--base-icon-<name>`), or text (an emoji). Unset = built-in icon. See [Icons](#icons). |
 | `remove-icon` | `removeIcon` |  |  | Row Remove (✕) button glyph — markup (starts with `<`, inserted raw — NOT sanitized), an icon name (masked from `--base-icon-<name>`), or text (an emoji). Unset = built-in icon. See [Icons](#icons). |
 | `icon` | `icon` |  |  | Prompt icon (emoji or markup). |
-| `labels` | `labels` | `Partial<DropzoneLabels>` |  | Every UI string (see `DropzoneLabels` / `DEFAULT_LABELS`), merged per key over the built-in English; `{name}` / `{count}` / `{size}` / … placeholders: prompt, hint, empty, summary, status names, row + bulk buttons, popover, limits line, progress strip, validation messages. Satellites inherit them (and take their own `labels` on top). Property (object) or JSON attribute. Live. |
+| `labels` | `labels` | `DropzoneLabelOverrides` |  | Every UI string (see `DropzoneLabels` / `DEFAULT_LABELS`): flat `<elementType>.<name>` keys (`buttons.selectFiles`, `ariaLabels.cancelFile`; the full `web-dropzone.<key>` works too), merged per key over the built-in English; `{name}` / `{count}` / `{size}` / … placeholders: prompt, hint, empty, summary, status names, row + bulk buttons, popover, limits line, progress strip, validation messages. Satellites inherit them (and take their own `labels` on top). Property (object) or JSON attribute. Live. |
 | `popover-placement` | `popoverPlacement` | `'top' \| 'top-start' \| 'top-end' \| 'bottom' \| 'bottom-start' \| 'bottom-end' \| 'left' \| 'left-start' \| 'left-end' \| 'right' \| 'right-start' \| 'right-end'` | `'bottom-start'` | Placement of the compact-mode popover relative to the summary (floating-ui placement). |
 | `overlay-target` | `overlayTarget` | `HTMLElement \| string` |  | Element (or selector string) that acts as the full-viewport drag-overlay target. Assign an HTMLElement via the property; a selector string via the `overlay-target` attribute. |
 | `overlay-icon` | `overlayIcon` |  |  | Drag-overlay icon — markup (starts with `<`, inserted raw — NOT sanitized), an icon name (masked from `--base-icon-<name>`), or text (an emoji). See [Icons](#icons). |
@@ -226,7 +226,7 @@ For minimal form integration, use compact mode with `overlay-target` to enable a
   <web-dropzone
     display-mode="compact"
     overlay-target="my-form"
-    labels='{"overlay": "Drop files here"}'
+    labels='{"labels.overlay": "Drop files here"}'
     overlay-icon="📎">
   </web-dropzone>
 
@@ -542,67 +542,72 @@ router.beforeEach(async () => {
 ## Labels (i18n)
 
 All UI strings come from one `labels` input — a partial object merged **per key** over the
-built-in English defaults (`DEFAULT_LABELS`). `{name}`, `{count}`, `{size}`, `{status}` (…)
-placeholders are filled in. Set it as a property or a JSON attribute; changes re-render live
-(satellites too). Every satellite also takes its **own** `labels` (property or JSON attribute),
-merged per key on top of its store's.
+built-in English defaults (`DEFAULT_LABELS`). Keys are flat `<elementType>.<name>` — the element
+type says where the text is shown: `buttons` (visible caption), `tooltips` (`title`), `ariaLabels`
+(screen-reader only: `aria-label`, live announcements), `headers`, `labels` (other visible text),
+`messages` (empty state / progress), `errors` (validation / failure). A text shown on two surfaces
+has two keys sharing the name (`ariaLabels.cancelFile` + `tooltips.cancelFile`). The full key
+prefixes the component name (`web-dropzone.buttons.selectFiles`); `labels` takes the short or the
+full key. `{name}`, `{count}`, `{size}`, `{status}` (…) placeholders are filled in. Set it as a
+property or a JSON attribute; changes re-render live (satellites too). Every satellite also takes
+its **own** `labels` (property or JSON attribute), merged per key on top of its store's.
 
 ```html
-<web-dropzone labels='{"prompt": "Přetáhněte soubory sem", "selectFiles": "Vybrat soubory"}'></web-dropzone>
+<web-dropzone labels='{"labels.prompt": "Přetáhněte soubory sem", "buttons.selectFiles": "Vybrat soubory"}'></web-dropzone>
 ```
 
 ```javascript
 dropzone.labels = {
-  cancelFile: 'Zrušit {name}',
-  removeFile: 'Odebrat {name}',
-  cancelAll: 'Zrušit vše',
-  statusUploading: 'Nahrávám',
-  statusAria: 'Stav: {status}',
+  'ariaLabels.cancelFile': 'Zrušit {name}',
+  'tooltips.cancelFile': 'Zrušit {name}',
+  'ariaLabels.removeFile': 'Odebrat {name}',
+  'buttons.cancelAll': 'Zrušit vše',
+  'labels.statusUploading': 'Nahrávám',
+  'ariaLabels.status': 'Stav: {status}',
 };
 ```
 
-Keys: `prompt`, `hint`, `dragActive`, `selectFiles`, `noFileChosen`, `overlay`;
-`statusPending` / `statusUploading` / `statusPaused` / `statusCancelling` / `statusComplete` /
-`statusError` / `statusCancelled`, `statusAria`, `cancelTimeout`, `cancelling`;
-`pauseFile` / `resumeFile` / `retryFile` / `cancelFile` / `removeFile`;
-`pauseAll` / `resumeAll` / `retryAll` / `cancelAll`;
-`noData`, `summary` (`{count}`, `{size}`), `viewFiles`, `filesChosen`, `fileCount` / `fileCountOne`,
-`addMore`, `clearAll`, `showMore` / `showLess`, `showQueue`, `unknownType`;
-popover limits line `limitMaxFileSize` / `limitMinFileSize` / `limitMaxTotalSize(Left)` /
-`limitMaxFileCount(Left)` / `limitMinFileCount`; progress strip `progressCounts` / `progressPaused` /
-`progressFailed`; indicator `indicatorTitle` / `indicatorIdle` / `indicatorStatus` / `indicatorQueue` /
-`close` / `indicatorFailed` / `indicatorUploading` / `indicatorPaused` / `indicatorQueued` /
-`indicatorDone`; validation `errorMaxFileSize` / `errorMinFileSize` / `errorFileType` /
-`errorRejected` / `errorMaxFileCount(One)` / `errorDuplicate` / `errorMaxTotalSize` / `errorUpload`;
-form validity `errorMinFileCount(One)`; screen-reader announcements `announceAdded(One)` (`{count}`),
-`announceRejected` (`{name}`, `{reason}`), `announceUploadDone(One)` (`{count}`), `announceUploadFailed`
-(`{done}`, `{failed}`), `announceRemoved` (`{name}`) — `''` silences one (see
-[accessibility.md](./accessibility.md#screen-reader-notes)). `…One` variants are used when the count is 1
-(`countLabel()`).
+| Surface | Keys |
+|---|---|
+| Selector | `labels.prompt` (card text), `ariaLabels.prompt` (card input / minimal button name), `labels.hint`, `labels.dragActive`, `buttons.selectFiles`, `labels.noFileChosen`, `labels.filesChosen` (`{count}`), `labels.overlay` |
+| Status names | `labels.statusPending` / `…Uploading` / `…Paused` / `…Cancelling` / `…Complete` / `…Error` / `…Cancelled`, `labels.cancelTimeout`; `ariaLabels.status` (`{status}`), `ariaLabels.uploading` (indicator loader), `messages.cancelling` |
+| Row buttons (`{name}`) | `ariaLabels.pauseFile` / `resumeFile` / `retryFile` / `cancelFile` + the same names under `tooltips.*`; `ariaLabels.removeFile` |
+| Bulk / popover buttons | `buttons.pauseAll` / `resumeAll` / `retryAll` / `cancelAll`, `buttons.addMore`, `buttons.clearAll`, `ariaLabels.close` |
+| List | `messages.noData`, `labels.summary` (`{count}`, `{size}`), `ariaLabels.viewFiles`, `labels.fileCount` / `labels.fileCountOne`, `labels.unknownType`, `buttons.showMore` / `buttons.showLess` (text toggle) + `ariaLabels.showMore` / `ariaLabels.showLess` (`+N` / `−` badge), `ariaLabels.showQueue` + `tooltips.showQueue` |
+| Popover limits line | `labels.limitMaxFileSize` / `limitMinFileSize` / `limitMaxTotalSize(Left)` / `limitMaxFileCount(Left)` / `limitMinFileCount` |
+| Progress strip | `messages.progressCounts`, `messages.progressPaused`, `messages.progressFailed` |
+| Indicator | `headers.indicator`, `ariaLabels.indicatorStatus`, `ariaLabels.indicatorQueue`, `messages.indicatorIdle` / `…Failed` / `…Uploading` / `…Paused` / `…Queued` / `…Done` |
+| Validation | `errors.maxFileSize`, `errors.minFileSize`, `errors.fileType`, `errors.rejected`, `errors.maxFileCount(One)`, `errors.duplicate`, `errors.maxTotalSize`, `errors.upload`; form validity `errors.minFileCount(One)` |
+| Screen-reader announcements | `ariaLabels.announceAdded(One)` (`{count}`), `ariaLabels.announceRejected` (`{name}`, `{reason}`), `ariaLabels.announceUploadDone(One)` (`{count}`), `ariaLabels.announceUploadFailed` (`{done}`, `{failed}`), `ariaLabels.announceRemoved` (`{name}`) — `''` silences one (see [accessibility.md](./accessibility.md#screen-reader-notes)) |
+
+`…One` variants are used when the count is 1 (`countLabel()`).
 
 **Page-wide (core `/locale`).** One assignment translates every dropzone on the page, live (the
-elements re-render through core's `localeChanged()`):
+elements re-render through core's `localeChanged()`). `labels` is ONE flat dictionary of full keys —
+the app's whole translation JSON fits:
 
 ```javascript
 window.components.locale = {
   locale: 'cs-CZ',                       // file sizes: "1,5 MB"
   labels: {
-    'web-dropzone': { prompt: 'Přetáhněte soubory sem', cancelFile: 'Zrušit {name}' },
-    'web-dropzone-indicator': { indicatorTitle: 'Fronta' },   // one satellite only
+    'web-dropzone.labels.prompt': 'Přetáhněte soubory sem',
+    'web-dropzone.ariaLabels.cancelFile': 'Zrušit {name}',
+    'web-dropzone-indicator.headers.indicator': 'Fronta',   // one satellite only
   },
-  formatLabelCallback: ({ key, params }) => i18next.t(`dropzone.${key}`, params),  // optional
+  // optional: the full key; return the text, or null = not mine
+  translateCallback: ({ key, params }) => (i18next.exists(key) ? i18next.t(key, params) : null),
 };
 ```
 
-Per key: the element's `labels` → (a satellite) the page-wide labels of its own tag → its store's
-`labels` → `window.components.locale.labels['web-dropzone']` → built-in English. Labels are text:
-the component escapes them where it builds HTML. `formatFileSize()` uses the resolved decimal
-separator (core `formatNumber`). The element-less lookup is `resolveLabel(sources, key, vars)`
-(exported).
+Per key: the element's `labels` → (a satellite) the page-wide `<satellite tag>.<key>` entries → its
+store's `labels` → `window.components.locale.labels['web-dropzone.<key>']` → built-in English.
+`translateCallback` is never asked for a key the instance set itself. Labels are text: the component
+escapes them where it builds HTML. `formatFileSize()` uses the resolved decimal separator (core
+`formatNumber`). The element-less lookup is `resolveLabel(sources, key, vars)` (exported).
 
-A label set to `''` is deliberately empty and renders nothing (e.g. `noData: ''` hides the empty-list
-text); a missing / `undefined` key falls back to English. Labels are **text** — always inserted escaped
-(no label is rendered as HTML), so placeholder values like `{name}` are safe.
+A label set to `''` is deliberately empty and renders nothing (e.g. `'messages.noData': ''` hides the
+empty-list text); a missing / `undefined` key falls back to English. Labels are **text** — always
+inserted escaped (no label is rendered as HTML), so placeholder values like `{name}` are safe.
 
 ## Responsive rules
 
@@ -684,7 +689,7 @@ form.addEventListener('submit', (e) => {
 ```
 
 - `min-file-count` is reflected into the form validity (`valueMissing`, message from the
-  `errorMinFileCount` label) — the form refuses to submit a short selection; `checkValidity()`,
+  `errors.minFileCount` label) — the form refuses to submit a short selection; `checkValidity()`,
   `reportValidity()`, `validity`, `validationMessage` and `willValidate` are on the element.
 - `disabled` (or an ancestor `<fieldset disabled>`) — nothing is submitted; `readonly` — the user
   can't change the selection, the files are still submitted.
@@ -761,7 +766,7 @@ and a `window.components['web-dropzone-picker']` (etc.) registry entry.
 | Attribute | Property | Type | Default | Description |
 |---|---|---|---|---|
 | `for` | `htmlFor` | `string \| null` |  | Id of the `<web-dropzone>` store to bind to. Changing it re-binds. Not needed when the store mounts the satellite itself. |
-| `labels` | `labels` | `Partial<DropzoneLabels>` |  | The satellite's own UI strings (object, or a JSON attribute), merged per key over the bound store's `labels`, then the built-in English. Live. |
+| `labels` | `labels` | `DropzoneLabelOverrides` |  | The satellite's own UI strings (object, or a JSON attribute), merged per key over the bound store's `labels`, then the built-in English. Live. |
 | `custom-styles` | `customStyles` | `string \| null` |  | Extra CSS for this satellite's shadow root (raw CSS — NOT sanitized). Comes after the page-wide `window.components[tag].customStyles`, so it overrides it. |
 | — | `getCustomStylesCallback` | `(ctx) => string \| null \| undefined` |  | Returns extra CSS for this satellite's shadow root; wins over `customStyles`. |
 | `defer`, `theme-source`, `motion`, `responsive` | `shouldDefer`, `themeSource`, `motion`, `responsive` (+ `responsiveCallback`) |  |  | Core inputs, as on `<web-dropzone>` (see [Attributes](#attributes)). |
@@ -787,8 +792,8 @@ The shared inputs, plus:
 | — | `uploadFileCallback` | `FileUploadHandler \| null` |  | Mode B: upload handler stamped onto every file this picker adds (wins over the store's for those files) |
 | — | `uploadMetadata` | `Record<string, unknown> \| null` |  | Mode B: metadata stamped onto every file this picker adds (`ctx.uploadMetadata`) |
 
-Picker strings (`labels`): `prompt`, `selectFiles`, `hint`, `noFileChosen`, `filesChosen`,
-`dragActive`. Method: `openFileDialog()` (no-op while disabled / read-only / unbound; calls from code
+Picker strings (`labels`): `labels.prompt`, `ariaLabels.prompt`, `buttons.selectFiles`, `labels.hint`, `labels.noFileChosen`, `labels.filesChosen`,
+`labels.dragActive`. Method: `openFileDialog()` (no-op while disabled / read-only / unbound; calls from code
 such as `picker.controller.addFiles()` still work). The picker never rejects files itself; it calls
 `store.addFiles(files, opts)`.
 
@@ -834,8 +839,8 @@ The shared inputs, plus:
 | — | `renderFileInfoCallback` | `StatusSurfaceCallback \| null` |  | Replace the chip's file-info slot (default body only): string = HTML, Node = mounted, `null` / `undefined` = the default glyph / loader, `false` = hidden |
 | — | `renderProgressCallback` | `StatusSurfaceCallback \| null` |  | Replace the chip's progress slot (default body only): string = HTML, Node = mounted, `null` / `undefined` = the default percent, `false` = hidden |
 
-Indicator strings (`labels`): `indicatorTitle`, `indicatorIdle`, `indicatorStatus` / `indicatorQueue`
-(aria), `close`, `indicatorFailed` / `…Uploading` / `…Paused` / `…Queued` / `…Done`.
+Indicator strings (`labels`): `headers.indicator`, `messages.indicatorIdle`, `ariaLabels.indicatorStatus` / `ariaLabels.indicatorQueue`
+(aria), `ariaLabels.close`, `ariaLabels.uploading` (loader), `messages.indicatorFailed` / `…Uploading` / `…Paused` / `…Queued` / `…Done`.
 Host attributes `data-position`, `data-drawer`, `data-drawer-open`; shadow parts `::part(chip)`,
 `::part(drawer)`. The chip (`aria-expanded`) hides while a non-inline drawer is open. An edge position
 (`right` / `left` / `top` / `bottom`) opens core's drawer (`.km-drawer`, sliding in from the chip's edge).

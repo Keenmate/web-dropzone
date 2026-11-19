@@ -43,7 +43,7 @@ list-appearance:
   none      no list (read dz.files yourself)
 
 card-size: minimal (thin single row) | compact (default) | big (tall, large
-icon, browse button labelled by labels.selectFiles, hint).
+icon, browse button labelled by buttons.selectFiles, hint).
 
 DISPLAY-MODE SHORTHAND
 ----------------------
@@ -58,9 +58,9 @@ display-mode expands to preset axes; explicit axis attributes win.
 <web-dropzone display-mode="grid" accept="image/*"></web-dropzone>
 <web-dropzone selector-appearance="button" list-appearance="badges"></web-dropzone>
 <web-dropzone selector-appearance="native" list-appearance="none"
-              labels='{"selectFiles":"Choose Files"}'></web-dropzone>
+              labels='{"buttons.selectFiles":"Choose Files"}'></web-dropzone>
 <web-dropzone list-appearance="grid" card-size="big"
-              labels='{"prompt":"Upload your portfolio","hint":"PNG or JPG"}'></web-dropzone>
+              labels='{"labels.prompt":"Upload your portfolio","labels.hint":"PNG or JPG"}'></web-dropzone>
 
 GRID OPTIONS
 ------------
@@ -94,7 +94,7 @@ otherwise it falls back to the normal stacked layout.
 COMPACT / POPOVER
 -----------------
 <web-dropzone display-mode="compact"
-              labels='{"summary":"{count} file(s), {size}"}'
+              labels='{"labels.summary":"{count} file(s), {size}"}'
               popover-placement="bottom-start"></web-dropzone>
 
 - Card + popover: a summary line ("{count} file(s), {size}" by default) is the
@@ -180,7 +180,7 @@ OTHER LIST KNOBS
 ----------------
 max-visible-file-count="7" rows shown before a "Show N more" / "Show less"
                            toggle (badges: "+N" pill). 0 = show all. Default 7.
-labels.noData               text when the list is empty (default "No files selected")
+messages.noData               text when the list is empty (default "No files selected")
 labels.summary             compact summary line (default "{count} file(s), {size}")
 sink-completed             completed files move to the end of the rendered list
 sink-completed-delay       ms a completed row stays put first (default 1500)
@@ -196,7 +196,7 @@ Show a full overlay over another element while files are dragged over it:
   <web-dropzone display-mode="compact"
                 overlay-target="mail-form"
                 overlay-icon="<svg ...></svg>"
-                labels='{"overlay":"Drop attachments onto the form"}'></web-dropzone>
+                labels='{"labels.overlay":"Drop attachments onto the form"}'></web-dropzone>
 </form>
 
 - overlay-target: element id or CSS selector ("#mail-form", ".editor"), id tried

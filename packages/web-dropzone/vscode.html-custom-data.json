@@ -14,7 +14,7 @@
         {
           "name": "labels",
           "description": "This satellite's own UI strings — a partial `DropzoneLabels` (property, or a JSON attribute), merged per key over the bound store's `labels`, then the built-in English. Live.",
-          "values": [{ "name": "Partial<DropzoneLabels>" }]
+          "values": [{ "name": "DropzoneLabelOverrides" }]
         },
         {
           "name": "custom-styles",
@@ -82,7 +82,7 @@
         {
           "name": "labels",
           "description": "This satellite's own UI strings — a partial `DropzoneLabels` (property, or a JSON attribute), merged per key over the bound store's `labels`, then the built-in English. Live.",
-          "values": [{ "name": "Partial<DropzoneLabels>" }]
+          "values": [{ "name": "DropzoneLabelOverrides" }]
         },
         {
           "name": "custom-styles",
@@ -156,7 +156,7 @@
         {
           "name": "labels",
           "description": "This satellite's own UI strings — a partial `DropzoneLabels` (property, or a JSON attribute), merged per key over the bound store's `labels`, then the built-in English. Live.",
-          "values": [{ "name": "Partial<DropzoneLabels>" }]
+          "values": [{ "name": "DropzoneLabelOverrides" }]
         },
         {
           "name": "custom-styles",
@@ -257,7 +257,7 @@
         {
           "name": "labels",
           "description": "This satellite's own UI strings — a partial `DropzoneLabels` (property, or a JSON attribute), merged per key over the bound store's `labels`, then the built-in English. Live.",
-          "values": [{ "name": "Partial<DropzoneLabels>" }]
+          "values": [{ "name": "DropzoneLabelOverrides" }]
         },
         {
           "name": "custom-styles",
@@ -467,8 +467,8 @@
         },
         {
           "name": "labels",
-          "description": "Every UI string (see `DropzoneLabels` / `DEFAULT_LABELS`), merged per key over the built-in English; `{name}` / `{count}` / `{size}` / … placeholders: prompt, hint, empty, summary, status names, row + bulk buttons, popover, limits line, progress strip, validation messages. Satellites inherit them (and take their own `labels` on top). Property (object) or JSON attribute. Live.",
-          "values": [{ "name": "Partial<DropzoneLabels>" }]
+          "description": "Every UI string (see `DropzoneLabels` / `DEFAULT_LABELS`): flat `<elementType>.<name>` keys (`buttons.selectFiles`, `ariaLabels.cancelFile`; the full `web-dropzone.<key>` works too), merged per key over the built-in English; `{name}` / `{count}` / `{size}` / … placeholders: prompt, hint, empty, summary, status names, row + bulk buttons, popover, limits line, progress strip, validation messages. Satellites inherit them (and take their own `labels` on top). Property (object) or JSON attribute. Live.",
+          "values": [{ "name": "DropzoneLabelOverrides" }]
         },
         {
           "name": "popover-placement",

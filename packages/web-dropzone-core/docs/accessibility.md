@@ -10,16 +10,16 @@ What a renderer built on the store should cover — the contract the official `<
   (a native `<input type="file">` or a `<button>` that clicks it) must open the dialog with
   <kbd>Enter</kbd> / <kbd>Space</kbd>, and feed `controller.addFiles(input.files)`.
 - **Named row controls.** Remove / cancel / pause / resume / retry buttons named per file — the label
-  helpers produce them: `resolveLabel` / `createLabelFn` with `removeFile`, `cancelFile`, … and
+  helpers produce them: `resolveLabel` / `createLabelFn` with `ariaLabels.removeFile`, `ariaLabels.cancelFile`, … (plus `tooltips.*` for a `title`) and
   `{ name: file.name }`.
 - **Status as text, not color alone.** `statusLabel()` / `fileStatusLabel()` give the localised status
-  word (`statusAria` for an `aria-label` such as "Status: Uploading").
+  word (`ariaLabels.status` for an `aria-label` such as "Status: Uploading").
 - **Progress semantics.** `role="progressbar"` with `aria-valuenow` from `file.progress` /
   `getOverallProgress().percent`; mark a row `aria-busy="true"` while its file uploads.
 - **Announcements.** The store announces by itself through core `announce()` (the page's one polite
   live region): files added (one message per drop / pick), rejections (`{name}` + the localised
   `validation.error`), a finished upload batch, a user removal (`removeFile` / `clear` with
-  `{ confirm: true }`) — the `announce*` labels; `''` silences one. Still render rejected files
+  `{ confirm: true }`) — the `ariaLabels.announce*` labels; `''` silences one. Still render rejected files
   (`file-reject`) visibly.
 - **Disabled vs read-only.** If your control can be disabled, follow native semantics: disabled = not
   focusable and nothing submitted; read-only = focusable, no changes (`aria-disabled="true"`).

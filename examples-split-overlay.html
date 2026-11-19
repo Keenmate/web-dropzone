@@ -178,7 +178,7 @@
                         <web-dropzone-list
                             for="split-attach"
                             list-appearance="badges"
-                            labels='{"noData": "No attachments yet."}'>
+                            labels='{"messages.noData": "No attachments yet."}'>
                         </web-dropzone-list>
                     </div>
                     <div>
@@ -186,7 +186,7 @@
                         <web-dropzone-list
                             for="split-onedrive"
                             list-appearance="badges"
-                            labels='{"noData": "No shared links yet."}'>
+                            labels='{"messages.noData": "No shared links yet."}'>
                         </web-dropzone-list>
                     </div>
                 </div>
@@ -212,7 +212,7 @@
             multiple
             max-file-count="5"
             accept="*/*"
-            labels='{"overlay": "Attach as file"}'>
+            labels='{"labels.overlay": "Attach as file"}'>
         </web-dropzone>
 
         <web-dropzone
@@ -222,7 +222,7 @@
             overlay-icon="☁️"
             multiple
             accept="*/*"
-            labels='{"overlay": "Share as OneDrive link"}'>
+            labels='{"labels.overlay": "Share as OneDrive link"}'>
         </web-dropzone>
 
         <script type="module">
@@ -335,11 +335,11 @@
             <div class="attached">
                 <div>
                     <h4>📎 Files A</h4>
-                    <web-dropzone-list for="split-attach-2" list-appearance="badges" labels='{"noData": "No files."}'></web-dropzone-list>
+                    <web-dropzone-list for="split-attach-2" list-appearance="badges" labels='{"messages.noData": "No files."}'></web-dropzone-list>
                 </div>
                 <div>
                     <h4>☁️ Links A</h4>
-                    <web-dropzone-list for="split-onedrive-2" list-appearance="badges" labels='{"noData": "No links."}'></web-dropzone-list>
+                    <web-dropzone-list for="split-onedrive-2" list-appearance="badges" labels='{"messages.noData": "No links."}'></web-dropzone-list>
                 </div>
             </div>
 
@@ -356,11 +356,11 @@
             <div class="attached">
                 <div>
                     <h4>📎 Files B</h4>
-                    <web-dropzone-list for="split-attach-3" list-appearance="badges" labels='{"noData": "No files."}'></web-dropzone-list>
+                    <web-dropzone-list for="split-attach-3" list-appearance="badges" labels='{"messages.noData": "No files."}'></web-dropzone-list>
                 </div>
                 <div>
                     <h4>☁️ Links B</h4>
-                    <web-dropzone-list for="split-onedrive-3" list-appearance="badges" labels='{"noData": "No links."}'></web-dropzone-list>
+                    <web-dropzone-list for="split-onedrive-3" list-appearance="badges" labels='{"messages.noData": "No links."}'></web-dropzone-list>
                 </div>
             </div>
         </div>
@@ -372,7 +372,7 @@
             overlay-icon="📎"
             multiple
             accept="*/*"
-            labels='{"overlay": "A · Attach as file"}'>
+            labels='{"labels.overlay": "A · Attach as file"}'>
         </web-dropzone>
         <web-dropzone
             id="split-onedrive-2"
@@ -381,7 +381,7 @@
             overlay-icon="☁️"
             multiple
             accept="*/*"
-            labels='{"overlay": "A · Share as link"}'>
+            labels='{"labels.overlay": "A · Share as link"}'>
         </web-dropzone>
         <web-dropzone
             id="split-attach-3"
@@ -390,7 +390,7 @@
             overlay-icon="📎"
             multiple
             accept="*/*"
-            labels='{"overlay": "B · Attach as file"}'>
+            labels='{"labels.overlay": "B · Attach as file"}'>
         </web-dropzone>
         <web-dropzone
             id="split-onedrive-3"
@@ -399,7 +399,7 @@
             overlay-icon="☁️"
             multiple
             accept="*/*"
-            labels='{"overlay": "B · Share as link"}'>
+            labels='{"labels.overlay": "B · Share as link"}'>
         </web-dropzone>
 
         <div class="card">
@@ -428,12 +428,12 @@
 &lt;!-- Hidden dropzones, each targeting one half --&gt;
 &lt;web-dropzone style="display:none; --dz-overlay-bg: rgba(0,120,212,0.92)"
               overlay-target="left-half"
-              labels='{"overlay": "Attach as file"}'
+              labels='{"labels.overlay": "Attach as file"}'
               overlay-icon="📎"&gt;&lt;/web-dropzone&gt;
 
 &lt;web-dropzone style="display:none; --dz-overlay-bg: rgba(20,184,166,0.92)"
               overlay-target="right-half"
-              labels='{"overlay": "Share as OneDrive link"}'
+              labels='{"labels.overlay": "Share as OneDrive link"}'
               overlay-icon="☁️"&gt;&lt;/web-dropzone&gt;</code></pre>
             </div>
         </div>

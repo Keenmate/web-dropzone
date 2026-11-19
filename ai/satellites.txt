@@ -116,7 +116,7 @@ Card drag highlight is scoped to that picker.
 
 <web-dropzone-list>
 -------------------
-Attributes (plus the shared inputs; labels e.g. {"noData":"Nothing yet"}):
+Attributes (plus the shared inputs; labels e.g. {"messages.noData":"Nothing yet"}):
   list-appearance  list (default) | detailed | grid | badges | rolling | popover
   grid-layout      uniform (default) | natural
   grid-status      badge (default) | overlay
@@ -226,8 +226,8 @@ Mode A - independent contexts: N stores, each with its own satellites.
 Mode B - one shared queue / list / progress, per-picker upload semantics:
 
 <web-dropzone id="cloud"></web-dropzone>
-<web-dropzone-picker id="pub"  for="cloud" selector-appearance="button" labels='{"selectFiles":"Add public files"}'></web-dropzone-picker>
-<web-dropzone-picker id="priv" for="cloud" selector-appearance="button" labels='{"selectFiles":"Add private files"}'></web-dropzone-picker>
+<web-dropzone-picker id="pub"  for="cloud" selector-appearance="button" labels='{"buttons.selectFiles":"Add public files"}'></web-dropzone-picker>
+<web-dropzone-picker id="priv" for="cloud" selector-appearance="button" labels='{"buttons.selectFiles":"Add private files"}'></web-dropzone-picker>
 <web-dropzone-list      for="cloud" list-appearance="rolling"></web-dropzone-list>
 <web-dropzone-indicator for="cloud" position="right"></web-dropzone-indicator>
 

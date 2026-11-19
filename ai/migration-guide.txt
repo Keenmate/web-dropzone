@@ -127,16 +127,16 @@ STEP 7: LABELS REPLACE TEXT ATTRIBUTES
 | drag-active-text / dragActiveText        | labels.dragActive                 |
 | no-file-chosen-text / noFileChosenText   | labels.noFileChosen               |
 | overlay-text / overlayText               | labels.overlay                    |
-| select-files-text / selectFilesText      | labels.selectFiles                |
+| select-files-text / selectFilesText      | buttons.selectFiles                |
 | STATUS_LABELS export                     | labels.statusPending ... statusCancelled |
-| ACTION_LABELS export                     | labels.pauseFile / resumeFile / retryFile |
+| ACTION_LABELS export                     | ariaLabels.pauseFile / resumeFile / retryFile |
 
 <!-- before -->
 <web-dropzone prompt-text="Drop invoices" hint-text="PDF only" display-mode="list"></web-dropzone>
 <!-- after -->
-<web-dropzone labels='{"prompt":"Drop invoices","hint":"PDF only"}' display-mode="list"></web-dropzone>
+<web-dropzone labels='{"labels.prompt":"Drop invoices","labels.hint":"PDF only"}' display-mode="list"></web-dropzone>
 
-Also moved into labels: empty-message -> labels.noData, summary-template ->
+Also moved into labels: empty-message -> messages.noData, summary-template ->
 labels.summary; the satellites' label / hint / no-file-chosen-text / list
 empty-message / indicator label attributes -> each satellite's own `labels`
 (merged over the store's). Popover, limits line, progress strip, indicator

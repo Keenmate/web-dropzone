@@ -23,7 +23,7 @@ import type {
     CustomStylesContext
 } from './interaction';
 import type { RenderCallbackResult, StatusSurfaceCallback } from './store-api';
-import type { DropzoneLabels } from './labels';
+import type { DropzoneLabelOverrides } from './labels';
 
 /**
  * Display mode — single-axis legacy shorthand for the orthogonal
@@ -545,12 +545,12 @@ export interface DropzoneConfig {
     icon?: string;
     /**
      * UI strings (`labels` input) — a partial {@link DropzoneLabels} object
-     * merged per key over the built-in English defaults; `{name}` /
-     * `{count}` / `{status}` placeholders. Prompt, hint, drag-active,
-     * select-files, no-file-chosen, overlay text, status names, row and
-     * bulk-action buttons. Resolved through `resolveLabel`.
+     * (flat `<elementType>.<name>` keys: `buttons.selectFiles`,
+     * `ariaLabels.cancelFile`; the full `web-dropzone.<key>` works too) merged
+     * per key over the built-in English defaults; `{name}` / `{count}` /
+     * `{status}` placeholders. Resolved through `resolveLabel`.
      */
-    labels?: Partial<DropzoneLabels> | null;
+    labels?: DropzoneLabelOverrides | null;
 
     // ========================================================================
     // COMPACT MODE OPTIONS

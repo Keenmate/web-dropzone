@@ -152,7 +152,7 @@
                         render-mode="structural"
                         display-mode="list"
                         accept=".pdf,image/*"
-                        labels='{"prompt": "Drop receipts"}'>
+                        labels='{"labels.prompt": "Drop receipts"}'>
                     </web-dropzone>
                 </div>
                 <script type="module" data-kmwc-show>
@@ -213,7 +213,7 @@
                         render-mode="structural"
                         display-mode="list"
                         accept="*/*"
-                        labels='{"prompt": "Drop files (click row to preview in new tab)"}'>
+                        labels='{"labels.prompt": "Drop files (click row to preview in new tab)"}'>
                     </web-dropzone>
                 </div>
                 <script type="module" data-kmwc-show>
@@ -269,7 +269,7 @@
                         render-mode="structural"
                         display-mode="compact"
                         accept="*/*"
-                        labels='{"prompt": "Drop files"}'>
+                        labels='{"labels.prompt": "Drop files"}'>
                     </web-dropzone>
                     <small class="form-text">Click the summary to open the file popover.</small>
                 </div>
@@ -315,7 +315,7 @@
                         auto-upload
                         sink-completed
                         sink-completed-delay="1200"
-                        labels='{"prompt": "Drop files into the table"}'>
+                        labels='{"labels.prompt": "Drop files into the table"}'>
                     </web-dropzone>
                     <small class="form-text">~20% of files randomly fail mid-upload — click 🔄 to retry from where they left off, not from 0.</small>
                 </div>
@@ -427,7 +427,7 @@
                         sink-completed
                         sink-completed-delay="1200"
                         progress-throttle="120"
-                        labels='{"prompt": "Drop files (click a row to toggle ⭐)"}'>
+                        labels='{"labels.prompt": "Drop files (click a row to toggle ⭐)"}'>
                     </web-dropzone>
                     <small class="form-text">Simulated upload runs on selection. ⏸ pause / ▶ resume / 🔄 retry buttons appear based on each file's status; the framework's <code>data-dz-action="row-action"</code> convention auto-wires them.</small>
                 </div>

@@ -2,238 +2,279 @@
  * UI strings — the `labels` input (Keenmate cross-component i18n model).
  *
  * Every user-visible string the dropzone renders by itself comes from ONE
- * lookup, core `/locale` (SPEC §12.24): the element's `labels` overrides (a
- * partial object, merged per key; a satellite: its own, the page-wide labels of
- * its own tag, then its store's) → the page-wide
- * `window.components.locale.labels['web-dropzone']` → the built-in English
- * {@link DEFAULT_LABELS}. Placeholders in `{braces}` (`{name}`, `{count}`,
- * `{status}`) are filled from the call's `vars` — or by the page's
- * `formatLabelCallback` (ICU / i18next). Labels are TEXT: every renderer
- * escapes them where it builds HTML.
+ * lookup, core `/locale` (SPEC §12.24). Keys are flat `<elementType>.<name>`
+ * (`buttons.selectFiles`, `ariaLabels.cancelFile`); the full key prefixes the
+ * component name: `web-dropzone.buttons.selectFiles`. Per key: the element's
+ * `labels` overrides (short or full keys; a satellite: its own, the page-wide
+ * `<satellite tag>.<key>` entries, then its store's) → the page-wide flat
+ * dictionary `window.components.locale.labels['web-dropzone.<key>']` → the
+ * built-in English {@link DEFAULT_LABELS}. Placeholders in `{braces}`
+ * (`{name}`, `{count}`, `{status}`) are filled from the call's `vars` — or by
+ * the page's `translateCallback` (i18next / ICU). Labels are TEXT: every
+ * renderer escapes them where it builds HTML.
  */
 
 import { createLabels, formatLabel, getPageLocale, resolveLabel as resolveCoreLabel, type Labels } from '@keenmate/web-components-core/locale';
 import type { FileState, FileStatus } from './types';
 
-/** The tag the page-wide labels of the whole dropzone family are keyed by. */
+/** The component name — the prefix of the full label keys of the whole dropzone family. */
 export const LABELS_TAG = 'web-dropzone';
 
-/** Every UI string `<web-dropzone>` and its satellites render by themselves. */
+/**
+ * Every UI string `<web-dropzone>` and its satellites render by themselves.
+ * Keys are flat `<elementType>.<name>` (core `/locale`, rulebook D-NC-24) —
+ * the element type says where the text is SHOWN: `buttons` (visible caption),
+ * `tooltips` (`title`), `ariaLabels` (screen-reader only: `aria-label`, live
+ * announcements), `headers`, `labels` (other visible text), `messages`
+ * (empty state / progress), `errors` (validation / failure). A text shown on
+ * two surfaces has two keys sharing `<name>` (`ariaLabels.pauseFile` +
+ * `tooltips.pauseFile`).
+ */
 export interface DropzoneLabels {
-    /** Card prompt; also the accessible name of the card / minimal selectors. */
-    prompt: string;
+    /** Card prompt text. */
+    'labels.prompt': string;
+    /** Accessible name of the card's file input / the minimal selector button. */
+    'ariaLabels.prompt': string;
     /** Secondary hint under the prompt. Empty = none on the card; the popover then derives a limits line. */
-    hint: string;
+    'labels.hint': string;
     /** Card text while a drag is over it. */
-    dragActive: string;
-    /** Browse / select-files action (button + native selectors, big card). */
-    selectFiles: string;
+    'labels.dragActive': string;
+    /** Browse / select-files button (button + native selectors, big card). */
+    'buttons.selectFiles': string;
     /** Native selector text when nothing is chosen. */
-    noFileChosen: string;
+    'labels.noFileChosen': string;
     /** Drag-overlay text (`overlay-target`). */
-    overlay: string;
+    'labels.overlay': string;
 
-    /** Status names — the per-row status pill's tooltip / accessible name. */
-    statusPending: string;
-    statusUploading: string;
-    statusPaused: string;
-    statusCancelling: string;
-    statusComplete: string;
-    statusError: string;
-    statusCancelled: string;
-    /** Status pill accessible name; `{status}` is one of the status names. */
-    statusAria: string;
-    /** Status of an `error` file whose cancel timed out (`file.error === 'cancel-timeout'`). */
-    cancelTimeout: string;
+    /** Status names — the status pill's / indicator icon's tooltip, and `{status}` in `ariaLabels.status`. */
+    'labels.statusPending': string;
+    'labels.statusUploading': string;
+    'labels.statusPaused': string;
+    'labels.statusCancelling': string;
+    'labels.statusComplete': string;
+    'labels.statusError': string;
+    'labels.statusCancelled': string;
+    /** Status name of an `error` file whose cancel timed out (`file.error === 'cancel-timeout'`). */
+    'labels.cancelTimeout': string;
+    /** Status pill / summary icon accessible name; `{status}` is one of the status names. */
+    'ariaLabels.status': string;
+    /** Accessible name of the indicator's upload loader. */
+    'ariaLabels.uploading': string;
     /** Text next to the progress bar while a cancel waits for the handler. */
-    cancelling: string;
+    'messages.cancelling': string;
 
-    /** Row buttons (`{name}` = the file name) — accessible name + tooltip. */
-    pauseFile: string;
-    resumeFile: string;
-    retryFile: string;
-    cancelFile: string;
-    removeFile: string;
+    /** Row buttons (`{name}` = the file name): accessible name + tooltip. */
+    'ariaLabels.pauseFile': string;
+    'tooltips.pauseFile': string;
+    'ariaLabels.resumeFile': string;
+    'tooltips.resumeFile': string;
+    'ariaLabels.retryFile': string;
+    'tooltips.retryFile': string;
+    'ariaLabels.cancelFile': string;
+    'tooltips.cancelFile': string;
+    /** Row remove (✕) button accessible name. */
+    'ariaLabels.removeFile': string;
 
     /** Bulk actions in the overall-progress strip. */
-    pauseAll: string;
-    resumeAll: string;
-    retryAll: string;
-    cancelAll: string;
+    'buttons.pauseAll': string;
+    'buttons.resumeAll': string;
+    'buttons.retryAll': string;
+    'buttons.cancelAll': string;
 
     /** Empty file list. */
-    noData: string;
+    'messages.noData': string;
     /** Compact summary line (`{count}`, `{size}` = total size). */
-    summary: string;
+    'labels.summary': string;
     /** Accessible name of the compact summary line (opens the popover). */
-    viewFiles: string;
+    'ariaLabels.viewFiles': string;
     /** Native selector text for 2+ files (`{count}`). */
-    filesChosen: string;
-    /** File count (`{count}`); `fileCountOne` for exactly one. Popover header + footer. */
-    fileCount: string;
-    fileCountOne: string;
+    'labels.filesChosen': string;
+    /** File count (`{count}`); `labels.fileCountOne` for exactly one. Popover header + footer. */
+    'labels.fileCount': string;
+    'labels.fileCountOne': string;
     /** Popover header buttons. */
-    addMore: string;
-    clearAll: string;
-    /** List cap toggle (`max-visible-file-count`): `{count}` = hidden rows. */
-    showMore: string;
-    showLess: string;
-    /** Rolling list queue button — accessible name + tooltip (`{count}`). */
-    showQueue: string;
+    'buttons.addMore': string;
+    'buttons.clearAll': string;
+    /** List cap toggle (`max-visible-file-count`, `{count}` = hidden rows): the text toggle's caption; the `+N` / `−` badge's accessible name. */
+    'buttons.showMore': string;
+    'ariaLabels.showMore': string;
+    'buttons.showLess': string;
+    'ariaLabels.showLess': string;
+    /** Rolling list queue button (`{count}`): accessible name + tooltip. */
+    'ariaLabels.showQueue': string;
+    'tooltips.showQueue': string;
     /** Type column fallback for a file without a MIME type. */
-    unknownType: string;
+    'labels.unknownType': string;
 
-    /** Popover limits line parts (auto-derived when `hint` is empty), joined with " · ". `{size}` / `{count}` = the limit. */
-    limitMaxFileSize: string;
-    limitMinFileSize: string;
-    limitMaxTotalSize: string;
+    /** Popover limits line parts (auto-derived when `labels.hint` is empty), joined with " · ". `{size}` / `{count}` = the limit. */
+    'labels.limitMaxFileSize': string;
+    'labels.limitMinFileSize': string;
+    'labels.limitMaxTotalSize': string;
     /** `{left}` = remaining size. */
-    limitMaxTotalSizeLeft: string;
-    limitMaxFileCount: string;
+    'labels.limitMaxTotalSizeLeft': string;
+    'labels.limitMaxFileCount': string;
     /** `{left}` = remaining slots. */
-    limitMaxFileCountLeft: string;
-    limitMinFileCount: string;
+    'labels.limitMaxFileCountLeft': string;
+    'labels.limitMinFileCount': string;
 
     /** Overall-progress strip: `{completed}`, `{total}`, `{uploadedSize}`, `{totalSize}`; paused / failed segments `{count}`. */
-    progressCounts: string;
-    progressPaused: string;
-    progressFailed: string;
+    'messages.progressCounts': string;
+    'messages.progressPaused': string;
+    'messages.progressFailed': string;
 
-    /** `<web-dropzone-indicator>`: drawer title, idle chip text, chip / drawer accessible names, drawer close button. */
-    indicatorTitle: string;
-    indicatorIdle: string;
-    indicatorStatus: string;
-    indicatorQueue: string;
-    close: string;
-    /** Indicator chip text by aggregate state (`{count}`). */
-    indicatorFailed: string;
-    indicatorUploading: string;
-    indicatorPaused: string;
-    indicatorQueued: string;
-    indicatorDone: string;
+    /** `<web-dropzone-indicator>` drawer title. */
+    'headers.indicator': string;
+    /** Indicator chip / drawer accessible names; the drawer + popover close button. */
+    'ariaLabels.indicatorStatus': string;
+    'ariaLabels.indicatorQueue': string;
+    'ariaLabels.close': string;
+    /** Indicator chip text: idle, then by aggregate state (`{count}`). */
+    'messages.indicatorIdle': string;
+    'messages.indicatorFailed': string;
+    'messages.indicatorUploading': string;
+    'messages.indicatorPaused': string;
+    'messages.indicatorQueued': string;
+    'messages.indicatorDone': string;
 
     /** Validation messages (`validation.error` in `file-reject`; `{size}` / `{count}` / `{name}`). */
-    errorMaxFileSize: string;
-    errorMinFileSize: string;
-    errorFileType: string;
+    'errors.maxFileSize': string;
+    'errors.minFileSize': string;
+    'errors.fileType': string;
     /** `beforeFilesAddCallback` returned `false` (code `rejected`). */
-    errorRejected: string;
-    errorMaxFileCount: string;
-    errorMaxFileCountOne: string;
-    errorDuplicate: string;
-    errorMaxTotalSize: string;
+    'errors.rejected': string;
+    'errors.maxFileCount': string;
+    'errors.maxFileCountOne': string;
+    'errors.duplicate': string;
+    'errors.maxTotalSize': string;
     /** A failed upload's `error` when the handler threw something that isn't an `Error`. */
-    errorUpload: string;
+    'errors.upload': string;
     /** Form validity message (`min-file-count`). */
-    errorMinFileCount: string;
-    errorMinFileCountOne: string;
+    'errors.minFileCount': string;
+    'errors.minFileCountOne': string;
 
     /**
      * Screen-reader announcements (core `announce()`, the page's one polite live
      * region). `''` silences one. Files added — ONE per drop / pick (`{count}`);
-     * `announceAddedOne` for exactly one.
+     * `ariaLabels.announceAddedOne` for exactly one.
      */
-    announceAdded: string;
-    announceAddedOne: string;
+    'ariaLabels.announceAdded': string;
+    'ariaLabels.announceAddedOne': string;
     /** A file was rejected (`{name}`, `{reason}` = the validation message). */
-    announceRejected: string;
-    /** An upload batch finished, all succeeded (`{count}`); `announceUploadDoneOne` for exactly one. */
-    announceUploadDone: string;
-    announceUploadDoneOne: string;
+    'ariaLabels.announceRejected': string;
+    /** An upload batch finished, all succeeded (`{count}`); `…One` for exactly one. */
+    'ariaLabels.announceUploadDone': string;
+    'ariaLabels.announceUploadDoneOne': string;
     /** An upload batch finished with failures (`{done}`, `{failed}`). */
-    announceUploadFailed: string;
+    'ariaLabels.announceUploadFailed': string;
     /** A file removed by the user — row ✕, Clear all (`{name}`). */
-    announceRemoved: string;
+    'ariaLabels.announceRemoved': string;
 }
 
 export type DropzoneLabelKey = keyof DropzoneLabels;
 
+/**
+ * The `labels` input: short keys (`buttons.selectFiles`) and / or full keys
+ * (`web-dropzone.buttons.selectFiles`); the short key wins when both are set.
+ */
+export type DropzoneLabelOverrides =
+    & { [K in DropzoneLabelKey]?: string }
+    & { [K in DropzoneLabelKey as `web-dropzone.${K}`]?: string };
+
 /** Built-in English strings. */
 export const DEFAULT_LABELS: Readonly<DropzoneLabels> = Object.freeze({
-    prompt: 'Drop files here or click to browse',
-    hint: '',
-    dragActive: 'Drop files here',
-    selectFiles: 'Select files',
-    noFileChosen: 'No file chosen',
-    overlay: 'Drop files here',
+    'labels.prompt': 'Drop files here or click to browse',
+    'ariaLabels.prompt': 'Drop files here or click to browse',
+    'labels.hint': '',
+    'labels.dragActive': 'Drop files here',
+    'buttons.selectFiles': 'Select files',
+    'labels.noFileChosen': 'No file chosen',
+    'labels.overlay': 'Drop files here',
 
-    statusPending: 'Pending',
-    statusUploading: 'Uploading',
-    statusPaused: 'Paused',
-    statusCancelling: 'Cancelling…',
-    statusComplete: 'Complete',
-    statusError: 'Error',
-    statusCancelled: 'Cancelled',
-    statusAria: 'Status: {status}',
-    cancelTimeout: 'Cancel timed out',
-    cancelling: 'Cancelling…',
+    'labels.statusPending': 'Pending',
+    'labels.statusUploading': 'Uploading',
+    'labels.statusPaused': 'Paused',
+    'labels.statusCancelling': 'Cancelling…',
+    'labels.statusComplete': 'Complete',
+    'labels.statusError': 'Error',
+    'labels.statusCancelled': 'Cancelled',
+    'labels.cancelTimeout': 'Cancel timed out',
+    'ariaLabels.status': 'Status: {status}',
+    'ariaLabels.uploading': 'Uploading',
+    'messages.cancelling': 'Cancelling…',
 
-    pauseFile: 'Pause {name}',
-    resumeFile: 'Resume {name}',
-    retryFile: 'Retry {name}',
-    cancelFile: 'Cancel {name}',
-    removeFile: 'Remove {name}',
+    'ariaLabels.pauseFile': 'Pause {name}',
+    'tooltips.pauseFile': 'Pause {name}',
+    'ariaLabels.resumeFile': 'Resume {name}',
+    'tooltips.resumeFile': 'Resume {name}',
+    'ariaLabels.retryFile': 'Retry {name}',
+    'tooltips.retryFile': 'Retry {name}',
+    'ariaLabels.cancelFile': 'Cancel {name}',
+    'tooltips.cancelFile': 'Cancel {name}',
+    'ariaLabels.removeFile': 'Remove {name}',
 
-    pauseAll: 'Pause all',
-    resumeAll: 'Resume all',
-    retryAll: 'Retry all',
-    cancelAll: 'Cancel all',
+    'buttons.pauseAll': 'Pause all',
+    'buttons.resumeAll': 'Resume all',
+    'buttons.retryAll': 'Retry all',
+    'buttons.cancelAll': 'Cancel all',
 
-    noData: 'No files selected',
-    summary: '{count} file(s), {size}',
-    viewFiles: 'Click to view files',
-    filesChosen: '{count} files chosen',
-    fileCount: '{count} files',
-    fileCountOne: '1 file',
-    addMore: 'Add more',
-    clearAll: 'Clear all',
-    showMore: 'Show {count} more',
-    showLess: 'Show less',
-    showQueue: 'Show all {count} files',
-    unknownType: 'Unknown',
+    'messages.noData': 'No files selected',
+    'labels.summary': '{count} file(s), {size}',
+    'ariaLabels.viewFiles': 'Click to view files',
+    'labels.filesChosen': '{count} files chosen',
+    'labels.fileCount': '{count} files',
+    'labels.fileCountOne': '1 file',
+    'buttons.addMore': 'Add more',
+    'buttons.clearAll': 'Clear all',
+    'buttons.showMore': 'Show {count} more',
+    'ariaLabels.showMore': 'Show {count} more',
+    'buttons.showLess': 'Show less',
+    'ariaLabels.showLess': 'Show less',
+    'ariaLabels.showQueue': 'Show all {count} files',
+    'tooltips.showQueue': 'Show all {count} files',
+    'labels.unknownType': 'Unknown',
 
-    limitMaxFileSize: 'max {size} each',
-    limitMinFileSize: 'min {size} each',
-    limitMaxTotalSize: 'up to {size} total',
-    limitMaxTotalSizeLeft: 'up to {size} total · {left} left',
-    limitMaxFileCount: 'up to {count} files',
-    limitMaxFileCountLeft: 'up to {count} files · {left} left',
-    limitMinFileCount: 'at least {count} files',
+    'labels.limitMaxFileSize': 'max {size} each',
+    'labels.limitMinFileSize': 'min {size} each',
+    'labels.limitMaxTotalSize': 'up to {size} total',
+    'labels.limitMaxTotalSizeLeft': 'up to {size} total · {left} left',
+    'labels.limitMaxFileCount': 'up to {count} files',
+    'labels.limitMaxFileCountLeft': 'up to {count} files · {left} left',
+    'labels.limitMinFileCount': 'at least {count} files',
 
-    progressCounts: '{completed} of {total} · {uploadedSize} / {totalSize}',
-    progressPaused: '{count} paused',
-    progressFailed: '{count} failed',
+    'messages.progressCounts': '{completed} of {total} · {uploadedSize} / {totalSize}',
+    'messages.progressPaused': '{count} paused',
+    'messages.progressFailed': '{count} failed',
 
-    indicatorTitle: 'Uploads',
-    indicatorIdle: 'No uploads',
-    indicatorStatus: 'Upload status',
-    indicatorQueue: 'Upload queue',
-    close: 'Close',
-    indicatorFailed: '{count} failed',
-    indicatorUploading: '{count} uploading',
-    indicatorPaused: '{count} paused',
-    indicatorQueued: '{count} queued',
-    indicatorDone: '{count} done',
+    'headers.indicator': 'Uploads',
+    'ariaLabels.indicatorStatus': 'Upload status',
+    'ariaLabels.indicatorQueue': 'Upload queue',
+    'ariaLabels.close': 'Close',
+    'messages.indicatorIdle': 'No uploads',
+    'messages.indicatorFailed': '{count} failed',
+    'messages.indicatorUploading': '{count} uploading',
+    'messages.indicatorPaused': '{count} paused',
+    'messages.indicatorQueued': '{count} queued',
+    'messages.indicatorDone': '{count} done',
 
-    errorMaxFileSize: 'File is too large. Maximum size is {size}',
-    errorMinFileSize: 'File is too small. Minimum size is {size}',
-    errorFileType: 'File type not accepted',
-    errorRejected: 'File rejected',
-    errorMaxFileCount: 'Maximum {count} files allowed',
-    errorMaxFileCountOne: 'Maximum 1 file allowed',
-    errorDuplicate: 'Duplicate file: {name}',
-    errorMaxTotalSize: 'Total size would exceed {size}',
-    errorUpload: 'Upload failed',
-    errorMinFileCount: 'At least {count} files required',
-    errorMinFileCountOne: 'At least 1 file required',
+    'errors.maxFileSize': 'File is too large. Maximum size is {size}',
+    'errors.minFileSize': 'File is too small. Minimum size is {size}',
+    'errors.fileType': 'File type not accepted',
+    'errors.rejected': 'File rejected',
+    'errors.maxFileCount': 'Maximum {count} files allowed',
+    'errors.maxFileCountOne': 'Maximum 1 file allowed',
+    'errors.duplicate': 'Duplicate file: {name}',
+    'errors.maxTotalSize': 'Total size would exceed {size}',
+    'errors.upload': 'Upload failed',
+    'errors.minFileCount': 'At least {count} files required',
+    'errors.minFileCountOne': 'At least 1 file required',
 
-    announceAdded: '{count} files added',
-    announceAddedOne: '1 file added',
-    announceRejected: '{name} was rejected: {reason}',
-    announceUploadDone: 'Upload complete: {count} files',
-    announceUploadDoneOne: 'Upload complete: 1 file',
-    announceUploadFailed: '{done} uploaded, {failed} failed',
-    announceRemoved: '{name} removed'
+    'ariaLabels.announceAdded': '{count} files added',
+    'ariaLabels.announceAddedOne': '1 file added',
+    'ariaLabels.announceRejected': '{name} was rejected: {reason}',
+    'ariaLabels.announceUploadDone': 'Upload complete: {count} files',
+    'ariaLabels.announceUploadDoneOne': 'Upload complete: 1 file',
+    'ariaLabels.announceUploadFailed': '{done} uploaded, {failed} failed',
+    'ariaLabels.announceRemoved': '{name} removed'
 });
 
 /** Placeholder values for {@link resolveLabel}. */
@@ -244,29 +285,43 @@ export type LabelFn = (key: DropzoneLabelKey, vars?: LabelVars) => string;
 
 /** A labels source, or several — most specific first (a satellite's own `labels`, then its store's). */
 export type LabelSources =
-    | Partial<DropzoneLabels>
+    | DropzoneLabelOverrides
     | null
     | undefined
-    | ReadonlyArray<Partial<DropzoneLabels> | null | undefined>;
+    | ReadonlyArray<DropzoneLabelOverrides | null | undefined>;
 
-/** The sources merged into one partial (the first source that has a key wins). */
+const FULL_PREFIX = `${LABELS_TAG}.`;
+
+/** One source with its full keys (`web-dropzone.<key>`) folded to short keys; a short key wins. */
+function normalizeSource(source: Readonly<Record<string, unknown>>): Record<string, unknown> {
+    const out: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(source)) {
+        if (key.startsWith(FULL_PREFIX)) out[key.slice(FULL_PREFIX.length)] = value;
+    }
+    for (const [key, value] of Object.entries(source)) {
+        if (!key.startsWith(FULL_PREFIX)) out[key] = value;
+    }
+    return out;
+}
+
+/** The sources merged into one partial of short keys (the first source that has a key wins). */
 function mergeSources(overrides: LabelSources): Partial<DropzoneLabels> | null {
-    const sources = (Array.isArray(overrides) ? overrides : [overrides]) as ReadonlyArray<Partial<DropzoneLabels> | null | undefined>;
-    let merged: Partial<DropzoneLabels> | null = null;
+    const sources = (Array.isArray(overrides) ? overrides : [overrides]) as ReadonlyArray<DropzoneLabelOverrides | null | undefined>;
+    let merged: Record<string, unknown> | null = null;
     for (let i = sources.length - 1; i >= 0; i--) {
         const source = sources[i];
-        if (source && typeof source === 'object') merged = { ...(merged ?? {}), ...source };
+        if (source && typeof source === 'object') merged = { ...(merged ?? {}), ...normalizeSource(source) };
     }
-    return merged;
+    return merged as Partial<DropzoneLabels> | null;
 }
 
 /**
  * THE label lookup without an element: the first source that has `key` (the
  * element's `labels`; for a satellite its own `labels`, then its store's) →
- * the page-wide `window.components.locale.labels['web-dropzone']` →
+ * the page-wide `window.components.locale.labels['web-dropzone.<key>']` →
  * {@link DEFAULT_LABELS}; then `{placeholder}`s are filled from `vars`
  * (unknown placeholders are left as written). Elements go through
- * {@link createLabelFn} (adds the page's `formatLabelCallback`).
+ * {@link createLabelFn} (adds the page's `translateCallback`).
  */
 export function resolveLabel(
     overrides: LabelSources,
@@ -278,9 +333,10 @@ export function resolveLabel(
 
 /**
  * Bind the lookup to a labels source (read on every call, so live changes
- * apply) and the element it renders for (core `createLabels`: the page-wide
- * labels + `formatLabelCallback`, the element's locale). `getHost` is read
- * lazily — an engine creates its label function before its element is set.
+ * apply) and the element it renders for (core `createLabels` with
+ * `tag: 'web-dropzone'`: the page-wide labels + `translateCallback`, the
+ * element's locale). `getHost` is read lazily — an engine creates its label
+ * function before its element is set.
  */
 export function createLabelFn(getOverrides: () => LabelSources, getHost?: () => Element | null | undefined): LabelFn {
     let labels: Labels<DropzoneLabels> | null = null;
@@ -299,22 +355,39 @@ export function createLabelFn(getOverrides: () => LabelSources, getHost?: () => 
 /**
  * The raw template of `key` (no placeholders filled) — `''` when the consumer
  * silenced it (an announcement label set to `''` never reaches `announce()`,
- * even through a page-wide `formatLabelCallback`).
+ * even through a page-wide `translateCallback`).
  */
 export function labelTemplate(overrides: LabelSources, key: DropzoneLabelKey): string {
     return resolveCoreLabel(LABELS_TAG, DEFAULT_LABELS, mergeSources(overrides), key);
 }
 
-/** The page-wide labels of a satellite's own tag (`window.components.locale.labels[tag]`). */
-export function pageLabelsFor(tag: string): Partial<DropzoneLabels> | undefined {
-    return getPageLocale()?.labels?.[tag] as Partial<DropzoneLabels> | undefined;
+/**
+ * A satellite's own page-wide labels: the entries of the flat page dictionary
+ * keyed by the satellite's tag (`'web-dropzone-indicator.headers.indicator'`),
+ * as short keys. Applies to that satellite only (`web-dropzone.*` keys apply to
+ * the whole family).
+ */
+export function pageLabelsFor(tag: string): DropzoneLabelOverrides | undefined {
+    const page = getPageLocale()?.labels;
+    if (!page) return undefined;
+    const prefix = `${tag}.`;
+    let out: Record<string, string> | undefined;
+    for (const [key, value] of Object.entries(page)) {
+        if (key.startsWith(prefix) && typeof value === 'string') (out ??= {})[key.slice(prefix.length)] = value;
+    }
+    return out as DropzoneLabelOverrides | undefined;
 }
 
 /** The built-in English lookup (no overrides). */
 export const defaultLabel: LabelFn = (key, vars) => resolveLabel(undefined, key, vars);
 
 /** Keys with a singular variant `<key>One`, used when `count === 1`. */
-export type CountedLabelKey = 'fileCount' | 'errorMaxFileCount' | 'errorMinFileCount' | 'announceAdded' | 'announceUploadDone';
+export type CountedLabelKey =
+    | 'labels.fileCount'
+    | 'errors.maxFileCount'
+    | 'errors.minFileCount'
+    | 'ariaLabels.announceAdded'
+    | 'ariaLabels.announceUploadDone';
 
 /** A count label: `<key>One` for exactly one, else `<key>` with `{count}` filled. */
 export function countLabel(label: LabelFn, key: CountedLabelKey, count: number): string {
@@ -322,13 +395,13 @@ export function countLabel(label: LabelFn, key: CountedLabelKey, count: number):
 }
 
 const STATUS_KEYS: Record<FileStatus, DropzoneLabelKey> = {
-    pending: 'statusPending',
-    uploading: 'statusUploading',
-    paused: 'statusPaused',
-    cancelling: 'statusCancelling',
-    complete: 'statusComplete',
-    error: 'statusError',
-    cancelled: 'statusCancelled'
+    pending: 'labels.statusPending',
+    uploading: 'labels.statusUploading',
+    paused: 'labels.statusPaused',
+    cancelling: 'labels.statusCancelling',
+    complete: 'labels.statusComplete',
+    error: 'labels.statusError',
+    cancelled: 'labels.statusCancelled'
 };
 
 /** The status name of a status (aggregate surfaces have no file). */
@@ -338,12 +411,12 @@ export function statusLabel(label: LabelFn, status: FileStatus): string {
 
 /** The status name shown for a file — a timed-out cancel reads "Cancel timed out". */
 export function fileStatusLabel(label: LabelFn, file: Pick<FileState, 'status' | 'error'>): string {
-    if (file.status === 'error' && file.error === 'cancel-timeout') return label('cancelTimeout');
+    if (file.status === 'error' && file.error === 'cancel-timeout') return label('labels.cancelTimeout');
     return statusLabel(label, file.status);
 }
 
 /** Is `value` an acceptable `labels` value (a plain object of strings)? */
-export function isLabelsValue(value: unknown): value is Partial<DropzoneLabels> {
+export function isLabelsValue(value: unknown): value is DropzoneLabelOverrides {
     if (value === null || typeof value !== 'object' || Array.isArray(value)) return false;
     return Object.values(value as Record<string, unknown>).every(v => typeof v === 'string');
 }

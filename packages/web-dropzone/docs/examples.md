@@ -71,8 +71,8 @@ adds, while one list and one indicator show the shared queue.
 
 ```html
 <web-dropzone id="cloud" name="files"></web-dropzone>
-<web-dropzone-picker id="pub"  for="cloud" selector-appearance="button" labels='{"selectFiles": "Add public files"}'></web-dropzone-picker>
-<web-dropzone-picker id="priv" for="cloud" selector-appearance="button" labels='{"selectFiles": "Add private files"}'></web-dropzone-picker>
+<web-dropzone-picker id="pub"  for="cloud" selector-appearance="button" labels='{"buttons.selectFiles": "Add public files"}'></web-dropzone-picker>
+<web-dropzone-picker id="priv" for="cloud" selector-appearance="button" labels='{"buttons.selectFiles": "Add private files"}'></web-dropzone-picker>
 <web-dropzone-list for="cloud" list-appearance="rolling"></web-dropzone-list>
 <web-dropzone-indicator for="cloud"></web-dropzone-indicator>
 
@@ -124,7 +124,7 @@ on, and the summary opens a popover with the list.
 <form id="message">
   <textarea name="body"></textarea>
   <web-dropzone display-mode="compact" overlay-target="#message" storage-key="message-attachments"
-                labels='{"overlay": "Drop attachments here"}'></web-dropzone>
+                labels='{"labels.overlay": "Drop attachments here"}'></web-dropzone>
   <button>Send</button>
 </form>
 ```
@@ -191,7 +191,7 @@ const app = createApp({
   },
   template: `
     <web-dropzone ref="storeRef" id="vu-store" render-mode="headless" multiple></web-dropzone>
-    <web-dropzone-picker for="vu-store" :labels="{ prompt: 'Drop files for Vue' }"></web-dropzone-picker>
+    <web-dropzone-picker for="vu-store" :labels="{ 'labels.prompt': 'Drop files for Vue' }"></web-dropzone-picker>
     <ul><li v-for="f in files" :key="f.id">{{ f.name }} — {{ f.status }}</li></ul>`,
 });
 app.config.compilerOptions.isCustomElement = (tag) => tag.startsWith('web-dropzone');
@@ -229,9 +229,9 @@ Every UI string is one `labels` input, merged per key over English.
 
 ```javascript
 dropzone.labels = {
-  prompt: 'Přetáhněte soubory sem',
-  selectFiles: 'Vybrat soubory',
-  removeFile: 'Odebrat {name}',
-  statusUploading: 'Nahrávám',
+  'labels.prompt': 'Přetáhněte soubory sem',
+  'buttons.selectFiles': 'Vybrat soubory',
+  'ariaLabels.removeFile': 'Odebrat {name}',
+  'labels.statusUploading': 'Nahrávám',
 };
 ```

@@ -26,7 +26,7 @@ import {
     fileStatusLabel
 } from '@keenmate/web-dropzone-core';
 import type { FileState, LabelFn } from '@keenmate/web-dropzone-core';
-import { progressLabel, isCancelOffered, ACTION_LABEL_KEYS, statusGlyph } from './row-templates';
+import { progressLabel, isCancelOffered, rowActionTexts, statusGlyph } from './row-templates';
 
 /**
  * Set the progress-bar fill's width. Idempotent — assigning the same
@@ -79,7 +79,7 @@ export function patchStatusIcon(
     el.className = `${statusClass} ${statusClass}--${status}`;
     const name = fileStatusLabel(label, file);
     el.title = name;
-    el.setAttribute('aria-label', label('statusAria', { status: name }));
+    el.setAttribute('aria-label', label('ariaLabels.status', { status: name }));
     el.innerHTML = statusGlyph(status);
 }
 
@@ -157,9 +157,9 @@ export function patchActionButton(
     btn.innerHTML = action ? ACTION_ICONS[action] : '';
 
     if (action) {
-        const text = label(ACTION_LABEL_KEYS[action], { name: file.name });
-        btn.setAttribute('aria-label', text);
-        btn.title = text;
+        const texts = rowActionTexts(action, file, label);
+        btn.setAttribute('aria-label', texts.aria);
+        btn.title = texts.title;
         btn.removeAttribute('tabindex');
         btn.removeAttribute('aria-hidden');
     } else {

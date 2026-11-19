@@ -176,12 +176,12 @@ export class DropzoneProgressElement extends SatelliteElement {
 
     private renderCountsInner(o: OverallProgress, totalFileCount: number): string {
         const pausedSegment = o.pausedCount > 0
-            ? ` · <span class="dz__overall-progress-paused">${escapeHtml(this.label('progressPaused', { count: o.pausedCount }))}</span>`
+            ? ` · <span class="dz__overall-progress-paused">${escapeHtml(this.label('messages.progressPaused', { count: o.pausedCount }))}</span>`
             : '';
         const failedSegment = o.failedCount > 0
-            ? ` · <span class="dz__overall-progress-failed">${escapeHtml(this.label('progressFailed', { count: o.failedCount }))}</span>`
+            ? ` · <span class="dz__overall-progress-failed">${escapeHtml(this.label('messages.progressFailed', { count: o.failedCount }))}</span>`
             : '';
-        const counts = this.label('progressCounts', {
+        const counts = this.label('messages.progressCounts', {
             completed: o.completedCount,
             total: totalFileCount,
             uploadedSize: formatFileSize(o.uploadedBytes),
@@ -196,17 +196,17 @@ export class DropzoneProgressElement extends SatelliteElement {
         const dis = this.store?.getConfig().isDisabled ? ' disabled' : '';
         const out: string[] = [];
         if (pipelineActive && o.uploadingCount > 0) {
-            out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="pause-all"${dis}>${escapeHtml(this.label('pauseAll'))}</button>`);
+            out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="pause-all"${dis}>${escapeHtml(this.label('buttons.pauseAll'))}</button>`);
         }
         if (pipelineActive && o.pausedCount > 0) {
-            out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="resume-all"${dis}>${escapeHtml(this.label('resumeAll'))}</button>`);
+            out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="resume-all"${dis}>${escapeHtml(this.label('buttons.resumeAll'))}</button>`);
         }
         // Cancel all — only while something is uploading / queued / paused.
         if (pipelineActive && o.uploadingCount + o.pendingCount + o.pausedCount > 0) {
-            out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="cancel-all"${dis}>${escapeHtml(this.label('cancelAll'))}</button>`);
+            out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="cancel-all"${dis}>${escapeHtml(this.label('buttons.cancelAll'))}</button>`);
         }
         if (o.failedCount > 0) {
-            out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="retry-all"${dis}>${escapeHtml(this.label('retryAll'))}</button>`);
+            out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="retry-all"${dis}>${escapeHtml(this.label('buttons.retryAll'))}</button>`);
         }
         return out.join('');
     }

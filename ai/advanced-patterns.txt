@@ -43,8 +43,8 @@ engine.destroy();                         // when done
 2. MODE B - ONE QUEUE, PER-PICKER ENDPOINTS
 -------------------------------------------
 <web-dropzone id="cloud"></web-dropzone>
-<web-dropzone-picker id="pub"  for="cloud" selector-appearance="button" labels='{"selectFiles":"Public"}'></web-dropzone-picker>
-<web-dropzone-picker id="priv" for="cloud" selector-appearance="button" labels='{"selectFiles":"Private"}'></web-dropzone-picker>
+<web-dropzone-picker id="pub"  for="cloud" selector-appearance="button" labels='{"buttons.selectFiles":"Public"}'></web-dropzone-picker>
+<web-dropzone-picker id="priv" for="cloud" selector-appearance="button" labels='{"buttons.selectFiles":"Private"}'></web-dropzone-picker>
 <web-dropzone-list for="cloud" list-appearance="detailed"></web-dropzone-list>
 
 pub.uploadFileCallback  = (ctx) => putTo('/public', ctx);
@@ -151,9 +151,9 @@ of one editor for "attach as file" vs "share as link":
 
 <!-- hidden stores (no display attrs -> headless); only their overlays render -->
 <web-dropzone id="attach" style="display:none; --dz-overlay-bg: rgba(0,120,212,.92)"
-  overlay-target="half-left" max-file-count="5" labels='{"overlay":"Attach as file"}'></web-dropzone>
+  overlay-target="half-left" max-file-count="5" labels='{"labels.overlay":"Attach as file"}'></web-dropzone>
 <web-dropzone id="share" style="display:none; --dz-overlay-bg: rgba(20,184,166,.92)"
-  overlay-target="half-right" labels='{"overlay":"Share as link"}'></web-dropzone>
+  overlay-target="half-right" labels='{"labels.overlay":"Share as link"}'></web-dropzone>
 
 The drag overlay works in headless mode too. Use overlay-enter /
 overlay-leave to update overlay text per zone (e.g. remaining quota). When one

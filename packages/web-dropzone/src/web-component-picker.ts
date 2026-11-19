@@ -176,17 +176,17 @@ export class DropzonePickerElement extends SatelliteElement {
 
         const acceptAttr = (this.config.accept as string | null) ?? storeCfg.accept ?? '';
         const multipleAttr = (this.config.isMultiple as boolean | null) ?? storeCfg.isMultiple ?? true;
-        const label = this.label('selectFiles');
+        const label = this.label('buttons.selectFiles');
         const icon = renderDzIcon((this.config.icon as string | null) ?? storeCfg.icon ?? DEFAULT_ICON);
-        const hint = this.label('hint');
+        const hint = this.label('labels.hint');
 
         // Card: the hidden input IS the keyboard control — name it after the
         // prompt (not the transient drag text). Button / minimal / native
         // render their own <button>, so the input leaves the tab order (one
         // tab stop per selector).
-        const promptText = this.label('prompt');
+        const promptAria = this.label('ariaLabels.prompt');
         const inputA11yAttrs = appearance === 'card'
-            ? `aria-label="${escapeHtml(promptText)}"`
+            ? `aria-label="${escapeHtml(promptAria)}"`
             : 'tabindex="-1" aria-hidden="true"';
 
         const inputHtml = `
@@ -222,7 +222,7 @@ export class DropzonePickerElement extends SatelliteElement {
                 </div>
             `;
         } else if (appearance === 'minimal') {
-            const ariaLabel = promptText;
+            const ariaLabel = promptAria;
             inner = `
                 <div class="dz__dropzone dz__dropzone--minimal ${stateClass}">
                     ${inputHtml}
@@ -233,13 +233,13 @@ export class DropzonePickerElement extends SatelliteElement {
                 </div>
             `;
         } else if (appearance === 'native') {
-            const noFileText = this.label('noFileChosen');
+            const noFileText = this.label('labels.noFileChosen');
             const files = this.store.getFiles();
             const labelText = files.length === 0
                 ? noFileText
                 : files.length === 1
                     ? files[0].name
-                    : this.label('filesChosen', { count: files.length });
+                    : this.label('labels.filesChosen', { count: files.length });
             inner = `
                 <div class="dz__dropzone dz__dropzone--native ${stateClass}">
                     ${inputHtml}
@@ -250,8 +250,8 @@ export class DropzonePickerElement extends SatelliteElement {
         } else {
             // card
             const text = this.dragActive
-                ? this.label('dragActive')
-                : promptText;
+                ? this.label('labels.dragActive')
+                : this.label('labels.prompt');
             const hintHtml = hint
                 ? `<div class="dz__dropzone-hint">${escapeHtml(hint)}</div>`
                 : '';
@@ -470,8 +470,8 @@ export class DropzonePickerElement extends SatelliteElement {
         const textEl = dz.querySelector('.dz__dropzone-text');
         if (textEl) {
             textEl.textContent = active
-                ? this.label('dragActive')
-                : this.label('prompt');
+                ? this.label('labels.dragActive')
+                : this.label('labels.prompt');
         }
     }
 

@@ -94,7 +94,7 @@ test.describe('<web-dropzone-picker> attributes', () => {
 });
 
 test.describe('<web-dropzone-list> attributes', () => {
-    test('labels.noData renders while the store is empty, rows replace it', async ({ page }) => {
+    test('messages.noData renders while the store is empty, rows replace it', async ({ page }) => {
         await expect(dz(page, 'list-empty').locator('.dz__empty')).toHaveText('Nothing yet');
         await addNamed(page, 'sat', ['a.txt']);
         await expect(dz(page, 'list-empty').locator('.dz__empty')).toHaveCount(0);
@@ -274,7 +274,7 @@ test.describe('<web-dropzone-indicator> attributes', () => {
         await expect(dz(page, 'ind-off')).toHaveAttribute('data-drawer', 'off');
     });
 
-    test('drawer="auto": the chip is a button that toggles the drawer (title = labels.indicatorTitle)', async ({ page }) => {
+    test('drawer="auto": the chip is a button that toggles the drawer (title = headers.indicator)', async ({ page }) => {
         const ind = dz(page, 'ind-left');
         await expect(ind.locator('button.dz__indicator-chip')).toHaveCount(1);
         await expect(ind.locator('.dz__indicator-drawer-title')).toHaveText('Queue');
@@ -416,13 +416,13 @@ test.describe('shared loader', () => {
 test.describe('satellite labels', () => {
     test('a satellite inherits the store labels; its own labels win per key; live property change re-renders', async ({ page }) => {
         // Store labels → every satellite (here: the list's empty text).
-        await dz(page, 'sat').evaluate(async (el: any) => { el.labels = { noData: 'Store empty', prompt: 'Store prompt' }; await el.whenSettled(); });
+        await dz(page, 'sat').evaluate(async (el: any) => { el.labels = { 'messages.noData': 'Store empty', 'labels.prompt': 'Store prompt' }; await el.whenSettled(); });
         await expect(dz(page, 'list-empty').locator('.dz__empty')).toHaveText('Nothing yet'); // own key wins
         await dz(page, 'list-empty').evaluate((el) => el.removeAttribute('labels'));
         await expect(dz(page, 'list-empty').locator('.dz__empty')).toHaveText('Store empty');
         // The card keeps its own prompt; the hint key is its own too.
         await expect(dz(page, 'pick-card').locator('.dz__dropzone-text')).toHaveText('Drop invoices');
-        await dz(page, 'pick-card').evaluate((el: any) => { el.labels = { hint: 'Only PDF' }; });
+        await dz(page, 'pick-card').evaluate((el: any) => { el.labels = { 'labels.hint': 'Only PDF' }; });
         await expect(dz(page, 'pick-card').locator('.dz__dropzone-text')).toHaveText('Store prompt');
         await expect(dz(page, 'pick-card').locator('.dz__dropzone-hint')).toHaveText('Only PDF');
     });

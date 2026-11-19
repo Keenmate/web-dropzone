@@ -90,7 +90,7 @@ import type {
     DropzoneControl,
     FileItemPart,
     FileState,
-    DropzoneLabels,
+    DropzoneLabelOverrides,
     DropzoneState
 } from '@keenmate/web-dropzone-core';
 
@@ -182,7 +182,7 @@ const INPUTS: readonly InputDef[] = [
     { configKey: 'cancelIcon',              attribute: 'cancel-icon',         converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'Row Cancel (⊘) button glyph — markup (starts with `<`, inserted raw — NOT sanitized), an icon name (masked from `--base-icon-<name>`), or text (an emoji). Unset = built-in icon.' },
     { configKey: 'removeIcon',              attribute: 'remove-icon',         converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'Row Remove (✕) button glyph — markup (starts with `<`, inserted raw — NOT sanitized), an icon name (masked from `--base-icon-<name>`), or text (an emoji). Unset = built-in icon.' },
     { configKey: 'icon',                    attribute: 'icon',                converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'Prompt icon — markup (starts with `<`, inserted raw), an icon name (masked from `--base-icon-<name>`), or text (an emoji).' },
-    { configKey: 'labels',                  attribute: 'labels',              converter: labelsConverter,                                                              on: 'update', type: 'Partial<DropzoneLabels>', description: 'Every UI string (see `DropzoneLabels` / `DEFAULT_LABELS`), merged per key over the built-in English; `{name}` / `{count}` / `{size}` / … placeholders: prompt, hint, empty, summary, status names, row + bulk buttons, popover, limits line, progress strip, validation messages. Satellites inherit them (and take their own `labels` on top). Property (object) or JSON attribute. Live.' },
+    { configKey: 'labels',                  attribute: 'labels',              converter: labelsConverter,                                                              on: 'update', type: 'DropzoneLabelOverrides', description: 'Every UI string (see `DropzoneLabels` / `DEFAULT_LABELS`): flat `<elementType>.<name>` keys (`buttons.selectFiles`, `ariaLabels.cancelFile`; the full `web-dropzone.<key>` works too), merged per key over the built-in English; `{name}` / `{count}` / `{size}` / … placeholders: prompt, hint, empty, summary, status names, row + bulk buttons, popover, limits line, progress strip, validation messages. Satellites inherit them (and take their own `labels` on top). Property (object) or JSON attribute. Live.' },
 
     // ── Compact mode ──────────────────────────────────────────────────────────
     { configKey: 'popoverPlacement',        attribute: 'popover-placement',   converter: toEnum(PLACEMENTS, { default: 'bottom-start' }),                              shouldReflect: true, on: 'update', description: 'Placement of the compact-mode popover relative to its trigger (a core /positioning placement; flips when there is no room).' },
@@ -285,7 +285,7 @@ export type DropzoneElementConfig = Omit<
     | 'controls' | 'itemControls' | 'labels'
 > & {
     /** Partial UI strings; `undefined` = the built-in English (`null` is refused). */
-    labels?: Partial<DropzoneLabels>;
+    labels?: DropzoneLabelOverrides;
     accept?: string | null;
     icon?: string | null;
     cancelIcon?: string | null;
@@ -778,7 +778,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
         if (min > 0 && fileCount < min) {
             internals.setValidity(
                 { valueMissing: true },
-                countLabel(this.#dropzone?.label ?? defaultLabel, 'errorMinFileCount', min)
+                countLabel(this.#dropzone?.label ?? defaultLabel, 'errors.minFileCount', min)
             );
         } else {
             internals.setValidity({});

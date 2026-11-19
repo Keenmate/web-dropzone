@@ -119,7 +119,7 @@ cancelFile(id) applies to uploading / pending / paused files; a file already
 4. file-cancel fires: { file, result, uploadedBytes, metadata }.
 The returned promise resolves when all of this has finished.
 
-The row shows "Cancelling..." (labels.cancelling) with buttons disabled.
+The row shows "Cancelling..." (messages.cancelling) with buttons disabled.
 A timed-out file shows labels.cancelTimeout ("Cancel timed out").
 
 Remove on a running file = cancel first (same rule, NO cancel gate), then remove.

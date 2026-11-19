@@ -98,8 +98,8 @@ describe('<web-dropzone> input table (BlissElement)', () => {
         // coalesced update flush resolves the settle promise.
         el = document.createElement('web-dropzone');
         document.body.appendChild(el);
-        el.labels = { prompt: 'Drop here' };
-        expect(el.labels).toEqual({ prompt: 'Drop here' }); // merged config updates synchronously
+        el.labels = { 'labels.prompt': 'Drop here' };
+        expect(el.labels).toEqual({ 'labels.prompt': 'Drop here' }); // merged config updates synchronously
         await expect(el.whenSettled()).resolves.toBeUndefined();
     });
 });

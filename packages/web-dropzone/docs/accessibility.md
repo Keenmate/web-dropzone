@@ -48,22 +48,22 @@ Calls from code (`addFiles()`, `removeFile()`, …) work under both.
 
 | Element | Role / attribute | Accessible name / value |
 |---|---|---|
-| Card file input | native `input[type=file]` | `aria-label` = the `prompt` label |
-| Minimal selector button | native `button` | `aria-label` = the `prompt` label |
-| Row status glyph | `aria-label` | `statusAria` label, e.g. "Status: Uploading" |
+| Card file input | native `input[type=file]` | `aria-label` = the `ariaLabels.prompt` label |
+| Minimal selector button | native `button` | `aria-label` = the `ariaLabels.prompt` label |
+| Row status glyph | `aria-label` | `ariaLabels.status` label, e.g. "Status: Uploading" |
 | Row root while its file uploads | `aria-busy="true"` | — (the inline loader is `aria-hidden`) |
-| Row Cancel / Remove / action buttons | native `button` | `cancelFile` / `removeFile` / `pauseFile` / `resumeFile` / `retryFile` labels with `{name}` = the file name |
-| "Show more" toggle | native `button` | `showMore` / `showLess` label |
+| Row Cancel / Remove / action buttons | native `button` | `ariaLabels.cancelFile` / `ariaLabels.removeFile` / `ariaLabels.pauseFile` / `ariaLabels.resumeFile` / `ariaLabels.retryFile` labels with `{name}` = the file name (cancel + row action also set `title` from `tooltips.*`) |
+| "Show more" toggle | native `button` | `buttons.showMore` / `buttons.showLess` (text toggle) or `ariaLabels.showMore` / `ariaLabels.showLess` (the `+N` / `−` badge) label |
 | Overall progress bar | `role="progressbar"` | `aria-valuenow` (0–100), `aria-valuemin="0"`, `aria-valuemax="100"` |
-| Compact summary line | `role="button"` | `viewFiles` label |
-| Indicator chip, `drawer="auto"` | native `button` | `indicatorStatus` label |
-| Indicator chip, `drawer="off"` | `role="status"` | `indicatorStatus` label |
-| Indicator drawer | `role="dialog"` | `aria-label` = the `indicatorQueue` label; its close button = the `close` label |
+| Compact summary line | `role="button"` | `ariaLabels.viewFiles` label |
+| Indicator chip, `drawer="auto"` | native `button` | `ariaLabels.indicatorStatus` label |
+| Indicator chip, `drawer="off"` | `role="status"` | `ariaLabels.indicatorStatus` label |
+| Indicator drawer | `role="dialog"` | `aria-label` = the `ariaLabels.indicatorQueue` label; its close button = the `ariaLabels.close` label |
 | Indicator upload loader | `role="status"` container (core `renderLoader()`) | — |
 
 Disabled / read-only state on the selector: native `disabled` / `aria-disabled="true"` (above).
 Form validity (`min-file-count`) uses the native constraint API — `valueMissing` with the
-`errorMinFileCount` message — so the browser announces it on submit.
+`errors.minFileCount` message — so the browser announces it on submit.
 
 ## Screen-reader notes
 
@@ -77,14 +77,14 @@ Form validity (`min-file-count`) uses the native constraint API — `valueMissin
 
   | When | Label (default English) |
   |---|---|
-  | Files added — ONE message per drop / pick, not per file | `announceAdded` "{count} files added" / `announceAddedOne` "1 file added" |
-  | A file rejected (same message as the add, after it) | `announceRejected` "{name} was rejected: {reason}" (`reason` = the validation message) |
-  | An upload batch finished (the worker pool drained) | `announceUploadDone` "Upload complete: {count} files" / `announceUploadDoneOne`; with failures `announceUploadFailed` "{done} uploaded, {failed} failed" |
-  | A file removed by the user (row ✕, Clear all) | `announceRemoved` "{name} removed" |
+  | Files added — ONE message per drop / pick, not per file | `ariaLabels.announceAdded` "{count} files added" / `ariaLabels.announceAddedOne` "1 file added" |
+  | A file rejected (same message as the add, after it) | `ariaLabels.announceRejected` "{name} was rejected: {reason}" (`reason` = the validation message) |
+  | An upload batch finished (the worker pool drained) | `ariaLabels.announceUploadDone` "Upload complete: {count} files" / `ariaLabels.announceUploadDoneOne`; with failures `ariaLabels.announceUploadFailed` "{done} uploaded, {failed} failed" |
+  | A file removed by the user (row ✕, Clear all) | `ariaLabels.announceRemoved` "{name} removed" |
 
   Upload progress is not announced (the progress bar has its own `aria-valuenow`); a programmatic
   `removeFile()` / `clear()` (without `{ confirm: true }`) and a single-file replace are not either.
-  Numbers go in raw: core formats them for the locale, and a page-wide `formatLabelCallback` gets the
+  Numbers go in raw: core formats them for the locale, and a page-wide `translateCallback` gets the
   number. Set a label to `''` to silence that announcement.
 
 ## Focus management

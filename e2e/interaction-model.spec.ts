@@ -235,7 +235,7 @@ test.describe('structural render callbacks', () => {
         // The prompt rendered before the log reset — a config change re-renders it.
         await page.evaluate(() => {
             const el = document.getElementById('structural') as any;
-            el.labels = { hint: 'x' };
+            el.labels = { 'labels.hint': 'x' };
             return el.whenSettled();
         });
         await expectContext(page, 'renderPrompt');

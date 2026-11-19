@@ -11,7 +11,7 @@
  */
 
 import type { DropzoneElement } from './web-component';
-import type { DropzoneController, DropzoneContext, DropzoneLabels, LabelFn } from '@keenmate/web-dropzone-core';
+import type { DropzoneController, DropzoneContext, DropzoneLabelOverrides, LabelFn } from '@keenmate/web-dropzone-core';
 import { createLabelFn, pageLabelsFor } from '@keenmate/web-dropzone-core';
 import { BlissElement, createCustomStyles, toFunction, toText, withComponentContext, type CustomStylesHandle, type EventMap, type InputDef } from '@keenmate/web-components-core';
 import { storeControllerOf, STORE_BUILD_EVENT } from './store-link';
@@ -127,7 +127,7 @@ export function subscribeStoreEvents(
  */
 export const SATELLITE_INPUTS: readonly InputDef[] = [
     { configKey: 'htmlFor', attribute: 'for', converter: toText({ isNullable: true }), shouldReflect: true, on: 'update', type: 'string | null', description: 'Id of the `<web-dropzone>` store this satellite binds to (attribute `for`). Changing it re-binds. Not needed when the store mounts the satellite itself.' },
-    { configKey: 'labels', attribute: 'labels', converter: labelsConverter, on: 'update', type: 'Partial<DropzoneLabels>', description: 'This satellite\'s own UI strings — a partial `DropzoneLabels` (property, or a JSON attribute), merged per key over the bound store\'s `labels`, then the built-in English. Live.' },
+    { configKey: 'labels', attribute: 'labels', converter: labelsConverter, on: 'update', type: 'DropzoneLabelOverrides', description: 'This satellite\'s own UI strings — a partial `DropzoneLabels` (property, or a JSON attribute), merged per key over the bound store\'s `labels`, then the built-in English. Live.' },
     { configKey: 'customStyles', attribute: 'custom-styles', converter: toText({ isNullable: true }), on: 'update', type: 'string | null', description: 'Extra CSS for this satellite\'s shadow root (raw CSS — NOT sanitized). Comes after the page-wide `window.components[tag].customStyles`, so it overrides it; `getCustomStylesCallback` wins over it.' },
     { configKey: 'getCustomStylesCallback', converter: toFunction(), on: 'update', type: '(ctx: object) => string | null | undefined', description: 'Returns extra CSS for this satellite\'s shadow root (raw CSS — NOT sanitized); wins over `customStyles`.' },
 ];
@@ -135,7 +135,7 @@ export const SATELLITE_INPUTS: readonly InputDef[] = [
 /** The inputs every satellite has (its typed properties). */
 export interface SatelliteElementConfig {
     htmlFor?: string | null;
-    labels?: Partial<DropzoneLabels>;
+    labels?: DropzoneLabelOverrides;
     customStyles?: string | null;
     getCustomStylesCallback?: ((ctx: object) => string | null | undefined) | null;
 }
@@ -215,7 +215,7 @@ export abstract class SatelliteElement<TEvents extends EventMap = Record<string,
      * `web-dropzone` labels → built-in English.
      */
     protected readonly label: LabelFn = createLabelFn(() => [
-        this.config.labels as Partial<DropzoneLabels> | null | undefined,
+        this.config.labels as DropzoneLabelOverrides | null | undefined,
         pageLabelsFor(this.localName),
         this.store?.getConfig().labels
     ], () => this);

@@ -48,6 +48,15 @@ export function renderDzIcon(icon: string | null | undefined): string {
 /** The label key of a row action button (aria-label / tooltip, `{name}` = file). */
 export const ACTION_LABEL_KEYS = { pause: 'pauseFile', resume: 'resumeFile', retry: 'retryFile' } as const satisfies Record<RowAction, string>;
 
+/** A row action's accessible name + tooltip (`ariaLabels.<name>` / `tooltips.<name>`). */
+export function rowActionTexts(action: RowAction, file: Pick<FileState, 'name'>, label: LabelFn = defaultLabel): { aria: string; title: string } {
+    const name = ACTION_LABEL_KEYS[action];
+    return {
+        aria: label(`ariaLabels.${name}`, { name: file.name }),
+        title: label(`tooltips.${name}`, { name: file.name })
+    };
+}
+
 /**
  * The tiny loader inside one item (a row's status pill, the summary icon): the
  * shared loader contract drawn by CSS only (`.dz__loader--inline`, the
@@ -70,7 +79,7 @@ export function busyAttr(file: Pick<FileState, 'status'>): string {
 /** Status pill — glyph + the status name as tooltip / accessible name (`labels`). */
 export function renderStatusPill(file: FileState, cls: string, label: LabelFn = defaultLabel): string {
     const name = escapeHtml(fileStatusLabel(label, file));
-    const aria = escapeHtml(label('statusAria', { status: fileStatusLabel(label, file) }));
+    const aria = escapeHtml(label('ariaLabels.status', { status: fileStatusLabel(label, file) }));
     return `<span class="${cls} ${cls}--${file.status}" title="${name}" aria-label="${aria}" data-status="${file.status}">${statusGlyph(file.status)}</span>`;
 }
 
@@ -172,8 +181,10 @@ export function renderCancelButton(file: FileState, baseClass: string, opts: Row
     const cls = offered ? `${baseClass} dz__cancel` : `${baseClass} dz__cancel ${baseClass}--hidden`;
     const inert = offered ? '' : ' tabindex="-1" aria-hidden="true"';
     const disabled = file.status === 'cancelling' || opts.isDisabled ? ' disabled' : '';
-    const text = escapeHtml((opts.label ?? defaultLabel)('cancelFile', { name: file.name }));
-    return `<button type="button" class="${cls}" data-dz-action="cancel" data-file-id="${file.id}" aria-label="${text}" title="${text}"${inert}${disabled}>${renderDzIcon(opts.cancelIcon) || CANCEL_ICON}</button>`;
+    const label = opts.label ?? defaultLabel;
+    const aria = escapeHtml(label('ariaLabels.cancelFile', { name: file.name }));
+    const title = escapeHtml(label('tooltips.cancelFile', { name: file.name }));
+    return `<button type="button" class="${cls}" data-dz-action="cancel" data-file-id="${file.id}" aria-label="${aria}" title="${title}"${inert}${disabled}>${renderDzIcon(opts.cancelIcon) || CANCEL_ICON}</button>`;
 }
 
 /**
@@ -211,8 +222,9 @@ export function renderRowActionButton(file: FileState, baseClass: string, labelF
     const hidden = !action;
     const cls = hidden ? `${baseClass} ${baseClass}--hidden` : baseClass;
     const inert = hidden ? ' tabindex="-1" aria-hidden="true"' : '';
-    const label = action ? escapeHtml(labelFn(ACTION_LABEL_KEYS[action], { name: file.name })) : '';
-    const title = label;
+    const texts = action ? rowActionTexts(action, file, labelFn) : null;
+    const label = texts ? escapeHtml(texts.aria) : '';
+    const title = texts ? escapeHtml(texts.title) : '';
     const dataAction = action ?? '';
     const icon = action ? ACTION_ICONS[action] : '';
     return `<button type="button" class="${cls}" data-dz-action="row-action" data-row-action="${dataAction}" data-file-id="${file.id}" aria-label="${label}" title="${title}"${inert}${isDisabled ? ' disabled' : ''}>${icon}</button>`;
@@ -223,7 +235,7 @@ export function renderRowActionButton(file: FileState, baseClass: string, labelF
  * cancel waits for the upload handler to settle.
  */
 export function progressLabel(file: FileState, label: LabelFn = defaultLabel): string {
-    return file.status === 'cancelling' ? label('cancelling') : `${file.progress.toFixed(1)}%`;
+    return file.status === 'cancelling' ? label('messages.cancelling') : `${file.progress.toFixed(1)}%`;
 }
 
 /**
@@ -235,7 +247,7 @@ export function removeButtonAttrs(file: FileState, baseClass: string, removable 
     const inert = removable ? '' : ' tabindex="-1" aria-hidden="true"';
     // Disabled while a cancel is waiting for the handler to settle, or while the store is disabled.
     const disabled = file.status === 'cancelling' || isDisabled ? ' disabled' : '';
-    return `class="${cls}" data-dz-action="remove" data-file-id="${file.id}" aria-label="${escapeHtml(label('removeFile', { name: file.name }))}"${inert}${disabled}`;
+    return `class="${cls}" data-dz-action="remove" data-file-id="${file.id}" aria-label="${escapeHtml(label('ariaLabels.removeFile', { name: file.name }))}"${inert}${disabled}`;
 }
 
 export function renderListItem(file: FileState, opts: RowTemplateOptions = {}): string {
@@ -276,7 +288,7 @@ export function renderDetailedItem(file: FileState, opts: RowTemplateOptions = {
     const showType = showPart(p, 'type');
     const meta = (showSize || showType) ? `<div class="dz__file-item-meta">
                     ${showSize ? `<span class="dz__file-item-size">${formatFileSize(file.size)}</span>` : ''}
-                    ${showType ? `<span class="dz__file-item-type">${escapeHtml(file.type || label('unknownType'))}</span>` : ''}
+                    ${showType ? `<span class="dz__file-item-type">${escapeHtml(file.type || label('labels.unknownType'))}</span>` : ''}
                 </div>` : '';
     return `
         <div class="dz__file-item dz__file-item--detailed" data-file-id="${file.id}" data-status="${file.status}"${reorderAttr}${busyAttr(file)}>

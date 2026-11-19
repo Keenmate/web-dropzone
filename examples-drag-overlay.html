@@ -107,7 +107,7 @@
                 overlay-icon="📨"
                 max-file-count="5"
                 accept="*/*"
-                labels='{"overlay": "Drop attachments onto the form"}'>
+                labels='{"labels.overlay": "Drop attachments onto the form"}'>
             </web-dropzone>
 
             <div id="overlay-form-target" class="mock-form">
@@ -128,7 +128,7 @@
                     <web-dropzone-list
                         for="overlay-compact"
                         list-appearance="badges"
-                        labels='{"noData": "No attachments yet — drop files anywhere on the page."}'>
+                        labels='{"messages.noData": "No attachments yet — drop files anywhere on the page."}'>
                     </web-dropzone-list>
                 </div>
             </div>
@@ -152,7 +152,7 @@
                     accept=".pdf,.xlsx,.csv"
                     overlay-target="reports-card"
                     overlay-icon="📊"
-                    labels='{"overlay": "Drop reports here"}'>
+                    labels='{"labels.overlay": "Drop reports here"}'>
                 </web-dropzone>
                 <small class="form-text" style="margin:0;">Click to browse, or drag onto the card. PDF / XLSX / CSV only.</small>
             </div>
@@ -163,7 +163,7 @@
                 <web-dropzone-list
                     for="overlay-card"
                     list-appearance="badges"
-                    labels='{"noData": "No reports yet."}'>
+                    labels='{"messages.noData": "No reports yet."}'>
                 </web-dropzone-list>
                 <div class="reject-toast" id="overlay-card-reject" hidden></div>
             </div>
@@ -186,7 +186,7 @@
                         display-mode="compact"
                         overlay-icon="⚡"
                         accept="*/*"
-                        labels='{"overlay": "Drop files anywhere on the page"}'>
+                        labels='{"labels.overlay": "Drop files anywhere on the page"}'>
                     </web-dropzone>
                     <div class="picked-files" id="fullpage-output">(none picked yet)</div>
                     <script type="module" data-kmwc-show>
@@ -230,13 +230,13 @@
                     accept="*/*"
                     overlay-target="styled-target"
                     overlay-icon="🗂️"
-                    labels='{"overlay": "Drop into the archive"}'
+                    labels='{"labels.overlay": "Drop into the archive"}'
                     style="--dz-overlay-bg: color-mix(in srgb, var(--kmwc-success-color) 88%, transparent); --dz-overlay-border-radius: 24px; --dz-overlay-text-font-size: 2rem;"
                     custom-styles=".dz__overlay-text { text-transform: uppercase; letter-spacing: 0.08em; } .dz__overlay--hover { border-style: dotted; }">
                 </web-dropzone>
                 <div id="styled-target" class="demo-area">
                     <p>Drag files over this area — the overlay takes the variables and the custom CSS above.</p>
-                    <web-dropzone-list for="overlay-styled" list-appearance="badges" labels='{"noData": "Nothing archived yet."}'></web-dropzone-list>
+                    <web-dropzone-list for="overlay-styled" list-appearance="badges" labels='{"messages.noData": "Nothing archived yet."}'></web-dropzone-list>
                 </div>
             </kmwc-demo>
 

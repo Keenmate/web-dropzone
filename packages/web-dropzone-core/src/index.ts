@@ -103,7 +103,7 @@ export {
     isLabelsValue,
     countLabel
 } from './labels';
-export type { DropzoneLabels, DropzoneLabelKey, LabelFn, LabelVars, LabelSources, CountedLabelKey } from './labels';
+export type { DropzoneLabels, DropzoneLabelKey, DropzoneLabelOverrides, LabelFn, LabelVars, LabelSources, CountedLabelKey } from './labels';
 
 // ---- Status-surface types ----------------------------------------------
 export type {

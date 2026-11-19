@@ -189,8 +189,8 @@ One global queue + one global list + one global progress, but each **picker** de
 ```html
 <web-dropzone id="cloud"></web-dropzone>
 
-<web-dropzone-picker for="cloud" selector-appearance="button" labels='{"selectFiles":"Add public files"}'></web-dropzone-picker>
-<web-dropzone-picker for="cloud" selector-appearance="button" labels='{"selectFiles":"Add private files"}'></web-dropzone-picker>
+<web-dropzone-picker for="cloud" selector-appearance="button" labels='{"buttons.selectFiles":"Add public files"}'></web-dropzone-picker>
+<web-dropzone-picker for="cloud" selector-appearance="button" labels='{"buttons.selectFiles":"Add private files"}'></web-dropzone-picker>
 
 <web-dropzone-list      for="cloud" list-appearance="rolling"></web-dropzone-list>
 <web-dropzone-indicator for="cloud" position="right"></web-dropzone-indicator>

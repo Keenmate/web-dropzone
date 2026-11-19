@@ -194,19 +194,19 @@
 
                 <div class="form-group">
                     <label>native — button + text label, like &lt;input type="file"&gt;</label>
-                    <web-dropzone selector-appearance="native" list-appearance="none" accept="*/*" max-file-count="5" labels='{"selectFiles": "Choose Files"}'></web-dropzone>
+                    <web-dropzone selector-appearance="native" list-appearance="none" accept="*/*" max-file-count="5" labels='{"buttons.selectFiles": "Choose Files"}'></web-dropzone>
                     <small class="form-text">Mirrors the modern browser look. Empty: "No file chosen" · 1 file: filename · multiple: "N files chosen". Customize via <code>labels</code> (<code>selectFiles</code>, <code>noFileChosen</code>).</small>
                 </div>
 
                 <div class="form-group">
                     <label>native + list below (combines with any list-appearance)</label>
-                    <web-dropzone selector-appearance="native" list-appearance="detailed" accept="*/*" max-file-count="5" labels='{"selectFiles": "Choose Files"}'></web-dropzone>
+                    <web-dropzone selector-appearance="native" list-appearance="detailed" accept="*/*" max-file-count="5" labels='{"buttons.selectFiles": "Choose Files"}'></web-dropzone>
                     <small class="form-text">The native label shows a summary; the full list still renders below per <code>list-appearance</code>.</small>
                 </div>
 
                 <div class="form-group">
                     <label>native + localized labels</label>
-                    <web-dropzone selector-appearance="native" list-appearance="none" accept="*/*" max-file-count="5" labels='{"selectFiles": "Vybrat soubory", "noFileChosen": "Žádný soubor"}'></web-dropzone>
+                    <web-dropzone selector-appearance="native" list-appearance="none" accept="*/*" max-file-count="5" labels='{"buttons.selectFiles": "Vybrat soubory", "labels.noFileChosen": "Žádný soubor"}'></web-dropzone>
                     <small class="form-text">Both labels are i18n-friendly.</small>
                 </div>
             </div>
@@ -230,18 +230,18 @@
 
                 <div class="form-group">
                     <label>grid — image preview thumbnails</label>
-                    <web-dropzone list-appearance="grid" accept="image/*" max-file-count="6" labels='{"prompt": "Drop images"}'></web-dropzone>
+                    <web-dropzone list-appearance="grid" accept="image/*" max-file-count="6" labels='{"labels.prompt": "Drop images"}'></web-dropzone>
                 </div>
 
                 <div class="form-group">
                     <label>badges — inline composite pills</label>
-                    <web-dropzone list-appearance="badges" accept="*/*" max-file-count="6" labels='{"prompt": "Drop files (badges appear inline)"}'></web-dropzone>
+                    <web-dropzone list-appearance="badges" accept="*/*" max-file-count="6" labels='{"labels.prompt": "Drop files (badges appear inline)"}'></web-dropzone>
                     <small class="form-text">Same surface as <code>web-multiselect</code> badges. Default: file-type icons in the pill. Set <code>show-thumbnails</code> for image previews, or override <code>--dz-badge-icon-size: 0</code> to hide the slot entirely.</small>
                 </div>
 
                 <div class="form-group">
                     <label>badges with thumbnails — <code>show-thumbnails</code></label>
-                    <web-dropzone list-appearance="badges" show-thumbnails accept="image/*" max-file-count="6" labels='{"prompt": "Drop images for badge thumbnails"}'></web-dropzone>
+                    <web-dropzone list-appearance="badges" show-thumbnails accept="image/*" max-file-count="6" labels='{"labels.prompt": "Drop images for badge thumbnails"}'></web-dropzone>
                 </div>
 
                 <div class="form-group">
@@ -301,7 +301,7 @@
                         multiple
                         max-file-count="24"
                         max-visible-file-count="24"
-                        labels='{"prompt": "Drop images to tune the grid"}'></web-dropzone>
+                        labels='{"labels.prompt": "Drop images to tune the grid"}'></web-dropzone>
                     <small class="form-text">No images handy? Any file works — non-images fall back to a type icon tile, the geometry still reshapes.</small>
                 </div>
 
@@ -427,7 +427,7 @@
                         list-appearance="list"
                         accept="*/*"
                         max-file-count="5"
-                        labels='{"prompt": "Drop your files here", "hint": "PNG, JPG, PDF — up to 5 MB each", "selectFiles": "Browse files"}'>
+                        labels='{"labels.prompt": "Drop your files here", "labels.hint": "PNG, JPG, PDF — up to 5 MB each", "buttons.selectFiles": "Browse files"}'>
                     </web-dropzone>
                 </div>
             </div>
@@ -441,17 +441,17 @@
             <div class="grid">
                 <div class="form-group">
                     <label>files-inside + list</label>
-                    <web-dropzone files-inside list-appearance="list" accept="*/*" max-file-count="5" labels='{"prompt": "Drop files"}'></web-dropzone>
+                    <web-dropzone files-inside list-appearance="list" accept="*/*" max-file-count="5" labels='{"labels.prompt": "Drop files"}'></web-dropzone>
                 </div>
 
                 <div class="form-group">
                     <label>files-inside + detailed</label>
-                    <web-dropzone files-inside list-appearance="detailed" accept="*/*" max-file-count="5" labels='{"prompt": "Drop files"}'></web-dropzone>
+                    <web-dropzone files-inside list-appearance="detailed" accept="*/*" max-file-count="5" labels='{"labels.prompt": "Drop files"}'></web-dropzone>
                 </div>
 
                 <div class="form-group">
                     <label>files-inside + grid</label>
-                    <web-dropzone files-inside list-appearance="grid" accept="image/*" max-file-count="6" labels='{"prompt": "Drop images"}'></web-dropzone>
+                    <web-dropzone files-inside list-appearance="grid" accept="image/*" max-file-count="6" labels='{"labels.prompt": "Drop images"}'></web-dropzone>
                 </div>
             </div>
         </div>
@@ -464,7 +464,7 @@
             <div class="grid">
                 <div class="form-group">
                     <label>Inline attachments — button + badges</label>
-                    <web-dropzone selector-appearance="button" list-appearance="badges" accept="*/*" max-file-count="5" labels='{"selectFiles": "📎 Attach"}'></web-dropzone>
+                    <web-dropzone selector-appearance="button" list-appearance="badges" accept="*/*" max-file-count="5" labels='{"buttons.selectFiles": "📎 Attach"}'></web-dropzone>
                     <small class="form-text">Slack/Gmail-style attachment pattern.</small>
                 </div>
 
@@ -483,7 +483,7 @@
                         accept="*/*"
                         max-file-count="3"
                         icon="☁️"
-                        labels='{"prompt": "Upload your portfolio", "hint": "Drag & drop or click below", "selectFiles": "Choose files"}'>
+                        labels='{"labels.prompt": "Upload your portfolio", "labels.hint": "Drag & drop or click below", "buttons.selectFiles": "Choose files"}'>
                     </web-dropzone>
                 </div>
             </div>
@@ -502,12 +502,12 @@
 
                 <div class="form-group">
                     <label>Custom: <code>📎 {count} attachments ({size})</code></label>
-                    <web-dropzone list-appearance="popover" labels='{"summary": "📎 {count} attachments ({size})"}' accept="*/*"></web-dropzone>
+                    <web-dropzone list-appearance="popover" labels='{"labels.summary": "📎 {count} attachments ({size})"}' accept="*/*"></web-dropzone>
                 </div>
 
                 <div class="form-group">
                     <label>Localized: <code>{count} soubor(ů) — {size}</code></label>
-                    <web-dropzone list-appearance="popover" labels='{"summary": "{count} soubor(ů) — {size}"}' accept="*/*"></web-dropzone>
+                    <web-dropzone list-appearance="popover" labels='{"labels.summary": "{count} soubor(ů) — {size}"}' accept="*/*"></web-dropzone>
                 </div>
             </div>
         </div>
@@ -578,12 +578,12 @@
             <div class="grid">
                 <div class="form-group">
                     <label>Multiple (default)</label>
-                    <web-dropzone display-mode="detailed" labels='{"prompt": "Drop one or more files"}'></web-dropzone>
+                    <web-dropzone display-mode="detailed" labels='{"labels.prompt": "Drop one or more files"}'></web-dropzone>
                 </div>
 
                 <div class="form-group">
                     <label>Single only</label>
-                    <web-dropzone multiple="false" display-mode="detailed" labels='{"prompt": "Drop a single file", "hint": "Replaces any existing selection"}'></web-dropzone>
+                    <web-dropzone multiple="false" display-mode="detailed" labels='{"labels.prompt": "Drop a single file", "labels.hint": "Replaces any existing selection"}'></web-dropzone>
                 </div>
             </div>
         </div>
@@ -596,17 +596,17 @@
             <div class="grid">
                 <div class="form-group">
                     <label>Images only (<code>image/*</code>)</label>
-                    <web-dropzone accept="image/*" display-mode="grid" labels='{"prompt": "Drop images"}'></web-dropzone>
+                    <web-dropzone accept="image/*" display-mode="grid" labels='{"labels.prompt": "Drop images"}'></web-dropzone>
                 </div>
 
                 <div class="form-group">
                     <label>PDF or Word (<code>.pdf,.doc,.docx</code>)</label>
-                    <web-dropzone accept=".pdf,.doc,.docx" display-mode="detailed" labels='{"prompt": "Drop documents"}'></web-dropzone>
+                    <web-dropzone accept=".pdf,.doc,.docx" display-mode="detailed" labels='{"labels.prompt": "Drop documents"}'></web-dropzone>
                 </div>
 
                 <div class="form-group">
                     <label>Mixed (<code>image/*,.pdf,video/*</code>)</label>
-                    <web-dropzone accept="image/*,.pdf,video/*" display-mode="detailed" labels='{"prompt": "Drop images, PDFs, or videos"}'></web-dropzone>
+                    <web-dropzone accept="image/*,.pdf,video/*" display-mode="detailed" labels='{"labels.prompt": "Drop images, PDFs, or videos"}'></web-dropzone>
                 </div>
             </div>
 
@@ -754,14 +754,14 @@ const files = el.files       // current FileState[]</code></pre>
         <!-- PAGE-WIDE LABELS + ANNOUNCEMENTS -->
         <div class="card">
             <h2>DC18 · Page-wide labels (<code>window.components.locale</code>) + screen-reader announcements</h2>
-            <p>One assignment translates <strong>every</strong> dropzone on the page, live: <code>window.components.locale.labels['web-dropzone']</code> (core <code>/locale</code>). Per key the element's own <code>labels</code> wins, then the page-wide labels of its tag, then built-in English. <code>locale</code> also sets the number format of file sizes (<code>1,5 MB</code> in Czech). Assigning replaces the whole object; <code>null</code> goes back to English.</p>
-            <p>The <code>announce*</code> keys are what a screen reader hears (core <code>announce()</code>, the page's one polite live region): one message per drop / pick, each rejection, a finished upload batch, a removal. The log below shows the live region's text as it changes. <code>''</code> silences one announcement.</p>
+            <p>One assignment translates <strong>every</strong> dropzone on the page, live: <code>window.components.locale.labels</code> (core <code>/locale</code>) is ONE flat dictionary of full keys <code>'web-dropzone.&lt;elementType&gt;.&lt;name&gt;'</code> — the app's whole translation JSON fits. Per key the element's own <code>labels</code> (short keys like <code>buttons.selectFiles</code>, or full keys) wins, then the page-wide dictionary, then built-in English. <code>locale</code> also sets the number format of file sizes (<code>1,5 MB</code> in Czech). Assigning replaces the whole object; <code>null</code> goes back to English.</p>
+            <p>The <code>ariaLabels.announce*</code> keys are what a screen reader hears (core <code>announce()</code>, the page's one polite live region): one message per drop / pick, each rejection, a finished upload batch, a removal. The log below shows the live region's text as it changes. <code>''</code> silences one announcement.</p>
 
             <kmwc-demo>
                 <web-dropzone id="page-labels-demo" display-mode="detailed" accept="image/*,.pdf" max-file-count="3"></web-dropzone>
                 <div class="controls">
                     <button type="button" class="btn-outline" id="page-labels-cs">Czech, page-wide</button>
-                    <button type="button" class="btn-outline" id="page-labels-mute">Silence announceRemoved</button>
+                    <button type="button" class="btn-outline" id="page-labels-mute">Silence ariaLabels.announceRemoved</button>
                     <button type="button" class="btn-outline" id="page-labels-reset">English (null)</button>
                 </div>
                 <div id="page-labels-log" class="log-panel" data-empty="Add, reject (not an image / PDF) or remove a file — the announcements show here."></div>
@@ -771,22 +771,20 @@ const files = el.files       // current FileState[]</code></pre>
                     const CZECH = {
                         locale: 'cs-CZ',
                         labels: {
-                            'web-dropzone': {
-                                prompt: 'Přetáhněte soubory sem',
-                                announceAdded: 'Přidáno souborů: {count}',
-                                announceAddedOne: 'Přidán 1 soubor',
-                                announceRejected: '{name} odmítnut: {reason}',
-                                announceUploadDone: 'Nahráno souborů: {count}',
-                                announceUploadDoneOne: 'Nahrán 1 soubor',
-                                announceRemoved: '{name} odebrán',
-                            },
+                            'web-dropzone.labels.prompt': 'Přetáhněte soubory sem',
+                            'web-dropzone.ariaLabels.prompt': 'Přetáhněte soubory sem',
+                            'web-dropzone.ariaLabels.announceAdded': 'Přidáno souborů: {count}',
+                            'web-dropzone.ariaLabels.announceAddedOne': 'Přidán 1 soubor',
+                            'web-dropzone.ariaLabels.announceRejected': '{name} odmítnut: {reason}',
+                            'web-dropzone.ariaLabels.announceUploadDone': 'Nahráno souborů: {count}',
+                            'web-dropzone.ariaLabels.announceUploadDoneOne': 'Nahrán 1 soubor',
+                            'web-dropzone.ariaLabels.announceRemoved': '{name} odebrán',
                         },
                     }
                     document.getElementById('page-labels-cs').onclick = () => { window.components.locale = CZECH }
                     document.getElementById('page-labels-mute').onclick = () => {
                         const current = window.components.locale ?? {}
-                        const own = current.labels?.['web-dropzone'] ?? {}
-                        window.components.locale = { ...current, labels: { ...current.labels, 'web-dropzone': { ...own, announceRemoved: '' } } }
+                        window.components.locale = { ...current, labels: { ...current.labels, 'web-dropzone.ariaLabels.announceRemoved': '' } }
                     }
                     document.getElementById('page-labels-reset').onclick = () => { window.components.locale = null }
 
@@ -804,9 +802,10 @@ const files = el.files       // current FileState[]</code></pre>
             <table class="reference-table">
                 <thead><tr><th>API</th><th>What it does</th></tr></thead>
                 <tbody>
-                    <tr><td><code>window.components.locale</code></td><td><code>{ locale, labels: { [tag]: {…} }, formatLabelCallback }</code> — every Keenmate component on the page; <code>null</code> resets</td></tr>
-                    <tr><td><code>labels['web-dropzone']</code></td><td>the store's labels, page-wide; a satellite tag (<code>'web-dropzone-indicator'</code>, …) for that satellite only</td></tr>
-                    <tr><td><code>announceAdded(One)</code>, <code>announceRejected</code>, <code>announceUploadDone(One)</code>, <code>announceUploadFailed</code>, <code>announceRemoved</code></td><td>screen-reader messages (<code>{count}</code>, <code>{name}</code>, <code>{reason}</code>, <code>{done}</code>, <code>{failed}</code>); <code>''</code> silences one</td></tr>
+                    <tr><td><code>window.components.locale</code></td><td><code>{ locale, labels: { '&lt;full key&gt;': '…' }, translateCallback }</code> — every Keenmate component on the page; <code>null</code> resets</td></tr>
+                    <tr><td><code>labels['web-dropzone.&lt;key&gt;']</code></td><td>the whole dropzone family, page-wide; a satellite tag prefix (<code>'web-dropzone-indicator.headers.indicator'</code>, …) for that satellite only</td></tr>
+                    <tr><td><code>translateCallback({ component, key, template, params, locale })</code></td><td>i18next / ICU: gets the FULL key; return the text, or <code>null</code> = not mine. Never asked for a key the instance set itself</td></tr>
+                    <tr><td><code>ariaLabels.announceAdded(One)</code>, <code>ariaLabels.announceRejected</code>, <code>ariaLabels.announceUploadDone(One)</code>, <code>ariaLabels.announceUploadFailed</code>, <code>ariaLabels.announceRemoved</code></td><td>screen-reader messages (<code>{count}</code>, <code>{name}</code>, <code>{reason}</code>, <code>{done}</code>, <code>{failed}</code>); <code>''</code> silences one</td></tr>
                 </tbody>
             </table>
         </div>

@@ -53,20 +53,20 @@ aria-hidden="true".
 ACCESSIBLE NAMES (from labels; see labels-i18n.txt)
 ---------------------------------------------------
 Card / minimal selector     labels.prompt
-Button / native selector    labels.selectFiles (visible text)
-Row Cancel                  labels.cancelFile  'Cancel {name}'
-Row Remove                  labels.removeFile  'Remove {name}'
-Row action                  labels.pauseFile / resumeFile / retryFile
-Status pill                 labels.statusAria  'Status: {status}'
+Button / native selector    buttons.selectFiles (visible text)
+Row Cancel                  ariaLabels.cancelFile  'Cancel {name}'
+Row Remove                  ariaLabels.removeFile  'Remove {name}'
+Row action                  ariaLabels.pauseFile / resumeFile / retryFile
+Status pill                 ariaLabels.status  'Status: {status}'
                             ({status} = labels.status*; timed-out cancel ->
                             labels.cancelTimeout)
-Bulk buttons                labels.pauseAll / resumeAll / cancelAll / retryAll
+Bulk buttons                buttons.pauseAll / resumeAll / cancelAll / retryAll
 
-Summary line (role="button", tabindex="0")  labels.viewFiles
-Rolling queue button        labels.showQueue
-Badges "+N" pill            labels.showMore / showLess
-Indicator chip              labels.indicatorStatus
-Indicator drawer            labels.indicatorQueue (role="dialog"); close: labels.close
+Summary line (role="button", tabindex="0")  ariaLabels.viewFiles
+Rolling queue button        ariaLabels.showQueue
+Badges "+N" pill            buttons.showMore / showLess
+Indicator chip              ariaLabels.indicatorStatus
+Indicator drawer            ariaLabels.indicatorQueue (role="dialog"); close: ariaLabels.close
 Indicator upload loader     role="status" container (core renderLoader())
 
 ROLES & STATES

@@ -19,7 +19,7 @@
             {
               "name": "labels",
               "description": "This satellite's own UI strings — a partial `DropzoneLabels` (property, or a JSON attribute), merged per key over the bound store's `labels`, then the built-in English. Live.",
-              "value": { "type": "Partial<DropzoneLabels>" }
+              "value": { "type": "DropzoneLabelOverrides" }
             },
             {
               "name": "custom-styles",
@@ -91,7 +91,7 @@
               {
                 "name": "labels",
                 "description": "This satellite's own UI strings — a partial `DropzoneLabels` (property, or a JSON attribute), merged per key over the bound store's `labels`, then the built-in English. Live.",
-                "type": "Partial<DropzoneLabels>"
+                "type": "DropzoneLabelOverrides"
               },
               {
                 "name": "customStyles",
@@ -219,7 +219,7 @@
             {
               "name": "labels",
               "description": "This satellite's own UI strings — a partial `DropzoneLabels` (property, or a JSON attribute), merged per key over the bound store's `labels`, then the built-in English. Live.",
-              "value": { "type": "Partial<DropzoneLabels>" }
+              "value": { "type": "DropzoneLabelOverrides" }
             },
             {
               "name": "custom-styles",
@@ -313,7 +313,7 @@
               {
                 "name": "labels",
                 "description": "This satellite's own UI strings — a partial `DropzoneLabels` (property, or a JSON attribute), merged per key over the bound store's `labels`, then the built-in English. Live.",
-                "type": "Partial<DropzoneLabels>"
+                "type": "DropzoneLabelOverrides"
               },
               {
                 "name": "customStyles",
@@ -439,7 +439,7 @@
             {
               "name": "labels",
               "description": "This satellite's own UI strings — a partial `DropzoneLabels` (property, or a JSON attribute), merged per key over the bound store's `labels`, then the built-in English. Live.",
-              "value": { "type": "Partial<DropzoneLabels>" }
+              "value": { "type": "DropzoneLabelOverrides" }
             },
             {
               "name": "custom-styles",
@@ -547,7 +547,7 @@
               {
                 "name": "labels",
                 "description": "This satellite's own UI strings — a partial `DropzoneLabels` (property, or a JSON attribute), merged per key over the bound store's `labels`, then the built-in English. Live.",
-                "type": "Partial<DropzoneLabels>"
+                "type": "DropzoneLabelOverrides"
               },
               {
                 "name": "customStyles",
@@ -700,7 +700,7 @@
             {
               "name": "labels",
               "description": "This satellite's own UI strings — a partial `DropzoneLabels` (property, or a JSON attribute), merged per key over the bound store's `labels`, then the built-in English. Live.",
-              "value": { "type": "Partial<DropzoneLabels>" }
+              "value": { "type": "DropzoneLabelOverrides" }
             },
             {
               "name": "custom-styles",
@@ -752,7 +752,7 @@
               {
                 "name": "labels",
                 "description": "This satellite's own UI strings — a partial `DropzoneLabels` (property, or a JSON attribute), merged per key over the bound store's `labels`, then the built-in English. Live.",
-                "type": "Partial<DropzoneLabels>"
+                "type": "DropzoneLabelOverrides"
               },
               {
                 "name": "customStyles",
@@ -995,8 +995,8 @@
             },
             {
               "name": "labels",
-              "description": "Every UI string (see `DropzoneLabels` / `DEFAULT_LABELS`), merged per key over the built-in English; `{name}` / `{count}` / `{size}` / … placeholders: prompt, hint, empty, summary, status names, row + bulk buttons, popover, limits line, progress strip, validation messages. Satellites inherit them (and take their own `labels` on top). Property (object) or JSON attribute. Live.",
-              "value": { "type": "Partial<DropzoneLabels>" }
+              "description": "Every UI string (see `DropzoneLabels` / `DEFAULT_LABELS`): flat `<elementType>.<name>` keys (`buttons.selectFiles`, `ariaLabels.cancelFile`; the full `web-dropzone.<key>` works too), merged per key over the built-in English; `{name}` / `{count}` / `{size}` / … placeholders: prompt, hint, empty, summary, status names, row + bulk buttons, popover, limits line, progress strip, validation messages. Satellites inherit them (and take their own `labels` on top). Property (object) or JSON attribute. Live.",
+              "value": { "type": "DropzoneLabelOverrides" }
             },
             {
               "name": "popover-placement",
@@ -1393,8 +1393,8 @@
               },
               {
                 "name": "labels",
-                "description": "Every UI string (see `DropzoneLabels` / `DEFAULT_LABELS`), merged per key over the built-in English; `{name}` / `{count}` / `{size}` / … placeholders: prompt, hint, empty, summary, status names, row + bulk buttons, popover, limits line, progress strip, validation messages. Satellites inherit them (and take their own `labels` on top). Property (object) or JSON attribute. Live.",
-                "type": "Partial<DropzoneLabels>"
+                "description": "Every UI string (see `DropzoneLabels` / `DEFAULT_LABELS`): flat `<elementType>.<name>` keys (`buttons.selectFiles`, `ariaLabels.cancelFile`; the full `web-dropzone.<key>` works too), merged per key over the built-in English; `{name}` / `{count}` / `{size}` / … placeholders: prompt, hint, empty, summary, status names, row + bulk buttons, popover, limits line, progress strip, validation messages. Satellites inherit them (and take their own `labels` on top). Property (object) or JSON attribute. Live.",
+                "type": "DropzoneLabelOverrides"
               },
               {
                 "name": "popoverPlacement",

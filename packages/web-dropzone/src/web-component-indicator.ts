@@ -46,8 +46,7 @@ import {
     escapeHtml,
     STATUS_ICONS,
     formatFileSize,
-    fileStatusLabel,
-    statusLabel
+    fileStatusLabel
 } from '@keenmate/web-dropzone-core';
 import { adoptStyles, animateOut, createMicrotaskScheduler, createSheetHeader, keepScrollAcrossMove, renderLoader, renderSlot, SHEET_CHROME_CSS, startModalSession, startPanelSession, toEnum, toFunction, type InputDef, type ModalSession, type PanelSession, type PanelDismissReason } from '@keenmate/web-components-core';
 import { isPhoneSheet } from './phone-sheet';
@@ -98,12 +97,12 @@ export interface DropzoneIndicatorElementConfig extends SatelliteElementConfig {
  */
 function defaultChipLabel(args: StatusSurfaceArgs, label: LabelFn): string {
     const a = args.aggregate;
-    if (a.total === 0)   return label('indicatorIdle');
-    if (a.error > 0)     return label('indicatorFailed', { count: a.error });
-    if (a.uploading > 0) return label('indicatorUploading', { count: a.uploading });
-    if (a.paused > 0)    return label('indicatorPaused', { count: a.paused });
-    if (a.pending > 0)   return label('indicatorQueued', { count: a.pending });
-    return label('indicatorDone', { count: a.complete });
+    if (a.total === 0)   return label('messages.indicatorIdle');
+    if (a.error > 0)     return label('messages.indicatorFailed', { count: a.error });
+    if (a.uploading > 0) return label('messages.indicatorUploading', { count: a.uploading });
+    if (a.paused > 0)    return label('messages.indicatorPaused', { count: a.paused });
+    if (a.pending > 0)   return label('messages.indicatorQueued', { count: a.pending });
+    return label('messages.indicatorDone', { count: a.complete });
 }
 
 export class DropzoneIndicatorElement extends SatelliteElement {
@@ -260,14 +259,14 @@ export class DropzoneIndicatorElement extends SatelliteElement {
         if (mode === 'auto') {
             const btn = document.createElement('button');
             btn.type = 'button';
-            btn.setAttribute('aria-label', this.label('indicatorStatus'));
+            btn.setAttribute('aria-label', this.label('ariaLabels.indicatorStatus'));
             btn.setAttribute('aria-expanded', 'false');
             btn.addEventListener('click', () => this.toggleDrawer());
             this.chipEl = btn;
         } else {
             const div = document.createElement('div');
             div.setAttribute('role', 'status');
-            div.setAttribute('aria-label', this.label('indicatorStatus'));
+            div.setAttribute('aria-label', this.label('ariaLabels.indicatorStatus'));
             this.chipEl = div;
         }
         this.chipEl.className = 'dz__indicator-chip';
@@ -282,7 +281,7 @@ export class DropzoneIndicatorElement extends SatelliteElement {
             this.drawerEl.className = 'dz__indicator-drawer';
             this.drawerEl.setAttribute('part', 'drawer');
             this.drawerEl.setAttribute('role', 'dialog');
-            this.drawerEl.setAttribute('aria-label', this.label('indicatorQueue'));
+            this.drawerEl.setAttribute('aria-label', this.label('ariaLabels.indicatorQueue'));
             this.populateDrawer();
             this.shadow.appendChild(this.drawerEl);
             if (this.resolvePosition() === 'inline') this.createInlineDrawerHandle();
@@ -347,8 +346,8 @@ export class DropzoneIndicatorElement extends SatelliteElement {
         // The header bar is core's sheet header (title + close button); the dz
         // classes stay as hooks (tests, page CSS).
         const { header, title, close } = createSheetHeader({
-            title: this.label('indicatorTitle'),
-            closeLabel: this.label('close'),
+            title: this.label('headers.indicator'),
+            closeLabel: this.label('ariaLabels.close'),
             onClose: () => {
                 this.setDrawerOpen(false);
                 this.chipEl.focus({ preventScroll: true });
@@ -466,11 +465,11 @@ export class DropzoneIndicatorElement extends SatelliteElement {
         const setAttr = (el: Element | null | undefined, name: string, value: string) => {
             if (el && el.getAttribute(name) !== value) el.setAttribute(name, value);
         };
-        setAttr(this.chipEl, 'aria-label', this.label('indicatorStatus'));
-        setAttr(this.drawerEl, 'aria-label', this.label('indicatorQueue'));
-        setAttr(this.drawerCloseBtn, 'aria-label', this.label('close'));
+        setAttr(this.chipEl, 'aria-label', this.label('ariaLabels.indicatorStatus'));
+        setAttr(this.drawerEl, 'aria-label', this.label('ariaLabels.indicatorQueue'));
+        setAttr(this.drawerCloseBtn, 'aria-label', this.label('ariaLabels.close'));
         const title = this.drawerEl?.querySelector('.dz__indicator-drawer-title');
-        const titleText = this.label('indicatorTitle');
+        const titleText = this.label('headers.indicator');
         if (title && title.textContent !== titleText) title.textContent = titleText;
     }
 
@@ -551,7 +550,7 @@ export class DropzoneIndicatorElement extends SatelliteElement {
             container.className = 'dz__indicator-loader';
             this.removeUploadLoader = renderLoader(this, container, 'upload', {
                 prefix: 'dz',
-                label: statusLabel(this.label, 'uploading'),
+                label: this.label('ariaLabels.uploading'),
                 renderLoadingCallback: this.storeEl?.renderLoadingCallback ?? null
             });
             this.uploadLoader = container;

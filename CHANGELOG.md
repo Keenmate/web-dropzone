@@ -11,6 +11,50 @@ No stable 1.0.0 is published, so the break ships as the next release
 candidate — but `^1.0.0-rc02` consumers will pull it: the event,
 callback and store-access API below is breaking.
 
+### Changed (label keys `<elementType>.<name>`, core rc25 `/locale`, 2026-11-19)
+
+- **BREAKING: every `labels` key is renamed to a flat `<elementType>.<name>`** (core `/locale`, rulebook
+  D-NC-24). The element type says where the text is shown: `buttons` (visible caption), `tooltips`
+  (`title`), `ariaLabels` (screen-reader only: `aria-label`, live announcements), `headers`, `labels`
+  (other visible text), `messages` (empty state / progress), `errors` (validation / failure). A text
+  that fed two surfaces is split into two keys with the same English default — set both when
+  translating. English defaults are unchanged. Old keys are ignored (no aliases).
+- **BREAKING: page-wide labels are ONE flat dictionary of full keys** —
+  `window.components.locale.labels = { 'web-dropzone.buttons.selectFiles': '…' }` (was
+  `labels: { 'web-dropzone': { selectFiles: '…' } }`); a satellite-only entry is prefixed by the
+  satellite's tag (`'web-dropzone-indicator.headers.indicator'`). The instance `labels` takes the short
+  key (`buttons.selectFiles`) or the full key (`web-dropzone.buttons.selectFiles`).
+- **BREAKING: `formatLabelCallback` → `translateCallback({ component, key, template, params, locale })`**
+  (core): `key` is the FULL key (`web-dropzone.ariaLabels.announceAdded`); return the text, or `null` /
+  `undefined` = not mine. Never asked for a key the instance set in its own `labels`.
+- New key `ariaLabels.uploading` — the indicator upload loader's accessible name (was the
+  `statusUploading` status name).
+- New type `DropzoneLabelOverrides` (the `labels` input: short and / or full keys).
+
+| Old key | New key(s) |
+|---|---|
+| `prompt` | `labels.prompt` (card text) + `ariaLabels.prompt` (card input / minimal button name) |
+| `hint` / `dragActive` / `noFileChosen` / `filesChosen` / `overlay` | `labels.hint` / `labels.dragActive` / `labels.noFileChosen` / `labels.filesChosen` / `labels.overlay` |
+| `selectFiles` | `buttons.selectFiles` |
+| `statusPending` … `statusCancelled`, `cancelTimeout` | `labels.statusPending` … `labels.statusCancelled`, `labels.cancelTimeout` |
+| `statusAria` | `ariaLabels.status` |
+| `cancelling` | `messages.cancelling` |
+| `pauseFile` / `resumeFile` / `retryFile` / `cancelFile` | `ariaLabels.<same>` + `tooltips.<same>` |
+| `removeFile` | `ariaLabels.removeFile` |
+| `pauseAll` / `resumeAll` / `retryAll` / `cancelAll` / `addMore` / `clearAll` | `buttons.<same>` |
+| `noData` | `messages.noData` |
+| `summary` / `fileCount` / `fileCountOne` / `unknownType` | `labels.<same>` |
+| `viewFiles` | `ariaLabels.viewFiles` |
+| `showMore` / `showLess` | `buttons.<same>` (text toggle) + `ariaLabels.<same>` (`+N` / `−` badge) |
+| `showQueue` | `ariaLabels.showQueue` + `tooltips.showQueue` |
+| `limitMaxFileSize` … `limitMinFileCount` (7 keys) | `labels.<same>` |
+| `progressCounts` / `progressPaused` / `progressFailed` | `messages.<same>` |
+| `indicatorTitle` | `headers.indicator` |
+| `indicatorIdle` / `indicatorFailed` / `indicatorUploading` / `indicatorPaused` / `indicatorQueued` / `indicatorDone` | `messages.<same>` |
+| `indicatorStatus` / `indicatorQueue` / `close` | `ariaLabels.<same>` |
+| `errorMaxFileSize` / `errorMinFileSize` / `errorFileType` / `errorRejected` / `errorMaxFileCount(One)` / `errorDuplicate` / `errorMaxTotalSize` / `errorUpload` / `errorMinFileCount(One)` | `errors.maxFileSize` / `errors.minFileSize` / `errors.fileType` / `errors.rejected` / `errors.maxFileCount(One)` / `errors.duplicate` / `errors.maxTotalSize` / `errors.upload` / `errors.minFileCount(One)` |
+| `announceAdded(One)` / `announceRejected` / `announceUploadDone(One)` / `announceUploadFailed` / `announceRemoved` | `ariaLabels.<same>` |
+
 ### Changed (scroll across a DOM move, sheet header, examples, 2026-11-18)
 
 - **Fixed: a scrolled file list keeps its position across a DOM move** (core `keepScrollAcrossMove`, SPEC

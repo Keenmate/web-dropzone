@@ -100,7 +100,7 @@ test.describe('labels.summary', () => {
     test('the default template is "{count} file(s), {size}"; a live change re-renders', async ({ page }) => {
         await addNamed(page, 'top', ['a.txt']);
         await expect(summary(page, 'top').locator('.dz__summary-text')).toHaveText('1 file(s), 64 B');
-        await dz(page, 'top').evaluate(async (el: any) => { el.labels = { summary: 'Files: {count}' }; await el.whenSettled(); });
+        await dz(page, 'top').evaluate(async (el: any) => { el.labels = { 'labels.summary': 'Files: {count}' }; await el.whenSettled(); });
         await expect(summary(page, 'top').locator('.dz__summary-text')).toHaveText('Files: 1');
     });
 });

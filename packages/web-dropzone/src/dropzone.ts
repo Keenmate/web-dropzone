@@ -569,7 +569,7 @@ export class WebDropzone extends DropzoneEngine {
         // prompt. Button / minimal / native have their own <button>, so the
         // input leaves the tab order (one tab stop per selector).
         const inputA11yAttrs = appearance === 'card'
-            ? `aria-label="${escapeHtml(this.label('prompt'))}"`
+            ? `aria-label="${escapeHtml(this.label('ariaLabels.prompt'))}"`
             : 'tabindex="-1" aria-hidden="true"';
         const input = `
             <input type="file"
@@ -582,7 +582,7 @@ export class WebDropzone extends DropzoneEngine {
         `;
 
         if (appearance === 'button') {
-            const label = escapeHtml(this.label('selectFiles'));
+            const label = escapeHtml(this.label('buttons.selectFiles'));
             const count = this.files.length;
             return `
                 <div class="dz__dropzone dz__dropzone--button ${disabled}">
@@ -598,7 +598,7 @@ export class WebDropzone extends DropzoneEngine {
         if (appearance === 'minimal') {
             const icon = RowTemplate.renderDzIcon(this.config.icon || DEFAULT_CONFIG.icon);
             const count = this.files.length;
-            const ariaLabel = escapeHtml(this.label('prompt'));
+            const ariaLabel = escapeHtml(this.label('ariaLabels.prompt'));
             return `
                 <div class="dz__dropzone dz__dropzone--minimal ${disabled}">
                     ${input}
@@ -611,13 +611,13 @@ export class WebDropzone extends DropzoneEngine {
         }
 
         if (appearance === 'native') {
-            const label = escapeHtml(this.label('selectFiles'));
+            const label = escapeHtml(this.label('buttons.selectFiles'));
             const count = this.files.length;
             const labelText = count === 0
-                ? this.label('noFileChosen')
+                ? this.label('labels.noFileChosen')
                 : count === 1
                     ? this.files[0].name
-                    : this.label('filesChosen', { count });
+                    : this.label('labels.filesChosen', { count });
             return `
                 <div class="dz__dropzone dz__dropzone--native ${disabled}">
                     ${input}
@@ -655,11 +655,11 @@ export class WebDropzone extends DropzoneEngine {
     /** The built-in card prompt: icon, text, Browse button (big), hint. */
     private renderDefaultCardContent(cardSize: CardSize): string {
         const text = this.dragActive
-            ? this.label('dragActive')
-            : this.label('prompt');
+            ? this.label('labels.dragActive')
+            : this.label('labels.prompt');
 
         const icon = RowTemplate.renderDzIcon(this.config.icon || DEFAULT_CONFIG.icon);
-        const hintText = this.label('hint');
+        const hintText = this.label('labels.hint');
         const hint = hintText
             ? `<div class="dz__dropzone-hint">${escapeHtml(hintText)}</div>`
             : '';
@@ -668,7 +668,7 @@ export class WebDropzone extends DropzoneEngine {
         // compact, the whole card is the click target — so no explicit button
         // is needed (avoids visual noise on dense layouts).
         const browseBtn = cardSize === 'big'
-            ? `<button type="button" class="dz__card-action">${escapeHtml(this.label('selectFiles'))}</button>`
+            ? `<button type="button" class="dz__card-action">${escapeHtml(this.label('buttons.selectFiles'))}</button>`
             : '';
 
         return `
@@ -1166,7 +1166,7 @@ export class WebDropzone extends DropzoneEngine {
         if (this.files.length === 0) {
             this.fileRowElements.clear();
             // labels.noData '' = deliberately empty: render nothing.
-            const noData = this.config.isFilesInside ? '' : this.label('noData');
+            const noData = this.config.isFilesInside ? '' : this.label('messages.noData');
             // Through renderSlot (a default) — every write to the list goes
             // through it, so a later same-string wrapper result isn't skipped.
             renderSlot(targetEl, null, {
@@ -1376,9 +1376,8 @@ export class WebDropzone extends DropzoneEngine {
         if (countEl) countEl.textContent = String(queueCount);
         queueBtn.classList.toggle('dz__rolling-queue--hidden', !showQueueBtn);
         queueBtn.disabled = !!this.config.isDisabled;
-        const queueLabel = this.label('showQueue', { count: queueCount });
-        queueBtn.setAttribute('aria-label', queueLabel);
-        queueBtn.setAttribute('title', queueLabel);
+        queueBtn.setAttribute('aria-label', this.label('ariaLabels.showQueue', { count: queueCount }));
+        queueBtn.setAttribute('title', this.label('tooltips.showQueue', { count: queueCount }));
     }
 
     /**
@@ -1410,14 +1409,14 @@ export class WebDropzone extends DropzoneEngine {
 
         if (this.showAllList) {
             return isBadges
-                ? `<button type="button" class="dz__badge dz__badge--more" data-dz-action="toggle-visible" aria-label="${escapeHtml(this.label('showLess'))}"${dis}>−</button>`
-                : `<button type="button" class="dz__show-more" data-dz-action="toggle-visible"${dis}>${escapeHtml(this.label('showLess'))}</button>`;
+                ? `<button type="button" class="dz__badge dz__badge--more" data-dz-action="toggle-visible" aria-label="${escapeHtml(this.label('ariaLabels.showLess'))}"${dis}>−</button>`
+                : `<button type="button" class="dz__show-more" data-dz-action="toggle-visible"${dis}>${escapeHtml(this.label('buttons.showLess'))}</button>`;
         }
 
         const hidden = this.files.length - cap;
         return isBadges
-            ? `<button type="button" class="dz__badge dz__badge--more" data-dz-action="toggle-visible" aria-label="${escapeHtml(this.label('showMore', { count: hidden }))}"${dis}>+${hidden}</button>`
-            : `<button type="button" class="dz__show-more" data-dz-action="toggle-visible"${dis}>${escapeHtml(this.label('showMore', { count: hidden }))}</button>`;
+            ? `<button type="button" class="dz__badge dz__badge--more" data-dz-action="toggle-visible" aria-label="${escapeHtml(this.label('ariaLabels.showMore', { count: hidden }))}"${dis}>+${hidden}</button>`
+            : `<button type="button" class="dz__show-more" data-dz-action="toggle-visible"${dis}>${escapeHtml(this.label('buttons.showMore', { count: hidden }))}</button>`;
     }
 
     /** Attach the "Show more / Show less" click handler within a subtree.
@@ -1613,7 +1612,7 @@ export class WebDropzone extends DropzoneEngine {
             return `<span class="dz__summary-icon" data-status="pending">${UI_ICONS.paperclip}</span>`;
         }
         const s = overall.aggregateStatus;
-        const aria = escapeHtml(this.label('statusAria', { status: statusLabel(this.label, s) }));
+        const aria = escapeHtml(this.label('ariaLabels.status', { status: statusLabel(this.label, s) }));
         const busy = s === 'uploading' ? ' aria-busy="true"' : '';
         return `<span class="dz__summary-icon dz__summary-icon--${s}" data-status="${s}" aria-label="${aria}"${busy}>${RowTemplate.statusGlyph(s)}</span>`;
     }
@@ -1683,9 +1682,9 @@ export class WebDropzone extends DropzoneEngine {
     /** The built-in summary line: status icon + "N files (size)" — opens the popover. */
     private renderDefaultSummary(): string {
         const totalSize = this.files.reduce((sum, f) => sum + f.size, 0);
-        const text = this.label('summary', { count: this.files.length, size: formatFileSize(totalSize) });
+        const text = this.label('labels.summary', { count: this.files.length, size: formatFileSize(totalSize) });
         return `
-            <div class="dz__summary-line" ${this.config.isDisabled ? 'tabindex="-1" aria-disabled="true"' : 'tabindex="0"'} role="button" aria-label="${escapeHtml(this.label('viewFiles'))}">
+            <div class="dz__summary-line" ${this.config.isDisabled ? 'tabindex="-1" aria-disabled="true"' : 'tabindex="0"'} role="button" aria-label="${escapeHtml(this.label('ariaLabels.viewFiles'))}">
                 ${this.renderSummaryIcon()}
                 <span class="dz__summary-text">${escapeHtml(text)}</span>
             </div>
@@ -1799,9 +1798,9 @@ export class WebDropzone extends DropzoneEngine {
                 <div class="dz__popover-header">
                     <span class="dz__popover-count">${escapeHtml(this.getFileCountLabel())}</span>
                     <div class="dz__popover-actions">
-                        ${this.isAddBlocked ? '' : `<button type="button" class="dz__popover-action" data-dz-action="add-more"${this.disabledAttr}>${escapeHtml(this.label('addMore'))}</button>`}
-                        ${this.config.isReadonly ? '' : `<button type="button" class="dz__popover-action" data-dz-action="clear"${this.disabledAttr}>${escapeHtml(this.label('clearAll'))}</button>`}
-                        <button type="button" class="dz__popover-close km-sheet-close" data-dz-action="close" aria-label="${escapeHtml(this.label('close'))}"></button>
+                        ${this.isAddBlocked ? '' : `<button type="button" class="dz__popover-action" data-dz-action="add-more"${this.disabledAttr}>${escapeHtml(this.label('buttons.addMore'))}</button>`}
+                        ${this.config.isReadonly ? '' : `<button type="button" class="dz__popover-action" data-dz-action="clear"${this.disabledAttr}>${escapeHtml(this.label('buttons.clearAll'))}</button>`}
+                        <button type="button" class="dz__popover-close km-sheet-close" data-dz-action="close" aria-label="${escapeHtml(this.label('ariaLabels.close'))}"></button>
                     </div>
                 </div>
                 <div class="dz__popover-limits">${escapeHtml(this.getLimitsHint())}</div>
@@ -1925,7 +1924,7 @@ export class WebDropzone extends DropzoneEngine {
      * header in place of a static "Selected Files" title.
      */
     private getFileCountLabel(): string {
-        return countLabel(this.label, 'fileCount', this.files.length);
+        return countLabel(this.label, 'labels.fileCount', this.files.length);
     }
 
     /**
@@ -1935,7 +1934,7 @@ export class WebDropzone extends DropzoneEngine {
      * validation config.
      */
     private getLimitsHint(): string {
-        const hint = this.label('hint');
+        const hint = this.label('labels.hint');
         if (hint) return hint;
 
         const parts: string[] = [];
@@ -1947,8 +1946,8 @@ export class WebDropzone extends DropzoneEngine {
         const maxCount = this.config.maxFileCount ?? 0;
         const minCount = this.config.minFileCount ?? 0;
 
-        if (maxFileSize > 0) parts.push(this.label('limitMaxFileSize', { size: formatFileSize(maxFileSize) }));
-        if (minFileSize > 0) parts.push(this.label('limitMinFileSize', { size: formatFileSize(minFileSize) }));
+        if (maxFileSize > 0) parts.push(this.label('labels.limitMaxFileSize', { size: formatFileSize(maxFileSize) }));
+        if (minFileSize > 0) parts.push(this.label('labels.limitMinFileSize', { size: formatFileSize(minFileSize) }));
 
         // Total size cap — show "X left" once there are files so the user knows
         // their remaining headroom. FluentUI does the same.
@@ -1956,9 +1955,9 @@ export class WebDropzone extends DropzoneEngine {
             if (this.files.length > 0) {
                 const used = this.files.reduce((sum, f) => sum + f.size, 0);
                 const left = Math.max(0, maxTotal - used);
-                parts.push(this.label('limitMaxTotalSizeLeft', { size: formatFileSize(maxTotal), left: formatFileSize(left) }));
+                parts.push(this.label('labels.limitMaxTotalSizeLeft', { size: formatFileSize(maxTotal), left: formatFileSize(left) }));
             } else {
-                parts.push(this.label('limitMaxTotalSize', { size: formatFileSize(maxTotal) }));
+                parts.push(this.label('labels.limitMaxTotalSize', { size: formatFileSize(maxTotal) }));
             }
         }
 
@@ -1966,13 +1965,13 @@ export class WebDropzone extends DropzoneEngine {
         if (maxCount > 0) {
             if (this.files.length > 0) {
                 const left = Math.max(0, maxCount - this.files.length);
-                parts.push(this.label('limitMaxFileCountLeft', { count: maxCount, left }));
+                parts.push(this.label('labels.limitMaxFileCountLeft', { count: maxCount, left }));
             } else {
-                parts.push(this.label('limitMaxFileCount', { count: maxCount }));
+                parts.push(this.label('labels.limitMaxFileCount', { count: maxCount }));
             }
         }
 
-        if (minCount > 0) parts.push(this.label('limitMinFileCount', { count: minCount }));
+        if (minCount > 0) parts.push(this.label('labels.limitMinFileCount', { count: minCount }));
 
         return parts.join(' · ');
     }
@@ -2070,12 +2069,12 @@ export class WebDropzone extends DropzoneEngine {
      */
     private renderOverallCountsInner(o: ReturnType<WebDropzone['getOverallProgress']>): string {
         const pausedSegment = o.pausedCount > 0
-            ? ` · <span class="dz__overall-progress-paused">${escapeHtml(this.label('progressPaused', { count: o.pausedCount }))}</span>`
+            ? ` · <span class="dz__overall-progress-paused">${escapeHtml(this.label('messages.progressPaused', { count: o.pausedCount }))}</span>`
             : '';
         const failedSegment = o.failedCount > 0
-            ? ` · <span class="dz__overall-progress-failed">${escapeHtml(this.label('progressFailed', { count: o.failedCount }))}</span>`
+            ? ` · <span class="dz__overall-progress-failed">${escapeHtml(this.label('messages.progressFailed', { count: o.failedCount }))}</span>`
             : '';
-        const counts = this.label('progressCounts', {
+        const counts = this.label('messages.progressCounts', {
             completed: o.completedCount,
             total: this.files.length,
             uploadedSize: formatFileSize(o.uploadedBytes),
@@ -2095,16 +2094,16 @@ export class WebDropzone extends DropzoneEngine {
         const dis = this.disabledAttr;
         const out: string[] = [];
         if (pipelineActive && o.uploadingCount > 0) {
-            out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="pause-all"${dis}>${escapeHtml(this.label('pauseAll'))}</button>`);
+            out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="pause-all"${dis}>${escapeHtml(this.label('buttons.pauseAll'))}</button>`);
         }
         if (pipelineActive && o.pausedCount > 0) {
-            out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="resume-all"${dis}>${escapeHtml(this.label('resumeAll'))}</button>`);
+            out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="resume-all"${dis}>${escapeHtml(this.label('buttons.resumeAll'))}</button>`);
         }
         if (pipelineActive && o.uploadingCount + o.pendingCount + o.pausedCount > 0) {
-            out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="cancel-all"${dis}>${escapeHtml(this.label('cancelAll'))}</button>`);
+            out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="cancel-all"${dis}>${escapeHtml(this.label('buttons.cancelAll'))}</button>`);
         }
         if (o.failedCount > 0) {
-            out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="retry-all"${dis}>${escapeHtml(this.label('retryAll'))}</button>`);
+            out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="retry-all"${dis}>${escapeHtml(this.label('buttons.retryAll'))}</button>`);
         }
         return out.join('');
     }
@@ -2633,7 +2632,7 @@ export class WebDropzone extends DropzoneEngine {
 
         const host = this.config.hostElement ?? this.element;
         const icon = RowTemplate.renderDzIcon(this.config.overlayIcon || DEFAULT_CONFIG.overlayIcon);
-        const text = this.label('overlay');
+        const text = this.label('labels.overlay');
 
         // A core layer: its own shadow root with the component stylesheet, in
         // the overlay container (body, or the open modal dialog the host is in),

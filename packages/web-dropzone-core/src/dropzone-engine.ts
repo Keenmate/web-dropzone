@@ -111,17 +111,17 @@ export interface DropzoneActionRequest {
 
 /** The label key of each action's item text (row actions take `{ name }`). */
 const ACTION_TEXT_KEYS = {
-    'remove': 'removeFile',
-    'cancel': 'cancelFile',
-    'pause': 'pauseFile',
-    'resume': 'resumeFile',
-    'retry': 'retryFile',
-    'pause-all': 'pauseAll',
-    'resume-all': 'resumeAll',
-    'cancel-all': 'cancelAll',
-    'retry-all': 'retryAll',
-    'clear': 'clearAll',
-    'add-more': 'addMore'
+    'remove': 'ariaLabels.removeFile',
+    'cancel': 'ariaLabels.cancelFile',
+    'pause': 'ariaLabels.pauseFile',
+    'resume': 'ariaLabels.resumeFile',
+    'retry': 'ariaLabels.retryFile',
+    'pause-all': 'buttons.pauseAll',
+    'resume-all': 'buttons.resumeAll',
+    'cancel-all': 'buttons.cancelAll',
+    'retry-all': 'buttons.retryAll',
+    'clear': 'buttons.clearAll',
+    'add-more': 'buttons.addMore'
 } as const satisfies Record<DropzoneAction, DropzoneLabelKey>;
 
 /**
@@ -228,7 +228,7 @@ export class DropzoneEngine {
 
     /**
      * UI-string lookup over `config.labels` (per-key overrides → built-in
-     * English) — `label('cancelFile', { name })`. Reads the live config, so a
+     * English) — `label('ariaLabels.cancelFile', { name })`. Reads the live config, so a
      * `labels` change applies on the next render.
      */
     readonly label: LabelFn = createLabelFn(() => this.config.labels, () => this.config.hostElement ?? this.element);
@@ -428,7 +428,7 @@ export class DropzoneEngine {
         this.dropFiles(ids);
 
         // `{ confirm: true }` = a user removal (row ✕, Clear all) — say it.
-        if (opts?.confirm) this.announceParts(removed.map(f => this.announceLabel('announceRemoved', { name: f.name })));
+        if (opts?.confirm) this.announceParts(removed.map(f => this.announceLabel('ariaLabels.announceRemoved', { name: f.name })));
     }
 
     /**
@@ -1325,7 +1325,7 @@ export class DropzoneEngine {
                 // by a cancel (which owns the outcome).
                 return null;
             }
-            const msg = err instanceof Error ? err.message : this.label('errorUpload');
+            const msg = err instanceof Error ? err.message : this.label('errors.upload');
             const policy = this.config.retryPolicy ?? {};
             const maxAttempts = Math.max(1, policy.attempts ?? 1);
             fileLogger.debug('Auto-retry: handler rejected', {
@@ -1414,7 +1414,7 @@ export class DropzoneEngine {
                         file,
                         validation: {
                             valid: false,
-                            error: this.label('errorRejected'),
+                            error: this.label('errors.rejected'),
                             code: 'rejected'
                         }
                     });
@@ -1465,7 +1465,7 @@ export class DropzoneEngine {
                     file,
                     validation: {
                         valid: false,
-                        error: countLabel(this.label, 'errorMaxFileCount', maxCount),
+                        error: countLabel(this.label, 'errors.maxFileCount', maxCount),
                         code: 'count'
                     }
                 });
@@ -1485,7 +1485,7 @@ export class DropzoneEngine {
                         file,
                         validation: {
                             valid: false,
-                            error: this.label('errorDuplicate', { name: file.name }),
+                            error: this.label('errors.duplicate', { name: file.name }),
                             code: 'duplicate'
                         }
                     });
@@ -1501,7 +1501,7 @@ export class DropzoneEngine {
                     file,
                     validation: {
                         valid: false,
-                        error: this.label('errorMaxTotalSize', { size: formatFileSize(maxTotal) }),
+                        error: this.label('errors.maxTotalSize', { size: formatFileSize(maxTotal) }),
                         code: 'size'
                     }
                 });
@@ -1530,7 +1530,7 @@ export class DropzoneEngine {
             for (const file of extra) {
                 rejectedFiles.push({
                     file: file.file,
-                    validation: { valid: false, error: countLabel(this.label, 'errorMaxFileCount', 1), code: 'count' }
+                    validation: { valid: false, error: countLabel(this.label, 'errors.maxFileCount', 1), code: 'count' }
                 });
             }
             acceptedFiles = [first];
@@ -1564,8 +1564,8 @@ export class DropzoneEngine {
 
         // ONE screen-reader announcement per drop / pick: the added count, then each rejection.
         this.announceParts([
-            acceptedFiles.length > 0 ? this.announceCount('announceAdded', acceptedFiles.length) : '',
-            ...rejectedFiles.map(r => this.announceLabel('announceRejected', { name: r.file.name, reason: r.validation.error ?? '' }))
+            acceptedFiles.length > 0 ? this.announceCount('ariaLabels.announceAdded', acceptedFiles.length) : '',
+            ...rejectedFiles.map(r => this.announceLabel('ariaLabels.announceRejected', { name: r.file.name, reason: r.validation.error ?? '' }))
         ]);
 
         // Re-render the row set. Per-file events were already reported
@@ -1787,7 +1787,7 @@ export class DropzoneEngine {
     }
 
     /** A counted announcement label (`<key>One` for exactly one); the count goes in raw. */
-    protected announceCount(key: CountedLabelKey & `announce${string}`, count: number): string {
+    protected announceCount(key: CountedLabelKey & `ariaLabels.announce${string}`, count: number): string {
         return this.announceLabel(count === 1 ? `${key}One` as DropzoneLabelKey : key, { count });
     }
 
@@ -1811,8 +1811,8 @@ export class DropzoneEngine {
         }
         if (done + failed === 0) return;
         this.announceParts([failed > 0
-            ? this.announceLabel('announceUploadFailed', { done, failed })
-            : this.announceCount('announceUploadDone', done)]);
+            ? this.announceLabel('ariaLabels.announceUploadFailed', { done, failed })
+            : this.announceCount('ariaLabels.announceUploadDone', done)]);
     }
 
     // ========================================================================

@@ -4,7 +4,7 @@ import { test, expect, dz, dragFiles } from './fixtures';
  * Section 1 — selector-appearance.
  *
  * Fixture: test/display.html. Five dropzones, one per appearance variant
- * (plus a localized native to verify labels.noFileChosen + labels.selectFiles).
+ * (plus a localized native to verify labels.noFileChosen + buttons.selectFiles).
  */
 
 const PAGE = '/test/display.html';
@@ -26,7 +26,7 @@ test.describe('selector-appearance="card" (default)', () => {
 });
 
 test.describe('selector-appearance="button"', () => {
-    test('renders the accent button with the labels.selectFiles label', async ({ page }) => {
+    test('renders the accent button with the buttons.selectFiles label', async ({ page }) => {
         const btn = dz(page, 'button');
         await expect(btn.locator('.dz__button')).toBeVisible();
         await expect(btn.locator('.dz__button-label')).toHaveText('Pick files');
@@ -120,19 +120,19 @@ test.describe('text inputs', () => {
     test('labels.prompt / labels.hint render in the card; live changes re-render', async ({ page }) => {
         await expect(card(page).locator('.dz__dropzone-text')).toHaveText('Drag reports here');
         await expect(card(page).locator('.dz__dropzone-hint')).toHaveText('Max 10 MB');
-        await setAttr(page, 'texts', 'labels', JSON.stringify({ prompt: 'Drop invoices', hint: 'PDF only' }));
+        await setAttr(page, 'texts', 'labels', JSON.stringify({ 'labels.prompt': 'Drop invoices', 'labels.hint': 'PDF only' }));
         await expect(card(page).locator('.dz__dropzone-text')).toHaveText('Drop invoices');
         await expect(card(page).locator('.dz__dropzone-hint')).toHaveText('PDF only');
     });
 
-    test('labels.noData renders while empty; a live change re-renders', async ({ page }) => {
+    test('messages.noData renders while empty; a live change re-renders', async ({ page }) => {
         await expect(dz(page, 'texts').locator('.dz__empty')).toHaveText('Nothing uploaded yet');
-        await dz(page, 'texts').evaluate(async (el: any) => { el.labels = { ...el.labels, noData: 'Still empty' }; await el.whenSettled(); });
+        await dz(page, 'texts').evaluate(async (el: any) => { el.labels = { ...el.labels, 'messages.noData': 'Still empty' }; await el.whenSettled(); });
         await expect(dz(page, 'texts').locator('.dz__empty')).toHaveText('Still empty');
     });
 
-    test("labels.noData '' renders no empty-state element at all", async ({ page }) => {
-        await dz(page, 'texts').evaluate(async (el: any) => { el.labels = { ...el.labels, noData: '' }; await el.whenSettled(); });
+    test("messages.noData '' renders no empty-state element at all", async ({ page }) => {
+        await dz(page, 'texts').evaluate(async (el: any) => { el.labels = { ...el.labels, 'messages.noData': '' }; await el.whenSettled(); });
         await expect(dz(page, 'texts').locator('.dz__empty')).toHaveCount(0);
     });
 
@@ -143,7 +143,7 @@ test.describe('text inputs', () => {
         await page.keyboard.press('Escape');
         await expect(page.locator('.dz__overlay')).toHaveCount(0);
 
-        await dz(page, 'ov').evaluate(async (el: any) => { el.labels = { overlay: 'Release!' }; await el.whenSettled(); });
+        await dz(page, 'ov').evaluate(async (el: any) => { el.labels = { 'labels.overlay': 'Release!' }; await el.whenSettled(); });
         await dragFiles(page.locator('body'), 'dragenter');
         await expect(page.locator('.dz__overlay-text')).toHaveText('Release!');
     });
@@ -155,7 +155,7 @@ test.describe('labels — validation messages', () => {
             const el = document.createElement('web-dropzone') as any;
             el.setAttribute('max-file-count', '1');
             el.setAttribute('display-mode', 'list');
-            el.labels = { errorMaxFileCountOne: 'Jen {count} soubor', errorDuplicate: 'Dvojitý: {name}' };
+            el.labels = { 'errors.maxFileCountOne': 'Jen {count} soubor', 'errors.duplicate': 'Dvojitý: {name}' };
             document.body.append(el);
             await el.whenReady();
             const errors: string[] = [];

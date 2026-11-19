@@ -75,11 +75,11 @@ test('a user removal (row ✕) says "<name> removed"; a programmatic removeFile 
     expect(await said(page)).toBe('gone.txt removed');
 });
 
-test('numbers go to formatLabelCallback raw', async ({ page }) => {
+test('numbers go to translateCallback raw', async ({ page }) => {
     await page.evaluate(() => {
         ((window as any).components ??= {}).locale = {
-            formatLabelCallback: ({ key, params }: any) =>
-                key === 'announceAdded' ? `count:${typeof params.count}:${params.count}` : undefined
+            translateCallback: ({ key, params }: any) =>
+                key === 'web-dropzone.ariaLabels.announceAdded' ? `count:${typeof params.count}:${params.count}` : undefined
         };
     });
     await addNamed(page, 'drop', ['n1.txt', 'n2.txt']);

@@ -226,7 +226,7 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
                 this.container.innerHTML = '';
                 return;
             }
-            const emptyMessage = this.label('noData');
+            const emptyMessage = this.label('messages.noData');
             // labels.noData '' = deliberately empty: render nothing.
             this.container.innerHTML = emptyMessage ? `<div class="dz__empty">${escapeHtml(emptyMessage)}</div>` : '';
             return;
@@ -305,13 +305,13 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
         const dis = this.isStoreDisabled ? ' disabled' : '';
         if (this.showAll) {
             return isBadges
-                ? `<button type="button" class="dz__badge dz__badge--more" data-dz-action="toggle-visible" aria-label="${escapeHtml(this.label('showLess'))}"${dis}>−</button>`
-                : `<button type="button" class="dz__show-more" data-dz-action="toggle-visible"${dis}>${escapeHtml(this.label('showLess'))}</button>`;
+                ? `<button type="button" class="dz__badge dz__badge--more" data-dz-action="toggle-visible" aria-label="${escapeHtml(this.label('ariaLabels.showLess'))}"${dis}>−</button>`
+                : `<button type="button" class="dz__show-more" data-dz-action="toggle-visible"${dis}>${escapeHtml(this.label('buttons.showLess'))}</button>`;
         }
         const hidden = total - cap;
         return isBadges
-            ? `<button type="button" class="dz__badge dz__badge--more" data-dz-action="toggle-visible" aria-label="${escapeHtml(this.label('showMore', { count: hidden }))}"${dis}>+${hidden}</button>`
-            : `<button type="button" class="dz__show-more" data-dz-action="toggle-visible"${dis}>${escapeHtml(this.label('showMore', { count: hidden }))}</button>`;
+            ? `<button type="button" class="dz__badge dz__badge--more" data-dz-action="toggle-visible" aria-label="${escapeHtml(this.label('ariaLabels.showMore', { count: hidden }))}"${dis}>+${hidden}</button>`
+            : `<button type="button" class="dz__show-more" data-dz-action="toggle-visible"${dis}>${escapeHtml(this.label('buttons.showMore', { count: hidden }))}</button>`;
     }
 
     /** Bind the toggle button's click handler (only present when the
@@ -357,12 +357,12 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
         const statusName = statusLabel(this.label, status as FileStatus);
 
         const totalSize = files.reduce((sum, f) => sum + f.size, 0);
-        const text = this.label('summary', { count: files.length, size: formatFileSize(totalSize) });
+        const text = this.label('labels.summary', { count: files.length, size: formatFileSize(totalSize) });
 
         this.container.innerHTML = `
             <div class="dz__summary">
-                <div class="dz__summary-line" ${this.isStoreDisabled ? 'tabindex="-1" aria-disabled="true"' : 'tabindex="0"'} role="button" aria-label="${escapeHtml(this.label('viewFiles'))}">
-                    <span class="${iconClass}" data-status="${status}" aria-label="${escapeHtml(this.label('statusAria', { status: statusName }))}"${status === 'uploading' ? ' aria-busy="true"' : ''}>${icon}</span>
+                <div class="dz__summary-line" ${this.isStoreDisabled ? 'tabindex="-1" aria-disabled="true"' : 'tabindex="0"'} role="button" aria-label="${escapeHtml(this.label('ariaLabels.viewFiles'))}">
+                    <span class="${iconClass}" data-status="${status}" aria-label="${escapeHtml(this.label('ariaLabels.status', { status: statusName }))}"${status === 'uploading' ? ' aria-busy="true"' : ''}>${icon}</span>
                     <span class="dz__summary-text">${escapeHtml(text)}</span>
                 </div>
             </div>
@@ -588,9 +588,8 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
         if (countEl) countEl.textContent = String(queueCount);
         queueBtn.classList.toggle('dz__rolling-queue--hidden', !showQueueBtn);
         queueBtn.disabled = this.isStoreDisabled;
-        const queueLabel = this.label('showQueue', { count: queueCount });
-        queueBtn.setAttribute('aria-label', queueLabel);
-        queueBtn.setAttribute('title', queueLabel);
+        queueBtn.setAttribute('aria-label', this.label('ariaLabels.showQueue', { count: queueCount }));
+        queueBtn.setAttribute('title', this.label('tooltips.showQueue', { count: queueCount }));
     }
 
     // ========================================================================

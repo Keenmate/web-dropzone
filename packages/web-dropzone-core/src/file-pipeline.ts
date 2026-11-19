@@ -21,7 +21,7 @@ import type {
     ValidationResult
 } from './types';
 import type { ValidateContext } from './interaction';
-import { resolveLabel, type DropzoneLabels } from './labels';
+import { resolveLabel, type DropzoneLabelOverrides } from './labels';
 
 /**
  * Subset of `DropzoneConfig` that the per-file validator actually reads.
@@ -34,7 +34,7 @@ export interface ValidationConfig {
     accept?: string;
     validateCallback?: ((ctx: ValidateContext) => ValidationResult) | null;
     /** UI strings — the validation messages come from `labels` (`error*` keys). */
-    labels?: Partial<DropzoneLabels> | null;
+    labels?: DropzoneLabelOverrides | null;
 }
 
 /**
@@ -101,7 +101,7 @@ export function validateFile(
     if (config.maxFileSize && config.maxFileSize > 0 && file.size > config.maxFileSize) {
         return {
             valid: false,
-            error: resolveLabel(config.labels, 'errorMaxFileSize', { size: formatFileSize(config.maxFileSize) }),
+            error: resolveLabel(config.labels, 'errors.maxFileSize', { size: formatFileSize(config.maxFileSize) }),
             code: 'size'
         };
     }
@@ -109,7 +109,7 @@ export function validateFile(
     if (config.minFileSize && config.minFileSize > 0 && file.size < config.minFileSize) {
         return {
             valid: false,
-            error: resolveLabel(config.labels, 'errorMinFileSize', { size: formatFileSize(config.minFileSize) }),
+            error: resolveLabel(config.labels, 'errors.minFileSize', { size: formatFileSize(config.minFileSize) }),
             code: 'size'
         };
     }
@@ -117,7 +117,7 @@ export function validateFile(
     if (config.accept && !isFileTypeAccepted(file, config.accept)) {
         return {
             valid: false,
-            error: resolveLabel(config.labels, 'errorFileType'),
+            error: resolveLabel(config.labels, 'errors.fileType'),
             code: 'type'
         };
     }

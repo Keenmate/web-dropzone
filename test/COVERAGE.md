@@ -25,12 +25,12 @@ Every spec runs in three Playwright projects — chromium, firefox and webkit
 | `selector-appearance="minimal"`                               | ✓      | `display.spec.ts` | `display.html` |
 | `selector-appearance="native"`                                | ✓      | `display.spec.ts` | `display.html` |
 | `labels.noFileChosen` empty-state label                       | ✓      | `display.spec.ts` | `display.html` |
-| `labels.selectFiles` button label across variants             | ✓      | `appearance.spec.ts` | `appearance.html` |
+| `buttons.selectFiles` button label across variants             | ✓      | `appearance.spec.ts` | `appearance.html` |
 | `card-size="minimal" \| "compact" \| "big"`                   | ✓      | `appearance.spec.ts` | `appearance.html` |
 | `icon` attribute on minimal selector                          | ✓      | `display.spec.ts` | `display.html` |
 | Count badge on button when files exist                        | ✓      | `appearance.spec.ts` | `appearance.html` |
 | Count badge on minimal when files exist (follows remove / clear) | ✓   | `appearance.spec.ts` | `appearance.html` |
-| `labels.prompt` / `labels.hint` / `labels.noData` + live update | ✓      | `display.spec.ts` | `display.html` |
+| `labels.prompt` / `labels.hint` / `messages.noData` + live update | ✓      | `display.spec.ts` | `display.html` |
 | `labels.overlay` / `overlay-icon` + live update               | ✓      | `display.spec.ts` | `display.html` |
 | `multiple` default / `multiple="false"` / `el.isMultiple` live on the native input + dialog | ✓ | `display.spec.ts` | `display.html` |
 
@@ -173,10 +173,10 @@ Every spec runs in three Playwright projects — chromium, firefox and webkit
 | `render-mode="headless"` still fires every event                     | ✓      | `architecture.spec.ts` | `architecture.html` |
 | Multiple pickers contribute to one store (Mode A: shared)     | ✓      | `architecture.spec.ts` | `architecture.html` |
 | Multiple independent stores on one page                       | ✓      | `architecture.spec.ts` | `architecture.html` |
-| Picker `labels.prompt` / `labels.hint` / `labels.selectFiles` / `selector-appearance` / `disabled` (per picker) | ✓ | `satellites-extra.spec.ts` | `satellites-extra.html` |
+| Picker `labels.prompt` / `labels.hint` / `buttons.selectFiles` / `selector-appearance` / `disabled` (per picker) | ✓ | `satellites-extra.spec.ts` | `satellites-extra.html` |
 | Picker `inside="true"` + nested list (files-inside layout)    | ✓      | `satellites-extra.spec.ts` | `satellites-extra.html` |
-| List own `labels.noData`, `list-appearance` (+ live change)     | ✓      | `satellites-extra.spec.ts` | `satellites-extra.html` |
-| Indicator `position` / `drawer` (auto toggles, off = status chip) / `labels.indicatorTitle` | ✓ | `satellites-extra.spec.ts` | `satellites-extra.html` |
+| List own `messages.noData`, `list-appearance` (+ live change)     | ✓      | `satellites-extra.spec.ts` | `satellites-extra.html` |
+| Indicator `position` / `drawer` (auto toggles, off = status chip) / `headers.indicator` | ✓ | `satellites-extra.spec.ts` | `satellites-extra.html` |
 | Indicator drawer in the overlay tree: `aria-expanded`, focus in / back, Escape, outside click, topmost first | ✓ | `satellites-extra.spec.ts` | `satellites-extra.html` |
 | Indicator unknown `position` refused (`input-rejected`, previous value reflected back); live change applies | ✓ | `satellites-extra.spec.ts` | `satellites-extra.html` |
 | Progress `data-empty` / `data-status` (uploading → paused → error → complete) | ✓ | `satellites-extra.spec.ts` | `satellites-extra.html` |

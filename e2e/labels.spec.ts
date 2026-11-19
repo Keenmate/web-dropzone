@@ -33,7 +33,7 @@ test('property: per-key merge, placeholders, live re-render', async ({ page }) =
     await addNamed(page, 'q', ['a.txt']);
     await expect.poll(() => pendingNames(page)).toContain('a.txt');
     await dz(page, 'q').evaluate(async (el: any) => {
-        el.labels = { cancelFile: 'Zrušit {name}', statusUploading: 'Nahrávám', statusAria: 'Stav: {status}', cancelAll: 'Zrušit vše', prompt: 'Sem soubory' };
+        el.labels = { 'ariaLabels.cancelFile': 'Zrušit {name}', 'labels.statusUploading': 'Nahrávám', 'ariaLabels.status': 'Stav: {status}', 'buttons.cancelAll': 'Zrušit vše', 'labels.prompt': 'Sem soubory' };
         await el.whenSettled();
     });
     const row = rowOf(page, 'q', 'a.txt');
@@ -59,7 +59,7 @@ test('property: per-key merge, placeholders, live re-render', async ({ page }) =
 
 test('JSON attribute; a malformed one warns and keeps the previous value', async ({ page }) => {
     await dz(page, 'q').evaluate(async (el: any) => {
-        el.setAttribute('labels', JSON.stringify({ prompt: 'Přetáhněte soubory' }));
+        el.setAttribute('labels', JSON.stringify({ 'labels.prompt': 'Přetáhněte soubory' }));
         await el.whenSettled();
     });
     await expect(dz(page, 'q').locator('.dz__dropzone-text')).toHaveText('Přetáhněte soubory');
@@ -70,7 +70,7 @@ test('JSON attribute; a malformed one warns and keeps the previous value', async
         await el.whenSettled();
         return el.labels;
     });
-    expect(kept).toEqual({ prompt: 'Přetáhněte soubory' });
+    expect(kept).toEqual({ 'labels.prompt': 'Přetáhněte soubory' });
     await expect(dz(page, 'q').locator('.dz__dropzone-text')).toHaveText('Přetáhněte soubory');
     await expect.poll(() => warned.some((w) => w.includes('labels'))).toBe(true);
 });
@@ -78,7 +78,7 @@ test('JSON attribute; a malformed one warns and keeps the previous value', async
 test('"Cancelling…" and the cancel-timeout status come from labels', async ({ page }) => {
     await addNamed(page, 'stubborn', ['s.txt']);
     await expect.poll(() => pendingNames(page)).toContain('s.txt');
-    await dz(page, 'stubborn').evaluate((el: any) => { el.labels = { cancelling: 'Ruším…', cancelTimeout: 'Zrušení vypršelo' }; });
+    await dz(page, 'stubborn').evaluate((el: any) => { el.labels = { 'messages.cancelling': 'Ruším…', 'labels.cancelTimeout': 'Zrušení vypršelo' }; });
     const done = dz(page, 'stubborn').evaluate((el: any) => el.cancelFile(el.files[0].id));
     const row = rowOf(page, 'stubborn', 's.txt');
     await expect(row.locator('.dz__file-item-progress-text')).toHaveText('Ruším…');
@@ -90,7 +90,7 @@ test('satellites (list + progress) follow the store labels, live', async ({ page
     await addNamed(page, 'list-store', ['x.txt', 'y.txt']);
     await expect.poll(() => pendingNames(page)).toContain('x.txt');
     await dz(page, 'list-store').evaluate(async (el: any) => {
-        el.labels = { cancelFile: 'Stop {name}', cancelAll: 'Stop everything' };
+        el.labels = { 'ariaLabels.cancelFile': 'Stop {name}', 'buttons.cancelAll': 'Stop everything' };
         await el.whenSettled();
     });
     const satRow = page.locator('#list-sat').locator('.dz__file-item:has(.dz__file-item-name:text-is("x.txt"))');
@@ -103,25 +103,25 @@ test.describe('page-wide labels + locale (core /locale)', () => {
         await page.evaluate(() => { (window as any).components.locale = null; });
     });
 
-    test('window.components.locale.labels["web-dropzone"] re-renders live; the instance labels win per key', async ({ page }) => {
+    test('window.components.locale.labels (flat full keys) re-renders live; the instance labels win per key', async ({ page }) => {
         await page.evaluate(() => {
-            (window as any).components.locale = { labels: { 'web-dropzone': { prompt: 'Soubory sem', cancelAll: 'Zrušit vše' } } };
+            (window as any).components.locale = { labels: { 'web-dropzone.labels.prompt': 'Soubory sem', 'web-dropzone.buttons.cancelAll': 'Zrušit vše' } };
         });
         await expect(dz(page, 'q').locator('.dz__dropzone-text')).toHaveText('Soubory sem');
-        await dz(page, 'q').evaluate(async (el: any) => { el.labels = { prompt: 'Own prompt' }; await el.whenSettled(); });
+        await dz(page, 'q').evaluate(async (el: any) => { el.labels = { 'labels.prompt': 'Own prompt' }; await el.whenSettled(); });
         await expect(dz(page, 'q').locator('.dz__dropzone-text')).toHaveText('Own prompt');
         await addNamed(page, 'q', ['a.txt']);
         await expect(dz(page, 'q').locator('[data-dz-action="cancel-all"]')).toHaveText('Zrušit vše');
     });
 
-    test('a satellite tag has its own page-wide entry; formatLabelCallback formats; file sizes use the page decimal separator', async ({ page }) => {
+    test('a satellite tag has its own page-wide entries; translateCallback gets the full key; file sizes use the page decimal separator', async ({ page }) => {
         await addNamed(page, 'list-store', ['x.txt']);
         await expect.poll(() => pendingNames(page)).toContain('x.txt');
         await page.evaluate(() => {
             (window as any).components.locale = {
                 decimalSeparator: ',',
-                labels: { 'web-dropzone-progress': { cancelAll: 'Progress: stop' } },
-                formatLabelCallback: ({ key, template, params }: any) => key === 'cancelFile' ? `[${params.name}]` : template.replace(/\{(\w+)\}/g, (_: string, n: string) => String(params[n] ?? '')),
+                labels: { 'web-dropzone-progress.buttons.cancelAll': 'Progress: stop' },
+                translateCallback: ({ key, params }: any) => key === 'web-dropzone.ariaLabels.cancelFile' ? `[${params.name}]` : null,
             };
         });
         await expect(page.locator('#progress-sat').locator('[data-dz-action="cancel-all"]')).toHaveText('Progress: stop');
