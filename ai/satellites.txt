@@ -165,8 +165,8 @@ Attributes (plus the shared inputs):
             drawer (role="dialog") embedding a <web-dropzone-list>
             off: the chip is a non-interactive <div role="status">, no drawer
   labels    own UI strings over the store's: indicatorTitle (drawer title,
-            "Uploads"), indicatorIdle (idle chip, "No uploads"), indicatorStatus /
-            indicatorQueue (aria), close, indicatorFailed / ...Uploading /
+            "Uploads"), indicatorIdle (idle chip, "No uploads"), indicatorStatus
+            (aria), close, indicatorFailed / ...Uploading /
             ...Paused / ...Queued / ...Done ("{count} failed", ...)
 
 Default chip: spinner / status glyph + label ("N failed" > "N uploading" >

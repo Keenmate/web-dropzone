@@ -66,6 +66,8 @@ const DRAWER_MODES = ['auto', 'off'] as const;
 type DrawerMode = typeof DRAWER_MODES[number];
 
 const DRAWER_PRESENTATIONS = ['non-modal', 'modal'] as const;
+/** Id of the drawer header title (scoped to this shadow root) — names the drawer dialog via `aria-labelledby`. */
+const DRAWER_TITLE_ID = 'dz-indicator-title';
 type DrawerPresentation = typeof DRAWER_PRESENTATIONS[number];
 
 /** `<web-dropzone-indicator>` inputs. */
@@ -281,7 +283,7 @@ export class DropzoneIndicatorElement extends SatelliteElement {
             this.drawerEl.className = 'dz__indicator-drawer';
             this.drawerEl.setAttribute('part', 'drawer');
             this.drawerEl.setAttribute('role', 'dialog');
-            this.drawerEl.setAttribute('aria-label', this.label('ariaLabels.indicatorQueue'));
+            // Named by its visible header title (`headers.indicator`) — set in populateDrawer.
             this.populateDrawer();
             this.shadow.appendChild(this.drawerEl);
             if (this.resolvePosition() === 'inline') this.createInlineDrawerHandle();
@@ -355,6 +357,13 @@ export class DropzoneIndicatorElement extends SatelliteElement {
         });
         header.classList.add('dz__indicator-drawer-header');
         title?.classList.add('dz__indicator-drawer-title');
+        // The drawer dialog is named by its visible title (ids are scoped to this shadow root).
+        if (title) {
+            title.id = DRAWER_TITLE_ID;
+            this.drawerEl.setAttribute('aria-labelledby', DRAWER_TITLE_ID);
+        } else {
+            this.drawerEl.removeAttribute('aria-labelledby');
+        }
         close.classList.add('dz__indicator-drawer-close');
         const body = document.createElement('div');
         body.className = 'dz__indicator-drawer-body';
@@ -460,13 +469,12 @@ export class DropzoneIndicatorElement extends SatelliteElement {
         this.bodyDefaultMounted = true;
     }
 
-    /** Chip / drawer accessible names + drawer title / close — live with `labels`. */
+    /** Chip accessible name + drawer title / close — live with `labels`. */
     private refreshStaticLabels(): void {
         const setAttr = (el: Element | null | undefined, name: string, value: string) => {
             if (el && el.getAttribute(name) !== value) el.setAttribute(name, value);
         };
         setAttr(this.chipEl, 'aria-label', this.label('ariaLabels.indicatorStatus'));
-        setAttr(this.drawerEl, 'aria-label', this.label('ariaLabels.indicatorQueue'));
         setAttr(this.drawerCloseBtn, 'aria-label', this.label('ariaLabels.close'));
         const title = this.drawerEl?.querySelector('.dz__indicator-drawer-title');
         const titleText = this.label('headers.indicator');

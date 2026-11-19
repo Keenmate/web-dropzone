@@ -46,8 +46,10 @@ test.describe('card', () => {
         expect(await focused(page)).toBe('button#after-card.');
     });
 
-    test('the card control is named after the prompt', async ({ page }) => {
-        await expect(dz(page, 'card').locator('input[type="file"]')).toHaveAccessibleName(/Drop reports/);
+    test('the card control is named by the visible prompt text (aria-labelledby, no aria-label)', async ({ page }) => {
+        const input = dz(page, 'card').locator('input[type="file"]');
+        await expect(input).toHaveAccessibleName('Drop reports');
+        await expect(input).not.toHaveAttribute('aria-label', /.*/);
     });
 });
 
@@ -69,6 +71,11 @@ test.describe('button / minimal selectors', () => {
     test('accessible names: button = its label, minimal = the prompt text', async ({ page }) => {
         await expect(dz(page, 'btn').locator('.dz__button')).toHaveAccessibleName(/Browse files/);
         await expect(dz(page, 'min').locator('.dz__minimal')).toHaveAccessibleName('Attach files');
+    });
+
+    test('the icon-only minimal button follows a customized labels.prompt when ariaLabels.prompt is unset', async ({ page }) => {
+        await dz(page, 'min').evaluate(async (el: any) => { el.labels = { 'labels.prompt': 'Upload here' }; await el.whenSettled(); });
+        await expect(dz(page, 'min').locator('.dz__minimal')).toHaveAccessibleName('Upload here');
     });
 });
 

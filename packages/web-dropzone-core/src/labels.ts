@@ -33,7 +33,11 @@ export const LABELS_TAG = 'web-dropzone';
 export interface DropzoneLabels {
     /** Card prompt text. */
     'labels.prompt': string;
-    /** Accessible name of the card's file input / the minimal selector button. */
+    /**
+     * Accessible name of the icon-only minimal selector button, and of the card's file input when
+     * `renderPromptCallback` replaces / hides the prompt text. The default card input is named by the
+     * visible prompt (`labels.prompt`, `aria-labelledby`). Unset, it follows a customized `labels.prompt`.
+     */
     'ariaLabels.prompt': string;
     /** Secondary hint under the prompt. Empty = none on the card; the popover then derives a limits line. */
     'labels.hint': string;
@@ -122,11 +126,10 @@ export interface DropzoneLabels {
     'messages.progressPaused': string;
     'messages.progressFailed': string;
 
-    /** `<web-dropzone-indicator>` drawer title. */
+    /** `<web-dropzone-indicator>` drawer title — also the drawer dialog's accessible name (`aria-labelledby`). */
     'headers.indicator': string;
-    /** Indicator chip / drawer accessible names; the drawer + popover close button. */
+    /** Indicator chip accessible name; the drawer + popover close button. */
     'ariaLabels.indicatorStatus': string;
-    'ariaLabels.indicatorQueue': string;
     'ariaLabels.close': string;
     /** Indicator chip text: idle, then by aggregate state (`{count}`). */
     'messages.indicatorIdle': string;
@@ -247,7 +250,6 @@ export const DEFAULT_LABELS: Readonly<DropzoneLabels> = Object.freeze({
 
     'headers.indicator': 'Uploads',
     'ariaLabels.indicatorStatus': 'Upload status',
-    'ariaLabels.indicatorQueue': 'Upload queue',
     'ariaLabels.close': 'Close',
     'messages.indicatorIdle': 'No uploads',
     'messages.indicatorFailed': '{count} failed',

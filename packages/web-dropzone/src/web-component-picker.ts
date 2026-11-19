@@ -39,6 +39,8 @@ const SELECTOR_APPEARANCES = ['card', 'button', 'minimal', 'native'] as const;
 const CARD_SIZES = ['minimal', 'compact', 'big'] as const;
 
 const DEFAULT_ICON = UI_ICONS.cloudUpload;
+/** Id of the card prompt text (scoped to this shadow root) — names the card's file input via `aria-labelledby`. */
+const PROMPT_TEXT_ID = 'dz-prompt-text';
 
 /**
  * `<web-dropzone-picker>` inputs. `null` on `accept` / `multiple` / `icon` /
@@ -180,13 +182,12 @@ export class DropzonePickerElement extends SatelliteElement {
         const icon = renderDzIcon((this.config.icon as string | null) ?? storeCfg.icon ?? DEFAULT_ICON);
         const hint = this.label('labels.hint');
 
-        // Card: the hidden input IS the keyboard control — name it after the
-        // prompt (not the transient drag text). Button / minimal / native
-        // render their own <button>, so the input leaves the tab order (one
-        // tab stop per selector).
-        const promptAria = this.label('ariaLabels.prompt');
+        // Card: the hidden input IS the keyboard control — named by the
+        // visible prompt text (`aria-labelledby`, an id in this shadow root).
+        // Button / minimal / native render their own <button>, so the input
+        // leaves the tab order (one tab stop per selector).
         const inputA11yAttrs = appearance === 'card'
-            ? `aria-label="${escapeHtml(promptAria)}"`
+            ? `aria-labelledby="${PROMPT_TEXT_ID}"`
             : 'tabindex="-1" aria-hidden="true"';
 
         const inputHtml = `
@@ -222,7 +223,8 @@ export class DropzonePickerElement extends SatelliteElement {
                 </div>
             `;
         } else if (appearance === 'minimal') {
-            const ariaLabel = promptAria;
+            // Icon-only button: nothing visible names it.
+            const ariaLabel = this.label('ariaLabels.prompt');
             inner = `
                 <div class="dz__dropzone dz__dropzone--minimal ${stateClass}">
                     ${inputHtml}
@@ -279,7 +281,7 @@ export class DropzonePickerElement extends SatelliteElement {
                     ${inputHtml}
                     <div class="dz__dropzone-content">
                         <div class="dz__dropzone-icon">${icon}</div>
-                        <div class="dz__dropzone-text">${escapeHtml(text)}</div>
+                        <div class="dz__dropzone-text" id="${PROMPT_TEXT_ID}">${escapeHtml(text)}</div>
                         ${browseBtn}
                         ${hintHtml}
                     </div>

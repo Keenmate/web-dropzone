@@ -569,14 +569,14 @@ dropzone.labels = {
 
 | Surface | Keys |
 |---|---|
-| Selector | `labels.prompt` (card text), `ariaLabels.prompt` (card input / minimal button name), `labels.hint`, `labels.dragActive`, `buttons.selectFiles`, `labels.noFileChosen`, `labels.filesChosen` (`{count}`), `labels.overlay` |
+| Selector | `labels.prompt` (card text; also names the card input), `ariaLabels.prompt` (icon-only minimal button / a custom card prompt; unset = follows `labels.prompt`), `labels.hint`, `labels.dragActive`, `buttons.selectFiles`, `labels.noFileChosen`, `labels.filesChosen` (`{count}`), `labels.overlay` |
 | Status names | `labels.statusPending` / `…Uploading` / `…Paused` / `…Cancelling` / `…Complete` / `…Error` / `…Cancelled`, `labels.cancelTimeout`; `ariaLabels.status` (`{status}`), `ariaLabels.uploading` (indicator loader), `messages.cancelling` |
 | Row buttons (`{name}`) | `ariaLabels.pauseFile` / `resumeFile` / `retryFile` / `cancelFile` + the same names under `tooltips.*`; `ariaLabels.removeFile` |
 | Bulk / popover buttons | `buttons.pauseAll` / `resumeAll` / `retryAll` / `cancelAll`, `buttons.addMore`, `buttons.clearAll`, `ariaLabels.close` |
 | List | `messages.noData`, `labels.summary` (`{count}`, `{size}`), `ariaLabels.viewFiles`, `labels.fileCount` / `labels.fileCountOne`, `labels.unknownType`, `buttons.showMore` / `buttons.showLess` (text toggle) + `ariaLabels.showMore` / `ariaLabels.showLess` (`+N` / `−` badge), `ariaLabels.showQueue` + `tooltips.showQueue` |
 | Popover limits line | `labels.limitMaxFileSize` / `limitMinFileSize` / `limitMaxTotalSize(Left)` / `limitMaxFileCount(Left)` / `limitMinFileCount` |
 | Progress strip | `messages.progressCounts`, `messages.progressPaused`, `messages.progressFailed` |
-| Indicator | `headers.indicator`, `ariaLabels.indicatorStatus`, `ariaLabels.indicatorQueue`, `messages.indicatorIdle` / `…Failed` / `…Uploading` / `…Paused` / `…Queued` / `…Done` |
+| Indicator | `headers.indicator` (drawer title + its accessible name), `ariaLabels.indicatorStatus`, `messages.indicatorIdle` / `…Failed` / `…Uploading` / `…Paused` / `…Queued` / `…Done` |
 | Validation | `errors.maxFileSize`, `errors.minFileSize`, `errors.fileType`, `errors.rejected`, `errors.maxFileCount(One)`, `errors.duplicate`, `errors.maxTotalSize`, `errors.upload`; form validity `errors.minFileCount(One)` |
 | Screen-reader announcements | `ariaLabels.announceAdded(One)` (`{count}`), `ariaLabels.announceRejected` (`{name}`, `{reason}`), `ariaLabels.announceUploadDone(One)` (`{count}`), `ariaLabels.announceUploadFailed` (`{done}`, `{failed}`), `ariaLabels.announceRemoved` (`{name}`) — `''` silences one (see [accessibility.md](./accessibility.md#screen-reader-notes)) |
 
@@ -839,7 +839,7 @@ The shared inputs, plus:
 | — | `renderFileInfoCallback` | `StatusSurfaceCallback \| null` |  | Replace the chip's file-info slot (default body only): string = HTML, Node = mounted, `null` / `undefined` = the default glyph / loader, `false` = hidden |
 | — | `renderProgressCallback` | `StatusSurfaceCallback \| null` |  | Replace the chip's progress slot (default body only): string = HTML, Node = mounted, `null` / `undefined` = the default percent, `false` = hidden |
 
-Indicator strings (`labels`): `headers.indicator`, `messages.indicatorIdle`, `ariaLabels.indicatorStatus` / `ariaLabels.indicatorQueue`
+Indicator strings (`labels`): `headers.indicator`, `messages.indicatorIdle`, `ariaLabels.indicatorStatus`
 (aria), `ariaLabels.close`, `ariaLabels.uploading` (loader), `messages.indicatorFailed` / `…Uploading` / `…Paused` / `…Queued` / `…Done`.
 Host attributes `data-position`, `data-drawer`, `data-drawer-open`; shadow parts `::part(chip)`,
 `::part(drawer)`. The chip (`aria-expanded`) hides while a non-inline drawer is open. An edge position

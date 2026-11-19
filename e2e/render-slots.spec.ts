@@ -33,6 +33,7 @@ test('renderFileItemCallback: string = the row, null = the built-in row, false =
 test('renderPromptCallback: null = the built-in prompt, string = HTML, false = no prompt', async ({ page }) => {
     const host = dz(page, 'prompt');
     await expect(host.locator('.dz__dropzone-text')).toBeVisible();          // null → default
+    await expect(host.locator('.dz__dropzone-input')).toHaveAccessibleName('Drop files here or click to browse'); // the visible prompt
     await setMode(page, 'prompt', 'string');
     await rerun(page, 'prompt', 'renderPromptCallback');
     await expect(host.locator('.cb-prompt')).toHaveText('PROMPT');
@@ -42,6 +43,9 @@ test('renderPromptCallback: null = the built-in prompt, string = HTML, false = n
     await expect(host.locator('.cb-prompt')).toHaveCount(0);
     await expect(host.locator('.dz__dropzone-text')).toHaveCount(0);
     await expect(host.locator('.dz__dropzone-input')).toHaveCount(1);       // the card itself stays
+    // No prompt text to point at → the input falls back to ariaLabels.prompt.
+    await expect(host.locator('.dz__dropzone-input')).toHaveAccessibleName('Drop files here or click to browse');
+    await expect(host.locator('.dz__dropzone-input')).not.toHaveAttribute('aria-labelledby', /.*/);
 });
 
 test('renderListWrapperCallback: null = the plain rows, Node = mounted, false = the list hidden', async ({ page }) => {

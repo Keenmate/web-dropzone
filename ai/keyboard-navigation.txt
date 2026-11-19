@@ -52,7 +52,9 @@ aria-hidden="true".
 
 ACCESSIBLE NAMES (from labels; see labels-i18n.txt)
 ---------------------------------------------------
-Card / minimal selector     labels.prompt
+Card selector input         labels.prompt (aria-labelledby the visible prompt text;
+                            a renderPromptCallback prompt -> ariaLabels.prompt)
+Minimal selector (icon)     ariaLabels.prompt (unset: follows a customized labels.prompt)
 Button / native selector    buttons.selectFiles (visible text)
 Row Cancel                  ariaLabels.cancelFile  'Cancel {name}'
 Row Remove                  ariaLabels.removeFile  'Remove {name}'
@@ -64,9 +66,10 @@ Bulk buttons                buttons.pauseAll / resumeAll / cancelAll / retryAll
 
 Summary line (role="button", tabindex="0")  ariaLabels.viewFiles
 Rolling queue button        ariaLabels.showQueue
-Badges "+N" pill            buttons.showMore / showLess
+Badges "+N" / "−" pill      ariaLabels.showMore / showLess (text toggle: buttons.*)
 Indicator chip              ariaLabels.indicatorStatus
-Indicator drawer            ariaLabels.indicatorQueue (role="dialog"); close: ariaLabels.close
+Indicator drawer            headers.indicator (role="dialog", aria-labelledby its visible
+                            title); close: ariaLabels.close
 Indicator upload loader     role="status" container (core renderLoader())
 
 ROLES & STATES

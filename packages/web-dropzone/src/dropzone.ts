@@ -24,7 +24,7 @@
 
 import { createLayer, createPopover } from '@keenmate/web-components-core/positioning';
 import type { Layer, Placement, PopoverHandle } from '@keenmate/web-components-core/positioning';
-import { adoptStyles, deepActiveElement, dispatch, ICON_CSS, renderSlot, renderSlotHtml, SHEET_CHROME_CSS, startSheetSession, watchPageDrag, Z_INDEX, type SheetSession } from '@keenmate/web-components-core';
+import { adoptStyles, createId, deepActiveElement, dispatch, ICON_CSS, renderSlot, renderSlotHtml, SHEET_CHROME_CSS, startSheetSession, watchPageDrag, Z_INDEX, type SheetSession, type SlotHtml } from '@keenmate/web-components-core';
 import styles from './css/main.css?inline';
 import { isPhoneSheet, observePhoneSheet } from './phone-sheet';
 import {
@@ -134,6 +134,8 @@ function resolveDisplayConfig(config: DropzoneConfig): {
  */
 export class WebDropzone extends DropzoneEngine {
     private dragActive = false;
+    /** Id of the card's prompt text — names the card's file input (`aria-labelledby`); page-unique (the engine can render in light DOM). */
+    private readonly promptTextId = createId('dz-prompt');
     private popover: HTMLElement | null = null;
     private isPopoverOpen = false;
     /** Core `createPopover()` handle of the open popover (positioning, the
@@ -565,12 +567,17 @@ export class WebDropzone extends DropzoneEngine {
         const hasFiles = this.files.length > 0 ? 'dz__dropzone--has-files' : '';
         const filesInside = this.config.isFilesInside ? 'dz__dropzone--files-inside' : '';
 
-        // Card: the hidden input is the keyboard control, named after the
-        // prompt. Button / minimal / native have their own <button>, so the
-        // input leaves the tab order (one tab stop per selector).
-        const inputA11yAttrs = appearance === 'card'
-            ? `aria-label="${escapeHtml(this.label('ariaLabels.prompt'))}"`
-            : 'tabindex="-1" aria-hidden="true"';
+        // Card: the hidden input is the keyboard control, named by the visible
+        // prompt text (`aria-labelledby`); a custom / hidden prompt
+        // (`renderPromptCallback`) leaves no prompt text → `ariaLabels.prompt`.
+        // Button / minimal / native have their own <button>, so the input
+        // leaves the tab order (one tab stop per selector).
+        const content = appearance === 'card' ? this.renderCardContent(cardSize) : null;
+        const inputA11yAttrs = !content
+            ? 'tabindex="-1" aria-hidden="true"'
+            : content.kind === 'default'
+                ? `aria-labelledby="${this.promptTextId}"`
+                : `aria-label="${escapeHtml(this.label('ariaLabels.prompt'))}"`;
         const input = `
             <input type="file"
                 class="dz__dropzone-input"
@@ -628,13 +635,12 @@ export class WebDropzone extends DropzoneEngine {
         }
 
         // Card (default)
-        const content = this.renderCardContent(cardSize);
         const filesInsideContent = this.config.isFilesInside ? this.renderFilesInsideArea() : '';
 
         return `
             <div class="dz__dropzone dz__dropzone--card dz__dropzone--card-${cardSize} ${disabled} ${active} ${hasFiles} ${filesInside}">
                 ${input}
-                ${content}
+                ${content?.html ?? ''}
                 ${filesInsideContent}
             </div>
         `;
@@ -644,12 +650,12 @@ export class WebDropzone extends DropzoneEngine {
      * Render the inner content of the card selector. Honors
      * `renderPromptCallback` if provided.
      */
-    private renderCardContent(cardSize: CardSize): string {
+    private renderCardContent(cardSize: CardSize): SlotHtml {
         // `renderPromptCallback` through core `renderSlotHtml` (the card is one
         // HTML string): string = HTML, Node = its markup, null / undefined =
         // the default prompt below, false = no prompt.
         const cb = this.isStructuralMode() ? this.config.renderPromptCallback : null;
-        return renderSlotHtml(cb ? () => cb(this.ctx({})) : null, () => this.renderDefaultCardContent(cardSize)).html;
+        return renderSlotHtml(cb ? () => cb(this.ctx({})) : null, () => this.renderDefaultCardContent(cardSize));
     }
 
     /** The built-in card prompt: icon, text, Browse button (big), hint. */
@@ -674,7 +680,7 @@ export class WebDropzone extends DropzoneEngine {
         return `
             <div class="dz__dropzone-content">
                 <div class="dz__dropzone-icon">${icon}</div>
-                <div class="dz__dropzone-text">${escapeHtml(text)}</div>
+                <div class="dz__dropzone-text" id="${this.promptTextId}">${escapeHtml(text)}</div>
                 ${browseBtn}
                 ${hint}
             </div>

@@ -48,8 +48,8 @@ Calls from code (`addFiles()`, `removeFile()`, …) work under both.
 
 | Element | Role / attribute | Accessible name / value |
 |---|---|---|
-| Card file input | native `input[type=file]` | `aria-label` = the `ariaLabels.prompt` label |
-| Minimal selector button | native `button` | `aria-label` = the `ariaLabels.prompt` label |
+| Card file input | native `input[type=file]` | `aria-labelledby` = the visible prompt text (`labels.prompt`); with a `renderPromptCallback` prompt (custom / hidden): `aria-label` = the `ariaLabels.prompt` label |
+| Minimal selector button (icon only) | native `button` | `aria-label` = the `ariaLabels.prompt` label (unset: follows a customized `labels.prompt`) |
 | Row status glyph | `aria-label` | `ariaLabels.status` label, e.g. "Status: Uploading" |
 | Row root while its file uploads | `aria-busy="true"` | — (the inline loader is `aria-hidden`) |
 | Row Cancel / Remove / action buttons | native `button` | `ariaLabels.cancelFile` / `ariaLabels.removeFile` / `ariaLabels.pauseFile` / `ariaLabels.resumeFile` / `ariaLabels.retryFile` labels with `{name}` = the file name (cancel + row action also set `title` from `tooltips.*`) |
@@ -58,7 +58,7 @@ Calls from code (`addFiles()`, `removeFile()`, …) work under both.
 | Compact summary line | `role="button"` | `ariaLabels.viewFiles` label |
 | Indicator chip, `drawer="auto"` | native `button` | `ariaLabels.indicatorStatus` label |
 | Indicator chip, `drawer="off"` | `role="status"` | `ariaLabels.indicatorStatus` label |
-| Indicator drawer | `role="dialog"` | `aria-label` = the `ariaLabels.indicatorQueue` label; its close button = the `ariaLabels.close` label |
+| Indicator drawer | `role="dialog"` | `aria-labelledby` = its visible title (`headers.indicator`); its close button = the `ariaLabels.close` label |
 | Indicator upload loader | `role="status"` container (core `renderLoader()`) | — |
 
 Disabled / read-only state on the selector: native `disabled` / `aria-disabled="true"` (above).

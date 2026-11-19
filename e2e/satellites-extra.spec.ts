@@ -124,6 +124,8 @@ test.describe('<web-dropzone-indicator> drawer — core overlay tree', () => {
         await expect(drawer).toHaveClass(/\bkm-drawer\b/);
         await expect(drawer).toHaveClass(/\bkm-drawer--start\b/);
         await expect(drawer).toHaveAttribute('role', 'dialog');
+        await expect(drawer).toHaveAccessibleName('Queue');                   // its visible title (headers.indicator)
+        await expect(drawer).not.toHaveAttribute('aria-label', /.*/);
         await expect(drawer).not.toHaveAttribute('aria-modal', 'true');
         // No inert page, no backdrop: the page behind stays interactive.
         expect(await page.locator('#sat').evaluate((el) => !!el.closest('[inert]'))).toBe(false);

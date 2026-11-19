@@ -36,8 +36,11 @@ Attribute (JSON object of strings):
 ALL KEYS AND DEFAULTS
 ---------------------
 Prompt / selector:
-  labels.prompt         'Drop files here or click to browse'   card prompt text
-  ariaLabels.prompt     'Drop files here or click to browse'   card input / minimal selector name
+  labels.prompt         'Drop files here or click to browse'   card prompt text; names the card input
+                                                               (aria-labelledby)
+  ariaLabels.prompt     'Drop files here or click to browse'   icon-only minimal selector name; card input
+                                                               with a renderPromptCallback prompt.
+                                                               Unset = follows a customized labels.prompt
   labels.hint           ''   secondary line under the prompt. Empty = none on the card;
                              the compact popover then derives a limits line
   labels.dragActive     'Drop files here'      card text while a drag is over it
@@ -103,9 +106,8 @@ Progress strip (overall progress / <web-dropzone-progress>):
   messages.progressFailed  '{count} failed'
 
 Indicator (<web-dropzone-indicator>):
-  headers.indicator           'Uploads'        drawer title
+  headers.indicator           'Uploads'        drawer title + the drawer dialog's name (aria-labelledby)
   ariaLabels.indicatorStatus  'Upload status'  chip aria-label
-  ariaLabels.indicatorQueue   'Upload queue'   drawer aria-label
   messages.indicatorIdle      'No uploads'     chip text with nothing queued
   messages.indicatorFailed / indicatorUploading / indicatorPaused / indicatorQueued /
   indicatorDone  '{count} failed' / '{count} uploading' / ... / '{count} done'

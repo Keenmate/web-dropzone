@@ -19,6 +19,17 @@ callback and store-access API below is breaking.
   (other visible text), `messages` (empty state / progress), `errors` (validation / failure). A text
   that fed two surfaces is split into two keys with the same English default — set both when
   translating. English defaults are unchanged. Old keys are ignored (no aliases).
+- **One text, one key — an element with visible text is named by it** (rulebook D-NC-24): the card's
+  file input is named by the visible prompt text (`aria-labelledby` → `labels.prompt`, no `aria-label`;
+  a `renderPromptCallback` that replaces / hides the prompt falls back to `ariaLabels.prompt`), and the
+  indicator drawer dialog by its visible title (`aria-labelledby` → `headers.indicator`). **BREAKING:
+  `ariaLabels.indicatorQueue` is removed** (the drawer's accessible name is now "Uploads", its title —
+  was "Upload queue"). `ariaLabels.*` stays only where nothing visible names the element (icon-only
+  buttons, the `+N` / `−` badges, status glyphs, the chip / summary line, announcements).
+- **Twin fallback (core):** an `ariaLabels.<name>` / `tooltips.<name>` nobody set follows a customized
+  sibling with the same `<name>` — translating `labels.prompt` also names the icon-only minimal button
+  (`ariaLabels.prompt`), translating `buttons.showMore` also the `+N` badge (`ariaLabels.showMore`),
+  `ariaLabels.pauseFile` ↔ `tooltips.pauseFile`, … Setting a key always wins.
 - **BREAKING: page-wide labels are ONE flat dictionary of full keys** —
   `window.components.locale.labels = { 'web-dropzone.buttons.selectFiles': '…' }` (was
   `labels: { 'web-dropzone': { selectFiles: '…' } }`); a satellite-only entry is prefixed by the
@@ -33,7 +44,7 @@ callback and store-access API below is breaking.
 
 | Old key | New key(s) |
 |---|---|
-| `prompt` | `labels.prompt` (card text) + `ariaLabels.prompt` (card input / minimal button name) |
+| `prompt` | `labels.prompt` (card text; names the card input) + `ariaLabels.prompt` (icon-only minimal button; a custom / hidden card prompt) |
 | `hint` / `dragActive` / `noFileChosen` / `filesChosen` / `overlay` | `labels.hint` / `labels.dragActive` / `labels.noFileChosen` / `labels.filesChosen` / `labels.overlay` |
 | `selectFiles` | `buttons.selectFiles` |
 | `statusPending` … `statusCancelled`, `cancelTimeout` | `labels.statusPending` … `labels.statusCancelled`, `labels.cancelTimeout` |
@@ -51,7 +62,8 @@ callback and store-access API below is breaking.
 | `progressCounts` / `progressPaused` / `progressFailed` | `messages.<same>` |
 | `indicatorTitle` | `headers.indicator` |
 | `indicatorIdle` / `indicatorFailed` / `indicatorUploading` / `indicatorPaused` / `indicatorQueued` / `indicatorDone` | `messages.<same>` |
-| `indicatorStatus` / `indicatorQueue` / `close` | `ariaLabels.<same>` |
+| `indicatorStatus` / `close` | `ariaLabels.<same>` |
+| `indicatorQueue` | removed — the drawer is named by its title (`headers.indicator`) |
 | `errorMaxFileSize` / `errorMinFileSize` / `errorFileType` / `errorRejected` / `errorMaxFileCount(One)` / `errorDuplicate` / `errorMaxTotalSize` / `errorUpload` / `errorMinFileCount(One)` | `errors.maxFileSize` / `errors.minFileSize` / `errors.fileType` / `errors.rejected` / `errors.maxFileCount(One)` / `errors.duplicate` / `errors.maxTotalSize` / `errors.upload` / `errors.minFileCount(One)` |
 | `announceAdded(One)` / `announceRejected` / `announceUploadDone(One)` / `announceUploadFailed` / `announceRemoved` | `ariaLabels.<same>` |
 
