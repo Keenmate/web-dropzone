@@ -21,12 +21,17 @@ import { formatNumber } from '@keenmate/web-components-core/locale';
 import { FILE_TYPE_ICONS, UI_ICONS } from './icons';
 
 /**
- * Default configuration values. The `Required<Omit<…>>` shape lists every
- * config key that has a sensible static default — anything excluded here
- * is either a callback (no default) or a runtime-resolved reference
+ * Default configuration values — the ONE source of the defaults: the engine
+ * merges them under its config, and `<web-dropzone>`'s input rows (and the
+ * satellites' rows for the same keys) read their `default` from here, so a
+ * standalone engine and the element behave the same (rulebook C-CA-37). The
+ * `Required<Omit<…>>` shape lists every config key that has a sensible static
+ * default — anything excluded here is either a callback (no default), an
+ * "unset = decide at render time" key (`selectorAppearance`, `cardSize`,
+ * `isThumbnailsShown`, `controls`, …) or a runtime-resolved reference
  * (`container`, `hostElement`, `overlayTarget`).
  */
-export const DEFAULT_CONFIG: Required<Omit<DropzoneConfig, 'fileIcons' | 'getFileIconCallback' | 'renderIconCallback' | 'translateCallback' | 'validateCallback' | 'beforeFilesAddCallback' | 'beforeFilesRemoveCallback' | 'beforeFilesCancelCallback' | 'beforeActionCallback' | 'labels' | 'cancelIcon' | 'removeIcon' | 'uploadFileCallback' | 'renderFileItemCallback' | 'renderListWrapperCallback' | 'renderPromptCallback' | 'renderSummaryCallback' | 'getCustomStylesCallback' | 'saveStateCallback' | 'loadStateCallback' | 'storageKey' | 'container' | 'hostElement' | 'attachLayerStyles' | 'overlayTarget' | 'selectorAppearance' | 'listAppearance' | 'gridLayout' | 'gridStatus' | 'controls' | 'itemControls' | 'cardSize' | 'isThumbnailsShown' | 'retryPolicy' | 'rollingRotation' | 'isHeadless' | 'renderRollingBodyCallback' | 'renderRollingFileInfoCallback' | 'renderRollingProgressCallback'>> = {
+export const DEFAULT_CONFIG: Required<Omit<DropzoneConfig, 'fileIcons' | 'getFileIconCallback' | 'renderIconCallback' | 'translateCallback' | 'validateCallback' | 'beforeFilesAddCallback' | 'beforeFilesRemoveCallback' | 'beforeFilesCancelCallback' | 'beforeActionCallback' | 'labels' | 'cancelIcon' | 'removeIcon' | 'uploadFileCallback' | 'renderFileItemCallback' | 'renderListWrapperCallback' | 'renderPromptCallback' | 'renderSummaryCallback' | 'getCustomStylesCallback' | 'saveStateCallback' | 'loadStateCallback' | 'storageKey' | 'container' | 'hostElement' | 'attachLayerStyles' | 'overlayTarget' | 'selectorAppearance' | 'listAppearance' | 'controls' | 'itemControls' | 'cardSize' | 'isThumbnailsShown' | 'retryPolicy' | 'isHeadless' | 'renderRollingBodyCallback' | 'renderRollingFileInfoCallback' | 'renderRollingProgressCallback'>> = {
     isMultiple: true,
     accept: '',
     maxFileSize: 0,
@@ -44,6 +49,9 @@ export const DEFAULT_CONFIG: Required<Omit<DropzoneConfig, 'fileIcons' | 'getFil
     renderMode: 'bulk',
     progressThrottle: 0,
     displayMode: 'list',
+    gridLayout: 'uniform',
+    gridStatus: 'badge',
+    rollingRotation: 'slide-in',
     isFilesInside: false,
     icon: UI_ICONS.cloudUpload,
     popoverPlacement: 'bottom-start',

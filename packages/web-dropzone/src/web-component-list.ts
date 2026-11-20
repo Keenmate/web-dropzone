@@ -34,7 +34,8 @@ import {
     createImagePreview,
     formatFileSize,
     UI_ICONS,
-    statusLabel
+    statusLabel,
+    DEFAULT_CONFIG
 } from '@keenmate/web-dropzone-core';
 import type { FileStatus } from '@keenmate/web-dropzone-core';
 import {
@@ -72,8 +73,8 @@ const SUPPORTED_APPEARANCES = [
 const INPUTS: readonly InputDef[] = [
     ...SATELLITE_INPUTS,
     { configKey: 'listAppearance', attribute: 'list-appearance', converter: toEnum(SUPPORTED_APPEARANCES, { default: 'list' }), shouldReflect: true, on: 'update', description: 'How the files are shown: list, detailed, grid, badges, rolling (one current file + queue badge) or popover (the summary line; the popover itself is the store\'s).' },
-    { configKey: 'gridLayout', attribute: 'grid-layout', converter: toEnum(['uniform', 'natural'] as const, { default: 'uniform' }), shouldReflect: true, on: 'update', description: 'Tile layout for the grid appearance: uniform equal-size tiles, or natural (equal-height rows keeping each image\'s aspect ratio).' },
-    { configKey: 'gridStatus', attribute: 'grid-status', converter: toEnum(['badge', 'overlay'] as const, { default: 'badge' }), shouldReflect: true, on: 'update', description: 'How finished grid files are flagged: badge (corner glyph) or overlay (full-tile veil + big glyph).' },
+    { configKey: 'gridLayout', attribute: 'grid-layout', converter: toEnum(['uniform', 'natural'] as const, { default: DEFAULT_CONFIG.gridLayout }), shouldReflect: true, on: 'update', description: 'Tile layout for the grid appearance: uniform equal-size tiles, or natural (equal-height rows keeping each image\'s aspect ratio).' },
+    { configKey: 'gridStatus', attribute: 'grid-status', converter: toEnum(['badge', 'overlay'] as const, { default: DEFAULT_CONFIG.gridStatus }), shouldReflect: true, on: 'update', description: 'How finished grid files are flagged: badge (corner glyph) or overlay (full-tile veil + big glyph).' },
     { configKey: 'isNested', attribute: 'nested', converter: toBool('default-false'), on: 'update', type: 'boolean', description: 'Files-inside styling (the list sits inside a picker card). Set by the store when it mounts the list itself.' },
 ];
 
@@ -513,11 +514,11 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
      * Resolve the rolling rotation mode from the store's config. The
      * satellite doesn't take its own `rolling-rotation` attribute — the
      * store is the single source of truth (matches the in-class renderer's
-     * behavior). Falls back to 'slide-in' which is the cheapest variant.
+     * behavior). Falls back to the engine default (`DEFAULT_CONFIG`, 'slide-in').
      */
     private resolveRollingRotation(): RollingRotation {
         const cfg = this.store?.getConfig();
-        return (cfg?.rollingRotation ?? 'slide-in') as RollingRotation;
+        return (cfg?.rollingRotation ?? DEFAULT_CONFIG.rollingRotation) as RollingRotation;
     }
 
     /**

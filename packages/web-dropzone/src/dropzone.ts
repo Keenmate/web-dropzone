@@ -412,9 +412,9 @@ export class WebDropzone extends DropzoneEngine {
             list.setAttribute('list-appearance', listAppearance);
             // Grid tile layout (uniform | natural). Only meaningful for
             // list-appearance="grid" but harmless to forward always.
-            list.setAttribute('grid-layout', this.config.gridLayout ?? 'uniform');
+            list.setAttribute('grid-layout', this.config.gridLayout ?? DEFAULT_CONFIG.gridLayout);
             // Grid finished-file flag (badge | overlay).
-            list.setAttribute('grid-status', this.config.gridStatus ?? 'badge');
+            list.setAttribute('grid-status', this.config.gridStatus ?? DEFAULT_CONFIG.gridStatus);
             if (insideMode) {
                 // Switch the list's container class family to
                 // `.dz__files-inside--*` so the existing files-inside CSS
@@ -1346,7 +1346,7 @@ export class WebDropzone extends DropzoneEngine {
         renderRollingSurface(targetEl, {
             args: buildStatusSurfaceArgs(this.files, this.controller, this.contextElement),
             front: this.getFrontFile(),
-            rotation: (this.config.rollingRotation ?? 'slide-in') as RollingRotation,
+            rotation: (this.config.rollingRotation ?? DEFAULT_CONFIG.rollingRotation) as RollingRotation,
             bodyCallback: structural ? this.config.renderRollingBodyCallback : null,
             fileInfoCallback: structural ? this.config.renderRollingFileInfoCallback : null,
             progressCallback: structural ? this.config.renderRollingProgressCallback : null,
