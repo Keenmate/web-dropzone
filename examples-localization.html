@@ -1,0 +1,373 @@
+<meta name="kmwc:title" content="🌍 Localization">
+<meta name="kmwc:subtitle" content="The shared localization page — instance <code>labels</code>, the page-wide dictionary, <code>translateCallback</code>, screen-reader name follow, file sizes in the page's language and <code>shouldEscapeLabels</code>, in the same six sections every Keenmate component has.">
+
+        <div class="note">
+            Every UI string goes through core <code>/locale</code>. Keys are flat <code>&lt;elementType&gt;.&lt;name&gt;</code>
+            (<code>labels.prompt</code>, <code>buttons.selectFiles</code>, <code>ariaLabels.removeFile</code>,
+            <code>errors.maxFileSize</code>, …) — the full list is <code>DropzoneLabels</code> / <code>DEFAULT_LABELS</code>
+            (<code>@keenmate/web-dropzone-core</code>). Per key: the instance <code>labels</code> (short or full
+            <code>web-dropzone.</code> key) → the element's own <code>translateCallback</code> → the page-wide
+            <code>translateCallback</code> → the page dictionary <code>window.components.locale.labels</code> → the built-in English.
+            The validation messages (<code>errors.*</code>, the <code>validation.error</code> of <code>file-reject</code>) go
+            through the same lookup. The page-wide toggles (LO02, LO03, LO05, LO06) are <strong>page-wide</strong>: they change
+            every dropzone on this page, on purpose.
+        </div>
+
+        <!-- ============================================================= -->
+        <!-- LO01 · Instance labels                                        -->
+        <!-- ============================================================= -->
+        <div class="card">
+            <h2>LO01 · Instance <code>labels</code></h2>
+            <p>
+                Override texts on ONE element with the <code>labels</code> property (or a JSON <code>labels</code> attribute).
+                A short key (<code>labels.prompt</code>, <code>labels.hint</code>) and a full key
+                (<code>web-dropzone.buttons.selectFiles</code>) both work; every key you leave out stays English. The
+                neighbour dropzone is untouched.
+            </p>
+            <div class="controls">
+                <label><input type="checkbox" id="lo01-labels" checked> instance <code>labels</code> on the first dropzone</label>
+            </div>
+            <div class="demo-area">
+                <div class="grid grid-2">
+                    <div class="form-group">
+                        <label class="demo-label">With <code>labels</code></label>
+                        <web-dropzone id="lo01" display-mode="list" card-size="big" multiple></web-dropzone>
+                    </div>
+                    <div class="form-group">
+                        <label class="demo-label">Without (English)</label>
+                        <web-dropzone id="lo01-plain" display-mode="list" card-size="big" multiple></web-dropzone>
+                    </div>
+                </div>
+                <div class="output"><div class="output-label">rendered strings</div><pre id="lo01-out"></pre></div>
+            </div>
+            <div class="code-block" data-language="js"><pre><code>el.labels = {
+  'labels.prompt': 'Přetáhněte soubory sem',          // short key
+  'labels.hint': 'PDF nebo obrázky',
+  'web-dropzone.buttons.selectFiles': 'Vybrat soubory', // full key
+};
+// or declaratively
+&lt;web-dropzone labels='{"labels.prompt": "Přetáhněte soubory sem"}'&gt;&lt;/web-dropzone&gt;</code></pre></div>
+        </div>
+
+        <!-- ============================================================= -->
+        <!-- LO02 · Page-wide dictionary                                    -->
+        <!-- ============================================================= -->
+        <div class="card">
+            <h2>LO02 · Page-wide dictionary</h2>
+            <p>
+                One flat dictionary on <code>window.components.locale.labels</code> — the app's translation JSON as loaded,
+                full keys <code>'web-dropzone.&lt;elementType&gt;.&lt;name&gt;'</code>, other components' keys side by side —
+                translates every dropzone on the page at once, the validation messages included. Both dropzones allow
+                1.5 KB per file; the readout adds a 2.5 KB <code>report.pdf</code> and prints the <code>file-reject</code>
+                message. Keys an instance set itself (LO01) still win.
+            </p>
+            <div class="controls">
+                <label><input type="checkbox" id="lo02-dict"> page dictionary (Czech)</label>
+            </div>
+            <div class="demo-area">
+                <div class="grid grid-2">
+                    <div class="form-group">
+                        <label class="demo-label">Big card</label>
+                        <web-dropzone id="lo02a" display-mode="list" card-size="big" max-file-size="1536" multiple></web-dropzone>
+                    </div>
+                    <div class="form-group">
+                        <label class="demo-label">Compact + <code>accept=".pdf"</code></label>
+                        <web-dropzone id="lo02b" display-mode="compact" max-file-size="1536" accept=".pdf" multiple></web-dropzone>
+                    </div>
+                </div>
+                <div class="output"><div class="output-label">rendered strings + the file-reject message</div><pre id="lo02-out"></pre></div>
+            </div>
+            <div class="code-block" data-language="js"><pre><code>// e.g. const labels = await (await fetch('/i18n/cs.json')).json();
+window.components.locale = {
+  labels: {
+    'web-dropzone.labels.prompt': 'Přetáhněte soubory sem nebo klikněte',
+    'web-dropzone.buttons.selectFiles': 'Vybrat soubory',
+    'web-dropzone.errors.maxFileSize': 'Soubor je příliš velký. Maximum je {size}',
+    'web-dropzone.errors.fileType': 'Tento typ souboru není povolen',
+    'web-multiselect.placeholders.search': 'Hledat…',     // other components share the same JSON
+  },
+};
+el.addEventListener('file-reject', (e) =&gt; console.log(e.detail.rejectedFiles[0].validation.error));
+// → "Soubor je příliš velký. Maximum je 1.5 KB"</code></pre></div>
+        </div>
+
+        <!-- ============================================================= -->
+        <!-- LO03 · translateCallback                                       -->
+        <!-- ============================================================= -->
+        <div class="card">
+            <h2>LO03 · <code>translateCallback</code></h2>
+            <p>
+                An app with its own i18n (i18next, FormatJS, …) answers keys through a callback instead of a dictionary. It gets
+                <code>{ component, key, template, params, locale }</code> — <code>key</code> is the full
+                <code>web-dropzone.&lt;elementType&gt;.&lt;name&gt;</code> — and returns the text, or <code>null</code> = not mine.
+                The element's own <code>translateCallback</code> is asked first (German, only <code>labels.prompt</code> and
+                <code>errors.maxFileSize</code> here); its <code>null</code> passes the key on to the page-wide one (a small
+                Slovak i18next-like lookup). A key the instance <code>labels</code> set (the second dropzone's
+                <code>labels.prompt</code>) is never sent to any callback.
+            </p>
+            <div class="controls">
+                <label><input type="checkbox" id="lo03-page"> page-wide <code>translateCallback</code> (Slovak)</label>
+                <label><input type="checkbox" id="lo03-own"> first dropzone's own <code>translateCallback</code> (German)</label>
+            </div>
+            <div class="demo-area">
+                <div class="grid grid-2">
+                    <div class="form-group">
+                        <label class="demo-label">Own callback</label>
+                        <web-dropzone id="lo03a" display-mode="list" card-size="big" max-file-size="1536" multiple></web-dropzone>
+                    </div>
+                    <div class="form-group">
+                        <label class="demo-label">Instance <code>labels.prompt</code></label>
+                        <web-dropzone id="lo03b" display-mode="list" card-size="big" max-file-size="1536" multiple
+                            labels='{"labels.prompt": "Instance wins"}'></web-dropzone>
+                    </div>
+                </div>
+                <div class="output"><div class="output-label">rendered strings + the file-reject message</div><pre id="lo03-out"></pre></div>
+            </div>
+            <div class="code-block" data-language="js"><pre><code>// an i18next-like lookup: a dictionary + t(key, params)
+const sk = {
+  'web-dropzone.labels.prompt': 'Presuňte súbory sem',
+  'web-dropzone.buttons.selectFiles': 'Vybrať súbory',
+  'web-dropzone.errors.maxFileSize': 'Súbor je príliš veľký (max. {{size}})',
+};
+const t = (key, params) =&gt; sk[key]?.replace(/\{\{(\w+)\}\}/g, (_, p) =&gt; params?.[p] ?? '');
+const exists = (key) =&gt; key in sk;
+
+// page-wide — every component on the page
+window.components.locale = { translateCallback: ({ key, params }) =&gt; (exists(key) ? t(key, params) : null) };
+
+// one element — asked BEFORE the page-wide callback; null = not mine
+el.translateCallback = ({ key, params }) =&gt; {
+  if (key === 'web-dropzone.labels.prompt') return 'Dateien hier ablegen';
+  if (key === 'web-dropzone.errors.maxFileSize') return `Datei zu groß (max. ${params.size})`;
+  return null;
+};</code></pre></div>
+        </div>
+
+        <!-- ============================================================= -->
+        <!-- LO04 · Screen-reader name / tooltip follow                     -->
+        <!-- ============================================================= -->
+        <div class="card">
+            <h2>LO04 · Screen-reader name / tooltip follow</h2>
+            <p>
+                An <code>ariaLabels.x</code> / <code>tooltips.x</code> nobody set takes the first customized key of the same
+                <code>&lt;name&gt;</code>, so translating one string of a pair translates its twin. Here: translate only the
+                visible prompt <code>labels.prompt</code> — the icon-only <code>selector-appearance="minimal"</code> button
+                is named by <code>ariaLabels.prompt</code>, which nobody set, and it follows. (The same holds for the row
+                buttons' <code>tooltips.cancelFile</code> / <code>ariaLabels.cancelFile</code>, … pairs.) The box below reads
+                the card's prompt text and the minimal button's <code>aria-label</code> from the shadow roots.
+            </p>
+            <div class="controls">
+                <label><input type="checkbox" id="lo04-prompt"> translate <code>labels.prompt</code> only (both dropzones)</label>
+            </div>
+            <div class="demo-area">
+                <div class="grid grid-2">
+                    <div class="form-group">
+                        <label class="demo-label">Card — the visible prompt</label>
+                        <web-dropzone id="lo04-card" display-mode="list" multiple></web-dropzone>
+                    </div>
+                    <div class="form-group">
+                        <label class="demo-label"><code>selector-appearance="minimal"</code> — icon only</label>
+                        <web-dropzone id="lo04-min" selector-appearance="minimal" multiple></web-dropzone>
+                    </div>
+                </div>
+                <div class="output"><div class="output-label">visible prompt / accessible name</div><pre id="lo04-out"></pre></div>
+            </div>
+            <div class="code-block" data-language="js"><pre><code>el.labels = { 'labels.prompt': 'Přetáhněte soubory sem' };
+// → card text "Přetáhněte soubory sem" AND the minimal button's aria-label "Přetáhněte soubory sem"
+//   (ariaLabels.prompt was never set); an explicitly set ariaLabels.prompt always wins over the twin</code></pre></div>
+        </div>
+
+        <!-- ============================================================= -->
+        <!-- LO05 · locale + formatting                                     -->
+        <!-- ============================================================= -->
+        <div class="card">
+            <h2>LO05 · <code>locale</code> + formatting</h2>
+            <p>
+                File sizes (<code>{size}</code> in <code>labels.summary</code>, the limits line, the validation messages, the
+                popover's size column and the progress strip) use the page's decimal separator: the page
+                <code>window.components.locale.locale</code> → the browser. The dropzone has no per-element
+                <code>locale</code> input — sizes are its only locale-specific output (no dates). Below: a compact dropzone
+                holding a 1.3 KB file, limit 1.5 KB.
+            </p>
+            <div class="controls"><strong class="muted">page locale</strong>
+                <label><input type="radio" name="lo05-locale" value="" checked> unset (browser)</label>
+                <label><input type="radio" name="lo05-locale" value="en-US"> en-US</label>
+                <label><input type="radio" name="lo05-locale" value="de-DE"> de-DE</label>
+                <label><input type="radio" name="lo05-locale" value="cs-CZ"> cs-CZ</label>
+            </div>
+            <div class="demo-area">
+                <web-dropzone id="lo05" display-mode="compact" max-file-size="1536" multiple></web-dropzone>
+                <div class="output"><div class="output-label">summary + the file-reject message</div><pre id="lo05-out"></pre></div>
+            </div>
+            <div class="code-block" data-language="html"><pre><code>&lt;web-dropzone display-mode="compact" max-file-size="1536"&gt;&lt;/web-dropzone&gt;   &lt;!-- "1 file(s), 1.3 KB" --&gt;
+&lt;script&gt;
+  window.components.locale = { locale: 'cs-CZ' };   // every dropzone: "1 file(s), 1,3 KB"
+&lt;/script&gt;</code></pre></div>
+        </div>
+
+        <!-- ============================================================= -->
+        <!-- LO06 · shouldEscapeLabels                                      -->
+        <!-- ============================================================= -->
+        <div class="card">
+            <h2>LO06 · <code>shouldEscapeLabels</code></h2>
+            <p>
+                Does not change anything in the dropzone: every dropzone label is TEXT (no label is an HTML template), so a
+                <code>&lt;b&gt;</code> in a label always shows as characters — with or without
+                <code>window.components.security.shouldEscapeLabels</code>. Data in placeholders (<code>{name}</code> = the
+                file name, e.g. <code>errors.duplicate</code>, <code>ariaLabels.removeFile</code>) is text the same way. The
+                toggle is here to show that the readout stays identical; components with markup labels (multiselect's
+                <code>labels.addNew</code>) are where it matters.
+            </p>
+            <div class="controls">
+                <label><input type="checkbox" id="lo06-escape"> <code>shouldEscapeLabels</code></label>
+            </div>
+            <div class="demo-area">
+                <label class="demo-label"><code>labels.prompt</code> = <code>Drop &lt;b&gt;files&lt;/b&gt; here</code></label>
+                <web-dropzone id="lo06" display-mode="list" multiple labels='{"labels.prompt": "Drop <b>files</b> here"}'></web-dropzone>
+                <div class="output"><div class="output-label">the prompt: markup → shown text</div><pre id="lo06-out"></pre></div>
+            </div>
+            <div class="code-block" data-language="js"><pre><code>el.labels = { 'labels.prompt': 'Drop &lt;b&gt;files&lt;/b&gt; here' };
+// → shown as "Drop &lt;b&gt;files&lt;/b&gt; here" (escaped), never bold
+window.components.security = { shouldEscapeLabels: true };   // no change in the dropzone</code></pre></div>
+        </div>
+
+    <script type="module">
+        const $ = (id) => document.getElementById(id);
+        const bytes = (name, size) => new File([new Uint8Array(size)], name, { type: name.endsWith('.pdf') ? 'application/pdf' : 'text/plain' });
+
+        // ── Page-wide state: window.components.locale is ONE object (assigning replaces it), so every
+        //    page-wide toggle (LO02 dictionary, LO03 callback, LO05 locale) composes it from here.
+        const page = { labels: null, translateCallback: null, locale: '' };
+        const applyPage = () => {
+            const next = {};
+            if (page.labels) next.labels = page.labels;
+            if (page.translateCallback) next.translateCallback = page.translateCallback;
+            if (page.locale) next.locale = page.locale;
+            window.components.locale = next;
+            refreshAll();
+        };
+
+        // ── Readouts: what the shadow root actually renders.
+        // The dropzone renders through managed satellites (<web-dropzone-picker>, -list, …), each with its
+        // own shadow root — so the lookup walks nested shadow roots.
+        const find = (root, selector) => {
+            const hit = root.querySelector(selector);
+            if (hit) return hit;
+            for (const el of root.querySelectorAll('*')) {
+                const inner = el.shadowRoot && find(el.shadowRoot, selector);
+                if (inner) return inner;
+            }
+            return null;
+        };
+        const part = (id, selector) => ($(id).shadowRoot ? find($(id).shadowRoot, selector) : null);
+        const text = (id, selector) => part(id, selector)?.textContent.trim() || '(none)';
+        const prompt = (id) => text(id, '.dz__dropzone-text');
+        const browse = (id) => text(id, '.dz__card-action');
+        /** Add a file that fails validation and return the file-reject message(s) it produced. */
+        const rejectionOf = async (id, file) => {
+            let error = '(no file-reject)';
+            const onReject = (e) => { error = e.detail.rejectedFiles.map((r) => r.validation.error).join(' | '); };
+            $(id).addEventListener('file-reject', onReject);
+            try { await $(id).addFiles([file]); } finally { $(id).removeEventListener('file-reject', onReject); }
+            return error;
+        };
+        const tooBig = () => bytes('report.pdf', 2560);
+        const settle = async () => {
+            await Promise.all([...document.querySelectorAll('web-dropzone')].map(async (el) => { await el.whenReady?.(); await el.whenSettled?.(); }));
+            await new Promise((r) => requestAnimationFrame(() => r()));
+        };
+        const write = (id, lines) => { $(id).textContent = lines.join('\n'); };
+
+        // Serialized: each run adds rejected files, so two runs must not interleave their file-reject listeners.
+        let chain = Promise.resolve();
+        const refreshAll = () => (chain = chain.then(doRefresh, doRefresh));
+        async function doRefresh() {
+            await settle();
+            write('lo01-out', [
+                `#lo01        prompt: ${prompt('lo01')}   button: ${browse('lo01')}   hint: ${text('lo01', '.dz__dropzone-hint')}`,
+                `#lo01-plain  prompt: ${prompt('lo01-plain')}   button: ${browse('lo01-plain')}`,
+            ]);
+            write('lo02-out', [
+                `#lo02a  prompt: ${prompt('lo02a')}   button: ${browse('lo02a')}`,
+                `#lo02a  reject: ${await rejectionOf('lo02a', tooBig())}`,
+                `#lo02b  reject: ${await rejectionOf('lo02b', bytes('notes.txt', 10))}`,
+            ]);
+            write('lo03-out', [
+                `#lo03a  prompt: ${prompt('lo03a')}   button: ${browse('lo03a')}`,
+                `#lo03a  reject: ${await rejectionOf('lo03a', tooBig())}`,
+                `#lo03b  prompt: ${prompt('lo03b')}   button: ${browse('lo03b')}`,
+            ]);
+            write('lo04-out', [
+                `card prompt:         ${prompt('lo04-card')}`,
+                `minimal aria-label:  ${part('lo04-min', '.dz__minimal')?.getAttribute('aria-label') ?? '(none)'}`,
+            ]);
+            write('lo05-out', [
+                `summary: ${text('lo05', '.dz__summary-text')}`,
+                `reject:  ${await rejectionOf('lo05', tooBig())}`,
+            ]);
+            const p = part('lo06', '.dz__dropzone-text');
+            write('lo06-out', p ? [`markup: ${p.innerHTML.trim()}`, `text:   ${p.textContent.trim()}`] : ['(none)']);
+        }
+
+        // ── LO01 · instance labels.
+        const LO01_LABELS = {
+            'labels.prompt': 'Přetáhněte soubory sem',
+            'labels.hint': 'PDF nebo obrázky',
+            'web-dropzone.buttons.selectFiles': 'Vybrat soubory',
+        };
+        const lo01 = () => { $('lo01').labels = $('lo01-labels').checked ? LO01_LABELS : undefined; refreshAll(); };
+        $('lo01-labels').addEventListener('change', lo01);
+        $('lo01').labels = LO01_LABELS;
+
+        // ── LO02 · page dictionary.
+        const CS = {
+            'web-dropzone.labels.prompt': 'Přetáhněte soubory sem nebo klikněte',
+            'web-dropzone.buttons.selectFiles': 'Vybrat soubory',
+            'web-dropzone.labels.summary': '{count} soubor(ů), {size}',
+            'web-dropzone.errors.maxFileSize': 'Soubor je příliš velký. Maximum je {size}',
+            'web-dropzone.errors.fileType': 'Tento typ souboru není povolen',
+            'web-multiselect.placeholders.search': 'Hledat…',
+        };
+        $('lo02-dict').addEventListener('change', (e) => { page.labels = e.target.checked ? CS : null; applyPage(); });
+
+        // ── LO03 · translateCallback.
+        const sk = {
+            'web-dropzone.labels.prompt': 'Presuňte súbory sem',
+            'web-dropzone.buttons.selectFiles': 'Vybrať súbory',
+            'web-dropzone.errors.maxFileSize': 'Súbor je príliš veľký (max. {{size}})',
+        };
+        const t = (key, params) => sk[key].replace(/\{\{(\w+)\}\}/g, (_, p) => String(params?.[p] ?? ''));
+        const pageTranslate = ({ key, params }) => (key in sk ? t(key, params) : null);
+        const ownTranslate = ({ key, params }) => {
+            if (key === 'web-dropzone.labels.prompt') return 'Dateien hier ablegen';
+            if (key === 'web-dropzone.errors.maxFileSize') return `Datei zu groß (max. ${params.size})`;
+            return null;
+        };
+        $('lo03-page').addEventListener('change', (e) => { page.translateCallback = e.target.checked ? pageTranslate : null; applyPage(); });
+        $('lo03-own').addEventListener('change', (e) => { $('lo03a').translateCallback = e.target.checked ? ownTranslate : undefined; refreshAll(); });
+
+        // ── LO04 · twin follow.
+        $('lo04-prompt').addEventListener('change', (e) => {
+            const labels = e.target.checked ? { 'labels.prompt': 'Přetáhněte soubory sem' } : undefined;
+            $('lo04-card').labels = labels;
+            $('lo04-min').labels = labels;
+            refreshAll();
+        });
+
+        // ── LO05 · page locale (a 1.3 KB file sits in the dropzone).
+        for (const radio of document.querySelectorAll('input[name="lo05-locale"]')) {
+            radio.addEventListener('change', (e) => { page.locale = e.target.value; applyPage(); });
+        }
+
+        // ── LO06 · shouldEscapeLabels (no effect: dropzone labels are text).
+        $('lo06-escape').addEventListener('change', (e) => {
+            window.components.security = { shouldEscapeLabels: e.target.checked };
+            refreshAll();
+        });
+
+        (async () => {
+            await $('lo05').whenReady();
+            await $('lo05').addFiles([bytes('notes.txt', 1300)]);
+            refreshAll();
+        })();
+    </script>

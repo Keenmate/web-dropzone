@@ -11,6 +11,13 @@ No stable 1.0.0 is published, so the break ships as the next release
 candidate — but `^1.0.0-rc02` consumers will pull it: the event,
 callback and store-access API below is breaking.
 
+### Docs — localization page (2026-11-21)
+
+- `examples-localization.html` — the shared localization page (LO01–LO06: instance `labels`, page-wide
+  dictionary, `translateCallback` (own → page-wide), the `ariaLabels.prompt` twin following `labels.prompt`,
+  file sizes in the page locale, `shouldEscapeLabels` (no effect: dropzone labels are text)); the
+  `file-reject` validation messages (`errors.*`) translate on the page. Smoke test in `e2e/examples.spec.ts`.
+
 ### Changed (public engine, one source of defaults, 2026-11-21)
 
 - **`DEFAULT_CONFIG` is the one source of the defaults** (rulebook C-CA-37): `<web-dropzone>`'s input rows
