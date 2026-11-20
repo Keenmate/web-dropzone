@@ -11,6 +11,18 @@ No stable 1.0.0 is published, so the break ships as the next release
 candidate — but `^1.0.0-rc02` consumers will pull it: the event,
 callback and store-access API below is breaking.
 
+### Changed (public engine, one source of defaults, 2026-11-21)
+
+- **`DEFAULT_CONFIG` is the one source of the defaults** (rulebook C-CA-37): `<web-dropzone>`'s input rows
+  (and `<web-dropzone-list>`'s `grid-layout` / `grid-status`) read their `default` from
+  `@keenmate/web-dropzone-core`'s `DEFAULT_CONFIG` instead of repeating the literals, so a standalone
+  `DropzoneEngine` and the element can't drift. `DEFAULT_CONFIG` gains `gridLayout: 'uniform'`,
+  `gridStatus: 'badge'` and `rollingRotation: 'slide-in'` (the values the element and the renderers
+  already used). No value changed.
+- **Docs: "Build your own UI"** in the `@keenmate/web-dropzone-core` README — what `DropzoneEngine` does,
+  what you draw, a minimal example, and the table of the element hooks / settings the engine takes
+  (`labels`, `translateCallback`, `renderIconCallback`, …).
+
 ### Added (icons, core rc25 `renderIcon`, 2026-11-20)
 
 - **`renderIconCallback(name, ctx)`** — the element's own icon hook (property-only, live) for the icon

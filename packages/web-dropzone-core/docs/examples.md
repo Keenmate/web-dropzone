@@ -1,6 +1,7 @@
 # Examples — `@keenmate/web-dropzone-core`
 
-Building your own renderer on the headless store. The API is in [usage.md](./usage.md).
+Building your own renderer on the headless store — what the engine does and what you draw is in the
+README's [Build your own UI](../README.md#build-your-own-ui); the API is in [usage.md](./usage.md).
 
 ## A minimal vanilla renderer
 

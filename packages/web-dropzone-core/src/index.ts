@@ -1,14 +1,11 @@
 /**
- * Barrel export for the core public surface — the non-rendering substrate.
- *
- * Phase B · Step 5 of the core/renderer split (see ARCHITECTURE.md).
- * Everything re-exported from here is what survives the eventual package
- * split into `@keenmate/dropzone-core` (Step 6) — no DOM, no CSS, no
- * web-component / satellite element classes.
- *
- * The top-level `src/index.ts` re-exports `*` from here plus the renderer
- * surface, so consumers of the published package keep their existing
- * import paths.
+ * `@keenmate/web-dropzone-core` — the public surface of the headless store:
+ * `DropzoneEngine` (the "Build your own UI" seam, rulebook C-CA-37; see the
+ * README), the `DropzoneController` facade, contexts / event details, pure
+ * helpers, `DEFAULT_CONFIG` (the one source of option defaults — the
+ * element's input rows read it), labels, icons and logging. No DOM
+ * rendering, no CSS, no custom elements; `@keenmate/web-dropzone`
+ * re-exports the types / helpers an element user needs.
  */
 
 // ---- Engine (standalone / headless use) + public controller facade -------

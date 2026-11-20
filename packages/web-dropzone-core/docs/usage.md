@@ -14,7 +14,8 @@ const engine = new DropzoneEngine(hostElement, config);
 ```
 
 - `hostElement` — the element events are dispatched on (and `element` on every ctx / event detail).
-- `config` — a partial `DropzoneConfig`, merged over `DEFAULT_CONFIG`. `engine.updateConfig(partial)`
+- `config` — a partial `DropzoneConfig`, merged over `DEFAULT_CONFIG` — the same defaults
+  `<web-dropzone>`'s properties have (its input rows read them from here). `engine.updateConfig(partial)`
   merges more later.
 
 Standalone, the engine has no input and no drop target of its own — your renderer feeds it
@@ -27,9 +28,13 @@ the validation limits (`accept`, `maxFileSize`, `minFileSize`, `maxTotalSize`, `
 `minFileCount`, `dedupeMode`, `isMultiple`), the upload pipeline (`uploadFileCallback`, `concurrency`,
 `shouldAutoUpload`, `retryPolicy`, `cancelTimeout`, `cancelTimeoutBehavior`, `progressMode`,
 `progressThrottle`), the gates (`validateCallback`, `beforeFilesAddCallback`,
-`beforeFilesRemoveCallback`, `beforeFilesCancelCallback`, `beforeActionCallback`), `labels`, and persistence (`storageKey`,
-`saveStateCallback`, `loadStateCallback`). Display options are carried too but only a renderer reads
-them. The meaning of each option is documented once, on the element:
+`beforeFilesRemoveCallback`, `beforeFilesCancelCallback`, `beforeActionCallback`), the UI strings
+(`labels`, `translateCallback` — `engine.label(key, vars)` resolves instance `labels` → the page
+dictionary → `translateCallback` → the page-wide `window.components.locale.translateCallback` →
+English), and persistence (`storageKey`, `saveStateCallback`, `loadStateCallback`). Display options
+(`displayMode`, `icon`, `renderIconCallback`, `fileIcons`, …) are carried too but only a renderer reads
+them. Which element hooks / settings the engine takes is tabled in the README's
+[Build your own UI](../README.md#settings-shared-with-the-element). The meaning of each option is documented once, on the element:
 [`@keenmate/web-dropzone` usage → Attributes](https://github.com/keenmate/web-dropzone/blob/main/packages/web-dropzone/docs/usage.md#attributes).
 
 ### Methods

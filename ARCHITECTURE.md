@@ -81,11 +81,13 @@ The renderer talks to the core through exactly two surfaces — nothing else.
 | Build a React / Vue / Lit / Svelte / Solid renderer | `@keenmate/web-dropzone-core` | `import { DropzoneEngine } from '@keenmate/web-dropzone-core'` then `new DropzoneEngine(hostElement, config)` |
 | Both: the built-in elements **and** a custom satellite that runs alongside them | `@keenmate/web-dropzone` only | The renderer re-exports core types and helpers — `import { DropzoneController, STATUS_ICONS } from '@keenmate/web-dropzone'` works |
 
-Installing both packages explicitly is fine but redundant — the renderer pins `@keenmate/web-dropzone-core: ^1.0.0` and bundles the core code into its single-file `dist/dropzone.js`, so the runtime is self-contained either way. The hard dep exists so the renderer's `dist/index.d.ts` can re-export core types without npm warning the consumer.
+Installing both packages explicitly is fine but redundant — the renderer pins `@keenmate/web-dropzone-core` to its own version (`1.0.0-rc03`) and bundles the core code into its single-file `dist/dropzone.js`, so the runtime is self-contained either way. The hard dep exists so the renderer's `dist/index.d.ts` can re-export core types without npm warning the consumer.
 
 ### Headless entry-point
 
-There is no `<web-dropzone-core>` custom element. The core is JS-only:
+There is no `<web-dropzone-core>` custom element. The core is JS-only — the user-facing guide (what the
+engine does, what you draw, the settings it shares with the element) is the core README's
+[Build your own UI](./packages/web-dropzone-core/README.md#build-your-own-ui) section:
 
 ```ts
 import { DropzoneEngine, DropzoneController } from '@keenmate/web-dropzone-core';
@@ -118,6 +120,8 @@ host.addEventListener('files-change', (e) => {
 ```
 
 Use `host` as the event target — a standalone engine dispatches the same events on it (bubbling, not composed, with `controller` / `element` attached), so a listener on `host` or any light-DOM ancestor catches the lot.
+
+**One source of defaults (C-CA-37).** `DEFAULT_CONFIG` in `packages/web-dropzone-core/src/dropzone-shared.ts` holds every option default. The engine merges it under its config, and `<web-dropzone>`'s input rows (`packages/web-dropzone/src/web-component.ts`, plus the list satellite's `grid-layout` / `grid-status`) read `default: DEFAULT_CONFIG.<key>` / `defaultFlag('<key>')` instead of repeating literals. The element's CEM config resolves that source text to the value for the manifest. A test (`test/unit/engine-defaults.test.ts`) keeps the two in step.
 
 ## Topology — store + satellite renderers
 
