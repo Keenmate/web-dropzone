@@ -405,6 +405,9 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
             label: this.label,
             cancelIcon: cfg?.cancelIcon,
             removeIcon: cfg?.removeIcon,
+            // The store's icon hook, with the store element as its ctx `element`
+            // (a bulk dropzone draws through internal satellites).
+            iconOptions: { host: cfg?.hostElement ?? this, renderIconCallback: cfg?.renderIconCallback },
             isDisabled: this.isStoreDisabled
         };
         if (appearance === 'badges')   return renderBadgeItem(file, opts);

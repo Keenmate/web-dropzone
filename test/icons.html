@@ -6,8 +6,8 @@
     <link rel="stylesheet" href="test-fixtures.css">
     <style>
         web-dropzone, web-dropzone-list, web-dropzone-picker { display: block; max-width: 420px; }
-        /* A named icon token (core renderIcon masks .km-icon from --base-icon-<name>). */
-        :root { --base-icon-star: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Crect width='1' height='1'/%3E%3C/svg%3E"); }
+        /* A built-in icon token restyled (core renderIcon masks .km-icon from --base-icon-<name>). */
+        :root { --base-icon-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Crect width='1' height='1'/%3E%3C/svg%3E"); }
         #ov-target { block-size: 60px; border: 1px dashed; }
     </style>
 </head>
@@ -31,8 +31,8 @@
     </div>
 
     <div class="fixture">
-        <div class="fixture-label">icon inputs through core renderIcon: a name (star) → masked .km-icon</div>
-        <web-dropzone id="named" accept="*/*" list-appearance="list" icon="star" remove-icon="star" cancel-icon="star"></web-dropzone>
+        <div class="fixture-label">icon inputs through core renderIcon: a name (check) → masked .km-icon</div>
+        <web-dropzone id="named" accept="*/*" list-appearance="list" icon="check" remove-icon="check" cancel-icon="check"></web-dropzone>
     </div>
 
     <div class="fixture">
@@ -42,16 +42,23 @@
     </div>
 
     <div class="fixture">
-        <div class="fixture-label">satellites: a picker (icon="star") + a list (store remove-icon="star")</div>
-        <web-dropzone id="sat-store" accept="*/*" list-appearance="none" remove-icon="star"></web-dropzone>
-        <web-dropzone-picker id="sat-picker" for="sat-store" icon="star"></web-dropzone-picker>
+        <div class="fixture-label">satellites: a picker (icon="check") + a list (store remove-icon="check")</div>
+        <web-dropzone id="sat-store" accept="*/*" list-appearance="none" remove-icon="check"></web-dropzone>
+        <web-dropzone-picker id="sat-picker" for="sat-store" icon="check"></web-dropzone-picker>
         <web-dropzone-list id="sat-list" for="sat-store" list-appearance="list"></web-dropzone-list>
     </div>
 
     <div class="fixture">
-        <div class="fixture-label">drag overlay (overlay-icon="star") — rendered in a core layer</div>
+        <div class="fixture-label">drag overlay (overlay-icon="check") — rendered in a core layer</div>
         <div id="ov-target">overlay target</div>
-        <web-dropzone id="ov" accept="*/*" overlay-target="ov-target" overlay-icon="star"></web-dropzone>
+        <web-dropzone id="ov" accept="*/*" overlay-target="ov-target" overlay-icon="check"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">renderIconCallback: element hook (my-up) beats the page hook; null → page (page-only); unanswered class list → &lt;i&gt;; built-in never asked</div>
+        <web-dropzone id="hooks" accept="*/*" list-appearance="list" icon="my-up" remove-icon="page-only" cancel-icon="fa-solid fa-ban"></web-dropzone>
+        <web-dropzone id="hooks-builtin" accept="*/*" list-appearance="list" icon="close" remove-icon="my-up"></web-dropzone>
+        <web-dropzone-picker id="hooks-picker" for="hooks"></web-dropzone-picker>
     </div>
 
     <script type="module">
@@ -74,6 +81,19 @@
                 window.__iconCtx.push({ name: ctx.file.name, hasController: !!ctx.controller, isElement: ctx.element === cb });
                 return ctx.file.name.endsWith('.csv') ? '<i class="ico-csv">C</i>' : null;
             };
+            // Icon hooks (core renderIcon order): element → page; built-ins never asked.
+            window.__pageNames = [];
+            window.__ownCalls = [];
+            window.components.renderIconCallback = (name) => {
+                window.__pageNames.push(name);
+                return name === 'my-up' || name === 'page-only' ? `<b class="page-icon">${name}</b>` : null;
+            };
+            const own = (name, ctx) => {
+                window.__ownCalls.push({ name, component: ctx.component, prefix: ctx.prefix, file: ctx.file?.name ?? null, element: ctx.element?.id ?? null });
+                return name === 'my-up' ? '<b class="own-icon">own</b>' : null;
+            };
+            document.getElementById('hooks').renderIconCallback = own;
+            document.getElementById('hooks-builtin').renderIconCallback = own;
             window.__ready = true;
         });
     </script>

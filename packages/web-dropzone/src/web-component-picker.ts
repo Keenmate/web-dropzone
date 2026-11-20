@@ -52,7 +52,7 @@ const INPUTS: readonly InputDef[] = [
     { configKey: 'cardSize', attribute: 'card-size', converter: toEnum(CARD_SIZES, { default: 'compact' }), shouldReflect: true, on: 'update', description: 'Card size for the card appearance.' },
     { configKey: 'accept', attribute: 'accept', converter: toText({ isNullable: true }), shouldReflect: true, on: 'update', description: 'Accepted file types for this picker\'s file dialog. Unset = the bound store\'s `accept` (the store validates every file either way).' },
     { configKey: 'isMultiple', attribute: 'multiple', converter: toBool('tristate'), on: 'update', type: 'boolean | null', description: 'Allow choosing several files in the dialog. Unset = the bound store\'s `multiple`.' },
-    { configKey: 'icon', attribute: 'icon', converter: toText({ isNullable: true }), shouldReflect: true, on: 'update', description: 'Prompt icon — markup (starts with `<`, inserted raw — NOT sanitized), an icon name (masked from `--base-icon-<name>`), or text (an emoji). Unset = the bound store\'s `icon`, else the built-in upload icon.' },
+    { configKey: 'icon', attribute: 'icon', converter: toText({ isNullable: true }), shouldReflect: true, on: 'update', description: 'Prompt icon — markup (starts with `<`, inserted raw — NOT sanitized), a built-in icon name (`check`, `close`, … masked from `--base-icon-<name>`), a name `renderIconCallback` maps, an icon-font class list (`fa-solid fa-upload` → `<i class="dz__icon …">`), or text (an emoji). Unset = the bound store\'s `icon`, else the built-in upload icon.' },
     { configKey: 'isDisabled', attribute: 'disabled', converter: toBool('presence'), shouldReflect: true, on: 'update', type: 'boolean', description: 'Disable this picker (like a native control: no clicks / drops, not focusable, greyed). A disabled store disables it too.' },
     { configKey: 'isReadonly', attribute: 'readonly', converter: toBool('presence'), shouldReflect: true, on: 'update', type: 'boolean', description: 'Read-only (like a native control): this picker adds no files, but stays visible and focusable. A read-only store makes it read-only too.' },
     { configKey: 'isFilesInside', attribute: 'inside', converter: toBool('default-false'), on: 'update', type: 'boolean', description: 'Files-inside layout: the card slots its light-DOM children (a `<web-dropzone-list nested>`) below the prompt. Set by the store when it mounts the picker itself.' },
@@ -179,7 +179,9 @@ export class DropzonePickerElement extends SatelliteElement {
         const acceptAttr = (this.config.accept as string | null) ?? storeCfg.accept ?? '';
         const multipleAttr = (this.config.isMultiple as boolean | null) ?? storeCfg.isMultiple ?? true;
         const label = this.label('buttons.selectFiles');
-        const icon = renderDzIcon((this.config.icon as string | null) ?? storeCfg.icon ?? DEFAULT_ICON);
+        const icon = renderDzIcon((this.config.icon as string | null) ?? storeCfg.icon ?? DEFAULT_ICON,
+            // The store's icon hook, with the store element as its ctx `element`.
+            { host: storeCfg.hostElement ?? this, renderIconCallback: storeCfg.renderIconCallback });
         const hint = this.label('labels.hint');
 
         // Card: the hidden input IS the keyboard control — named by the

@@ -158,6 +158,7 @@ Properties with no attribute (objects, callbacks, read-only state). Callbacks ar
 | `retryPolicy` | `RetryPolicy` | Retry policy applied when uploadFileCallback rejects. Property-only object. |
 | `fileIcons` | `Record<string, string>` | Icon overrides keyed by extension or category (raw HTML — NOT sanitized). Property-only object. |
 | `getFileIconCallback` | `(ctx: FileIconContext) => string \| null \| undefined` | Full-control file-icon resolver (raw HTML — NOT sanitized). `ctx`: `{ file }`. Return null to fall back to fileIcons / category. |
+| `renderIconCallback` | `(name: string, ctx: IconRenderContext) => string \| null \| undefined` | This element’s icon hook for the icon inputs (`icon`, `cancel-icon`, `remove-icon`, `overlay-icon`; a bound satellite’s `icon` too) — asked after markup and the built-in names (never sent here), before the page-wide `window.components.renderIconCallback`. `ctx`: `{ component, element, prefix }` + `{ file }` on a row button. Return markup (raw — NOT sanitized; empty string = no icon) or `null` / `undefined` = not mine. Live. |
 | `renderFileItemCallback` | `(ctx: FileItemRenderContext) => RenderCallbackResult` | Custom render for a single file row (structural mode). `ctx`: `{ file, fileIndex, displayMode, isInPopover }`. Result: string = the row HTML, HTMLElement = the row itself (kept; `file-row-update` fires on it), `null` / `undefined` = the built-in row, `false` = no row. |
 | `renderListWrapperCallback` | `(ctx: ListWrapperRenderContext) => RenderCallbackResult` | Custom wrapper around the rendered file rows (structural mode). `ctx`: `{ rowsHtml, files }`. Result: string = HTML, Node = mounted, `null` / `undefined` = the plain rows, `false` = the list hidden. |
 | `renderPromptCallback` | `(ctx: PromptRenderContext) => RenderCallbackResult` | Custom render for the drop-area prompt (structural mode). `ctx`: context only. Result: string = HTML, Node = its markup (serialized), `null` / `undefined` = the built-in prompt, `false` = no prompt. |
@@ -317,6 +318,7 @@ Every callback takes **one** `ctx` object that also carries `controller` / `elem
 | `beforeActionCallback` | the `action` event detail (`{ action, item, source, file?, files, … }`) | `false` cancels the button (no `onClick`, no built-in, no `action` event); runs before the per-purpose gates above |
 | `uploadFileCallback` | `{ file, signal, setProgress, startBytes, startPercent, metadata, setMetadata, uploadMetadata }` | `Promise<void \| { metadata, downloadUrl, previewUrl, name }>` |
 | `getFileIconCallback` | `{ file }` | icon HTML, or `null` to fall through |
+| `renderIconCallback` | `(name, { component, element, prefix, file? })` | icon markup, or `null` = not mine (page hook / icon font next); never asked for a built-in name |
 | `renderFileItemCallback` | `{ file, fileIndex, displayMode, isInPopover }` | `RenderCallbackResult` (structural mode) |
 | `renderListWrapperCallback` | `{ rowsHtml, files }` | `RenderCallbackResult` (structural mode) |
 | `renderPromptCallback` | context only | `RenderCallbackResult` (structural mode) |
@@ -384,19 +386,30 @@ dropzone.getFileIconCallback = ({ file }) =>
 ## Icons
 
 The icon inputs — `icon`, `cancel-icon`, `remove-icon`, `overlay-icon` (and the picker satellite's `icon`) — follow
-core's one icon rule (`renderIcon`):
+core's one icon rule (`renderIcon`), first match wins:
 
 | Value | Renders as |
 |-------|-----------|
 | starts with `<` (`<svg …>`, `<img …>`, `<i class="fa …">`) | the markup, inserted raw (NOT sanitized) |
-| an ASCII name (`upload`, `trash-2`) | `<span class="km-icon dz__icon dz__icon--<name>">` — a glyph masked from the `--base-icon-<name>` token, drawn in `currentColor` (nothing when the token is unset) |
+| a built-in name (`delete`, `close`, `check`, `download`, … — core `BUILT_IN_ICON_NAMES`) | `<span class="km-icon dz__icon dz__icon--<name>">` — a glyph masked from the `--base-icon-<name>` token, drawn in `currentColor`. Reserved: never sent to a hook |
+| a name the element's `renderIconCallback(name, ctx)` answers | its markup (`''` = no icon; `null` / `undefined` = not mine → next row) |
+| a name the page-wide `window.components.renderIconCallback(name, ctx)` answers | its markup (same contract) |
+| an ASCII class list (`fa-solid fa-trash`, `bi-paperclip`) | `<i class="dz__icon fa-solid fa-trash" aria-hidden="true">` — an icon font |
 | anything else (`📎`, `+`) | escaped text |
+
+`ctx` is `{ component, element, prefix: 'dz' }`, plus `{ file }` on a row Cancel / Remove button. A bound satellite
+(`<web-dropzone-picker>`, `<web-dropzone-list>`) draws with its store's `renderIconCallback` (`element` = the
+`<web-dropzone>`). The hook's markup is inserted raw — NOT sanitized.
 
 ```html
 <style>
-  :root { --base-icon-trash: url("data:image/svg+xml,…"); }
+  :root { --base-icon-delete: url("data:image/svg+xml,…"); }   /* restyle a built-in through its token */
 </style>
-<web-dropzone remove-icon="trash" overlay-icon="📎"></web-dropzone>
+<web-dropzone remove-icon="delete" overlay-icon="📎" cancel-icon="lucide-ban"></web-dropzone>
+<script>
+  const dz = document.querySelector('web-dropzone');
+  dz.renderIconCallback = (name) => name.startsWith('lucide-') ? `<svg …>` : null;   // null → page hook / icon font
+</script>
 ```
 
 ## HTML injection (XSS) notice
@@ -410,6 +423,7 @@ The following properties / callbacks accept **raw HTML** and are intentionally *
 | `icon` attr / property | Drop-zone + minimal prompt (innerHTML when the value starts with `<`) | HTML injection |
 | `overlay-icon` attr / property | Drag overlay (innerHTML when the value starts with `<`) | HTML injection |
 | `cancel-icon` / `remove-icon` attr / property | Row Cancel / Remove buttons (innerHTML when the value starts with `<`) | HTML injection |
+| `renderIconCallback` (+ the page-wide one) | Every icon input's slot (innerHTML) | HTML injection |
 | `renderFileItemCallback` | File rows (innerHTML) | HTML injection |
 | `renderListWrapperCallback` | List wrapper (innerHTML) | HTML injection |
 | `renderPromptCallback` | Drop-area prompt (innerHTML) | HTML injection |

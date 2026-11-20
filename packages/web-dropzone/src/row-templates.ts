@@ -32,17 +32,37 @@ import {
 } from '@keenmate/web-dropzone-core';
 import type { FileState, FileItemPart, FileIconOverrides, LabelFn, RowAction, FileStatus } from '@keenmate/web-dropzone-core';
 import { renderIcon } from '@keenmate/web-components-core';
+import type { RenderIconCallback, RenderIconOptions } from '@keenmate/web-components-core';
+
+/** Who renders an icon: the element (its tag / logger go into the hooks' ctx) + its `renderIconCallback`. */
+export interface DzIconOptions {
+    /** The component element (`<web-dropzone>`, or the satellite drawing the icon). */
+    host?: Element | null;
+    /**
+     * The instance hook — the store's `renderIconCallback` (a satellite draws
+     * with its store's). Unset → core reads `host.renderIconCallback`.
+     */
+    renderIconCallback?: RenderIconCallback | null;
+    /** Extras for the hooks' ctx (`{ file }` on a row button). */
+    context?: Readonly<Record<string, unknown>>;
+}
 
 /**
  * An icon input (`icon`, `cancel-icon`, `remove-icon`, `overlay-icon`) → HTML,
- * through core's one icon rule (SPEC §12.33): a value starting with `<` is
- * markup, inserted raw; an ASCII name (`upload`, `x`) is a `.km-icon` glyph
- * masked from the `--base-icon-<name>` token in `currentColor` (classes
- * `dz__icon dz__icon--<name>`); anything else (an emoji) is escaped text.
- * `''` for none. Every root an icon renders in adopts core `ICON_CSS`.
+ * through core's one icon rule (SPEC §12.33), first match wins: a value
+ * starting with `<` is markup, inserted raw; a built-in name (`check`,
+ * `close`, …) is a `.km-icon` glyph masked from `--base-icon-<name>` in
+ * `currentColor` (classes `dz__icon dz__icon--<name>`); then the element's
+ * `renderIconCallback`, then `window.components.renderIconCallback`; an ASCII
+ * class list (`fa-solid fa-upload`) → `<i class="dz__icon fa-solid fa-upload">`;
+ * anything else (an emoji) is escaped text. `''` for none. Every root an icon
+ * renders in adopts core `ICON_CSS`.
  */
-export function renderDzIcon(icon: string | null | undefined): string {
-    return renderIcon(icon, { prefix: 'dz' });
+export function renderDzIcon(icon: string | null | undefined, opts: DzIconOptions = {}): string {
+    const options: RenderIconOptions = { prefix: 'dz', host: opts.host ?? null };
+    if (opts.context) options.context = opts.context;
+    if (opts.renderIconCallback != null) options.renderIconCallback = opts.renderIconCallback;
+    return renderIcon(icon, options);
 }
 
 /** The label key of a row action button (aria-label / tooltip, `{name}` = file). */
@@ -151,6 +171,8 @@ export interface RowTemplateOptions {
     cancelIcon?: string;
     /** `remove-icon` — the Remove glyph, read by {@link renderDzIcon} (default: the CSS-masked ✕). */
     removeIcon?: string;
+    /** Who draws `cancelIcon` / `removeIcon` (host + `renderIconCallback`); the row's `{ file }` is added to the ctx. */
+    iconOptions?: DzIconOptions;
     /** UI-string lookup (the store's `labels`); default: built-in English. */
     label?: LabelFn;
     /**
@@ -170,6 +192,11 @@ export function isCancelOffered(file: FileState, hasUploadHandler: boolean): boo
     return s === 'uploading' || s === 'paused' || s === 'cancelling' || (s === 'pending' && hasUploadHandler);
 }
 
+/** A row button's icon options: the caller's host / hook + `{ file }` in the hooks' ctx. */
+function rowIconOptions(file: FileState, opts: DzIconOptions | undefined): DzIconOptions {
+    return { ...opts, context: { ...opts?.context, file } };
+}
+
 /**
  * Per-row Cancel (⊘) button. Always in the DOM (the slot stays reserved —
  * `--hidden` when there is nothing to cancel); disabled while `cancelling`.
@@ -184,7 +211,7 @@ export function renderCancelButton(file: FileState, baseClass: string, opts: Row
     const label = opts.label ?? defaultLabel;
     const aria = escapeHtml(label('ariaLabels.cancelFile', { name: file.name }));
     const title = escapeHtml(label('tooltips.cancelFile', { name: file.name }));
-    return `<button type="button" class="${cls}" data-dz-action="cancel" data-file-id="${file.id}" aria-label="${aria}" title="${title}"${inert}${disabled}>${renderDzIcon(opts.cancelIcon) || CANCEL_ICON}</button>`;
+    return `<button type="button" class="${cls}" data-dz-action="cancel" data-file-id="${file.id}" aria-label="${aria}" title="${title}"${inert}${disabled}>${renderDzIcon(opts.cancelIcon, rowIconOptions(file, opts.iconOptions)) || CANCEL_ICON}</button>`;
 }
 
 /**
@@ -193,8 +220,8 @@ export function renderCancelButton(file: FileState, baseClass: string, opts: Row
  * (read by {@link renderDzIcon}) replaces the CSS-masked glyph
  * (`data-custom-icon` switches the mask off).
  */
-export function renderRemoveButton(file: FileState, baseClass: string, removable = true, icon?: string | null, label: LabelFn = defaultLabel, isDisabled = false): string {
-    const html = renderDzIcon(icon);
+export function renderRemoveButton(file: FileState, baseClass: string, removable = true, icon?: string | null, label: LabelFn = defaultLabel, isDisabled = false, iconOptions?: DzIconOptions): string {
+    const html = renderDzIcon(icon, rowIconOptions(file, iconOptions));
     const custom = html ? ' data-custom-icon' : '';
     return `<button type="button" ${removeButtonAttrs(file, baseClass, removable, label, isDisabled)}${custom}>${html}</button>`;
 }
@@ -262,7 +289,7 @@ export function renderListItem(file: FileState, opts: RowTemplateOptions = {}): 
             ${showPart(p, 'cancel') ? renderCancelButton(file, 'dz__file-item-action', opts) : ''}
             ${showPart(p, 'progress') ? `<div class="dz__file-item-progress">${listProgressInner(file, label)}</div>` : ''}
             ${showPart(p, 'status') ? renderStatusPill(file, 'dz__file-item-status', label) : ''}
-            ${showPart(p, 'remove') ? renderRemoveButton(file, 'dz__file-item-remove', removable, opts.removeIcon, label, opts.isDisabled) : ''}
+            ${showPart(p, 'remove') ? renderRemoveButton(file, 'dz__file-item-remove', removable, opts.removeIcon, label, opts.isDisabled, opts.iconOptions) : ''}
         </div>
     `;
 }
@@ -306,7 +333,7 @@ export function renderDetailedItem(file: FileState, opts: RowTemplateOptions = {
             ${showPart(p, 'action') ? renderRowActionButton(file, 'dz__file-item-action', label, opts.isDisabled) : ''}
             ${showPart(p, 'cancel') ? renderCancelButton(file, 'dz__file-item-action', opts) : ''}
             ${showPart(p, 'status') ? renderStatusPill(file, 'dz__file-item-status', label) : ''}
-            ${showPart(p, 'remove') ? renderRemoveButton(file, 'dz__file-item-remove', removable, opts.removeIcon, label, opts.isDisabled) : ''}
+            ${showPart(p, 'remove') ? renderRemoveButton(file, 'dz__file-item-remove', removable, opts.removeIcon, label, opts.isDisabled, opts.iconOptions) : ''}
         </div>
     `;
 }
@@ -341,7 +368,7 @@ export function renderGridItem(file: FileState, opts: RowTemplateOptions = {}): 
             ${(showAction || showCancel || showRemove) ? `<div class="dz__preview-item-hover-actions">
                 ${showAction ? renderRowActionButton(file, 'dz__preview-item-action', label, opts.isDisabled) : ''}
                 ${showCancel ? renderCancelButton(file, 'dz__preview-item-action', opts) : ''}
-                ${showRemove ? renderRemoveButton(file, 'dz__preview-item-remove', removable, opts.removeIcon, label, opts.isDisabled) : ''}
+                ${showRemove ? renderRemoveButton(file, 'dz__preview-item-remove', removable, opts.removeIcon, label, opts.isDisabled, opts.iconOptions) : ''}
             </div>` : ''}
         </div>
     `;
@@ -364,7 +391,7 @@ export function renderBadgeItem(file: FileState, opts: RowTemplateOptions = {}):
                 ${showPart(p, 'cancel') ? renderCancelButton(file, 'dz__badge-action', opts) : ''}
                 ${showPart(p, 'status') ? renderStatusPill(file, 'dz__badge-status', label) : ''}
             </span>
-            ${showPart(p, 'remove') ? renderRemoveButton(file, 'dz__badge-remove', removable, opts.removeIcon, label, opts.isDisabled) : ''}
+            ${showPart(p, 'remove') ? renderRemoveButton(file, 'dz__badge-remove', removable, opts.removeIcon, label, opts.isDisabled, opts.iconOptions) : ''}
         </span>
     `;
 }

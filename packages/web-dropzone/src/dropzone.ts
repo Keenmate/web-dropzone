@@ -80,7 +80,7 @@ import { actionForStatus, UI_ICONS, statusLabel, countLabel } from '@keenmate/we
 // truth so the polished styling in `_file-item.css` applies identically
 // regardless of which renderer emits the row.
 import * as RowTemplate from './row-templates';
-import type { RowTemplateOptions } from './row-templates';
+import type { DzIconOptions, RowTemplateOptions } from './row-templates';
 // Shared status-surface contract — the rolling list uses the same three
 // callbacks (body / fileInfo / progress) as the indicator satellite, so
 // templates port across surfaces unchanged. See ./status-surface.ts.
@@ -603,7 +603,7 @@ export class WebDropzone extends DropzoneEngine {
         }
 
         if (appearance === 'minimal') {
-            const icon = RowTemplate.renderDzIcon(this.config.icon || DEFAULT_CONFIG.icon);
+            const icon = RowTemplate.renderDzIcon(this.config.icon || DEFAULT_CONFIG.icon, this.iconOptions());
             const count = this.files.length;
             const ariaLabel = escapeHtml(this.label('ariaLabels.prompt'));
             return `
@@ -664,7 +664,7 @@ export class WebDropzone extends DropzoneEngine {
             ? this.label('labels.dragActive')
             : this.label('labels.prompt');
 
-        const icon = RowTemplate.renderDzIcon(this.config.icon || DEFAULT_CONFIG.icon);
+        const icon = RowTemplate.renderDzIcon(this.config.icon || DEFAULT_CONFIG.icon, this.iconOptions());
         const hintText = this.label('labels.hint');
         const hint = hintText
             ? `<div class="dz__dropzone-hint">${escapeHtml(hintText)}</div>`
@@ -1522,6 +1522,15 @@ export class WebDropzone extends DropzoneEngine {
     }
 
     /**
+     * Who draws an icon input (core `renderIcon`, SPEC §12.33): the host element
+     * (its tag / logger in the hooks' ctx) + this store's `renderIconCallback`
+     * (passed explicitly so a standalone engine without an element has it too).
+     */
+    private iconOptions(): DzIconOptions {
+        return { host: this.config.hostElement ?? null, renderIconCallback: this.config.renderIconCallback };
+    }
+
+    /**
      * Pack per-row knobs for the shared template module. The shared module
      * has no view of the store's config — `isReorderEligible` /
      * `isFileUserRemovable` / `shouldShowThumbnails` live here because they
@@ -1546,6 +1555,7 @@ export class WebDropzone extends DropzoneEngine {
             hasUploadHandler: this.hasUploadHandler(file),
             cancelIcon: this.config.cancelIcon,
             removeIcon: this.config.removeIcon,
+            iconOptions: this.iconOptions(),
             isDisabled: !!this.config.isDisabled
         };
     }
@@ -1599,7 +1609,7 @@ export class WebDropzone extends DropzoneEngine {
                     ${RowTemplate.renderStatusPill(file, 'dz__popover-status', this.label)}
                 </td>
                 <td class="dz__popover-cell dz__popover-cell--actions">
-                    ${RowTemplate.renderRemoveButton(file, 'dz__popover-remove', removable, this.config.removeIcon, this.label, !!this.config.isDisabled)}
+                    ${RowTemplate.renderRemoveButton(file, 'dz__popover-remove', removable, this.config.removeIcon, this.label, !!this.config.isDisabled, this.iconOptions())}
                 </td>
             </tr>
         `;
@@ -2637,7 +2647,7 @@ export class WebDropzone extends DropzoneEngine {
         if (!this.overlayTarget || this.dragOverlay) return;
 
         const host = this.config.hostElement ?? this.element;
-        const icon = RowTemplate.renderDzIcon(this.config.overlayIcon || DEFAULT_CONFIG.overlayIcon);
+        const icon = RowTemplate.renderDzIcon(this.config.overlayIcon || DEFAULT_CONFIG.overlayIcon, this.iconOptions());
         const text = this.label('labels.overlay');
 
         // A core layer: its own shadow root with the component stylesheet, in

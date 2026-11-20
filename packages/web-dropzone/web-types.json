@@ -474,7 +474,7 @@
             },
             {
               "name": "icon",
-              "description": "Prompt icon — markup (starts with `<`, inserted raw — NOT sanitized), an icon name (masked from `--base-icon-<name>`), or text (an emoji). Unset = the bound store's `icon`, else the built-in upload icon.",
+              "description": "Prompt icon — markup (starts with `<`, inserted raw — NOT sanitized), a built-in icon name (`check`, `close`, … masked from `--base-icon-<name>`), a name `renderIconCallback` maps, an icon-font class list (`fa-solid fa-upload` → `<i class=\"dz__icon …\">`), or text (an emoji). Unset = the bound store's `icon`, else the built-in upload icon.",
               "value": { "type": "string | null" }
             },
             {
@@ -581,7 +581,7 @@
               },
               {
                 "name": "icon",
-                "description": "Prompt icon — markup (starts with `<`, inserted raw — NOT sanitized), an icon name (masked from `--base-icon-<name>`), or text (an emoji). Unset = the bound store's `icon`, else the built-in upload icon.",
+                "description": "Prompt icon — markup (starts with `<`, inserted raw — NOT sanitized), a built-in icon name (`check`, `close`, … masked from `--base-icon-<name>`), a name `renderIconCallback` maps, an icon-font class list (`fa-solid fa-upload` → `<i class=\"dz__icon …\">`), or text (an emoji). Unset = the bound store's `icon`, else the built-in upload icon.",
                 "type": "string | null"
               },
               {
@@ -980,17 +980,17 @@
             },
             {
               "name": "cancel-icon",
-              "description": "Row Cancel (⊘) button glyph — markup (starts with `<`, inserted raw — NOT sanitized), an icon name (masked from `--base-icon-<name>`), or text (an emoji). Unset = built-in icon.",
+              "description": "Row Cancel (⊘) button glyph — markup (starts with `<`, inserted raw — NOT sanitized), a built-in icon name (`check`, `close`, … masked from `--base-icon-<name>`), a name `renderIconCallback` maps, an icon-font class list (`fa-solid fa-upload` → `<i class=\"dz__icon …\">`), or text (an emoji). Unset = built-in icon.",
               "value": { "type": "string" }
             },
             {
               "name": "remove-icon",
-              "description": "Row Remove (✕) button glyph — markup (starts with `<`, inserted raw — NOT sanitized), an icon name (masked from `--base-icon-<name>`), or text (an emoji). Unset = built-in icon.",
+              "description": "Row Remove (✕) button glyph — markup (starts with `<`, inserted raw — NOT sanitized), a built-in icon name (`check`, `close`, … masked from `--base-icon-<name>`), a name `renderIconCallback` maps, an icon-font class list (`fa-solid fa-upload` → `<i class=\"dz__icon …\">`), or text (an emoji). Unset = built-in icon.",
               "value": { "type": "string" }
             },
             {
               "name": "icon",
-              "description": "Prompt icon — markup (starts with `<`, inserted raw), an icon name (masked from `--base-icon-<name>`), or text (an emoji).",
+              "description": "Prompt icon — markup (starts with `<`, inserted raw), a built-in icon name (`check`, `close`, … masked from `--base-icon-<name>`), a name `renderIconCallback` maps, an icon-font class list (`fa-solid fa-upload` → `<i class=\"dz__icon …\">`), or text (an emoji).",
               "value": { "type": "string" }
             },
             {
@@ -1013,7 +1013,7 @@
             },
             {
               "name": "overlay-icon",
-              "description": "Drag-overlay icon — markup (starts with `<`, inserted raw), an icon name (masked from `--base-icon-<name>`), or text (an emoji).",
+              "description": "Drag-overlay icon — markup (starts with `<`, inserted raw), a built-in icon name (`check`, `close`, … masked from `--base-icon-<name>`), a name `renderIconCallback` maps, an icon-font class list (`fa-solid fa-upload` → `<i class=\"dz__icon …\">`), or text (an emoji).",
               "value": { "type": "string" }
             },
             {
@@ -1381,15 +1381,15 @@
               },
               {
                 "name": "cancelIcon",
-                "description": "Row Cancel (⊘) button glyph — markup (starts with `<`, inserted raw — NOT sanitized), an icon name (masked from `--base-icon-<name>`), or text (an emoji). Unset = built-in icon."
+                "description": "Row Cancel (⊘) button glyph — markup (starts with `<`, inserted raw — NOT sanitized), a built-in icon name (`check`, `close`, … masked from `--base-icon-<name>`), a name `renderIconCallback` maps, an icon-font class list (`fa-solid fa-upload` → `<i class=\"dz__icon …\">`), or text (an emoji). Unset = built-in icon."
               },
               {
                 "name": "removeIcon",
-                "description": "Row Remove (✕) button glyph — markup (starts with `<`, inserted raw — NOT sanitized), an icon name (masked from `--base-icon-<name>`), or text (an emoji). Unset = built-in icon."
+                "description": "Row Remove (✕) button glyph — markup (starts with `<`, inserted raw — NOT sanitized), a built-in icon name (`check`, `close`, … masked from `--base-icon-<name>`), a name `renderIconCallback` maps, an icon-font class list (`fa-solid fa-upload` → `<i class=\"dz__icon …\">`), or text (an emoji). Unset = built-in icon."
               },
               {
                 "name": "icon",
-                "description": "Prompt icon — markup (starts with `<`, inserted raw), an icon name (masked from `--base-icon-<name>`), or text (an emoji)."
+                "description": "Prompt icon — markup (starts with `<`, inserted raw), a built-in icon name (`check`, `close`, … masked from `--base-icon-<name>`), a name `renderIconCallback` maps, an icon-font class list (`fa-solid fa-upload` → `<i class=\"dz__icon …\">`), or text (an emoji)."
               },
               {
                 "name": "labels",
@@ -1408,7 +1408,7 @@
               },
               {
                 "name": "overlayIcon",
-                "description": "Drag-overlay icon — markup (starts with `<`, inserted raw), an icon name (masked from `--base-icon-<name>`), or text (an emoji)."
+                "description": "Drag-overlay icon — markup (starts with `<`, inserted raw), a built-in icon name (`check`, `close`, … masked from `--base-icon-<name>`), a name `renderIconCallback` maps, an icon-font class list (`fa-solid fa-upload` → `<i class=\"dz__icon …\">`), or text (an emoji)."
               },
               {
                 "name": "shouldHighlightOnPageDrag",
@@ -1512,6 +1512,11 @@
                 "name": "getFileIconCallback",
                 "description": "Full-control file-icon resolver (raw HTML — NOT sanitized). `ctx`: `{ file }`. Return null to fall back to fileIcons / category.",
                 "type": "(ctx: FileIconContext) => string | null | undefined"
+              },
+              {
+                "name": "renderIconCallback",
+                "description": "This element’s icon hook for the icon inputs (`icon`, `cancel-icon`, `remove-icon`, `overlay-icon`; a bound satellite’s `icon` too) — asked after markup and the built-in names (never sent here), before the page-wide `window.components.renderIconCallback`. `ctx`: `{ component, element, prefix }` + `{ file }` on a row button. Return markup (raw — NOT sanitized; empty string = no icon) or `null` / `undefined` = not mine. Live.",
+                "type": "(name: string, ctx: IconRenderContext) => string | null | undefined"
               },
               {
                 "name": "renderFileItemCallback",

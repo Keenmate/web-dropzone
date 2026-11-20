@@ -44,8 +44,9 @@ export const FILE_TYPE_ICONS: Record<FileTypeCategory, string> = {
  * Chrome glyphs (Lucide) used by the shell rather than per-file rows: the
  * drop-zone prompt, the drag overlay, and the popover summary's idle state.
  * Consumers override via the `icon` / `overlayIcon` config — read by core's
- * `renderIcon` (markup starting with `<` raw, an ASCII name masked from
- * `--base-icon-<name>`, anything else text); these are just the defaults.
+ * `renderIcon` (markup starting with `<` raw, a built-in name masked from
+ * `--base-icon-<name>`, then `renderIconCallback` / the page-wide hook, an
+ * icon-font class list, anything else text); these are just the defaults.
  */
 export const UI_ICONS = {
     /** cloud-upload — drop-zone prompt + minimal-mode button. */

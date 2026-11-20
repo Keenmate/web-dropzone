@@ -11,6 +11,26 @@ No stable 1.0.0 is published, so the break ships as the next release
 candidate — but `^1.0.0-rc02` consumers will pull it: the event,
 callback and store-access API below is breaking.
 
+### Added (icons, core rc25 `renderIcon`, 2026-11-20)
+
+- **`renderIconCallback(name, ctx)`** — the element's own icon hook (property-only, live) for the icon
+  inputs `icon`, `cancel-icon`, `remove-icon`, `overlay-icon` (and a bound picker satellite's `icon`;
+  satellites draw with their store's hook). Asked after markup and the built-in names, before the page-wide
+  `window.components.renderIconCallback` — one dropzone on a page needs no page setup. `ctx`:
+  `{ component, element, prefix: 'dz' }` + `{ file }` on a row Cancel / Remove button. Return markup
+  (raw — NOT sanitized), or `null` / `undefined` = not mine.
+- A `.dz__icon` rule (`flex: none`, sized by the surrounding font) so an icon-font `<i>` sits like the
+  masked glyph.
+
+### Changed (icons, core rc25 `renderIcon`, 2026-11-20)
+
+- **BREAKING (core icon order):** a one-word icon name that is NOT a core built-in (`BUILT_IN_ICON_NAMES`:
+  `check`, `close`, `delete`, `download`, …) is no longer masked from `--base-icon-<name>`: unless a
+  `renderIconCallback` (the element's, then the page-wide one) answers it, it renders as an icon-font
+  `<i class="dz__icon <name>" aria-hidden="true">`. `remove-icon="trash"` + `--base-icon-trash` →
+  use a built-in name (`remove-icon="delete"`, restyled through `--base-icon-delete`), markup, or a
+  `renderIconCallback` that returns the markup. Built-in names are never sent to a hook.
+
 ### Changed (label keys `<elementType>.<name>`, core rc25 `/locale`, 2026-11-19)
 
 - **BREAKING: every `labels` key is renamed to a flat `<elementType>.<name>`** (core `/locale`, rulebook

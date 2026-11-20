@@ -7,7 +7,7 @@
 // directly (it never declared it; it was resolving through the renderer's
 // hoisted copy).
 import type { Placement } from '@keenmate/web-components-core/positioning';
-import type { LoadStateCallback, SaveStateCallback } from '@keenmate/web-components-core';
+import type { LoadStateCallback, SaveStateCallback, RenderIconCallback } from '@keenmate/web-components-core';
 import type {
     ValidateContext,
     BeforeFilesAddContext,
@@ -541,7 +541,7 @@ export interface DropzoneConfig {
     isThumbnailsShown?: boolean;
     /** Show files inside the dropzone area instead of a separate list below (HTML attr: `files-inside`) */
     isFilesInside?: boolean;
-    /** Icon for the dropzone prompt. Read by core `renderIcon`: markup (starts with `<`) raw — ⚠️ NOT sanitized; an ASCII name (`upload`) masked from `--base-icon-<name>` in `currentColor`; anything else (an emoji) escaped text. */
+    /** Icon for the dropzone prompt. Read by core `renderIcon`: markup (starts with `<`) raw — ⚠️ NOT sanitized; a built-in name (`check`, `close`, … — `BUILT_IN_ICON_NAMES`) masked from `--base-icon-<name>` in `currentColor`; then `renderIconCallback` / the page-wide hook; an ASCII class list (`fa-solid fa-upload`) → an icon-font `<i class="dz__icon …">`; anything else (an emoji) escaped text. */
     icon?: string;
     /**
      * UI strings (`labels` input) — a partial {@link DropzoneLabels} object
@@ -565,7 +565,7 @@ export interface DropzoneConfig {
 
     /** Element or element ID that triggers a drag overlay (ultra-compact form integration) */
     overlayTarget?: HTMLElement | string | null;
-    /** Icon for the drag overlay. Read by core `renderIcon`: markup (starts with `<`) raw — ⚠️ NOT sanitized; an ASCII name (`upload`) masked from `--base-icon-<name>` in `currentColor`; anything else (an emoji) escaped text. */
+    /** Icon for the drag overlay. Read by core `renderIcon`: markup (starts with `<`) raw — ⚠️ NOT sanitized; a built-in name (`check`, `close`, … — `BUILT_IN_ICON_NAMES`) masked from `--base-icon-<name>` in `currentColor`; then `renderIconCallback` / the page-wide hook; an ASCII class list (`fa-solid fa-upload`) → an icon-font `<i class="dz__icon …">`; anything else (an emoji) escaped text. */
     overlayIcon?: string;
     /**
      * Arm the drop target while files are dragged anywhere over the page
@@ -615,6 +615,20 @@ export interface DropzoneConfig {
      * ⚠️ Raw HTML — same caveat as `fileIcons`: NOT sanitized.
      */
     getFileIconCallback?: ((ctx: FileIconContext) => string | null | undefined) | null;
+
+    /**
+     * This element's icon hook — `renderIconCallback(name, ctx)` for the icon
+     * inputs (`icon`, `cancelIcon`, `removeIcon`, `overlayIcon`; a bound
+     * satellite's `icon` too). Asked by core `renderIcon` AFTER markup and the
+     * built-in names (`check`, `close`, …; never sent here) and BEFORE the
+     * page-wide `window.components.renderIconCallback`. Return markup (`''` =
+     * no icon), or `null` / `undefined` = not mine (the page hook, then an
+     * icon-font `<i class="dz__icon …">` / text decide). `ctx`: `{ component,
+     * element, prefix: 'dz' }` + `{ file }` on a row button.
+     *
+     * ⚠️ The returned markup is inserted raw — NOT sanitized.
+     */
+    renderIconCallback?: RenderIconCallback | null;
 
     /** Gate fired once per add batch AFTER all sync validation passes —
      *  `beforeFilesAddCallback({ files, existingFiles })`; may be async.
@@ -697,11 +711,11 @@ export interface DropzoneConfig {
     /** What a cancel that timed out does — see {@link CancelTimeoutBehavior}. Default `'error'`. */
     cancelTimeoutBehavior?: CancelTimeoutBehavior;
     /** The row Cancel (⊘) button glyph. Unset → the built-in icon.
-     * Read by core `renderIcon`: markup (starts with `<`) raw — ⚠️ NOT sanitized; an ASCII name (`upload`) masked from `--base-icon-<name>` in `currentColor`; anything else (an emoji) escaped text. */
+     * Read by core `renderIcon`: markup (starts with `<`) raw — ⚠️ NOT sanitized; a built-in name (`check`, `close`, … — `BUILT_IN_ICON_NAMES`) masked from `--base-icon-<name>` in `currentColor`; then `renderIconCallback` / the page-wide hook; an ASCII class list (`fa-solid fa-upload`) → an icon-font `<i class="dz__icon …">`; anything else (an emoji) escaped text. */
     cancelIcon?: string;
     /** The row Remove (✕) button glyph. Unset → the built-in
      *  (CSS-masked `--dz-icon-remove`) glyph.
-     * Read by core `renderIcon`: markup (starts with `<`) raw — ⚠️ NOT sanitized; an ASCII name (`upload`) masked from `--base-icon-<name>` in `currentColor`; anything else (an emoji) escaped text. */
+     * Read by core `renderIcon`: markup (starts with `<`) raw — ⚠️ NOT sanitized; a built-in name (`check`, `close`, … — `BUILT_IN_ICON_NAMES`) masked from `--base-icon-<name>` in `currentColor`; then `renderIconCallback` / the page-wide hook; an ASCII class list (`fa-solid fa-upload`) → an icon-font `<i class="dz__icon …">`; anything else (an emoji) escaped text. */
     removeIcon?: string;
     /**
      * Whether the user can remove files that have already finished uploading

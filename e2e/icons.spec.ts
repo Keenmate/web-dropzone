@@ -57,8 +57,9 @@ test('assigning fileIcons after rows exist re-renders them', async ({ page }) =>
 });
 
 // ── Icon inputs through core renderIcon (SPEC §12.33) ─────────────────────────
-// `<…` = raw markup; an ASCII name = a `.km-icon` masked from `--base-icon-<name>`
-// (ICON_CSS adopted in the store, the satellites and the overlay layer); else text.
+// `<…` = raw markup; a built-in name = a `.km-icon` masked from `--base-icon-<name>`
+// (ICON_CSS adopted in the store, the satellites and the overlay layer); then the
+// element's renderIconCallback, the page-wide one; a class list = an icon-font <i>; else text.
 
 /** A named icon is drawn: ICON_CSS applies (a 1em square) and the mask resolves. */
 async function drawn(loc: import('@playwright/test').Locator): Promise<{ square: boolean; mask: string }> {
@@ -72,13 +73,13 @@ async function drawn(loc: import('@playwright/test').Locator): Promise<{ square:
     });
 }
 
-test('a name → a masked .km-icon (prompt, row cancel + remove) drawn by ICON_CSS', async ({ page }) => {
-    const prompt = dz(page, 'named').locator('.dz__dropzone-icon .km-icon.dz__icon.dz__icon--star');
+test('a built-in name → a masked .km-icon (prompt, row cancel + remove) drawn by ICON_CSS', async ({ page }) => {
+    const prompt = dz(page, 'named').locator('.dz__dropzone-icon .km-icon.dz__icon.dz__icon--check');
     await expect(prompt).toHaveCount(1);
     expect(await drawn(prompt)).toEqual({ square: true, mask: expect.stringContaining('url(') });
     await page.evaluate(() => (window as any).__addNamed('named', ['a.txt']));
-    await expect(dz(page, 'named').locator('[data-dz-action="remove"][data-custom-icon] .km-icon.dz__icon--star')).toHaveCount(1);
-    await expect(dz(page, 'named').locator('[data-dz-action="cancel"] .km-icon.dz__icon--star')).toHaveCount(1);
+    await expect(dz(page, 'named').locator('[data-dz-action="remove"][data-custom-icon] .km-icon.dz__icon--check')).toHaveCount(1);
+    await expect(dz(page, 'named').locator('[data-dz-action="cancel"] .km-icon.dz__icon--check')).toHaveCount(1);
 });
 
 test('markup is inserted raw; an emoji / other text is escaped text', async ({ page }) => {
@@ -93,19 +94,61 @@ test('markup is inserted raw; an emoji / other text is escaped text', async ({ p
 });
 
 test('satellites: the picker icon and the list remove-icon draw in their own shadow roots', async ({ page }) => {
-    const pick = page.locator('#sat-picker').locator('.dz__dropzone-icon .km-icon.dz__icon--star');
+    const pick = page.locator('#sat-picker').locator('.dz__dropzone-icon .km-icon.dz__icon--check');
     await expect(pick).toHaveCount(1);
     expect((await drawn(pick)).square).toBe(true);
     await page.evaluate(() => (window as any).__addNamed('sat-store', ['s.txt']));
-    const rm = page.locator('#sat-list').locator('[data-dz-action="remove"] .km-icon.dz__icon--star');
+    const rm = page.locator('#sat-list').locator('[data-dz-action="remove"] .km-icon.dz__icon--check');
     await expect(rm).toHaveCount(1);
     expect(await drawn(rm)).toEqual({ square: true, mask: expect.stringContaining('url(') });
 });
 
-test('the drag overlay layer draws a named overlay-icon', async ({ page }) => {
+test('the drag overlay layer draws a built-in overlay-icon', async ({ page }) => {
     await dragFiles(page.locator('#ov-target'), 'dragenter');
-    const ico = page.locator('.dz__overlay .dz__overlay-icon .km-icon.dz__icon--star');
+    const ico = page.locator('.dz__overlay .dz__overlay-icon .km-icon.dz__icon--check');
     await expect(ico).toHaveCount(1);
     expect(await drawn(ico)).toEqual({ square: true, mask: expect.stringContaining('url(') });
     await dragFiles(page.locator('#ov-target'), 'dragleave');
+});
+
+// ── renderIconCallback: element hook → page hook (core rc25 order) ───────────
+
+test('the element renderIconCallback beats the page hook; ctx carries component / prefix / element', async ({ page }) => {
+    await expect(dz(page, 'hooks').locator('.dz__dropzone-icon b.own-icon')).toHaveText('own');
+    await expect(dz(page, 'hooks').locator('.dz__dropzone-icon b.page-icon')).toHaveCount(0);
+    const calls = await page.evaluate(() => (window as any).__ownCalls);
+    expect(calls).toEqual(expect.arrayContaining([{ name: 'my-up', component: 'web-dropzone', prefix: 'dz', file: null, element: 'hooks' }]));
+});
+
+test('null from the element hook falls through to the page hook (row remove gets { file })', async ({ page }) => {
+    await page.evaluate(() => (window as any).__addNamed('hooks', ['a.txt']));
+    await expect(dz(page, 'hooks').locator('[data-dz-action="remove"] b.page-icon')).toHaveText('page-only');
+    const calls = await page.evaluate(() => (window as any).__ownCalls);
+    expect(calls).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'page-only', file: 'a.txt', element: 'hooks' })]));
+});
+
+test('an unanswered class list renders an icon-font <i class="dz__icon …"> that does not shrink', async ({ page }) => {
+    await page.evaluate(() => (window as any).__addNamed('hooks', ['b.txt']));
+    const i = dz(page, 'hooks').locator('[data-dz-action="cancel"] i.dz__icon.fa-solid.fa-ban');
+    await expect(i).toHaveCount(1);
+    await expect(i).toHaveAttribute('aria-hidden', 'true');
+    expect(await i.evaluate((el) => getComputedStyle(el).flexShrink)).toBe('0');
+});
+
+test('a built-in name is never sent to a hook', async ({ page }) => {
+    await expect(dz(page, 'hooks-builtin').locator('.dz__dropzone-icon .km-icon.dz__icon--close')).toHaveCount(1);
+    const names = await page.evaluate(() => [...(window as any).__ownCalls.map((c: any) => c.name), ...(window as any).__pageNames]);
+    expect(names).not.toContain('close');
+    expect(names).not.toContain('check');
+});
+
+test('a bound picker draws with its store hook; assigning renderIconCallback re-renders', async ({ page }) => {
+    // The picker has no icon → the store's `icon` (my-up) through the store's hook.
+    await expect(page.locator('#hooks-picker').locator('.dz__dropzone-icon b.own-icon')).toHaveCount(1);
+    await dz(page, 'hooks').evaluate(async (el: any) => {
+        el.renderIconCallback = (name: string) => (name === 'my-up' ? '<b class="late-icon">late</b>' : null);
+        await el.whenSettled();
+    });
+    await expect(dz(page, 'hooks').locator('.dz__dropzone-icon b.late-icon')).toHaveText('late');
+    await expect(page.locator('#hooks-picker').locator('.dz__dropzone-icon b.late-icon')).toHaveCount(1);
 });

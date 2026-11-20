@@ -812,7 +812,7 @@ const files = el.files       // current FileState[]</code></pre>
         <!-- ICON NAMES -->
         <div class="card">
             <h2>DC19 · Icon names (<code>icon</code>, <code>remove-icon</code>, <code>cancel-icon</code>, <code>overlay-icon</code>)</h2>
-            <p>Every icon input follows core's one icon rule (<code>renderIcon</code>): a value starting with <code>&lt;</code> is markup (inserted raw), an ASCII name like <code>trash</code> is a glyph masked from the <code>--base-icon-trash</code> token and drawn in <code>currentColor</code>, anything else (an emoji) is text. Define the token once — on <code>:root</code> for the page, or on one element as here — and every component that names the icon picks it up.</p>
+            <p>Every icon input follows core's one icon rule (<code>renderIcon</code>), first match wins: a value starting with <code>&lt;</code> is markup (inserted raw); a built-in name like <code>delete</code> (<code>check</code>, <code>close</code>, <code>download</code>, …) is a glyph masked from the <code>--base-icon-delete</code> token and drawn in <code>currentColor</code>; any other name goes to the element's <code>renderIconCallback</code>, then the page-wide <code>window.components.renderIconCallback</code>; unanswered, an ASCII class list (<code>fa-solid fa-trash</code>) becomes an icon-font <code>&lt;i&gt;</code>; anything else (an emoji) is text. Restyle a built-in once through its token — on <code>:root</code> for the page, or on one element as here.</p>
 
             <kmwc-demo>
                 <web-dropzone
@@ -821,8 +821,8 @@ const files = el.files       // current FileState[]</code></pre>
                     accept="*/*"
                     auto-upload="false"
                     icon="📎"
-                    remove-icon="trash"
-                    style="--base-icon-trash: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 6h18'/%3E%3Cpath d='M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6'/%3E%3Cpath d='M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2'/%3E%3C/svg%3E&quot;)">
+                    remove-icon="delete"
+                    style="--base-icon-delete: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 6h18'/%3E%3Cpath d='M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6'/%3E%3Cpath d='M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2'/%3E%3C/svg%3E&quot;)">
                 </web-dropzone>
                 <div class="controls">
                     <button type="button" class="btn-outline" onclick="document.getElementById('icon-names-demo').addFiles([new File(['x'], 'report.pdf', { type: 'application/pdf' })])">Add a file</button>
@@ -833,7 +833,9 @@ const files = el.files       // current FileState[]</code></pre>
                 <thead><tr><th>Value</th><th>Renders as</th></tr></thead>
                 <tbody>
                     <tr><td><code>&lt;svg …&gt;</code>, <code>&lt;img …&gt;</code></td><td>the markup, raw (NOT sanitized)</td></tr>
-                    <tr><td><code>trash</code>, <code>upload</code></td><td><code>&lt;span class="km-icon dz__icon dz__icon--trash"&gt;</code>, masked from <code>--base-icon-trash</code> (nothing when the token is unset)</td></tr>
+                    <tr><td><code>delete</code>, <code>download</code> (a built-in name)</td><td><code>&lt;span class="km-icon dz__icon dz__icon--delete"&gt;</code>, masked from <code>--base-icon-delete</code> — never sent to a hook</td></tr>
+                    <tr><td>a name <code>renderIconCallback(name, ctx)</code> answers</td><td>the returned markup (the element's hook first, then <code>window.components.renderIconCallback</code>; <code>null</code> = not mine)</td></tr>
+                    <tr><td><code>fa-solid fa-trash</code> (unanswered)</td><td><code>&lt;i class="dz__icon fa-solid fa-trash" aria-hidden="true"&gt;</code> — an icon font</td></tr>
                     <tr><td><code>📎</code>, <code>+</code></td><td>escaped text</td></tr>
                 </tbody>
             </table>

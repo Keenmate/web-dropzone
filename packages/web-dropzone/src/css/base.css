@@ -98,3 +98,16 @@ web-dropzone-progress:not(:defined) {
   inline-size: var(--dz-loader-inline-size);
   block-size: var(--dz-loader-inline-size);
 }
+
+/* ==============================================================================
+   ICONS — an icon input through core renderIcon (SPEC §12.33): the masked
+   `.km-icon` span (a built-in name, drawn by core ICON_CSS) and an icon-font
+   `<i class="dz__icon fa-solid …">` both carry `dz__icon`; the font glyph sits
+   like the masked one — no flex shrink, sized by the surrounding font.
+   ============================================================================== */
+.dz__icon {
+  flex: none;
+  font-size: inherit;
+  line-height: 1;
+  font-style: normal;
+}
