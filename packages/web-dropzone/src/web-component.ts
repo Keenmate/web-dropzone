@@ -232,6 +232,7 @@ const INPUTS: readonly InputDef[] = [
     { configKey: 'fileIcons',                     converter: toValue(), on: 'update', type: 'Record<string, string>', description: 'Icon overrides keyed by extension or category (raw HTML — NOT sanitized). Property-only object.' },
     { configKey: 'getFileIconCallback',           converter: cb(),      on: 'update', type: '(ctx: FileIconContext) => string | null | undefined', description: 'Full-control file-icon resolver (raw HTML — NOT sanitized). `ctx`: `{ file }`. Return null to fall back to fileIcons / category.' },
     { configKey: 'renderIconCallback',            converter: cb(),      on: 'update', type: '(name: string, ctx: IconRenderContext) => string | null | undefined', description: 'This element’s icon hook for the icon inputs (`icon`, `cancel-icon`, `remove-icon`, `overlay-icon`; a bound satellite’s `icon` too) — asked after markup and the built-in names (never sent here), before the page-wide `window.components.renderIconCallback`. `ctx`: `{ component, element, prefix }` + `{ file }` on a row button. Return markup (raw — NOT sanitized; empty string = no icon) or `null` / `undefined` = not mine. Live.' },
+    { configKey: 'translateCallback',             converter: cb(),      on: 'update', type: 'TranslateCallback', description: 'This element’s translation hook (core `/locale`): `({ component, key, template, params, locale }) => string | null | undefined`, asked for every label key this instance’s `labels` did not set, before the page-wide `window.components.locale.translateCallback`; bound satellites use it too. Return the finished text, or `null` / `undefined` = not mine. Live.' },
     { configKey: 'renderFileItemCallback',        converter: cb(),      on: 'update', type: '(ctx: FileItemRenderContext) => RenderCallbackResult', description: 'Custom render for a single file row (structural mode). `ctx`: `{ file, fileIndex, displayMode, isInPopover }`. Result: string = the row HTML, HTMLElement = the row itself (kept across updates; `file-row-update` fires on it), `null` / `undefined` = the built-in row, `false` = no row.' },
     { configKey: 'renderListWrapperCallback',     converter: cb(),      on: 'update', type: '(ctx: ListWrapperRenderContext) => RenderCallbackResult', description: 'Custom wrapper around the rendered file rows (structural mode). `ctx`: `{ rowsHtml, files }`. Result: string = HTML, Node = mounted, `null` / `undefined` = the plain rows, `false` = the list hidden.' },
     { configKey: 'renderPromptCallback',          converter: cb(),      on: 'update', type: '(ctx: PromptRenderContext) => RenderCallbackResult', description: 'Custom render for the drop-area prompt (structural mode). `ctx`: context only. Result: string = HTML, Node = its markup (serialized), `null` / `undefined` = the built-in prompt, `false` = no prompt.' },
@@ -540,7 +541,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
         // affects validity.
         if ('name' in partial) {
             this.#syncFormValue();
-        } else if ('minFileCount' in partial || 'labels' in partial) {
+        } else if ('minFileCount' in partial || 'labels' in partial || 'translateCallback' in partial) {
             this.#syncValidity(this.#dropzone?.getFiles().length ?? 0);
         }
     }

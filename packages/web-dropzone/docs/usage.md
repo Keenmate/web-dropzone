@@ -159,6 +159,7 @@ Properties with no attribute (objects, callbacks, read-only state). Callbacks ar
 | `fileIcons` | `Record<string, string>` | Icon overrides keyed by extension or category (raw HTML — NOT sanitized). Property-only object. |
 | `getFileIconCallback` | `(ctx: FileIconContext) => string \| null \| undefined` | Full-control file-icon resolver (raw HTML — NOT sanitized). `ctx`: `{ file }`. Return null to fall back to fileIcons / category. |
 | `renderIconCallback` | `(name: string, ctx: IconRenderContext) => string \| null \| undefined` | This element’s icon hook for the icon inputs (`icon`, `cancel-icon`, `remove-icon`, `overlay-icon`; a bound satellite’s `icon` too) — asked after markup and the built-in names (never sent here), before the page-wide `window.components.renderIconCallback`. `ctx`: `{ component, element, prefix }` + `{ file }` on a row button. Return markup (raw — NOT sanitized; empty string = no icon) or `null` / `undefined` = not mine. Live. |
+| `translateCallback` | `TranslateCallback` | This element’s translation hook (core `/locale`): `({ component, key, template, params, locale }) => string \| null \| undefined`, asked for every label key this instance’s `labels` did not set, before the page-wide `window.components.locale.translateCallback`; bound satellites use it too. Return the finished text, or `null` / `undefined` = not mine. Live. |
 | `renderFileItemCallback` | `(ctx: FileItemRenderContext) => RenderCallbackResult` | Custom render for a single file row (structural mode). `ctx`: `{ file, fileIndex, displayMode, isInPopover }`. Result: string = the row HTML, HTMLElement = the row itself (kept; `file-row-update` fires on it), `null` / `undefined` = the built-in row, `false` = no row. |
 | `renderListWrapperCallback` | `(ctx: ListWrapperRenderContext) => RenderCallbackResult` | Custom wrapper around the rendered file rows (structural mode). `ctx`: `{ rowsHtml, files }`. Result: string = HTML, Node = mounted, `null` / `undefined` = the plain rows, `false` = the list hidden. |
 | `renderPromptCallback` | `(ctx: PromptRenderContext) => RenderCallbackResult` | Custom render for the drop-area prompt (structural mode). `ctx`: context only. Result: string = HTML, Node = its markup (serialized), `null` / `undefined` = the built-in prompt, `false` = no prompt. |
@@ -319,6 +320,7 @@ Every callback takes **one** `ctx` object that also carries `controller` / `elem
 | `uploadFileCallback` | `{ file, signal, setProgress, startBytes, startPercent, metadata, setMetadata, uploadMetadata }` | `Promise<void \| { metadata, downloadUrl, previewUrl, name }>` |
 | `getFileIconCallback` | `{ file }` | icon HTML, or `null` to fall through |
 | `renderIconCallback` | `(name, { component, element, prefix, file? })` | icon markup, or `null` = not mine (page hook / icon font next); never asked for a built-in name |
+| `translateCallback` | `{ component, key, template, params, locale }` (`key` = the full `web-dropzone.<key>`) | the finished text, or `null` = not mine (the page-wide `translateCallback` next); never asked for a key the instance `labels` set |
 | `renderFileItemCallback` | `{ file, fileIndex, displayMode, isInPopover }` | `RenderCallbackResult` (structural mode) |
 | `renderListWrapperCallback` | `{ rowsHtml, files }` | `RenderCallbackResult` (structural mode) |
 | `renderPromptCallback` | context only | `RenderCallbackResult` (structural mode) |
@@ -615,7 +617,10 @@ window.components.locale = {
 
 Per key: the element's `labels` → (a satellite) the page-wide `<satellite tag>.<key>` entries → its
 store's `labels` → `window.components.locale.labels['web-dropzone.<key>']` → built-in English.
-`translateCallback` is never asked for a key the instance set itself. Labels are text: the component
+A key none of those set goes to the element's own `translateCallback` property first (same signature;
+`null` / `undefined` = not mine → the page-wide one) — one dropzone needs no page setup; bound satellites ask
+their store's, and a standalone `DropzoneEngine` takes it as `config.translateCallback`. A `translateCallback`
+(either) is never asked for a key the instance set itself. Labels are text: the component
 escapes them where it builds HTML. `formatFileSize()` uses the resolved decimal separator (core
 `formatNumber`). The element-less lookup is `resolveLabel(sources, key, vars)` (exported).
 

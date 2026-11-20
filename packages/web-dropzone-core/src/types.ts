@@ -7,6 +7,7 @@
 // directly (it never declared it; it was resolving through the renderer's
 // hoisted copy).
 import type { Placement } from '@keenmate/web-components-core/positioning';
+import type { TranslateCallback } from '@keenmate/web-components-core/locale';
 import type { LoadStateCallback, SaveStateCallback, RenderIconCallback } from '@keenmate/web-components-core';
 import type {
     ValidateContext,
@@ -629,6 +630,17 @@ export interface DropzoneConfig {
      * ⚠️ The returned markup is inserted raw — NOT sanitized.
      */
     renderIconCallback?: RenderIconCallback | null;
+
+    /**
+     * This element's translation hook — `translateCallback({ component, key,
+     * template, params, locale })` (core `/locale`), asked for every label key
+     * this instance's `labels` did not set, BEFORE the page-wide
+     * `window.components.locale.translateCallback`. Return the finished text,
+     * or `null` / `undefined` = not mine (the page hook, the page dictionary,
+     * then the built-in English decide). Bound satellites use their store's.
+     * A standalone engine (no element) asks it too. Live.
+     */
+    translateCallback?: TranslateCallback | null;
 
     /** Gate fired once per add batch AFTER all sync validation passes —
      *  `beforeFilesAddCallback({ files, existingFiles })`; may be async.

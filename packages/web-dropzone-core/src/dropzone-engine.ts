@@ -231,7 +231,11 @@ export class DropzoneEngine {
      * English) — `label('ariaLabels.cancelFile', { name })`. Reads the live config, so a
      * `labels` change applies on the next render.
      */
-    readonly label: LabelFn = createLabelFn(() => this.config.labels, () => this.config.hostElement ?? this.element);
+    readonly label: LabelFn = createLabelFn(
+        () => this.config.labels,
+        () => this.config.hostElement ?? this.element,
+        () => this.config.translateCallback
+    );
 
     constructor(element: HTMLElement, config: DropzoneConfig = {}, host?: DropzoneEngineHost) {
         this.element = element;

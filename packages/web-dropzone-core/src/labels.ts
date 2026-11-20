@@ -14,7 +14,7 @@
  * renderer escapes them where it builds HTML.
  */
 
-import { createLabels, formatLabel, getPageLocale, resolveLabel as resolveCoreLabel, type Labels } from '@keenmate/web-components-core/locale';
+import { createLabels, formatLabel, getPageLocale, resolveLabel as resolveCoreLabel, type Labels, type TranslateCallback } from '@keenmate/web-components-core/locale';
 import type { FileState, FileStatus } from './types';
 
 /** The component name — the prefix of the full label keys of the whole dropzone family. */
@@ -338,16 +338,23 @@ export function resolveLabel(
  * apply) and the element it renders for (core `createLabels` with
  * `tag: 'web-dropzone'`: the page-wide labels + `translateCallback`, the
  * element's locale). `getHost` is read lazily — an engine creates its label
- * function before its element is set.
+ * function before its element is set. `getTranslateCallback` = the element's
+ * own `translateCallback` (asked before the page-wide one) — passed explicitly
+ * so a standalone engine / a satellite uses the store's; unset → core reads
+ * `host.translateCallback`.
  */
-export function createLabelFn(getOverrides: () => LabelSources, getHost?: () => Element | null | undefined): LabelFn {
+export function createLabelFn(
+    getOverrides: () => LabelSources,
+    getHost?: () => Element | null | undefined,
+    getTranslateCallback?: () => TranslateCallback | null | undefined
+): LabelFn {
     let labels: Labels<DropzoneLabels> | null = null;
     let labelsHost: Element | null = null;
     return (key, vars) => {
         const host = getHost?.() ?? (typeof document !== 'undefined' ? document.documentElement : null);
         if (!host) return resolveLabel(getOverrides(), key, vars);
         if (!labels || labelsHost !== host) {
-            labels = createLabels(host, DEFAULT_LABELS, () => mergeSources(getOverrides()), { tag: LABELS_TAG });
+            labels = createLabels(host, DEFAULT_LABELS, () => mergeSources(getOverrides()), getTranslateCallback ? { tag: LABELS_TAG, getTranslateCallback } : { tag: LABELS_TAG });
             labelsHost = host;
         }
         return labels.text(key, vars);

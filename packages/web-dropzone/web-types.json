@@ -1519,6 +1519,11 @@
                 "type": "(name: string, ctx: IconRenderContext) => string | null | undefined"
               },
               {
+                "name": "translateCallback",
+                "description": "This element’s translation hook (core `/locale`): `({ component, key, template, params, locale }) => string | null | undefined`, asked for every label key this instance’s `labels` did not set, before the page-wide `window.components.locale.translateCallback`; bound satellites use it too. Return the finished text, or `null` / `undefined` = not mine. Live.",
+                "type": "TranslateCallback"
+              },
+              {
                 "name": "renderFileItemCallback",
                 "description": "Custom render for a single file row (structural mode). `ctx`: `{ file, fileIndex, displayMode, isInPopover }`. Result: string = the row HTML, HTMLElement = the row itself (kept across updates; `file-row-update` fires on it), `null` / `undefined` = the built-in row, `false` = no row.",
                 "type": "(ctx: FileItemRenderContext) => RenderCallbackResult"

@@ -212,13 +212,14 @@ export abstract class SatelliteElement<TEvents extends EventMap = Record<string,
     /**
      * UI strings (core `/locale`): own `labels` → the page-wide labels of this
      * satellite's tag → the bound store's `labels` → the page-wide
-     * `web-dropzone` labels → built-in English.
+     * `web-dropzone` labels → built-in English. Keys none of those set go to the
+     * bound store's `translateCallback`, then the page-wide one.
      */
     protected readonly label: LabelFn = createLabelFn(() => [
         this.config.labels as DropzoneLabelOverrides | null | undefined,
         pageLabelsFor(this.localName),
         this.store?.getConfig().labels
-    ], () => this);
+    ], () => this, () => this.store?.getConfig().translateCallback);
 
     /**
      * Build (core `reinit()`): custom CSS, the canonical way (core usage

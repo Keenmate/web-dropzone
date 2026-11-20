@@ -22,6 +22,14 @@ callback and store-access API below is breaking.
 - A `.dz__icon` rule (`flex: none`, sized by the surrounding font) so an icon-font `<i>` sits like the
   masked glyph.
 
+### Added (instance `translateCallback`, 2026-11-20)
+
+- **`translateCallback(ctx)`** — the element's own translation hook (property-only, live), the instance
+  twin of `window.components.locale.translateCallback` (same `{ component, key, template, params, locale }`
+  ctx): asked for every label key the instance `labels` did not set, before the page-wide one; `null` /
+  `undefined` = not mine. Bound satellites ask their store's; a standalone `DropzoneEngine` takes it as
+  `config.translateCallback`. Changing it re-renders the labels (and the validity message).
+
 ### Changed (icons, core rc25 `renderIcon`, 2026-11-20)
 
 - **BREAKING (core icon order):** a one-word icon name that is NOT a core built-in (`BUILT_IN_ICON_NAMES`:

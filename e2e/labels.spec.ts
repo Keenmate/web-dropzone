@@ -130,4 +130,35 @@ test.describe('page-wide labels + locale (core /locale)', () => {
         const size = await page.evaluate(async () => (await import('/packages/web-dropzone-core/src/index.ts' as any)).formatFileSize(1536));
         expect(size).toBe('1,5 KB');
     });
+
+    test('translateCallback on the element: wins over the page hook, null → the page hook, instance labels beat both; live; satellites use the store hook', async ({ page }) => {
+        await addNamed(page, 'list-store', ['y.txt']);
+        await expect.poll(() => pendingNames(page)).toContain('y.txt');
+        await page.evaluate(() => {
+            (window as any).components.locale = {
+                translateCallback: ({ key }: any) => key === 'web-dropzone.labels.prompt' || key === 'web-dropzone.buttons.cancelAll' ? 'PAGE' : null,
+            };
+        });
+        await expect(dz(page, 'q').locator('.dz__dropzone-text')).toHaveText('PAGE');
+        await dz(page, 'q').evaluate(async (el: any) => {
+            el.translateCallback = ({ key, params }: any) =>
+                key === 'web-dropzone.labels.prompt' ? 'OWN prompt'
+                    : key === 'web-dropzone.labels.hint' ? 'OWN hint'
+                        : key === 'web-dropzone.ariaLabels.cancelFile' ? `OWN ${params.name}` : null;
+            el.labels = { 'labels.hint': 'Instance hint' };
+            await el.whenSettled();
+        });
+        await expect(dz(page, 'q').locator('.dz__dropzone-text')).toHaveText('OWN prompt');
+        await expect(dz(page, 'q').locator('.dz__dropzone-hint')).toHaveText('Instance hint');
+        await addNamed(page, 'q', ['a.txt']);
+        // null from the element hook → the page hook decides
+        await expect(dz(page, 'q').locator('[data-dz-action="cancel-all"]')).toHaveText('PAGE');
+        // a bound satellite asks its store's hook
+        await page.locator('#list-store').evaluate(async (el: any) => {
+            el.translateCallback = ({ key, params }: any) => key === 'web-dropzone.ariaLabels.cancelFile' ? `STORE ${params.name}` : null;
+            await el.whenSettled();
+        });
+        const satRow = page.locator('#list-sat').locator('.dz__file-item:has(.dz__file-item-name:text-is("y.txt"))');
+        await expect(satRow.locator('[data-dz-action="cancel"]')).toHaveAttribute('aria-label', 'STORE y.txt');
+    });
 });
