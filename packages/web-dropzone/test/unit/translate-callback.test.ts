@@ -27,4 +27,21 @@ describe('translateCallback (instance)', () => {
         expect(label('labels.hint')).toBe('Mine');
         expect(label('labels.prompt')).toBe('OWN');
     });
+
+    it('a rejected file validation error goes through the own + page-wide translateCallback', async () => {
+        (window as any).components.locale = { translateCallback: ({ key }: any) => (key === 'web-dropzone.errors.fileType' ? 'PAGE type' : null) };
+        const element = document.createElement('div');
+        const engine = new DropzoneEngine(element, {
+            maxFileSize: 10,
+            accept: '.png',
+            translateCallback: ({ key, params }: any) => (key === 'web-dropzone.errors.maxFileSize' ? `OWN too big (${params?.size})` : null),
+        });
+        const errors: string[] = [];
+        element.addEventListener('file-reject', (e: any) => { for (const r of e.detail.rejectedFiles) errors.push(r.validation.error); });
+        await engine.addFiles([
+            new File(['x'.repeat(50)], 'big.png', { type: 'image/png' }),
+            new File(['x'], 'doc.txt', { type: 'text/plain' }),
+        ]);
+        expect(errors).toEqual([expect.stringMatching(/^OWN too big \(.+\)$/), 'PAGE type']);
+    });
 });

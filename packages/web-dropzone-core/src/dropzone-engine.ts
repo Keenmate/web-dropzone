@@ -1476,7 +1476,7 @@ export class DropzoneEngine {
                 continue;
             }
 
-            const validation = validateFilePure(file, this.config, this.getFiles(), this.contextBase);
+            const validation = validateFilePure(file, this.config, this.getFiles(), this.contextBase, this.label);
             if (!validation.valid) {
                 rejectedFiles.push({ file, validation });
                 continue;

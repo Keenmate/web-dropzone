@@ -30,6 +30,15 @@ callback and store-access API below is breaking.
   `undefined` = not mine. Bound satellites ask their store's; a standalone `DropzoneEngine` takes it as
   `config.translateCallback`. Changing it re-renders the labels (and the validity message).
 
+### Fixed (validation messages translated, 2026-11-20)
+
+- The per-file validation errors `errors.maxFileSize`, `errors.minFileSize`, `errors.fileType`
+  (`validation.error` in `file-reject`, the rejection announcement) now go through the same label lookup
+  as every other dropzone text — instance `labels` → page dictionary → the element's `translateCallback`
+  → the page-wide `translateCallback` → English. Before, both translate callbacks were skipped for them.
+  `validateFile(file, config, existing, contextBase?, label?)` takes the bound label function (the
+  engine passes its `label`); without it, it keeps the `labels` + page-dictionary lookup.
+
 ### Changed (icons, core rc25 `renderIcon`, 2026-11-20)
 
 - **BREAKING (core icon order):** a one-word icon name that is NOT a core built-in (`BUILT_IN_ICON_NAMES`:

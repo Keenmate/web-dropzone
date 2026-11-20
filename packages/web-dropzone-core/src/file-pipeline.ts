@@ -21,7 +21,7 @@ import type {
     ValidationResult
 } from './types';
 import type { ValidateContext } from './interaction';
-import { resolveLabel, type DropzoneLabelOverrides } from './labels';
+import { resolveLabel, type DropzoneLabelOverrides, type LabelFn } from './labels';
 
 /**
  * Subset of `DropzoneConfig` that the per-file validator actually reads.
@@ -90,18 +90,23 @@ export function isFileTypeAccepted(file: File, accept: string): boolean {
  * reject. A custom `validateCallback` runs last and can override accept
  * but can't override reject (the standard checks short-circuit first).
  * `contextBase` (the engine's context prototype) supplies the ctx's
- * inherited `controller` / `element`.
+ * inherited `controller` / `element`. `label` is the element's bound label
+ * lookup (the engine's `label`: instance labels → page dictionary → the
+ * element's `translateCallback` → the page one → English); omitted, the
+ * messages resolve from `config.labels` + the page dictionary only.
  */
 export function validateFile(
     file: File,
     config: ValidationConfig,
     existingFiles: FileState[],
-    contextBase?: object
+    contextBase?: object,
+    label?: LabelFn
 ): ValidationResult {
+    const text: LabelFn = label ?? ((key, vars) => resolveLabel(config.labels, key, vars));
     if (config.maxFileSize && config.maxFileSize > 0 && file.size > config.maxFileSize) {
         return {
             valid: false,
-            error: resolveLabel(config.labels, 'errors.maxFileSize', { size: formatFileSize(config.maxFileSize) }),
+            error: text('errors.maxFileSize', { size: formatFileSize(config.maxFileSize) }),
             code: 'size'
         };
     }
@@ -109,7 +114,7 @@ export function validateFile(
     if (config.minFileSize && config.minFileSize > 0 && file.size < config.minFileSize) {
         return {
             valid: false,
-            error: resolveLabel(config.labels, 'errors.minFileSize', { size: formatFileSize(config.minFileSize) }),
+            error: text('errors.minFileSize', { size: formatFileSize(config.minFileSize) }),
             code: 'size'
         };
     }
@@ -117,7 +122,7 @@ export function validateFile(
     if (config.accept && !isFileTypeAccepted(file, config.accept)) {
         return {
             valid: false,
-            error: resolveLabel(config.labels, 'errors.fileType'),
+            error: text('errors.fileType'),
             code: 'type'
         };
     }
