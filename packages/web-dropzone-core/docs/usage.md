@@ -10,20 +10,20 @@ accessibility is in [theming.md](./theming.md) and [accessibility.md](./accessib
 ```ts
 import { DropzoneEngine } from '@keenmate/web-dropzone-core';
 
-const engine = new DropzoneEngine(hostElement, config);
+const engine = new DropzoneEngine(hostElement, options);
 ```
 
 - `hostElement` — the element events are dispatched on (and `element` on every ctx / event detail).
-- `config` — a partial `DropzoneConfig`, merged over `DEFAULT_CONFIG` — the same defaults
+- `options` — a partial `DropzoneEngineOptions`, merged over `DEFAULT_CONFIG` — the same defaults
   `<web-dropzone>`'s properties have (its input rows read them from here). `engine.setOptions(partial)`
   merges more later; `engine.getOptions()` returns the merged options (read-only).
 
 Standalone, the engine has no input and no drop target of its own — your renderer feeds it
 (`engine.addFiles(input.files)` from a file input or a `drop` handler) and renders from its events.
 
-### Config
+### Options
 
-`DropzoneConfig` (exported type) holds every option of the rendered element under its property name —
+`DropzoneEngineOptions` (exported type) holds every option of the rendered element under its property name —
 the validation limits (`accept`, `maxFileSize`, `minFileSize`, `maxTotalSize`, `maxFileCount`,
 `minFileCount`, `dedupeMode`, `isMultiple`), the upload pipeline (`uploadFileCallback`, `concurrency`,
 `shouldAutoUpload`, `retryPolicy`, `cancelTimeout`, `cancelTimeoutBehavior`, `progressMode`,
@@ -115,7 +115,7 @@ be async; returning `false` cancels.
   `StatusAggregate`: the contract of indicator-style UIs (focal file + aggregate counts + overall percent).
 - **Types** — every callback ctx (`ValidateContext`, `BeforeFilesAddContext`, `FileUploadContext`, …),
   every event detail (`FileAddEventDetail`, `FileProgressEventDetail`, …), and the domain types
-  (`DropzoneConfig`, `FileState`, `FileStatus`, `FileUploadHandler`, `FileUploadResult`,
+  (`DropzoneEngineOptions`, `FileState`, `FileStatus`, `FileUploadHandler`, `FileUploadResult`,
   `OverallProgress`, `ValidationResult`, `RejectedFile`, `RetryPolicy`, …).
 - **Logging** — the `DROPZONE` bundle on web-components-core logging (`logging`, plus `initLogger`,
   `fileLogger`, `uiLogger`, `interactionLogger`) and its controls: `enableLogging`, `disableLogging`,

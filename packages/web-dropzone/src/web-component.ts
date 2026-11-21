@@ -82,7 +82,7 @@ import type {
     ReadyEventDetail
 } from '@keenmate/web-dropzone-core';
 import type {
-    DropzoneConfig,
+    DropzoneEngineOptions,
     DropzoneRenderMode,
     SelectorAppearance,
     ListAppearance,
@@ -145,7 +145,7 @@ const ITEM_PART_TOKENS = ['icon', 'name', 'size', 'type', 'progress', 'status', 
 
 // ============================================================================
 // INPUT TABLE — the whole <web-dropzone> public surface, one row each.
-// `configKey` is the DropzoneConfig key, so the merged `config` bridges to the
+// `configKey` is the DropzoneEngineOptions key, so the merged `config` bridges to the
 // store almost verbatim (see #assembleConfig). Everything is `on: 'update'`;
 // the store applies changes in place, and #update handles the mode-flip rebuild.
 // ============================================================================
@@ -274,14 +274,14 @@ const EVENTS: readonly EventDef[] = [
 
 /**
  * Every `<web-dropzone>` input, keyed by `configKey` — exactly the input rows:
- * the store's `DropzoneConfig` without its engine wiring (`isHeadless`,
+ * the store's `DropzoneEngineOptions` without its engine wiring (`isHeadless`,
  * `container`, `hostElement`), plus the element-only inputs. The element's
  * typed properties (`el.maxFileSize`, `el.isReadonly`, …) and the responsive
  * rules' partials use it. Inputs that are unset by default (`null` = not set,
  * the store decides) are typed `| null`.
  */
 export type DropzoneElementConfig = Omit<
-    DropzoneConfig,
+    DropzoneEngineOptions,
     | 'isHeadless' | 'container' | 'hostElement' | 'attachLayerStyles'
     | 'accept' | 'icon' | 'cancelIcon' | 'removeIcon' | 'overlayIcon' | 'name' | 'storageKey'
     | 'renderMode' | 'selectorAppearance' | 'listAppearance' | 'cardSize' | 'isThumbnailsShown'
@@ -535,7 +535,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
         }
         delete storePartial.isDisabled; // applied by disabledChanged() (input OR fieldset)
         if (this.#dropzone && Object.keys(storePartial).length > 0) {
-            this.#dropzone.setOptions(storePartial as Partial<DropzoneConfig>);
+            this.#dropzone.setOptions(storePartial as Partial<DropzoneEngineOptions>);
         }
 
         // Form-relevant changes re-stamp the FormData; minFileCount alone only
@@ -718,7 +718,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
      * keys so the store sees them as absent (it applies its own defaults), then
      * add the runtime wiring (resolved mode, container, host element).
      */
-    #assembleConfig(): DropzoneConfig {
+    #assembleConfig(): DropzoneEngineOptions {
         const cfg: Record<string, unknown> = { ...this.config };
         for (const key of Object.keys(cfg)) {
             if (cfg[key] === null) delete cfg[key];
@@ -738,7 +738,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
         cfg.container = this.#container;
         cfg.hostElement = this;
         cfg.attachLayerStyles = (root: ShadowRoot) => this.#attachLayerStyles(root);
-        return cfg as DropzoneConfig;
+        return cfg as DropzoneEngineOptions;
     }
 
     // ── form value ────────────────────────────────────────────────────────────

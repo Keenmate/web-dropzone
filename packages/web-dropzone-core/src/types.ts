@@ -397,7 +397,7 @@ export interface DropzoneState {
     popoverHeight?: number;
 }
 
-export interface DropzoneConfig {
+export interface DropzoneEngineOptions {
     // ========================================================================
     // CORE OPTIONS
     // ========================================================================
@@ -921,9 +921,9 @@ export type FileTypeCategory =
 
 /**
  * The two consumer icon-override hooks, as a standalone slice so `getFileIcon`
- * can take them without depending on the whole `DropzoneConfig`. A full
- * `DropzoneConfig` is structurally assignable to this, so renderers can just
- * pass `this.config`. See `DropzoneConfig.fileIcons` / `.getFileIconCallback` for
+ * can take them without depending on the whole `DropzoneEngineOptions`. A full
+ * `DropzoneEngineOptions` is structurally assignable to this, so renderers can just
+ * pass `this.config`. See `DropzoneEngineOptions.fileIcons` / `.getFileIconCallback` for
  * the resolution order and the raw-HTML (XSS) caveat.
  */
 export interface FileIconOverrides {

@@ -153,7 +153,7 @@ export interface RowTemplateOptions {
     parts?: ReadonlySet<FileItemPart>;
     /**
      * Consumer icon overrides (`fileIcons` map + `getFileIconCallback`) forwarded
-     * to `getFileIcon`. A full `DropzoneConfig` satisfies this, so callers pass
+     * to `getFileIcon`. A full `DropzoneEngineOptions` satisfies this, so callers pass
      * their store config straight through. Absent → built-in category icons.
      */
     iconOverrides?: FileIconOverrides;

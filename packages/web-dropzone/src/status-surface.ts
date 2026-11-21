@@ -42,7 +42,7 @@
  * `<web-dropzone>` and `<web-dropzone-list>`). The PUBLIC TYPES
  * (`StatusSurfaceArgs`, `StatusSurfaceCallback`,
  * `StatusSurfaceResult`, `StatusAggregate`) live in `core/store-api.ts` so
- * `core/types.ts`'s `DropzoneConfig` can reference them without crossing
+ * `core/types.ts`'s `DropzoneEngineOptions` can reference them without crossing
  * the eventual package boundary back into the renderer.
  */
 

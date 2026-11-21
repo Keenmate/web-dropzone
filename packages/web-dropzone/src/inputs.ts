@@ -5,7 +5,7 @@ import { toBool, toObject, type Converter } from '@keenmate/web-components-core'
 import { DEFAULT_CONFIG, isLabelsValue } from '@keenmate/web-dropzone-core';
 import type { DropzoneLabelOverrides } from '@keenmate/web-dropzone-core';
 
-/** The boolean `DropzoneConfig` keys that have a default in `DEFAULT_CONFIG`. */
+/** The boolean `DropzoneEngineOptions` keys that have a default in `DEFAULT_CONFIG`. */
 type DefaultedFlag = { [K in keyof typeof DEFAULT_CONFIG]: (typeof DEFAULT_CONFIG)[K] extends boolean ? K : never }[keyof typeof DEFAULT_CONFIG];
 
 /**

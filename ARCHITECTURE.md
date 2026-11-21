@@ -168,7 +168,7 @@ Polished OOB rendering uses the same callbacks internally with library defaults 
 
 **Surface implementations today:**
 - `<web-dropzone-indicator>` — exposes the three callbacks directly on the element.
-- `<web-dropzone>` rolling list appearance — exposes `renderRollingBodyCallback` / `renderRollingFileInfoCallback` / `renderRollingProgressCallback` on `DropzoneConfig` (callbacks-only, no HTML attr equivalent since the value is a function).
+- `<web-dropzone>` rolling list appearance — exposes `renderRollingBodyCallback` / `renderRollingFileInfoCallback` / `renderRollingProgressCallback` on `DropzoneEngineOptions` (callbacks-only, no HTML attr equivalent since the value is a function).
 
 ## Multi-selector modes
 

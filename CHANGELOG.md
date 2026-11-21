@@ -21,6 +21,7 @@ from `DEFAULT_CONFIG`) → `engine.setOptions(partial)` → `engine.getOptions()
 | `engine.updateConfig(partial)` (returned `true`) | `engine.setOptions(partial)` (returns nothing) — merges into the current options, re-renders in place |
 | `engine.getConfig()` | `engine.getOptions()` — the merged options, read-only |
 | `el.controller.getConfig()` / `ctx.controller.getConfig()` (`DropzoneController`) | `controller.getOptions()` |
+| type `DropzoneConfig` (`@keenmate/web-dropzone-core`, re-exported by `@keenmate/web-dropzone`) | `DropzoneEngineOptions` — the engine's settings type (constructor `options`, `setOptions(partial: Partial<DropzoneEngineOptions>)`, `getOptions(): Readonly<DropzoneEngineOptions>`); no alias. The element config types (`DropzoneElementConfig`, `SatelliteElementConfig`, …) keep their names |
 
 ### Added (`locale` input, rulebook C-CA-38, 2026-11-21)
 
@@ -30,7 +31,7 @@ from `DEFAULT_CONFIG`) → `engine.setOptions(partial)` → `engine.getOptions()
   fraction digits as before, a plain `%` sign; `en` output unchanged) and the `{count}` numbers in labels (`translateCallback` gets it as `ctx.locale`). Unset (or `auto`) = the
   page-wide `window.components.locale`, else the browser — as before. Live. Bound satellites follow their
   store's `locale`. UI strings stay `labels`.
-- **`@keenmate/web-dropzone-core`:** `DropzoneConfig.locale` — the same option on a standalone
+- **`@keenmate/web-dropzone-core`:** `DropzoneEngineOptions.locale` — the same option on a standalone
   `DropzoneEngine` (default from `DEFAULT_CONFIG.locale`, unset; `setOptions({ locale })` re-renders);
   `formatFileSize(bytes, locale?)` takes an optional locale; new `formatPercent(value, fractionDigits, locale?)`; `createLabelFn(…, getLocale?)` a fourth
   argument; `ValidationConfig.locale`.

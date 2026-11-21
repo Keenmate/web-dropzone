@@ -40,7 +40,7 @@ import {
     createFileState
 } from './file-pipeline';
 import type {
-    DropzoneConfig,
+    DropzoneEngineOptions,
     DedupeMode,
     FileState,
     RejectedFile,
@@ -138,7 +138,7 @@ export class DropzoneEngine {
     // CORE STATE (data + pipelines, no DOM)
     // ========================================================================
     protected element: HTMLElement;
-    protected config: DropzoneConfig;
+    protected config: DropzoneEngineOptions;
     protected files: FileState[] = [];
 
     // ---- Upload pipeline state — only relevant when `uploadFileCallback`
@@ -238,9 +238,9 @@ export class DropzoneEngine {
         () => this.config.locale
     );
 
-    constructor(element: HTMLElement, config: DropzoneConfig = {}, host?: DropzoneEngineHost) {
+    constructor(element: HTMLElement, options: DropzoneEngineOptions = {}, host?: DropzoneEngineHost) {
         this.element = element;
-        this.config = { ...DEFAULT_CONFIG, ...config };
+        this.config = { ...DEFAULT_CONFIG, ...options };
         this.host = host ?? null;
         const engine = this;
         this.contextBase = Object.create(Object.prototype, {
@@ -368,7 +368,7 @@ export class DropzoneEngine {
      * `setOptions()` since), read-only. Replaced, never mutated, by
      * `setOptions()` — re-read it after a change.
      */
-    getOptions(): Readonly<DropzoneConfig> {
+    getOptions(): Readonly<DropzoneEngineOptions> {
         return this.config;
     }
 
@@ -606,9 +606,9 @@ export class DropzoneEngine {
      * summary / hidden inputs against the new options (files and drag / popover
      * state survive). Every option applies in place — nothing needs a new engine.
      */
-    setOptions(config: Partial<DropzoneConfig>): void {
+    setOptions(partial: Partial<DropzoneEngineOptions>): void {
         const prevOverlayTarget = this.config.overlayTarget;
-        this.config = { ...this.config, ...config };
+        this.config = { ...this.config, ...partial };
         initLogger.debug('Config updated', { config: this.config });
 
         // Tear down and rebuild the in-element DOM. The dropzone's DOM is
@@ -637,7 +637,7 @@ export class DropzoneEngine {
         // listeners on document are cheap but the cleanup is observable
         // (other dropzones on the page could be relying on document-level
         // dragenter, so we don't want to thrash this unnecessarily).
-        if ('overlayTarget' in config && config.overlayTarget !== prevOverlayTarget) {
+        if ('overlayTarget' in partial && partial.overlayTarget !== prevOverlayTarget) {
             this.cleanupOverlay();
             this.setupOverlayTarget();
         }

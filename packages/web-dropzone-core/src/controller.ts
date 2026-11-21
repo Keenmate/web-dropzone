@@ -11,7 +11,7 @@
 
 import { createControllerFacade } from '@keenmate/web-components-core';
 import type { DropzoneEngine } from './dropzone-engine';
-import type { AddFilesOptions, DropzoneConfig, FileState, OverallProgress } from './types';
+import type { AddFilesOptions, DropzoneEngineOptions, FileState, OverallProgress } from './types';
 import { DEFAULT_CONFIG } from './dropzone-shared';
 
 export interface DropzoneController {
@@ -36,7 +36,7 @@ export interface DropzoneController {
     /** The file with this id, or `null`. */
     getFileById(id: string): FileState | null;
     /** The merged options (engine defaults + inputs), read-only. */
-    getOptions(): Readonly<DropzoneConfig>;
+    getOptions(): Readonly<DropzoneEngineOptions>;
     /** Byte-weighted aggregate progress + per-status counts. */
     getOverallProgress(): OverallProgress;
 

@@ -57,7 +57,7 @@ import {
 TYPE-ONLY IMPORTS
 -----------------
 import type {
-  DropzoneConfig, DropzoneController, FileState, FileStatus,
+  DropzoneEngineOptions, DropzoneController, FileState, FileStatus,
   FileUploadContext, FileUploadResult, FileCancelEventDetail,
   DropzoneLabels, DropzoneEventMap
 } from '@keenmate/web-dropzone';
@@ -89,7 +89,7 @@ host.addEventListener('files-change', (e) => render(e.detail.files));
 
 The engine dispatches the same events (bubbling, not composed) on `host`;
 `element` in every ctx/detail is `host`. Config keys are the camelCase
-DropzoneConfig names (isMultiple, not multiple).
+DropzoneEngineOptions names (isMultiple, not multiple).
 
 STYLES
 ------

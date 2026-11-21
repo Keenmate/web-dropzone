@@ -1,7 +1,7 @@
 /**
  * Status-surface contract types (the rolling list's `renderRolling*Callback`
  * and the `<web-dropzone-indicator>`'s `render*Callback`). They live in the
- * headless package so `types.ts`'s `DropzoneConfig` can reference them; the
+ * headless package so `types.ts`'s `DropzoneEngineOptions` can reference them; the
  * helpers that build / apply them stay in the renderer's `status-surface.ts`.
  *
  * The public facade these callbacks act through is `DropzoneController`

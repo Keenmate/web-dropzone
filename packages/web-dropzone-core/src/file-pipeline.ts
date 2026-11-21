@@ -24,7 +24,7 @@ import type { ValidateContext } from './interaction';
 import { resolveLabel, type DropzoneLabelOverrides, type LabelFn } from './labels';
 
 /**
- * Subset of `DropzoneConfig` that the per-file validator actually reads.
+ * Subset of `DropzoneEngineOptions` that the per-file validator actually reads.
  * Declared structurally so callers can hand in either the full config or
  * a minimal stub in tests.
  */

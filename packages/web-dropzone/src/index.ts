@@ -52,7 +52,7 @@ export type {
     FileState,
     ValidationResult,
     RejectedFile,
-    DropzoneConfig,
+    DropzoneEngineOptions,
     FileTypeCategory,
     FileIconOverrides,
     AddFilesOptions,

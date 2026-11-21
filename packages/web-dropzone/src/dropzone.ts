@@ -49,7 +49,7 @@ import {
     patchCancelButton
 } from './row-patching';
 import type {
-    DropzoneConfig,
+    DropzoneEngineOptions,
     DropzoneEngineHost,
     DropzoneEngineEventName,
     EngineEventDetail,
@@ -98,7 +98,7 @@ import { buildStatusSurfaceArgs, renderRollingSurface } from './status-surface';
  *   grid     → selector=card, list=grid,     cardSize=compact
  *   compact  → selector=card, list=popover,  cardSize=compact
  */
-function resolveDisplayConfig(config: DropzoneConfig): {
+function resolveDisplayConfig(config: DropzoneEngineOptions): {
     selectorAppearance: SelectorAppearance;
     listAppearance: ListAppearance;
     cardSize: CardSize;
@@ -223,7 +223,7 @@ export class WebDropzone extends DropzoneEngine {
      */
     private isEngineEventWiringActive = false;
 
-    constructor(element: HTMLElement, config: DropzoneConfig = {}, host?: DropzoneEngineHost) {
+    constructor(element: HTMLElement, config: DropzoneEngineOptions = {}, host?: DropzoneEngineHost) {
         super(element, config, host);
 
         // Bind event handlers

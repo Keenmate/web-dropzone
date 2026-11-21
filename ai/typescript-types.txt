@@ -5,7 +5,7 @@ Types live in @keenmate/web-dropzone-core; the renderer package re-exports
 the common ones. Use `import type`.
 
 import type {
-  DropzoneConfig, DropzoneController, FileState, FileStatus,
+  DropzoneEngineOptions, DropzoneController, FileState, FileStatus,
   FileUploadContext, FileUploadResult, FileCancelEventDetail, DropzoneEventMap
 } from '@keenmate/web-dropzone';
 import { DropzoneElement } from '@keenmate/web-dropzone';
@@ -83,7 +83,7 @@ interface DropzoneController {
   clear(opts?: { confirm?: boolean }): Promise<void>;
   getFiles(): FileState[];                    // a copy
   getFileById(id: string): FileState | null;
-  getOptions(): Readonly<DropzoneConfig>;
+  getOptions(): Readonly<DropzoneEngineOptions>;
   getOverallProgress(): OverallProgress;
   updateFileProgress(id: string, progress: number): void;
   setFileStatus(id: string, status: FileState['status'], error?: string): void;
@@ -233,7 +233,7 @@ type DropzoneLabelKey = keyof DropzoneLabels;
 type LabelVars = Readonly<Record<string, string | number>>;
 type LabelFn = (key: DropzoneLabelKey, vars?: LabelVars) => string;
 
-DropzoneConfig
+DropzoneEngineOptions
 --------------
 The camelCase config object (DropzoneEngine constructor / getOptions()).
 Keys = the element's input configKeys: isMultiple, accept, maxFileSize,

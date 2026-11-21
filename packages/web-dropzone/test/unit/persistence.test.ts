@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { DropzoneEngine, type DropzoneConfig, type DropzoneState } from '@keenmate/web-dropzone-core';
+import { DropzoneEngine, type DropzoneEngineOptions, type DropzoneState } from '@keenmate/web-dropzone-core';
 
 /**
  * Persisted UI state goes through core `createStateStore()` (SPEC §12.17):
@@ -11,7 +11,7 @@ class ProbeEngine extends DropzoneEngine {
     get store() { return this.stateStore; }
 }
 
-const make = (config: DropzoneConfig, host?: any) =>
+const make = (config: DropzoneEngineOptions, host?: any) =>
     new ProbeEngine(document.createElement('div'), config, host);
 
 beforeEach(() => localStorage.clear());

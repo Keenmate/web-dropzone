@@ -114,7 +114,7 @@ export type {
 
 // ---- Domain types ------------------------------------------------------
 export type {
-    DropzoneConfig,
+    DropzoneEngineOptions,
     DropzoneRenderMode,
     DropzoneState,
     DisplayMode,

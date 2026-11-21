@@ -376,9 +376,9 @@
         },
         {
           "kind": "js",
-          "name": "DropzoneConfig",
+          "name": "DropzoneEngineOptions",
           "declaration": {
-            "name": "DropzoneConfig",
+            "name": "DropzoneEngineOptions",
             "package": "@keenmate/web-dropzone-core"
           }
         },
