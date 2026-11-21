@@ -558,7 +558,7 @@ export interface DropzoneConfig {
      * `{count}` numbers in labels — or unset (`null` / `undefined` / `'auto'`):
      * the page-wide `window.components.locale`, else the browser language
      * (core `resolveLocale`). Bound satellites follow their store's. UI
-     * strings are `labels`. Live (`updateConfig({ locale })` re-renders).
+     * strings are `labels`. Live (`setOptions({ locale })` re-renders).
      */
     locale?: string | null;
 

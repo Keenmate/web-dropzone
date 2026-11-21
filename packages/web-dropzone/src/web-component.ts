@@ -23,11 +23,11 @@
  * detail carries `controller` (`el.controller`, a `DropzoneController`) and
  * `element`. The engine itself is never exposed.
  *
- * Reactivity: the store applies EVERY config change in place (`updateConfig`
- * always returns true), so almost every input is `on: 'update'`. The single
+ * Reactivity: the store applies EVERY config change in place
+ * (`engine.setOptions(partial)`), so almost every input is `on: 'update'`. The single
  * exception is a change to the operating mode — toggling `mode` /
  * `display-mode` / `selector-appearance` / `list-appearance` can flip which
- * render path the store uses, which `updateConfig` can't express; `update()`
+ * render path the store uses, which `setOptions` can't express; `update()`
  * detects that flip and does a full rebuild (a fresh `WebDropzone`, matching the
  * pre-core behaviour). First connect is always a rebuild via `reinit()`.
  */
@@ -433,7 +433,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
      * `el.isDisabled` keeps the author's value, like a native control.
      */
     protected override disabledChanged(isDisabled: boolean): void {
-        this.#dropzone?.updateConfig({ isDisabled });
+        this.#dropzone?.setOptions({ isDisabled });
         this.#syncArmed();
     }
 
@@ -501,7 +501,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
     }
 
     /**
-     * In-place change: patch the live store via `updateConfig`. A change to any
+     * In-place change: patch the live store via `setOptions`. A change to any
      * of the four mode-determining inputs can flip the operating mode, which the
      * store can't apply in place — detect that and do a full rebuild instead
      * (matching the pre-core behaviour, where a mode flip reset the selection).
@@ -515,7 +515,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
             'listAppearance' in partial
         ) {
             const next = this.#resolveMode();
-            if (this.#dropzone && this.#dropzone.getConfig().renderMode !== next) {
+            if (this.#dropzone && this.#dropzone.getOptions().renderMode !== next) {
                 this.#rebuildStore();
                 return;
             }
@@ -535,7 +535,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
         }
         delete storePartial.isDisabled; // applied by disabledChanged() (input OR fieldset)
         if (this.#dropzone && Object.keys(storePartial).length > 0) {
-            this.#dropzone.updateConfig(storePartial as Partial<DropzoneConfig>);
+            this.#dropzone.setOptions(storePartial as Partial<DropzoneConfig>);
         }
 
         // Form-relevant changes re-stamp the FormData; minFileCount alone only
@@ -555,7 +555,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
      */
     protected override localeChanged(): void {
         if (!this.#dropzone) return;
-        this.#dropzone.updateConfig({});
+        this.#dropzone.setOptions({});
         this.#syncValidity(this.#dropzone.getFiles().length);
     }
 
@@ -777,7 +777,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
     #syncValidity(fileCount: number): void {
         const internals = this.internals;
         if (!internals) return;
-        const min = this.#dropzone?.getConfig().minFileCount ?? 0;
+        const min = this.#dropzone?.getOptions().minFileCount ?? 0;
         if (min > 0 && fileCount < min) {
             internals.setValidity(
                 { valueMissing: true },

@@ -83,7 +83,7 @@ interface DropzoneController {
   clear(opts?: { confirm?: boolean }): Promise<void>;
   getFiles(): FileState[];                    // a copy
   getFileById(id: string): FileState | null;
-  getConfig(): Readonly<DropzoneConfig>;
+  getOptions(): Readonly<DropzoneConfig>;
   getOverallProgress(): OverallProgress;
   updateFileProgress(id: string, progress: number): void;
   setFileStatus(id: string, status: FileState['status'], error?: string): void;
@@ -235,7 +235,7 @@ type LabelFn = (key: DropzoneLabelKey, vars?: LabelVars) => string;
 
 DropzoneConfig
 --------------
-The camelCase config object (DropzoneEngine constructor / getConfig()).
+The camelCase config object (DropzoneEngine constructor / getOptions()).
 Keys = the element's input configKeys: isMultiple, accept, maxFileSize,
 minFileSize, maxTotalSize, maxFileCount, minFileCount, maxVisibleFileCount,
 dedupeMode, isDisabled, isReadonly, renderMode, progressThrottle, displayMode,

@@ -85,7 +85,7 @@ INSPECTING STATE
 const dz = document.querySelector('web-dropzone');
 
 dz.files                                   // FileState[]
-dz.controller.getConfig()                  // merged config (defaults + inputs)
+dz.controller.getOptions()                 // merged options (defaults + inputs)
 dz.controller.getOverallProgress()         // counts + percent
 dz.controller.isReady                      // store built?
 window.components['web-dropzone'].getInstances()

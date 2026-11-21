@@ -437,7 +437,7 @@ The following properties / callbacks accept **raw HTML** and are intentionally *
 
 ## Methods
 
-The same methods (plus `getFiles()`, `getConfig()`, `getOverallProgress()`, `isReady` and `hasActiveUploads`) are on `dropzone.controller` — the `DropzoneController` facade every event detail and callback ctx carries.
+The same methods (plus `getFiles()`, `getOptions()`, `getOverallProgress()`, `isReady` and `hasActiveUploads`) are on `dropzone.controller` — the `DropzoneController` facade every event detail and callback ctx carries.
 
 | Method | Description |
 |--------|-------------|

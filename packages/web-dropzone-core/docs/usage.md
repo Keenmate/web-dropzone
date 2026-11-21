@@ -15,8 +15,8 @@ const engine = new DropzoneEngine(hostElement, config);
 
 - `hostElement` — the element events are dispatched on (and `element` on every ctx / event detail).
 - `config` — a partial `DropzoneConfig`, merged over `DEFAULT_CONFIG` — the same defaults
-  `<web-dropzone>`'s properties have (its input rows read them from here). `engine.updateConfig(partial)`
-  merges more later.
+  `<web-dropzone>`'s properties have (its input rows read them from here). `engine.setOptions(partial)`
+  merges more later; `engine.getOptions()` returns the merged options (read-only).
 
 Standalone, the engine has no input and no drop target of its own — your renderer feeds it
 (`engine.addFiles(input.files)` from a file input or a `drop` handler) and renders from its events.
@@ -43,14 +43,14 @@ them. Which element hooks / settings the engine takes is tabled in the README's
 |---|---|
 | `addFiles(files, opts?)` | Validate and add a `FileList` / `File[]` (`beforeFilesAddCallback` applies); refused files fire `file-reject` |
 | `removeFile(id, opts?)` / `removeFiles(ids, opts?)` / `clear(opts?)` | Remove (a running upload is cancelled first); `{ confirm: true }` asks `beforeFilesRemoveCallback` |
-| `getFiles()` / `getFileById(id)` / `getConfig()` / `getOverallProgress()` | Reads (`getFiles()` returns a copy) |
+| `getFiles()` / `getFileById(id)` / `getOptions()` / `getOverallProgress()` | Reads (`getFiles()` returns a copy) |
 | `hasActiveUploads` (getter) | `true` while any file is pending / uploading / paused / cancelling |
 | `uploadAll()` / `uploadFile(id)` | Drain the queue / upload one file now (with `uploadFileCallback`) |
 | `pauseFile(id)` / `resumeFile(id)` / `pauseAll()` / `resumeAll()` | Pause / resume, progress kept |
 | `cancelFile(id)` / `cancelAll()` | Cancel (the handler's `signal` aborts; waits up to `cancelTimeout`); resolve when finished |
 | `retryFile(id)` / `retryAll()` | Re-queue failed / cancelled files |
 | `updateFileProgress(id, progress)` / `setFileStatus(id, status, error?)` | For apps that drive uploads themselves |
-| `updateConfig(partial)` | Merge config changes |
+| `setOptions(partial)` | Merge option changes into the current options and re-render in place (`getOptions()` reads the merged result, read-only) |
 | `destroy()` | Final teardown — aborts running uploads; the engine is silent afterwards |
 | `controller` (getter) | The `DropzoneController` facade (below) |
 
@@ -58,7 +58,7 @@ them. Which element hooks / settings the engine takes is tabled in the README's
 
 The public facade: `el.controller` on the rendered element, `engine.controller` standalone, and the
 `controller` on every callback ctx / event detail. It carries the reads, the mutators and the upload
-controls above (`addFiles`, `removeFile(s)`, `clear`, `getFiles`, `getFileById`, `getConfig`,
+controls above (`addFiles`, `removeFile(s)`, `clear`, `getFiles`, `getFileById`, `getOptions`,
 `getOverallProgress`, `updateFileProgress`, `setFileStatus`, `uploadAll`, `uploadFile`, `pause*` /
 `resume*` / `cancel*` / `retry*`) plus `isReady` and `hasActiveUploads`. Every call delegates to the
 **current** engine, so a controller captured in a closure keeps working across rebuilds; before the

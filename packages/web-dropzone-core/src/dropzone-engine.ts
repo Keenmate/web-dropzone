@@ -283,7 +283,7 @@ export class DropzoneEngine {
     /** Renderer hook — react to an engine happening before it is emitted. */
     protected onEngineEvent<K extends DropzoneEngineEventName>(_name: K, _detail: EngineEventDetail<K>): void { /* renderer override */ }
 
-    /** Renderer hook — `updateConfig` re-rendered; refresh aggregate surfaces. */
+    /** Renderer hook — `setOptions` re-rendered; refresh aggregate surfaces. */
     protected onConfigApplied(): void { /* renderer override */ }
 
     // ========================================================================
@@ -300,7 +300,7 @@ export class DropzoneEngine {
     // matching DOM logic.
     // ========================================================================
 
-    /** Initial render. Called from `updateConfig`'s rebuild path. */
+    /** Initial render. Called from `setOptions`'s rebuild path. */
     protected render(): void { /* renderer override */ }
 
     /** Rebuild the inline file list area (or files-inside container).
@@ -364,11 +364,11 @@ export class DropzoneEngine {
     }
 
     /**
-     * Read-only view of the merged config. Useful for callers (e.g. the
-     * web-component shell) that need to query a config value after
-     * resolution against defaults.
+     * The merged options (engine defaults + the constructor options + every
+     * `setOptions()` since), read-only. Replaced, never mutated, by
+     * `setOptions()` — re-read it after a change.
      */
-    getConfig(): Readonly<DropzoneConfig> {
+    getOptions(): Readonly<DropzoneConfig> {
         return this.config;
     }
 
@@ -601,14 +601,12 @@ export class DropzoneEngine {
     }
 
     /**
-     * Update configuration in place. Re-renders the component, re-binds event
-     * listeners, and re-applies file list / summary / hidden inputs against
-     * the new config. Returns `true` so callers can use the same surface as
-     * other KM web-components (where `false` signals a structural change that
-     * needs a full reinit; this component can apply every config change
-     * in-place, so the return value is informational).
+     * Merge `partial` into the current options and apply it in place: re-renders
+     * the component, re-binds event listeners, and re-applies the file list /
+     * summary / hidden inputs against the new options (files and drag / popover
+     * state survive). Every option applies in place — nothing needs a new engine.
      */
-    updateConfig(config: Partial<DropzoneConfig>): boolean {
+    setOptions(config: Partial<DropzoneConfig>): void {
         const prevOverlayTarget = this.config.overlayTarget;
         this.config = { ...this.config, ...config };
         initLogger.debug('Config updated', { config: this.config });
@@ -625,7 +623,7 @@ export class DropzoneEngine {
         // IMPORTANT: this dispatches `dz-config-changed`, NOT the public
         // `change`. `change` means "the file selection changed" — emitting it
         // on a config update conflated the two and, worse, let a consumer that
-        // mutates config inside a `change` handler feed back into `updateConfig`
+        // mutates config inside a `change` handler feed back into `setOptions`
         // forever (infinite loop / frozen tab). Renderers + satellites listen
         // to BOTH events; external `change` listeners only hear real selection
         // changes.
@@ -643,8 +641,6 @@ export class DropzoneEngine {
             this.cleanupOverlay();
             this.setupOverlayTarget();
         }
-
-        return true;
     }
 
     /**
@@ -1858,12 +1854,12 @@ export class DropzoneEngine {
     }
 
     /**
-     * Internal re-render signal fired by `updateConfig` (a config/attribute
+     * Internal re-render signal fired by `setOptions` (a config/attribute
      * change), kept distinct from the public `change` (a file-selection
      * change). Renderers and satellites listen to it to refresh their surfaces
      * against the rebuilt DOM; external consumers listening to `change` are not
      * disturbed — which is what prevents a config-mutating `change` handler from
-     * looping back into `updateConfig`. INTERNAL — not a public event: it is
+     * looping back into `setOptions`. INTERNAL — not a public event: it is
      * dispatched (not bubbling, not composed) on the host element, where the
      * satellites bound to this store listen.
      */

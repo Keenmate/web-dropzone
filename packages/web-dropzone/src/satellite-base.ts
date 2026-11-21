@@ -218,8 +218,8 @@ export abstract class SatelliteElement<TEvents extends EventMap = Record<string,
     protected readonly label: LabelFn = createLabelFn(() => [
         this.config.labels as DropzoneLabelOverrides | null | undefined,
         pageLabelsFor(this.localName),
-        this.store?.getConfig().labels
-    ], () => this, () => this.store?.getConfig().translateCallback, () => this.storeLocale);
+        this.store?.getOptions().labels
+    ], () => this, () => this.store?.getOptions().translateCallback, () => this.storeLocale);
 
     /**
      * The bound store's `locale` (a satellite has no `locale` input — it follows
@@ -227,7 +227,7 @@ export abstract class SatelliteElement<TEvents extends EventMap = Record<string,
      * labels. Unset → the page-wide locale, else the browser.
      */
     protected get storeLocale(): string | null | undefined {
-        return this.store?.getConfig().locale;
+        return this.store?.getOptions().locale;
     }
 
     /**

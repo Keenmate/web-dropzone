@@ -331,7 +331,7 @@
               },
               "privacy": "private",
               "default": "false",
-              "description": "Whether `onEngineEvent` reacts. On between `attachEventListeners` and\n`detachEventListeners` (off during an `updateConfig` re-render and\nafter destroy), mirroring the old substrate-listener lifetime."
+              "description": "Whether `onEngineEvent` reacts. On between `attachEventListeners` and\n`detachEventListeners` (off during an `setOptions` re-render and\nafter destroy), mirroring the old substrate-listener lifetime."
             },
             {
               "kind": "field",
@@ -1669,7 +1669,7 @@
                   }
                 }
               ],
-              "description": "Renderer-side reactions to engine happenings — called by the engine's\n`notify` BEFORE the event is emitted, so the DOM is current when\nconsumers' listeners run. Inactive between `detachEventListeners` and\n`attachEventListeners` (an `updateConfig` re-render, destroy)."
+              "description": "Renderer-side reactions to engine happenings — called by the engine's\n`notify` BEFORE the event is emitted, so the DOM is current when\nconsumers' listeners run. Inactive between `detachEventListeners` and\n`attachEventListeners` (an `setOptions` re-render, destroy)."
             },
             {
               "kind": "method",
@@ -1680,7 +1680,7 @@
                   "text": "void"
                 }
               },
-              "description": "A config re-render (`updateConfig`) refreshes the same surfaces as `change`."
+              "description": "A config re-render (`setOptions`) refreshes the same surfaces as `change`."
             },
             {
               "kind": "method",
@@ -15306,7 +15306,7 @@
                   }
                 }
               ],
-              "description": "In-place change: patch the live store via `updateConfig`. A change to any\nof the four mode-determining inputs can flip the operating mode, which the\nstore can't apply in place — detect that and do a full rebuild instead\n(matching the pre-core behaviour, where a mode flip reset the selection)."
+              "description": "In-place change: patch the live store via `setOptions`. A change to any\nof the four mode-determining inputs can flip the operating mode, which the\nstore can't apply in place — detect that and do a full rebuild instead\n(matching the pre-core behaviour, where a mode flip reset the selection)."
             },
             {
               "kind": "method",

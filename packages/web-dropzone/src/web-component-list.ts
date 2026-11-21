@@ -250,7 +250,7 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
         // so the rules apply unchanged.
         const isNested = !!this.config.isNested;
         const base = isNested ? 'dz__files-inside' : 'dz__file-list';
-        const reorderClass = this.store.getConfig().shouldSinkCompleted ? ` ${base}--reorder-completed` : '';
+        const reorderClass = this.store.getOptions().shouldSinkCompleted ? ` ${base}--reorder-completed` : '';
         const containerClass = `${base} ${base}--${appearance}${reorderClass}`;
 
         // Apply the max-visible-file-count cap. Mirrors the in-class renderer:
@@ -259,7 +259,7 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
         // badges. When the queue is empty we already returned.
         // With `sink-completed`, the cap windows the reordered list (rows
         // in the "complete" bucket last), as the in-class renderer does.
-        const cap = this.store.getConfig().maxVisibleFileCount ?? 0;
+        const cap = this.store.getOptions().maxVisibleFileCount ?? 0;
         const visible = cap > 0 && !this.showAll ? this.orderForReorder(files).slice(0, cap) : files;
         const toggle = this.renderShowMoreToggle(files.length, cap, appearance);
 
@@ -346,7 +346,7 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
      */
     private renderSummary(files: FileState[]): void {
         if (!this.store) return;
-        const cfg = this.store.getConfig();
+        const cfg = this.store.getOptions();
         const args = buildStatusSurfaceArgs(files, this.storeEl!.controller, this.storeEl!);
         const status = args.overallStatus === 'idle' ? 'pending' : args.overallStatus;
         const icon = status === 'pending'
@@ -387,7 +387,7 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
     private renderRow(file: FileState, appearance: ListAppearance): string {
         // `item-controls` allowlist → a Set the row templates filter on.
         // Absent (undefined) keeps the default "render every part" path.
-        const cfg = this.store?.getConfig();
+        const cfg = this.store?.getOptions();
         const ic = cfg?.itemControls;
         const parts = ic ? new Set(ic) : undefined;
         const useThumbnail = this.shouldShowThumbnails(appearance);
@@ -421,7 +421,7 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
 
     /** The file has an upload handler (store-level or per-file, Mode B). */
     private hasUploadHandler(file: FileState): boolean {
-        return !!(file.uploadFileCallback || this.store?.getConfig().uploadFileCallback);
+        return !!(file.uploadFileCallback || this.store?.getOptions().uploadFileCallback);
     }
 
     /**
@@ -430,14 +430,14 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
      * focusable (core SPEC §6.4 native semantics; the list follows its store).
      */
     private get isStoreDisabled(): boolean {
-        return !!this.store?.getConfig().isDisabled;
+        return !!this.store?.getOptions().isDisabled;
     }
 
     /** `allow-uploaded-file-removal="false"` hides the remove button on completed rows (layout kept). */
     private isFileUserRemovable(file: FileState): boolean {
-        if (this.store?.getConfig().isReadonly) return false;
+        if (this.store?.getOptions().isReadonly) return false;
         if (file.status !== 'complete') return true;
-        return this.store?.getConfig().isUploadedFileRemovalAllowed !== false;
+        return this.store?.getOptions().isUploadedFileRemovalAllowed !== false;
     }
 
     /** Row belongs in the "complete" reorder bucket (`sink-completed`, delay elapsed). */
@@ -447,7 +447,7 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
 
     /** Stable sort: rows in the "complete" reorder bucket last. */
     private orderForReorder(files: FileState[]): FileState[] {
-        if (!this.store?.getConfig().shouldSinkCompleted) return files;
+        if (!this.store?.getOptions().shouldSinkCompleted) return files;
         return files
             .map((f, i) => ({ f, i, complete: this.isReorderEligible(f) ? 1 : 0 }))
             .sort((a, b) => a.complete - b.complete || a.i - b.i)
@@ -460,7 +460,7 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
      * `max-visible-file-count` cap the visible window changes too, so re-render.
      */
     private applyReorder(id: string, isComplete: boolean): void {
-        const cap = this.store?.getConfig().maxVisibleFileCount ?? 0;
+        const cap = this.store?.getOptions().maxVisibleFileCount ?? 0;
         if (cap > 0 && !this.showAll) {
             this.scheduleRenderAll();
             return;
@@ -479,7 +479,7 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
      * for `list-appearance="badges" show-thumbnails` just like the built-in form.
      */
     private shouldShowThumbnails(appearance: ListAppearance): boolean {
-        const enabled = this.store?.getConfig().isThumbnailsShown;
+        const enabled = this.store?.getOptions().isThumbnailsShown;
         if (enabled !== undefined) return enabled;
         return appearance === 'grid';
     }
@@ -518,7 +518,7 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
      * behavior). Falls back to the engine default (`DEFAULT_CONFIG`, 'slide-in').
      */
     private resolveRollingRotation(): RollingRotation {
-        const cfg = this.store?.getConfig();
+        const cfg = this.store?.getOptions();
         return (cfg?.rollingRotation ?? DEFAULT_CONFIG.rollingRotation) as RollingRotation;
     }
 
@@ -532,7 +532,7 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
     private renderRolling(files: FileState[]): void {
         if (!this.store) return;
         const rotation = this.resolveRollingRotation();
-        const cfg = this.store.getConfig();
+        const cfg = this.store.getOptions();
 
         // Ensure the wrapper exists once and survives across renders — we
         // never reassign the container's innerHTML in rolling mode after

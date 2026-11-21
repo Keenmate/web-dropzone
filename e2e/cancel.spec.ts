@@ -187,7 +187,7 @@ test.describe('cancel rule', () => {
             el.setAttribute('cancel-timeout', '50');
             el.cancelTimeoutBehavior = 'remove';
             await el.whenSettled();
-            const c = el.controller.getConfig();
+            const c = el.controller.getOptions();
             return { t: c.cancelTimeout, b: c.cancelTimeoutBehavior, attr: el.getAttribute('cancel-timeout-behavior') };
         });
         expect(cfg).toEqual({ t: 50, b: 'remove', attr: 'remove' });

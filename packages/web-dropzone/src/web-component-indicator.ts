@@ -422,7 +422,7 @@ export class DropzoneIndicatorElement extends SatelliteElement {
         // A disabled store (its `disabled` or a disabled `<fieldset>`) disables
         // the drawer chip: no interaction, not focusable (core SPEC §6.4).
         if (this.chipEl instanceof HTMLButtonElement) {
-            this.chipEl.disabled = !!this.store.getConfig().isDisabled;
+            this.chipEl.disabled = !!this.store.getOptions().isDisabled;
         }
 
         // ---- Body callback (or default) — core renderSlot ----------------

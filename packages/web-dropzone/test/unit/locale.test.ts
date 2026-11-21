@@ -22,19 +22,19 @@ describe('locale', () => {
 
     it('one default: the engine option and the element input are both unset', () => {
         expect(DEFAULT_CONFIG.locale).toBeNull();
-        expect(new DropzoneEngine(document.createElement('div')).getConfig().locale).toBeNull();
+        expect(new DropzoneEngine(document.createElement('div')).getOptions().locale).toBeNull();
         const el: any = document.createElement('web-dropzone');
         expect(el.locale).toBe(DEFAULT_CONFIG.locale);
         el.setAttribute('locale', 'de');
         expect(el.locale).toBe('de');
     });
 
-    it('a standalone engine: {count} in labels follows the locale option; unset follows the page; updateConfig is live', () => {
+    it('a standalone engine: {count} in labels follows the locale option; unset follows the page; setOptions is live', () => {
         const engine = new DropzoneEngine(document.createElement('div'), { locale: 'de', labels: { 'labels.hint': '{count} files' } });
         expect(engine.label('labels.hint', { count: 1234 })).toBe('1.234 files');
-        engine.updateConfig({ locale: 'en' });
+        engine.setOptions({ locale: 'en' });
         expect(engine.label('labels.hint', { count: 1234 })).toBe('1,234 files');
-        engine.updateConfig({ locale: undefined });
+        engine.setOptions({ locale: undefined });
         (window as any).components.locale = { locale: 'de' };
         expect(engine.label('labels.hint', { count: 1234 })).toBe('1.234 files');
     });

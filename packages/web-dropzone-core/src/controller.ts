@@ -35,8 +35,8 @@ export interface DropzoneController {
     getFiles(): FileState[];
     /** The file with this id, or `null`. */
     getFileById(id: string): FileState | null;
-    /** The merged config (defaults + inputs). */
-    getConfig(): Readonly<DropzoneConfig>;
+    /** The merged options (engine defaults + inputs), read-only. */
+    getOptions(): Readonly<DropzoneConfig>;
     /** Byte-weighted aggregate progress + per-status counts. */
     getOverallProgress(): OverallProgress;
 
@@ -85,7 +85,7 @@ const EMPTY_RESULTS = {
     clear: () => Promise.resolve(),
     getFiles: () => [],
     getFileById: () => null,
-    getConfig: () => DEFAULT_CONFIG,
+    getOptions: () => DEFAULT_CONFIG,
     getOverallProgress: () => EMPTY_PROGRESS,
     updateFileProgress: () => undefined,
     setFileStatus: () => undefined,

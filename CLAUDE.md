@@ -169,7 +169,7 @@ examples-upload.html (`dz-upload-*`). New pages use `attachControlsPersistence`.
 - Form-associated (`static formAssociated = true`) via `ElementInternals` — real `File` blobs through `setFormValue`.
 - Shadow DOM with style injection; custom CSS through core `createCustomStyles()` (page layer `window.components['web-dropzone'].customStyles` / `.getCustomStylesCallback`, then the instance's `customStyles` / `getCustomStylesCallback`).
 - The core input table (`static inputs`, the `INPUTS` rows) drives attributes, properties, parsing, validation and reactivity — no own `observedAttributes` / `attributeChangedCallback`. `DropzoneElementConfig` types exactly those rows.
-- Core hooks: `reinit()` builds the store; `update(partial)` patches it via `dropzone.updateConfig(partial)`; `connect()` / `disconnect()`; `removedCallback()` (graceful teardown unless `keep-alive-when-removed`); `destroyCallback()`.
+- Core hooks: `reinit()` builds the store; `update(partial)` patches it via `dropzone.setOptions(partial)`; `connect()` / `disconnect()`; `removedCallback()` (graceful teardown unless `keep-alive-when-removed`); `destroyCallback()`.
 
 **web-component-picker.ts** — `<web-dropzone-picker for="…">` satellite. Card / button / minimal / native selector appearances; `disabled` / `readonly`.
 **web-component-list.ts** — `<web-dropzone-list for="…">` satellite. list / detailed / grid / badges / rolling / popover appearances.
@@ -259,7 +259,7 @@ See [Event System](#event-system) below.
 1. Add a row to the core input table (`INPUTS`, `static inputs`) in `packages/web-dropzone/src/web-component.ts` — `configKey`, kebab `attribute`, a core `to*` converter (it parses the attribute AND validates the property), `on: 'update' | 'reinit' | 'none'`, `shouldReflect`, `description`. For a satellite, add it to that satellite's `INPUTS` (shared satellite rows live in `SATELLITE_INPUTS`, satellite-base.ts).
 2. Add the key to the typed-properties interface (`DropzoneElementConfig` / `Dropzone*ElementConfig`).
 3. If the config key needs to flow into `DropzoneConfig` for the engine, add it to `packages/web-dropzone-core/src/types.ts`.
-4. Apply it in place in `WebDropzone.updateConfig` (or the engine's `updateConfig` for an engine concern), reached from the element's `update(partial)`. Use `on: 'reinit'` only when a rebuild is really needed.
+4. Apply it in place in `WebDropzone.setOptions` (or the engine's `setOptions` for an engine concern), reached from the element's `update(partial)`. Use `on: 'reinit'` only when a rebuild is really needed.
 5. Never touch `observedAttributes` / `attributeChangedCallback` — core derives both from the table. Invalid values are refused by the converter (warning + `input-rejected`, previous value kept). Run `npm run analyze` (CEM) and watch the console for core's table sanity warnings.
 
 ### Adding New CSS Variables

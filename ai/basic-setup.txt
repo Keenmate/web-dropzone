@@ -139,7 +139,7 @@ destroy()                          final teardown (core): aborts uploads, elemen
 release() / whenReady()            core: build a `defer`-held element / await 1st build
 
 el.controller (DropzoneController) has the same methods plus getFiles(),
-getConfig(), getOverallProgress(), isReady and hasActiveUploads. See typescript-types.txt.
+getOptions(), getOverallProgress(), isReady and hasActiveUploads. See typescript-types.txt.
 
 PROPERTIES
 ----------

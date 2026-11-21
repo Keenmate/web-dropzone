@@ -165,7 +165,7 @@ overlay ends (drop / Escape), its siblings tear down too.
 dz.maxFileCount = 1;
 dz.addFiles(files);              // OK: element methods flush pending writes
 dz.controller.addFiles(files);   // OK: el.controller flushes too
-const cfg = dz.controller.getConfig();  // OK
+const cfg = dz.controller.getOptions();  // OK
 // reading derived DOM / satellites right after a write: await dz.whenSettled()
 
 9. LIFECYCLE: MOVE vs REMOVE

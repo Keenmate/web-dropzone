@@ -40,7 +40,7 @@ describe('engine defaults = element defaults', () => {
 
     it('a standalone engine starts from the same defaults', () => {
         const engine = new DropzoneEngine(document.createElement('div'));
-        const config = engine.getConfig();
+        const config = engine.getOptions();
         for (const [key, value] of Object.entries(DEFAULT_CONFIG)) expect(config[key as keyof typeof config], key).toEqual(value);
     });
 });

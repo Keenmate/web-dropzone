@@ -6,7 +6,7 @@ import { test, expect, dz, addNamed } from './fixtures';
  * Fixture: test/api.html. Two dropzones:
  *
  *   - `#api` — vanilla. No upload callback. Covers the pure-state methods:
- *     addFiles, removeFile, clear, getFiles, getFileById, getConfig.
+ *     addFiles, removeFile, clear, getFiles, getFileById, getOptions.
  *
  *   - `#upload` — wired to a synthetic upload handler controlled by
  *     window.__pending pumps. auto-upload="false" so the spec drives the
@@ -117,9 +117,9 @@ test.describe('removeFile / clear', () => {
     });
 });
 
-test.describe('controller.getConfig', () => {
+test.describe('controller.getOptions', () => {
     test('returns the merged config (declared attrs win over DEFAULT_CONFIG)', async ({ page }) => {
-        const cfg = await dz(page, 'api').evaluate((el: any) => el.controller.getConfig());
+        const cfg = await dz(page, 'api').evaluate((el: any) => el.controller.getOptions());
         // `accept` was declared on the element
         expect(cfg.accept).toBe('*/*');
         expect(cfg.maxFileCount).toBe(10);

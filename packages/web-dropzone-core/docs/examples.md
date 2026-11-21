@@ -78,7 +78,7 @@ export function useDropzone(config) {
     };
   }, []);
 
-  useEffect(() => { engine?.updateConfig(config); }, [engine, config]);
+  useEffect(() => { engine?.setOptions(config); }, [engine, config]);
 
   return { hostRef, files, controller: engine?.controller ?? null };
 }

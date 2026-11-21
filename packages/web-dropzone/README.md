@@ -38,6 +38,7 @@ Breaking — see [CHANGELOG.md](https://github.com/keenmate/web-dropzone/blob/ma
 - **Core lifecycle** — `ready` fires once after the first build (+ `ready` attribute, `:state(ready)`, `whenReady()`); `defer` + `release()` hold the first build; `destroy()` is final. New `readonly` (selection locked, still submitted).
 - **`locale`** — a per-element BCP-47 locale for the numbers it formats (file sizes, progress percents, `{count}` in labels); unset follows the page-wide `window.components.locale`, else the browser; satellites follow their store.
 - **Every UI string in `labels`** — empty text, summary, popover, limits line, progress strip, indicator, validation messages; satellites take their own `labels` on top of the store's.
+- **`controller.getOptions()`** — the merged options (was `getConfig()`); a standalone `DropzoneEngine` takes `setOptions(partial)` (was `updateConfig`).
 - **Fixes** — cancel during the auto-retry backoff, `destroy()` stopping the queue, no events after teardown / removal, mode-flip rebuild reporting dropped files, `multiple="false"` replace now cancels + reports the replaced file.
 
 ## What's New in v1.0.0-rc02

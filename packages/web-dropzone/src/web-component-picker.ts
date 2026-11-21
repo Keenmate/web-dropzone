@@ -169,12 +169,12 @@ export class DropzonePickerElement extends SatelliteElement {
         const controlAttrs = this.isOwnOrStoreDisabled()
             ? 'disabled'
             : this.isAddBlocked() ? 'aria-disabled="true"' : '';
-        const isReadonly = !!this.config.isReadonly || !!this.store.getConfig().isReadonly;
+        const isReadonly = !!this.config.isReadonly || !!this.store.getOptions().isReadonly;
         // `disabled` (= can't add) covers readonly too; only a real disable greys the surface.
         const stateClass = this.isOwnOrStoreDisabled()
             ? 'dz__dropzone--disabled'
             : isReadonly ? 'dz__dropzone--readonly' : '';
-        const storeCfg = this.store.getConfig();
+        const storeCfg = this.store.getOptions();
 
         const acceptAttr = (this.config.accept as string | null) ?? storeCfg.accept ?? '';
         const multipleAttr = (this.config.isMultiple as boolean | null) ?? storeCfg.isMultiple ?? true;
@@ -305,7 +305,7 @@ export class DropzonePickerElement extends SatelliteElement {
     /** Own `highlight-on-page-drag` wins; unset → the bound store's setting. */
     private isPageDragHighlighted(): boolean {
         const own = this.config.shouldHighlightOnPageDrag as boolean | null;
-        return own ?? !!this.store?.getConfig().shouldHighlightOnPageDrag;
+        return own ?? !!this.store?.getOptions().shouldHighlightOnPageDrag;
     }
 
     /** Join / leave the shared page-drag tracker (one page listener set for every instance). */
@@ -358,12 +358,12 @@ export class DropzonePickerElement extends SatelliteElement {
 
     /** Disabled by its own `disabled` or the store's (not counting `readonly`). */
     private isOwnOrStoreDisabled(): boolean {
-        return this.isEffectivelyDisabled || !!this.store?.getConfig().isDisabled;
+        return this.isEffectivelyDisabled || !!this.store?.getOptions().isDisabled;
     }
 
     /** The picker can't add files: disabled, or it / the store is read-only. */
     private isAddBlocked(): boolean {
-        return this.isOwnOrStoreDisabled() || !!this.config.isReadonly || !!this.store?.getConfig().isReadonly;
+        return this.isOwnOrStoreDisabled() || !!this.config.isReadonly || !!this.store?.getOptions().isReadonly;
     }
 
     // ========================================================================

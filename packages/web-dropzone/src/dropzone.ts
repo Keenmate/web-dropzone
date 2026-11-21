@@ -218,7 +218,7 @@ export class WebDropzone extends DropzoneEngine {
 
     /**
      * Whether `onEngineEvent` reacts. On between `attachEventListeners` and
-     * `detachEventListeners` (off during an `updateConfig` re-render and
+     * `detachEventListeners` (off during an `setOptions` re-render and
      * after destroy), mirroring the old substrate-listener lifetime.
      */
     private isEngineEventWiringActive = false;
@@ -2430,7 +2430,7 @@ export class WebDropzone extends DropzoneEngine {
      * Renderer-side reactions to engine happenings — called by the engine's
      * `notify` BEFORE the event is emitted, so the DOM is current when
      * consumers' listeners run. Inactive between `detachEventListeners` and
-     * `attachEventListeners` (an `updateConfig` re-render, destroy).
+     * `attachEventListeners` (an `setOptions` re-render, destroy).
      */
     protected override onEngineEvent<K extends DropzoneEngineEventName>(name: K, detail: EngineEventDetail<K>): void {
         if (!this.isEngineEventWiringActive) return;
@@ -2461,7 +2461,7 @@ export class WebDropzone extends DropzoneEngine {
         }
     }
 
-    /** A config re-render (`updateConfig`) refreshes the same surfaces as `change`. */
+    /** A config re-render (`setOptions`) refreshes the same surfaces as `change`. */
     protected override onConfigApplied(): void {
         if (this.isEngineEventWiringActive) this.refreshAggregateSurfaces();
     }

@@ -108,7 +108,7 @@ Every spec runs in three Playwright projects — chromium, firefox and webkit
 | Public methods: `pauseAll`, `resumeAll`, `retryAll`           | ✓      | `upload-edge.spec.ts` | `upload-edge.html` |
 | `uploadAll` returns + drives worker pool                      | ✓      | `api.spec.ts`    | `api.html`    |
 | `controller.getFiles()` returns mutable copy                  | ✓      | `api.spec.ts`    | `api.html`    |
-| `controller.getConfig()` returns merged config                | ✓      | `api.spec.ts`    | `api.html`    |
+| `controller.getOptions()` returns merged options              | ✓      | `api.spec.ts`    | `api.html`    |
 | `controller.getOverallProgress()` aggregate                   | ✓      | `api.spec.ts`    | `api.html`    |
 | `el.controller` is a DropzoneController (method signatures)  | ✓      | `api.spec.ts`    | `api.html`    |
 | `.files` getter on host element                               | ✓      | `api.spec.ts`    | `api.html`    |

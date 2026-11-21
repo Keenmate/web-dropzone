@@ -24,6 +24,7 @@ compose your own renderer next to the official one.
 
 ## What's New in v1.0.0-rc03
 
+- **Settings one way (BREAKING)** — `new DropzoneEngine(target, options)` → `engine.setOptions(partial)` (was `updateConfig`) → `engine.getOptions()` (was `getConfig`, also on `DropzoneController`); the same shape as every Keenmate public engine.
 - **`DropzoneEngine` + `DropzoneController` — one interaction model** — The headless class is `DropzoneEngine` (was `DropzoneCore`), and its public surface is the `DropzoneController` facade (`engine.controller`, also `el.controller` on `<web-dropzone>`, was `DropzoneStoreAPI`), built once and delegating to the current engine so a captured controller survives rebuilds. Every callback takes one `ctx` and every ctx / event detail carries `controller` and `element`, non-enumerable, so `JSON.stringify(detail)` sees only the data. Standalone, events are dispatched on the host element, bubbling and not composed (web-components-core SPEC §12.5).
 - **One cancel rule** — `cancelFile(id)` returns a promise: a running handler gets its `AbortSignal` and up to `cancelTimeout` ms (default 2000) to settle while the file is `cancelling`; it settles in time → `cancelled`, otherwise `cancelTimeoutBehavior` (`error`, retryable, or `remove`). Late results are ignored and the concurrency slot is freed either way. `cancelAll()`, `beforeFilesCancelCallback` and the `file-cancel` event (`{ file, result, uploadedBytes, metadata }`) complete it.
 - **`labels` — every UI string in one input** — `DEFAULT_LABELS`, `resolveLabel()` and `createLabelFn()` give renderers the same per-key-merged, placeholder-filled strings as the element (status words, row-button names, validation messages), replacing the `STATUS_LABELS` / `ACTION_LABELS` exports.
@@ -90,13 +91,13 @@ const input = host.querySelector('input');
 input.addEventListener('change', () => engine.addFiles(input.files));
 host.addEventListener('files-change', ({ detail }) => {
   host.querySelector('ul').innerHTML = detail.files
-    .map((f) => `<li>${escapeHtml(f.name)} · ${formatFileSize(f.size, engine.getConfig().locale)} · ${escapeHtml(fileStatusLabel(engine.label, f))}</li>`)
+    .map((f) => `<li>${escapeHtml(f.name)} · ${formatFileSize(f.size, engine.getOptions().locale)} · ${escapeHtml(fileStatusLabel(engine.label, f))}</li>`)
     .join('');
 });
 host.addEventListener('file-reject', ({ detail }) => alert(detail.rejectedFiles.map((r) => r.validation.error).join(', ')));
 ```
 
-`engine.updateConfig(partial)` changes options later; `engine.destroy()` aborts running uploads and
+`engine.setOptions(partial)` changes options later (merged into the current ones; `engine.getOptions()` reads them back, read-only); `engine.destroy()` aborts running uploads and
 silences it. A vanilla renderer with remove buttons and a React hook are in
 [examples.md](./docs/examples.md); the full API in [usage.md](./docs/usage.md).
 
@@ -110,10 +111,10 @@ defaults live once, in `DEFAULT_CONFIG` (the element's input rows read them):
 | `labels` | `labels` | yes — `engine.label()`, validation messages (default: the built-in English, `DEFAULT_LABELS`) |
 | `translateCallback` | `translateCallback` | yes — asked before the page-wide `window.components.locale.translateCallback` |
 | `renderIconCallback` | `renderIconCallback` | carried — the engine draws no icon; pass it to core `renderIcon()` when you draw one |
-| `fileIcons` / `getFileIconCallback` | same | carried — `getFileIcon(file, engine.getConfig(), engine.contextBase)` applies them |
+| `fileIcons` / `getFileIconCallback` | same | carried — `getFileIcon(file, engine.getOptions(), engine.contextBase)` applies them |
 | validation, upload, gate options (`accept`, `maxFileSize`, …, `uploadFileCallback`, `before*Callback`) | same | yes |
 | `renderLoadingCallback` | — | no — the engine draws no loader (core `renderLoader()` reads the page-wide hook for yours) |
-| `locale` | `locale` | yes — the `{count}` numbers in `engine.label()`, the sizes in validation messages; pass `engine.getConfig().locale` to `formatFileSize(bytes, locale)` when you draw a size (default: unset — `DEFAULT_CONFIG.locale`, the page-wide `window.components.locale`, else the browser) |
+| `locale` | `locale` | yes — the `{count}` numbers in `engine.label()`, the sizes in validation messages; pass `engine.getOptions().locale` to `formatFileSize(bytes, locale)` when you draw a size (default: unset — `DEFAULT_CONFIG.locale`, the page-wide `window.components.locale`, else the browser) |
 | `customStyles` / `getCustomStylesCallback`, `motion`, `responsive`, `defer` | — | no — the element's shadow root / core element features |
 | display options (`displayMode`, `listAppearance`, `icon`, `storageKey`, …) | same | carried — only a renderer reads them |
 

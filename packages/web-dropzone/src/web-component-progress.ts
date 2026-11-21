@@ -127,7 +127,7 @@ export class DropzoneProgressElement extends SatelliteElement {
         }
 
         const totalFileCount = this.store.getFiles().length;
-        const pipelineActive = !!this.store.getConfig().uploadFileCallback;
+        const pipelineActive = !!this.store.getOptions().uploadFileCallback;
         const sig = this.overallActionsSignature(overall, pipelineActive);
 
         const fillEl = this.container.querySelector('.dz__overall-progress-fill') as HTMLElement | null;
@@ -193,7 +193,7 @@ export class DropzoneProgressElement extends SatelliteElement {
     private renderActions(o: OverallProgress, pipelineActive: boolean): string {
         // A disabled store (its `disabled` or a disabled `<fieldset>`) disables
         // the bulk buttons: no interaction, not focusable (core SPEC §6.4).
-        const dis = this.store?.getConfig().isDisabled ? ' disabled' : '';
+        const dis = this.store?.getOptions().isDisabled ? ' disabled' : '';
         const out: string[] = [];
         if (pipelineActive && o.uploadingCount > 0) {
             out.push(`<button type="button" class="dz__overall-progress-action" data-dz-action="pause-all"${dis}>${escapeHtml(this.label('buttons.pauseAll'))}</button>`);
@@ -216,7 +216,7 @@ export class DropzoneProgressElement extends SatelliteElement {
         const r = pipelineActive && o.pausedCount > 0 ? '1' : '0';
         const c = pipelineActive && o.uploadingCount + o.pendingCount + o.pausedCount > 0 ? '1' : '0';
         const e = o.failedCount > 0 ? '1' : '0';
-        return `${p}${r}${c}${e}${this.store?.getConfig().isDisabled ? 'd' : ''}`;
+        return `${p}${r}${c}${e}${this.store?.getOptions().isDisabled ? 'd' : ''}`;
     }
 
     private bindActionHandlers(root: ParentNode): void {

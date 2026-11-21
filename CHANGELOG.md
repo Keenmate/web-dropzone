@@ -11,6 +11,17 @@ No stable 1.0.0 is published, so the break ships as the next release
 candidate — but `^1.0.0-rc02` consumers will pull it: the event,
 callback and store-access API below is breaking.
 
+### Changed — BREAKING (engine settings one way, rulebook C-CA-39, 2026-11-21)
+
+Every Keenmate public engine takes settings the same way: `new DropzoneEngine(target, options)` (missing keys
+from `DEFAULT_CONFIG`) → `engine.setOptions(partial)` → `engine.getOptions()`. No aliases.
+
+| Before | After |
+|---|---|
+| `engine.updateConfig(partial)` (returned `true`) | `engine.setOptions(partial)` (returns nothing) — merges into the current options, re-renders in place |
+| `engine.getConfig()` | `engine.getOptions()` — the merged options, read-only |
+| `el.controller.getConfig()` / `ctx.controller.getConfig()` (`DropzoneController`) | `controller.getOptions()` |
+
 ### Added (`locale` input, rulebook C-CA-38, 2026-11-21)
 
 - **`locale` input (attribute + property)** — BCP-47 locale for the numbers the dropzone formats: file sizes
@@ -20,7 +31,7 @@ callback and store-access API below is breaking.
   page-wide `window.components.locale`, else the browser — as before. Live. Bound satellites follow their
   store's `locale`. UI strings stay `labels`.
 - **`@keenmate/web-dropzone-core`:** `DropzoneConfig.locale` — the same option on a standalone
-  `DropzoneEngine` (default from `DEFAULT_CONFIG.locale`, unset; `updateConfig({ locale })` re-renders);
+  `DropzoneEngine` (default from `DEFAULT_CONFIG.locale`, unset; `setOptions({ locale })` re-renders);
   `formatFileSize(bytes, locale?)` takes an optional locale; new `formatPercent(value, fractionDigits, locale?)`; `createLabelFn(…, getLocale?)` a fourth
   argument; `ValidationConfig.locale`.
 - `examples-localization.html` LO05 shows the element `locale` next to the page locale.
