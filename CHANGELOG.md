@@ -23,6 +23,13 @@ from `DEFAULT_CONFIG`) → `engine.setOptions(partial)` → `engine.getOptions()
 | `el.controller.getConfig()` / `ctx.controller.getConfig()` (`DropzoneController`) | `controller.getOptions()` |
 | type `DropzoneConfig` (`@keenmate/web-dropzone-core`, re-exported by `@keenmate/web-dropzone`) | `DropzoneEngineOptions` — the engine's settings type (constructor `options`, `setOptions(partial: Partial<DropzoneEngineOptions>)`, `getOptions(): Readonly<DropzoneEngineOptions>`); no alias. The element config types (`DropzoneElementConfig`, `SatelliteElementConfig`, …) keep their names |
 
+### Added (icons repaint, rulebook C-CA-40, 2026-11-22)
+
+- Changing the page-wide `window.components.renderIconCallback` after the dropzone rendered repaints its icons
+  in place (core `iconsChanged()`): the prompt icon, the row Cancel / Remove buttons (inline list + open
+  popover) and the bound satellites (`<web-dropzone-picker>` icon, `<web-dropzone-list>` rows) — files, scroll,
+  focus and the open popover are kept. The drag overlay reads the hook on its next build.
+
 ### Added (`locale` input, rulebook C-CA-38, 2026-11-21)
 
 - **`locale` input (attribute + property)** — BCP-47 locale for the numbers the dropzone formats: file sizes

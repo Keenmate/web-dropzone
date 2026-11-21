@@ -52,6 +52,7 @@ import {
     renderDetailedItem,
     renderGridItem,
     renderBadgeItem,
+    repaintRowIcons,
     statusGlyph
 } from './row-templates';
 import type { RowTemplateOptions } from './row-templates';
@@ -152,6 +153,20 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
     /** An own input changed (core `update()`): re-render. */
     protected override inputsChanged(): void {
         if (this.store) this.renderAll();
+    }
+
+    /**
+     * The page-wide `window.components.renderIconCallback` changed (core,
+     * C-CA-40): repaint the rows' Cancel / Remove icons in place with the
+     * store's icon hook — rows, scroll and focus are kept.
+     */
+    protected override iconsChanged(): void {
+        const store = this.store;
+        if (!store) return;
+        const cfg = store.getOptions();
+        const files = store.getFiles();
+        repaintRowIcons(this.container, (id) => files.find((f) => f.id === id), cfg.cancelIcon, cfg.removeIcon,
+            { host: cfg.hostElement ?? this, renderIconCallback: cfg.renderIconCallback });
     }
 
     // ========================================================================

@@ -30,6 +30,16 @@
                 }
               },
               "description": "Disconnect: stop the page-level wiring; files, uploads and the popover\n(open state + DOM) are kept for `activate()`."
+            },
+            {
+              "kind": "method",
+              "name": "repaintIcons",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "description": "Repaint every icon this store drew through core `renderIcon` in place —\nthe page-wide `window.components.renderIconCallback` changed (the\nelement's `iconsChanged()`, C-CA-40). Only the icon slots are replaced\n(prompt icon, row Cancel / Remove buttons in the list and the open\npopover), so files, scroll, focus and the open popover are kept. The\ndrag overlay is built per drag, so its next build reads the new hook.\nBound satellites repaint themselves (their own `iconsChanged()`)."
             }
           ],
           "superclass": {

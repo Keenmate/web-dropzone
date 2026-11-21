@@ -61,6 +61,13 @@
         <web-dropzone-picker id="hooks-picker" for="hooks"></web-dropzone-picker>
     </div>
 
+    <div class="fixture">
+        <div class="fixture-label">page hook assigned LATER repaints (core iconsChanged): store + bound picker + list (icon="later-up", remove-icon="later-x")</div>
+        <web-dropzone id="late" accept="*/*" list-appearance="list" icon="later-up" remove-icon="later-x"></web-dropzone>
+        <web-dropzone-picker id="late-picker" for="late"></web-dropzone-picker>
+        <web-dropzone-list id="late-list" for="late" list-appearance="list"></web-dropzone-list>
+    </div>
+
     <script type="module">
         import '/src/index.ts';
         import { installAddNamed } from './fixture-kit.js';

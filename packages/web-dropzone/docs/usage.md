@@ -402,7 +402,10 @@ core's one icon rule (`renderIcon`), first match wins:
 
 `ctx` is `{ component, element, prefix: 'dz' }`, plus `{ file }` on a row Cancel / Remove button. A bound satellite
 (`<web-dropzone-picker>`, `<web-dropzone-list>`) draws with its store's `renderIconCallback` (`element` = the
-`<web-dropzone>`). The hook's markup is inserted raw — NOT sanitized.
+`<web-dropzone>`). The hook's markup is inserted raw — NOT sanitized. Changing
+`window.components.renderIconCallback` later repaints the icons (store and bound satellites, in place). An
+icon-font `<i>` needs the font's class rules inside the shadow root — pass them through `custom-styles` / the
+page-wide `window.components['web-dropzone'].customStyles` (an `@import` is also linked once in the document head).
 
 ```html
 <style>

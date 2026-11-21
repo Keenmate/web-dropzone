@@ -218,6 +218,33 @@ export function renderCancelButton(file: FileState, baseClass: string, opts: Row
 }
 
 /**
+ * Repaint the icons of every rendered row Cancel / Remove button under `root`
+ * in place (the page-wide `window.components.renderIconCallback` changed —
+ * core `iconsChanged()`, C-CA-40). Only the buttons' content is replaced, so
+ * the rows, their scroll position and a focused button survive.
+ */
+export function repaintRowIcons(
+    root: ParentNode,
+    findFile: (id: string) => FileState | undefined,
+    cancelIcon: string | null | undefined,
+    removeIcon: string | null | undefined,
+    iconOptions: DzIconOptions
+): void {
+    root.querySelectorAll<HTMLElement>('button[data-dz-action="cancel"][data-file-id], button[data-dz-action="remove"][data-file-id]').forEach((btn) => {
+        const file = findFile(btn.dataset.fileId!);
+        if (!file) return;
+        const opts = rowIconOptions(file, iconOptions);
+        if (btn.dataset.dzAction === 'cancel') {
+            btn.innerHTML = renderDzIcon(cancelIcon, opts) || CANCEL_ICON;
+        } else {
+            const html = renderDzIcon(removeIcon, opts);
+            btn.toggleAttribute('data-custom-icon', !!html);
+            btn.innerHTML = html;
+        }
+    });
+}
+
+/**
  * Per-row Remove (✕) button — always rendered; `--hidden` (layout kept) when
  * the file isn't user-removable, disabled while `cancelling`. A `remove-icon`
  * (read by {@link renderDzIcon}) replaces the CSS-masked glyph

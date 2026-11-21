@@ -152,3 +152,34 @@ test('a bound picker draws with its store hook; assigning renderIconCallback re-
     await expect(dz(page, 'hooks').locator('.dz__dropzone-icon b.late-icon')).toHaveText('late');
     await expect(page.locator('#hooks-picker').locator('.dz__dropzone-icon b.late-icon')).toHaveCount(1);
 });
+
+// ── The page hook changes later (core iconsChanged(), C-CA-40) ───────────────
+
+test('assigning window.components.renderIconCallback later repaints store + satellites in place (rows + focus kept)', async ({ page }) => {
+    await page.evaluate(() => (window as any).__addNamed('late', ['a.txt', 'b.txt']));
+    const storeRm = dz(page, 'late').locator('.dz__file-item:has(.dz__file-item-name:text-is("a.txt")) [data-dz-action="remove"]');
+    await expect(storeRm.locator('i.dz__icon.later-x')).toHaveCount(1);   // unanswered → icon-font <i>
+    // Keep state: the row button stays focused, the rows stay.
+    await storeRm.focus();
+    const rowBefore = await storeRm.evaluate((el) => { (window as any).__lateBtn = el; return el.isConnected; });
+    expect(rowBefore).toBe(true);
+    try {
+        await page.evaluate(() => {
+            (window as any).components.renderIconCallback = (name: string) =>
+                name === 'later-up' || name === 'later-x' ? `<b data-test-icon>${name}</b>` : null;
+        });
+        // The store: prompt icon + row remove buttons.
+        await expect(dz(page, 'late').locator('.dz__dropzone-icon b[data-test-icon]')).toHaveText('later-up');
+        await expect(dz(page, 'late').locator('[data-dz-action="remove"] b[data-test-icon]')).toHaveCount(2);
+        await expect(dz(page, 'late').locator('[data-dz-action="remove"][data-custom-icon]')).toHaveCount(2);
+        // The satellites (drawn with the store's hook) repaint too.
+        await expect(page.locator('#late-picker').locator('.dz__dropzone-icon b[data-test-icon]')).toHaveText('later-up');
+        await expect(page.locator('#late-list').locator('[data-dz-action="remove"] b[data-test-icon]')).toHaveCount(2);
+        // Same button element, still focused; files kept.
+        const kept = await storeRm.evaluate((el) => el === (window as any).__lateBtn && el.getRootNode().activeElement === el);
+        expect(kept).toBe(true);
+        expect(await dz(page, 'late').evaluate((el: any) => el.files.length)).toBe(2);
+    } finally {
+        await page.evaluate(() => { (window as any).components.renderIconCallback = null; });
+    }
+});

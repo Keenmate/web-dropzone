@@ -384,6 +384,7 @@ Every spec runs in three Playwright projects — chromium, firefox and webkit
 | Icon inputs: markup raw, emoji / other text escaped           | ✓      | `icons.spec.ts` | `icons.html` |
 | Named icons in satellites (picker `icon`, list `remove-icon`) | ✓      | `icons.spec.ts` | `icons.html` |
 | Named `overlay-icon` drawn in the drag-overlay layer          | ✓      | `icons.spec.ts` | `icons.html` |
+| Page hook assigned later repaints store + satellites in place (rows / focus kept, C-CA-40) | ✓ | `icons.spec.ts` | `icons.html` |
 
 ## 22. Keyboard + accessibility
 

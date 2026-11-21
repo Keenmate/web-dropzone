@@ -111,6 +111,25 @@ export class DropzonePickerElement extends SatelliteElement {
         if (this.store) this.render();
     }
 
+    /**
+     * The page-wide `window.components.renderIconCallback` changed (core,
+     * C-CA-40): repaint the prompt icon in place — no re-render, so focus
+     * on the picker's control is kept.
+     */
+    protected override iconsChanged(): void {
+        if (!this.store) return;
+        const icon = this.renderPromptIcon();
+        this.container.querySelectorAll<HTMLElement>('[data-dz-icon]').forEach((slot) => { slot.innerHTML = icon; });
+    }
+
+    /** The prompt icon: own `icon` → the store's → the built-in, drawn with the store's icon hook. */
+    private renderPromptIcon(): string {
+        const storeCfg = this.store!.getOptions();
+        return renderDzIcon((this.config.icon as string | null) ?? storeCfg.icon ?? DEFAULT_ICON,
+            // The store's icon hook, with the store element as its ctx `element`.
+            { host: storeCfg.hostElement ?? this, renderIconCallback: storeCfg.renderIconCallback });
+    }
+
     /** Core reports a flip of the picker's own `disabled`. */
     protected override disabledChanged(): void {
         if (this.store) this.render();
@@ -179,9 +198,7 @@ export class DropzonePickerElement extends SatelliteElement {
         const acceptAttr = (this.config.accept as string | null) ?? storeCfg.accept ?? '';
         const multipleAttr = (this.config.isMultiple as boolean | null) ?? storeCfg.isMultiple ?? true;
         const label = this.label('buttons.selectFiles');
-        const icon = renderDzIcon((this.config.icon as string | null) ?? storeCfg.icon ?? DEFAULT_ICON,
-            // The store's icon hook, with the store element as its ctx `element`.
-            { host: storeCfg.hostElement ?? this, renderIconCallback: storeCfg.renderIconCallback });
+        const icon = this.renderPromptIcon();
         const hint = this.label('labels.hint');
 
         // Card: the hidden input IS the keyboard control — named by the
@@ -231,7 +248,7 @@ export class DropzonePickerElement extends SatelliteElement {
                 <div class="dz__dropzone dz__dropzone--minimal ${stateClass}">
                     ${inputHtml}
                     <button type="button" class="dz__minimal" aria-label="${escapeHtml(ariaLabel)}" ${controlAttrs}>
-                        <span class="dz__minimal-icon">${icon}</span>
+                        <span class="dz__minimal-icon" data-dz-icon>${icon}</span>
                         ${minimalBadge}
                     </button>
                 </div>
@@ -282,7 +299,7 @@ export class DropzonePickerElement extends SatelliteElement {
                 <div class="${classes}">
                     ${inputHtml}
                     <div class="dz__dropzone-content">
-                        <div class="dz__dropzone-icon">${icon}</div>
+                        <div class="dz__dropzone-icon" data-dz-icon>${icon}</div>
                         <div class="dz__dropzone-text" id="${PROMPT_TEXT_ID}">${escapeHtml(text)}</div>
                         ${browseBtn}
                         ${hintHtml}

@@ -560,6 +560,16 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
     }
 
     /**
+     * The page-wide `window.components.renderIconCallback` changed (core,
+     * C-CA-40): repaint the icons in place — prompt icon, row Cancel / Remove
+     * buttons, the open popover. No re-render, so focus, scroll and the open
+     * popover are kept; bound satellites repaint through their own hook.
+     */
+    protected override iconsChanged(): void {
+        this.#dropzone?.repaintIcons();
+    }
+
+    /**
      * Activate: (re)start the store's page-level wiring. The store itself is
      * built once by `reinit()` and survives a DOM move — files, in-flight
      * uploads and popover state are kept (decision D1). Only a store torn down

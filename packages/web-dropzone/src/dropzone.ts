@@ -611,7 +611,7 @@ export class WebDropzone extends DropzoneEngine {
                 <div class="dz__dropzone dz__dropzone--minimal ${disabled}">
                     ${input}
                     <button type="button" class="dz__minimal" aria-label="${ariaLabel}" ${this.selectorControlAttrs()}>
-                        <span class="dz__minimal-icon">${icon}</span>
+                        <span class="dz__minimal-icon" data-dz-icon>${icon}</span>
                         ${count > 0 ? `<span class="dz__minimal-badge">${count}</span>` : ''}
                     </button>
                 </div>
@@ -680,7 +680,7 @@ export class WebDropzone extends DropzoneEngine {
 
         return `
             <div class="dz__dropzone-content">
-                <div class="dz__dropzone-icon">${icon}</div>
+                <div class="dz__dropzone-icon" data-dz-icon>${icon}</div>
                 <div class="dz__dropzone-text" id="${this.promptTextId}">${escapeHtml(text)}</div>
                 ${browseBtn}
                 ${hint}
@@ -1530,6 +1530,27 @@ export class WebDropzone extends DropzoneEngine {
      */
     private iconOptions(): DzIconOptions {
         return { host: this.config.hostElement ?? null, renderIconCallback: this.config.renderIconCallback };
+    }
+
+    /**
+     * Repaint every icon this store drew through core `renderIcon` in place —
+     * the page-wide `window.components.renderIconCallback` changed (the
+     * element's `iconsChanged()`, C-CA-40). Only the icon slots are replaced
+     * (prompt icon, row Cancel / Remove buttons in the list and the open
+     * popover), so files, scroll, focus and the open popover are kept. The
+     * drag overlay is built per drag, so its next build reads the new hook.
+     * Bound satellites repaint themselves (their own `iconsChanged()`).
+     */
+    repaintIcons(): void {
+        const opts = this.iconOptions();
+        const roots = new Set<ParentNode>([this.element]);
+        if (this.popover) roots.add(this.popover);
+        for (const root of roots) {
+            root.querySelectorAll<HTMLElement>('[data-dz-icon]').forEach((slot) => {
+                slot.innerHTML = RowTemplate.renderDzIcon(this.config.icon || DEFAULT_CONFIG.icon, opts);
+            });
+            RowTemplate.repaintRowIcons(root, (id) => this.files.find((f) => f.id === id), this.config.cancelIcon, this.config.removeIcon, opts);
+        }
     }
 
     /**
