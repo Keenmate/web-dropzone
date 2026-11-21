@@ -11,6 +11,19 @@ No stable 1.0.0 is published, so the break ships as the next release
 candidate — but `^1.0.0-rc02` consumers will pull it: the event,
 callback and store-access API below is breaking.
 
+### Added (`locale` input, rulebook C-CA-38, 2026-11-21)
+
+- **`locale` input (attribute + property)** — BCP-47 locale for the numbers the dropzone formats: file sizes
+  (rows, summary, popover size column + totals, limits line, progress counts, the size validation messages)
+  and the `{count}` numbers in labels (`translateCallback` gets it as `ctx.locale`). Unset (or `auto`) = the
+  page-wide `window.components.locale`, else the browser — as before. Live. Bound satellites follow their
+  store's `locale`. UI strings stay `labels`.
+- **`@keenmate/web-dropzone-core`:** `DropzoneConfig.locale` — the same option on a standalone
+  `DropzoneEngine` (default from `DEFAULT_CONFIG.locale`, unset; `updateConfig({ locale })` re-renders);
+  `formatFileSize(bytes, locale?)` takes an optional locale; `createLabelFn(…, getLocale?)` a fourth
+  argument; `ValidationConfig.locale`.
+- `examples-localization.html` LO05 shows the element `locale` next to the page locale.
+
 ### Docs — localization page (2026-11-21)
 
 - `examples-localization.html` — the shared localization page (LO01–LO06: instance `labels`, page-wide

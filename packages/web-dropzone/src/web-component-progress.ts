@@ -184,8 +184,8 @@ export class DropzoneProgressElement extends SatelliteElement {
         const counts = this.label('messages.progressCounts', {
             completed: o.completedCount,
             total: totalFileCount,
-            uploadedSize: formatFileSize(o.uploadedBytes),
-            totalSize: formatFileSize(o.totalBytes)
+            uploadedSize: formatFileSize(o.uploadedBytes, this.storeLocale),
+            totalSize: formatFileSize(o.totalBytes, this.storeLocale)
         });
         return `${escapeHtml(counts)}${pausedSegment}${failedSegment}`;
     }

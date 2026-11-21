@@ -90,7 +90,7 @@ const input = host.querySelector('input');
 input.addEventListener('change', () => engine.addFiles(input.files));
 host.addEventListener('files-change', ({ detail }) => {
   host.querySelector('ul').innerHTML = detail.files
-    .map((f) => `<li>${escapeHtml(f.name)} · ${formatFileSize(f.size)} · ${escapeHtml(fileStatusLabel(engine.label, f))}</li>`)
+    .map((f) => `<li>${escapeHtml(f.name)} · ${formatFileSize(f.size, engine.getConfig().locale)} · ${escapeHtml(fileStatusLabel(engine.label, f))}</li>`)
     .join('');
 });
 host.addEventListener('file-reject', ({ detail }) => alert(detail.rejectedFiles.map((r) => r.validation.error).join(', ')));
@@ -113,7 +113,7 @@ defaults live once, in `DEFAULT_CONFIG` (the element's input rows read them):
 | `fileIcons` / `getFileIconCallback` | same | carried — `getFileIcon(file, engine.getConfig(), engine.contextBase)` applies them |
 | validation, upload, gate options (`accept`, `maxFileSize`, …, `uploadFileCallback`, `before*Callback`) | same | yes |
 | `renderLoadingCallback` | — | no — the engine draws no loader (core `renderLoader()` reads the page-wide hook for yours) |
-| `locale` | — | the element has no `locale` input either: both follow the page-wide `window.components.locale` (`formatFileSize`, labels) |
+| `locale` | `locale` | yes — the `{count}` numbers in `engine.label()`, the sizes in validation messages; pass `engine.getConfig().locale` to `formatFileSize(bytes, locale)` when you draw a size (default: unset — `DEFAULT_CONFIG.locale`, the page-wide `window.components.locale`, else the browser) |
 | `customStyles` / `getCustomStylesCallback`, `motion`, `responsive`, `defer` | — | no — the element's shadow root / core element features |
 | display options (`displayMode`, `listAppearance`, `icon`, `storageKey`, …) | same | carried — only a renderer reads them |
 

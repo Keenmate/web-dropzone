@@ -162,3 +162,44 @@ test.describe('page-wide labels + locale (core /locale)', () => {
         await expect(satRow.locator('[data-dz-action="cancel"]')).toHaveAttribute('aria-label', 'STORE y.txt');
     });
 });
+
+test.describe('locale input (C-CA-38)', () => {
+    test.afterEach(async ({ page }) => {
+        await page.evaluate(() => { (window as any).components.locale = null; });
+    });
+
+    const addKb = (page: import('@playwright/test').Page, id: string, name: string) =>
+        dz(page, id).evaluate((el: any, n: string) => el.addFiles([new File([new Uint8Array(1536)], n, { type: 'text/plain' })]), name);
+
+    test('locale="de" formats the file sizes; unset follows window.components.locale.locale; live', async ({ page }) => {
+        await addKb(page, 'q', 'k.txt');
+        const size = rowOf(page, 'q', 'k.txt').locator('.dz__file-item-size');
+        await expect(size).toHaveText('1.5 KB');
+        expect(await dz(page, 'q').evaluate((el: any) => el.locale)).toBeNull();
+        await dz(page, 'q').evaluate(async (el: any) => { el.setAttribute('locale', 'de'); await el.whenSettled(); });
+        await expect(size).toHaveText('1,5 KB');
+        expect(await dz(page, 'q').evaluate((el: any) => el.locale)).toBe('de');
+        // unset → the page-wide locale
+        await dz(page, 'q').evaluate(async (el: any) => { el.removeAttribute('locale'); await el.whenSettled(); });
+        await expect(size).toHaveText('1.5 KB');
+        await page.evaluate(() => { (window as any).components.locale = { locale: 'cs' }; });
+        await expect(size).toHaveText('1,5 KB');
+        // the instance wins over the page; 'auto' = unset
+        await dz(page, 'q').evaluate(async (el: any) => { el.locale = 'en'; await el.whenSettled(); });
+        await expect(size).toHaveText('1.5 KB');
+        await dz(page, 'q').evaluate(async (el: any) => { el.locale = 'auto'; await el.whenSettled(); });
+        await expect(size).toHaveText('1,5 KB');
+    });
+
+    test('bound satellites (list rows + progress counts) follow the store locale', async ({ page }) => {
+        await addKb(page, 'list-store', 'k.txt');
+        await expect.poll(() => pendingNames(page)).toContain('k.txt');
+        const satSize = page.locator('#list-sat').locator('.dz__file-item:has(.dz__file-item-name:text-is("k.txt")) .dz__file-item-size');
+        const counts = page.locator('#progress-sat').locator('.dz__overall-progress-counts');
+        await expect(satSize).toHaveText('1.5 KB');
+        await expect(counts).toContainText('1.5 KB');
+        await dz(page, 'list-store').evaluate(async (el: any) => { el.locale = 'de'; await el.whenSettled(); });
+        await expect(satSize).toHaveText('1,5 KB');
+        await expect(counts).toContainText('1,5 KB');
+    });
+});

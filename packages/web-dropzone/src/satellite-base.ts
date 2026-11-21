@@ -219,7 +219,16 @@ export abstract class SatelliteElement<TEvents extends EventMap = Record<string,
         this.config.labels as DropzoneLabelOverrides | null | undefined,
         pageLabelsFor(this.localName),
         this.store?.getConfig().labels
-    ], () => this, () => this.store?.getConfig().translateCallback);
+    ], () => this, () => this.store?.getConfig().translateCallback, () => this.storeLocale);
+
+    /**
+     * The bound store's `locale` (a satellite has no `locale` input — it follows
+     * its store): the file sizes it formats and the `{count}` numbers in its
+     * labels. Unset → the page-wide locale, else the browser.
+     */
+    protected get storeLocale(): string | null | undefined {
+        return this.store?.getConfig().locale;
+    }
 
     /**
      * Build (core `reinit()`): custom CSS, the canonical way (core usage

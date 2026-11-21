@@ -471,6 +471,11 @@
           "values": [{ "name": "DropzoneLabelOverrides" }]
         },
         {
+          "name": "locale",
+          "description": "BCP-47 locale for the numbers the dropzone formats — file sizes (rows, summary, popover totals, limits line, progress counts, size validation messages; `1,5 MB` in `cs`) and the `{count}` numbers in labels — or unset (the page-wide `window.components.locale`, else the browser language). Bound satellites follow it. UI strings are `labels`. Live.",
+          "values": []
+        },
+        {
           "name": "popover-placement",
           "description": "Placement of the compact-mode popover relative to its trigger (a core /positioning placement; flips when there is no room).",
           "values": [

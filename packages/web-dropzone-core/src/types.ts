@@ -552,6 +552,15 @@ export interface DropzoneConfig {
      * `{status}` placeholders. Resolved through `resolveLabel`.
      */
     labels?: DropzoneLabelOverrides | null;
+    /**
+     * BCP-47 locale for the numbers the dropzone formats — file sizes
+     * (`1,5 MB` in `cs`), the limits line, validation messages and the
+     * `{count}` numbers in labels — or unset (`null` / `undefined` / `'auto'`):
+     * the page-wide `window.components.locale`, else the browser language
+     * (core `resolveLocale`). Bound satellites follow their store's. UI
+     * strings are `labels`. Live (`updateConfig({ locale })` re-renders).
+     */
+    locale?: string | null;
 
     // ========================================================================
     // COMPACT MODE OPTIONS

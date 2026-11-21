@@ -341,12 +341,15 @@ export function resolveLabel(
  * function before its element is set. `getTranslateCallback` = the element's
  * own `translateCallback` (asked before the page-wide one) — passed explicitly
  * so a standalone engine / a satellite uses the store's; unset → core reads
- * `host.translateCallback`.
+ * `host.translateCallback`. `getLocale` = the `locale` setting (the engine's /
+ * the store's for a satellite): the `{count}` numbers and `translateCallback`'s
+ * `ctx.locale`; unset → the page-wide locale, else the browser.
  */
 export function createLabelFn(
     getOverrides: () => LabelSources,
     getHost?: () => Element | null | undefined,
-    getTranslateCallback?: () => TranslateCallback | null | undefined
+    getTranslateCallback?: () => TranslateCallback | null | undefined,
+    getLocale?: () => string | null | undefined
 ): LabelFn {
     let labels: Labels<DropzoneLabels> | null = null;
     let labelsHost: Element | null = null;
@@ -354,7 +357,11 @@ export function createLabelFn(
         const host = getHost?.() ?? (typeof document !== 'undefined' ? document.documentElement : null);
         if (!host) return resolveLabel(getOverrides(), key, vars);
         if (!labels || labelsHost !== host) {
-            labels = createLabels(host, DEFAULT_LABELS, () => mergeSources(getOverrides()), getTranslateCallback ? { tag: LABELS_TAG, getTranslateCallback } : { tag: LABELS_TAG });
+            labels = createLabels(host, DEFAULT_LABELS, () => mergeSources(getOverrides()), {
+                tag: LABELS_TAG,
+                ...(getTranslateCallback ? { getTranslateCallback } : {}),
+                ...(getLocale ? { getLocale } : {})
+            });
             labelsHost = host;
         }
         return labels.text(key, vars);

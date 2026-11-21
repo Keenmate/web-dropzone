@@ -119,6 +119,7 @@ shadow root (`custom-styles` / `getCustomStylesCallback`, page-wide per tag) is 
 | `remove-icon` | `removeIcon` |  |  | Row Remove (✕) button glyph — markup (starts with `<`, inserted raw — NOT sanitized), an icon name (masked from `--base-icon-<name>`), or text (an emoji). Unset = built-in icon. See [Icons](#icons). |
 | `icon` | `icon` |  |  | Prompt icon (emoji or markup). |
 | `labels` | `labels` | `DropzoneLabelOverrides` |  | Every UI string (see `DropzoneLabels` / `DEFAULT_LABELS`): flat `<elementType>.<name>` keys (`buttons.selectFiles`, `ariaLabels.cancelFile`; the full `web-dropzone.<key>` works too), merged per key over the built-in English; `{name}` / `{count}` / `{size}` / … placeholders: prompt, hint, empty, summary, status names, row + bulk buttons, popover, limits line, progress strip, validation messages. Satellites inherit them (and take their own `labels` on top). Property (object) or JSON attribute. Live. |
+| `locale` | `locale` | `string \| null` |  | BCP-47 locale for the numbers the dropzone formats — file sizes (rows, summary, popover totals, limits line, progress counts, size validation messages; `1,5 MB` in `cs`) and the `{count}` numbers in labels — or unset (the page-wide `window.components.locale`, else the browser language; `auto` = unset). Bound satellites follow it. UI strings are `labels`. Live. |
 | `popover-placement` | `popoverPlacement` | `'top' \| 'top-start' \| 'top-end' \| 'bottom' \| 'bottom-start' \| 'bottom-end' \| 'left' \| 'left-start' \| 'left-end' \| 'right' \| 'right-start' \| 'right-end'` | `'bottom-start'` | Placement of the compact-mode popover relative to the summary (floating-ui placement). |
 | `overlay-target` | `overlayTarget` | `HTMLElement \| string` |  | Element (or selector string) that acts as the full-viewport drag-overlay target. Assign an HTMLElement via the property; a selector string via the `overlay-target` attribute. |
 | `overlay-icon` | `overlayIcon` |  |  | Drag-overlay icon — markup (starts with `<`, inserted raw — NOT sanitized), an icon name (masked from `--base-icon-<name>`), or text (an emoji). See [Icons](#icons). |
@@ -621,8 +622,14 @@ A key none of those set goes to the element's own `translateCallback` property f
 `null` / `undefined` = not mine → the page-wide one) — one dropzone needs no page setup; bound satellites ask
 their store's, and a standalone `DropzoneEngine` takes it as `config.translateCallback`. A `translateCallback`
 (either) is never asked for a key the instance set itself. Labels are text: the component
-escapes them where it builds HTML. `formatFileSize()` uses the resolved decimal separator (core
-`formatNumber`). The element-less lookup is `resolveLabel(sources, key, vars)` (exported).
+escapes them where it builds HTML. `formatFileSize(bytes, locale?)` uses the resolved decimal separator (core
+`formatNumber`).
+
+**Per element: `locale`.** `<web-dropzone locale="de">` formats this dropzone's numbers — file sizes and
+the `{count}` numbers in labels — in German, whatever the page locale; unset (or `auto`) follows
+`window.components.locale.locale`, else the browser. Bound satellites (`<web-dropzone-list>`,
+`-progress`, `-indicator`, `-picker`) follow their store's `locale`; a standalone `DropzoneEngine` takes
+it as `config.locale`. It formats numbers only — the strings come from `labels` / the page dictionary. The element-less lookup is `resolveLabel(sources, key, vars)` (exported).
 
 A label set to `''` is deliberately empty and renders nothing (e.g. `'messages.noData': ''` hides the
 empty-list text); a missing / `undefined` key falls back to English. Labels are **text** — always

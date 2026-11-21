@@ -234,7 +234,8 @@ export class DropzoneEngine {
     readonly label: LabelFn = createLabelFn(
         () => this.config.labels,
         () => this.config.hostElement ?? this.element,
-        () => this.config.translateCallback
+        () => this.config.translateCallback,
+        () => this.config.locale
     );
 
     constructor(element: HTMLElement, config: DropzoneConfig = {}, host?: DropzoneEngineHost) {
@@ -1505,7 +1506,7 @@ export class DropzoneEngine {
                     file,
                     validation: {
                         valid: false,
-                        error: this.label('errors.maxTotalSize', { size: formatFileSize(maxTotal) }),
+                        error: this.label('errors.maxTotalSize', { size: formatFileSize(maxTotal, this.config.locale) }),
                         code: 'size'
                     }
                 });

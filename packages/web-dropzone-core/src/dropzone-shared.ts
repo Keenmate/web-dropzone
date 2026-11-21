@@ -65,7 +65,9 @@ export const DEFAULT_CONFIG: Required<Omit<DropzoneConfig, 'fileIcons' | 'getFil
     isUploadedFileRemovalAllowed: true,
     shouldSinkCompleted: false,
     sinkCompletedDelay: 1500,
-    progressMode: 'optimistic'
+    progressMode: 'optimistic',
+    // Unset = the page-wide `window.components.locale`, else the browser (core `resolveLocale`).
+    locale: null
 };
 
 /**
@@ -85,18 +87,19 @@ export function generateFileId(): string {
 }
 
 /**
- * Format a file size for people: `1.5 MB`, with the page's decimal separator
- * (core `formatNumber`: `window.components.locale` → the browser — `1,5 MB` in
- * Czech). Binary steps (1024), one decimal above bytes, no grouping.
+ * Format a file size for people: `1.5 MB`, with the locale's decimal separator
+ * (core `formatNumber`: `locale` — the dropzone's `locale` input — else
+ * `window.components.locale`, else the browser — `1,5 MB` in Czech). Binary
+ * steps (1024), one decimal above bytes, no grouping.
  */
-export function formatFileSize(bytes: number): string {
+export function formatFileSize(bytes: number, locale?: string | null): string {
     if (bytes === 0) return '0 B';
     const units = ['B', 'KB', 'MB', 'GB', 'TB'];
     const k = 1024;
     const i = Math.min(units.length - 1, Math.floor(Math.log(bytes) / Math.log(k)));
     const size = bytes / Math.pow(k, i);
     const digits = i > 0 ? 1 : 0;
-    return `${formatNumber(size, { minimumFractionDigits: digits, maximumFractionDigits: digits, shouldGroup: false })} ${units[i]}`;
+    return `${formatNumber(size, { locale: locale ?? undefined, minimumFractionDigits: digits, maximumFractionDigits: digits, shouldGroup: false })} ${units[i]}`;
 }
 
 /**

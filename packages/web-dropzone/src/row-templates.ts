@@ -175,6 +175,8 @@ export interface RowTemplateOptions {
     iconOptions?: DzIconOptions;
     /** UI-string lookup (the store's `labels`); default: built-in English. */
     label?: LabelFn;
+    /** The store's `locale` — the row's file size (unset → page-wide locale → browser). */
+    locale?: string | null;
     /**
      * The store is disabled (its `disabled` or a disabled `<fieldset>`): every
      * row button (action / cancel / remove) is rendered `disabled` — no
@@ -314,7 +316,7 @@ export function renderDetailedItem(file: FileState, opts: RowTemplateOptions = {
     const showSize = showPart(p, 'size');
     const showType = showPart(p, 'type');
     const meta = (showSize || showType) ? `<div class="dz__file-item-meta">
-                    ${showSize ? `<span class="dz__file-item-size">${formatFileSize(file.size)}</span>` : ''}
+                    ${showSize ? `<span class="dz__file-item-size">${formatFileSize(file.size, opts.locale)}</span>` : ''}
                     ${showType ? `<span class="dz__file-item-type">${escapeHtml(file.type || label('labels.unknownType'))}</span>` : ''}
                 </div>` : '';
     return `

@@ -1552,6 +1552,7 @@ export class WebDropzone extends DropzoneEngine {
             iconOverrides: this.config,
             iconContext: this.contextBase,
             label: this.label,
+            locale: this.config.locale,
             hasUploadHandler: this.hasUploadHandler(file),
             cancelIcon: this.config.cancelIcon,
             removeIcon: this.config.removeIcon,
@@ -1594,7 +1595,7 @@ export class WebDropzone extends DropzoneEngine {
             <tr class="dz__popover-row ${isUploading ? 'dz__popover-row--uploading' : ''}" data-file-id="${file.id}"${isUploading ? ' aria-busy="true"' : ''}>
                 <td class="dz__popover-cell dz__popover-cell--icon"><span class="dz__popover-placeholder">${inner}</span></td>
                 <td class="dz__popover-cell dz__popover-cell--name">${escapeHtml(file.name)}</td>
-                <td class="dz__popover-cell dz__popover-cell--size">${formatFileSize(file.size)}</td>
+                <td class="dz__popover-cell dz__popover-cell--size">${formatFileSize(file.size, this.config.locale)}</td>
                 <td class="dz__popover-cell dz__popover-cell--progress">
                     <div class="dz__popover-progress-bar">
                         <div class="dz__popover-progress-fill" style="width: ${file.progress}%"></div>
@@ -1698,7 +1699,7 @@ export class WebDropzone extends DropzoneEngine {
     /** The built-in summary line: status icon + "N files (size)" — opens the popover. */
     private renderDefaultSummary(): string {
         const totalSize = this.files.reduce((sum, f) => sum + f.size, 0);
-        const text = this.label('labels.summary', { count: this.files.length, size: formatFileSize(totalSize) });
+        const text = this.label('labels.summary', { count: this.files.length, size: formatFileSize(totalSize, this.config.locale) });
         return `
             <div class="dz__summary-line" ${this.config.isDisabled ? 'tabindex="-1" aria-disabled="true"' : 'tabindex="0"'} role="button" aria-label="${escapeHtml(this.label('ariaLabels.viewFiles'))}">
                 ${this.renderSummaryIcon()}
@@ -1962,8 +1963,8 @@ export class WebDropzone extends DropzoneEngine {
         const maxCount = this.config.maxFileCount ?? 0;
         const minCount = this.config.minFileCount ?? 0;
 
-        if (maxFileSize > 0) parts.push(this.label('labels.limitMaxFileSize', { size: formatFileSize(maxFileSize) }));
-        if (minFileSize > 0) parts.push(this.label('labels.limitMinFileSize', { size: formatFileSize(minFileSize) }));
+        if (maxFileSize > 0) parts.push(this.label('labels.limitMaxFileSize', { size: formatFileSize(maxFileSize, this.config.locale) }));
+        if (minFileSize > 0) parts.push(this.label('labels.limitMinFileSize', { size: formatFileSize(minFileSize, this.config.locale) }));
 
         // Total size cap — show "X left" once there are files so the user knows
         // their remaining headroom. FluentUI does the same.
@@ -1971,9 +1972,9 @@ export class WebDropzone extends DropzoneEngine {
             if (this.files.length > 0) {
                 const used = this.files.reduce((sum, f) => sum + f.size, 0);
                 const left = Math.max(0, maxTotal - used);
-                parts.push(this.label('labels.limitMaxTotalSizeLeft', { size: formatFileSize(maxTotal), left: formatFileSize(left) }));
+                parts.push(this.label('labels.limitMaxTotalSizeLeft', { size: formatFileSize(maxTotal, this.config.locale), left: formatFileSize(left, this.config.locale) }));
             } else {
-                parts.push(this.label('labels.limitMaxTotalSize', { size: formatFileSize(maxTotal) }));
+                parts.push(this.label('labels.limitMaxTotalSize', { size: formatFileSize(maxTotal, this.config.locale) }));
             }
         }
 
@@ -2009,7 +2010,7 @@ export class WebDropzone extends DropzoneEngine {
             <div class="dz__overall-progress"></div>
             <div class="dz__popover-footer-totals">
                 <span class="dz__popover-footer-count">${escapeHtml(this.getFileCountLabel())}</span>
-                <span class="dz__popover-footer-bytes">${escapeHtml(formatFileSize(totalBytes))}</span>
+                <span class="dz__popover-footer-bytes">${escapeHtml(formatFileSize(totalBytes, this.config.locale))}</span>
             </div>
         `;
     }
@@ -2047,7 +2048,7 @@ export class WebDropzone extends DropzoneEngine {
             const bytesEl = footer.querySelector('.dz__popover-footer-bytes');
             if (bytesEl) {
                 const totalBytes = this.files.reduce((s, f) => s + f.size, 0);
-                bytesEl.textContent = formatFileSize(totalBytes);
+                bytesEl.textContent = formatFileSize(totalBytes, this.config.locale);
             }
         }
     }
@@ -2093,8 +2094,8 @@ export class WebDropzone extends DropzoneEngine {
         const counts = this.label('messages.progressCounts', {
             completed: o.completedCount,
             total: this.files.length,
-            uploadedSize: formatFileSize(o.uploadedBytes),
-            totalSize: formatFileSize(o.totalBytes)
+            uploadedSize: formatFileSize(o.uploadedBytes, this.config.locale),
+            totalSize: formatFileSize(o.totalBytes, this.config.locale)
         });
         return `${escapeHtml(counts)}${pausedSegment}${failedSegment}`;
     }

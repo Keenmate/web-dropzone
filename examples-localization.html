@@ -1,5 +1,5 @@
 <meta name="kmwc:title" content="🌍 Localization">
-<meta name="kmwc:subtitle" content="The shared localization page — instance <code>labels</code>, the page-wide dictionary, <code>translateCallback</code>, screen-reader name follow, file sizes in the page's language and <code>shouldEscapeLabels</code>, in the same six sections every Keenmate component has.">
+<meta name="kmwc:subtitle" content="The shared localization page — instance <code>labels</code>, the page-wide dictionary, <code>translateCallback</code>, screen-reader name follow, file sizes in the element's / page's <code>locale</code> and <code>shouldEscapeLabels</code>, in the same six sections every Keenmate component has.">
 
         <div class="note">
             Every UI string goes through core <code>/locale</code>. Keys are flat <code>&lt;elementType&gt;.&lt;name&gt;</code>
@@ -184,10 +184,11 @@ el.translateCallback = ({ key, params }) =&gt; {
             <h2>LO05 · <code>locale</code> + formatting</h2>
             <p>
                 File sizes (<code>{size}</code> in <code>labels.summary</code>, the limits line, the validation messages, the
-                popover's size column and the progress strip) use the page's decimal separator: the page
-                <code>window.components.locale.locale</code> → the browser. The dropzone has no per-element
-                <code>locale</code> input — sizes are its only locale-specific output (no dates). Below: a compact dropzone
-                holding a 1.3 KB file, limit 1.5 KB.
+                popover's size column and the progress strip) and the <code>{count}</code> numbers in labels use the
+                element's <code>locale</code> input → the page <code>window.components.locale.locale</code> → the browser.
+                Sizes are the dropzone's only locale-specific output (no dates). Below: a compact dropzone holding a
+                1.3 KB file, limit 1.5 KB. The element's <code>locale</code> wins over the page locale; unset (or
+                <code>auto</code>) follows it. Bound satellites follow their store's <code>locale</code>.
             </p>
             <div class="controls"><strong class="muted">page locale</strong>
                 <label><input type="radio" name="lo05-locale" value="" checked> unset (browser)</label>
@@ -195,13 +196,20 @@ el.translateCallback = ({ key, params }) =&gt; {
                 <label><input type="radio" name="lo05-locale" value="de-DE"> de-DE</label>
                 <label><input type="radio" name="lo05-locale" value="cs-CZ"> cs-CZ</label>
             </div>
+            <div class="controls"><strong class="muted">element <code>locale</code></strong>
+                <label><input type="radio" name="lo05-el-locale" value="" checked> unset (page)</label>
+                <label><input type="radio" name="lo05-el-locale" value="en"> en</label>
+                <label><input type="radio" name="lo05-el-locale" value="de"> de</label>
+                <label><input type="radio" name="lo05-el-locale" value="cs"> cs</label>
+            </div>
             <div class="demo-area">
                 <web-dropzone id="lo05" display-mode="compact" max-file-size="1536" multiple></web-dropzone>
-                <div class="output"><div class="output-label">summary + the file-reject message</div><pre id="lo05-out"></pre></div>
+                <div class="output"><div class="output-label">locale attribute, summary + the file-reject message</div><pre id="lo05-out"></pre></div>
             </div>
             <div class="code-block" data-language="html"><pre><code>&lt;web-dropzone display-mode="compact" max-file-size="1536"&gt;&lt;/web-dropzone&gt;   &lt;!-- "1 file(s), 1.3 KB" --&gt;
+&lt;web-dropzone locale="de" display-mode="compact"&gt;&lt;/web-dropzone&gt;           &lt;!-- this one: "1 file(s), 1,3 KB" --&gt;
 &lt;script&gt;
-  window.components.locale = { locale: 'cs-CZ' };   // every dropzone: "1 file(s), 1,3 KB"
+  window.components.locale = { locale: 'cs-CZ' };   // every dropzone without its own locale: "1 file(s), 1,3 KB"
 &lt;/script&gt;</code></pre></div>
         </div>
 
@@ -302,6 +310,7 @@ window.components.security = { shouldEscapeLabels: true };   // no change in the
                 `minimal aria-label:  ${part('lo04-min', '.dz__minimal')?.getAttribute('aria-label') ?? '(none)'}`,
             ]);
             write('lo05-out', [
+                `locale:  ${$('lo05').getAttribute('locale') ?? '(unset)'}`,
                 `summary: ${text('lo05', '.dz__summary-text')}`,
                 `reject:  ${await rejectionOf('lo05', tooBig())}`,
             ]);
@@ -357,6 +366,14 @@ window.components.security = { shouldEscapeLabels: true };   // no change in the
         // ── LO05 · page locale (a 1.3 KB file sits in the dropzone).
         for (const radio of document.querySelectorAll('input[name="lo05-locale"]')) {
             radio.addEventListener('change', (e) => { page.locale = e.target.value; applyPage(); });
+        }
+        // ── LO05 · the element's own locale (wins over the page; unset = the page).
+        for (const radio of document.querySelectorAll('input[name="lo05-el-locale"]')) {
+            radio.addEventListener('change', (e) => {
+                if (e.target.value) $('lo05').setAttribute('locale', e.target.value);
+                else $('lo05').removeAttribute('locale');
+                refreshAll();
+            });
         }
 
         // ── LO06 · shouldEscapeLabels (no effect: dropzone labels are text).

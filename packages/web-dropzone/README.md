@@ -36,6 +36,7 @@ Breaking — see [CHANGELOG.md](https://github.com/keenmate/web-dropzone/blob/ma
 - **Removal vs move** — removing `<web-dropzone>` from the page cancels its uploads and destroys the store (a DOM move doesn't); opt out with `keep-alive-when-removed`.
 - **Suite-wide naming (v2)** — short boolean attributes (`sink-completed`, `keep-alive-when-removed`, `allow-uploaded-file-removal`), configKey-named properties (`el.isMultiple`, `el.isDisabled`, `el.shouldAutoUpload`, …), `render-mode` (was `mode`), `max-visible-file-count`, events `file-upload` / `file-reject` (`oldStatus` / `newStatus` in `file-status-change`), `beforeFilesCancelCallback`, `removeFiles(ids)`, the `rejected` add-veto code.
 - **Core lifecycle** — `ready` fires once after the first build (+ `ready` attribute, `:state(ready)`, `whenReady()`); `defer` + `release()` hold the first build; `destroy()` is final. New `readonly` (selection locked, still submitted).
+- **`locale`** — a per-element BCP-47 locale for the numbers it formats (file sizes, `{count}` in labels); unset follows the page-wide `window.components.locale`, else the browser; satellites follow their store.
 - **Every UI string in `labels`** — empty text, summary, popover, limits line, progress strip, indicator, validation messages; satellites take their own `labels` on top of the store's.
 - **Fixes** — cancel during the auto-retry backoff, `destroy()` stopping the queue, no events after teardown / removal, mode-flip rebuild reporting dropped files, `multiple="false"` replace now cancels + reports the replaced file.
 

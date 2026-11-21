@@ -35,6 +35,8 @@ export interface ValidationConfig {
     validateCallback?: ((ctx: ValidateContext) => ValidationResult) | null;
     /** UI strings — the validation messages come from `labels` (`error*` keys). */
     labels?: DropzoneLabelOverrides | null;
+    /** The `locale` setting — the sizes in the size messages (unset → page → browser). */
+    locale?: string | null;
 }
 
 /**
@@ -106,7 +108,7 @@ export function validateFile(
     if (config.maxFileSize && config.maxFileSize > 0 && file.size > config.maxFileSize) {
         return {
             valid: false,
-            error: text('errors.maxFileSize', { size: formatFileSize(config.maxFileSize) }),
+            error: text('errors.maxFileSize', { size: formatFileSize(config.maxFileSize, config.locale) }),
             code: 'size'
         };
     }
@@ -114,7 +116,7 @@ export function validateFile(
     if (config.minFileSize && config.minFileSize > 0 && file.size < config.minFileSize) {
         return {
             valid: false,
-            error: text('errors.minFileSize', { size: formatFileSize(config.minFileSize) }),
+            error: text('errors.minFileSize', { size: formatFileSize(config.minFileSize, config.locale) }),
             code: 'size'
         };
     }

@@ -358,7 +358,7 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
         const statusName = statusLabel(this.label, status as FileStatus);
 
         const totalSize = files.reduce((sum, f) => sum + f.size, 0);
-        const text = this.label('labels.summary', { count: files.length, size: formatFileSize(totalSize) });
+        const text = this.label('labels.summary', { count: files.length, size: formatFileSize(totalSize, this.storeLocale) });
 
         this.container.innerHTML = `
             <div class="dz__summary">
@@ -404,6 +404,7 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
             reorderEligible: this.isReorderEligible(file),
             hasUploadHandler: this.hasUploadHandler(file),
             label: this.label,
+            locale: cfg?.locale,
             cancelIcon: cfg?.cancelIcon,
             removeIcon: cfg?.removeIcon,
             // The store's icon hook, with the store element as its ctx `element`
