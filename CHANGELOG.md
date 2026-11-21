@@ -52,7 +52,7 @@ from `DEFAULT_CONFIG`) → `engine.setOptions(partial)` → `engine.getOptions()
   `DropzoneEngine` and the element can't drift. `DEFAULT_CONFIG` gains `gridLayout: 'uniform'`,
   `gridStatus: 'badge'` and `rollingRotation: 'slide-in'` (the values the element and the renderers
   already used). No value changed.
-- **Docs: "Build your own UI"** in the `@keenmate/web-dropzone-core` README — what `DropzoneEngine` does,
+- **Docs: "Quick start — build your own UI"** in the `@keenmate/web-dropzone-core` README — what `DropzoneEngine` does,
   what you draw, a minimal example, and the table of the element hooks / settings the engine takes
   (`labels`, `translateCallback`, `renderIconCallback`, …).
 

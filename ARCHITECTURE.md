@@ -87,7 +87,7 @@ Installing both packages explicitly is fine but redundant — the renderer pins 
 
 There is no `<web-dropzone-core>` custom element. The core is JS-only — the user-facing guide (what the
 engine does, what you draw, the settings it shares with the element) is the core README's
-[Build your own UI](./packages/web-dropzone-core/README.md#build-your-own-ui) section:
+[Quick start — build your own UI](./packages/web-dropzone-core/README.md#quick-start--build-your-own-ui) section:
 
 ```ts
 import { DropzoneEngine, DropzoneController } from '@keenmate/web-dropzone-core';

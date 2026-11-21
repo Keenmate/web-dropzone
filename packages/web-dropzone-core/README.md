@@ -38,7 +38,7 @@ See the [CHANGELOG](https://github.com/keenmate/web-dropzone/blob/main/CHANGELOG
 
 ## Demos & docs
 
-- 🧩 [Build your own UI](#build-your-own-ui) — what the engine does, what you draw, a minimal example.
+- 🧩 [Quick start — build your own UI](#quick-start--build-your-own-ui) — what the engine does, what you draw, a minimal example.
 - 📘 [Usage / API reference](./docs/usage.md) — `DropzoneEngine`, `DropzoneController`, events, callbacks, helpers.
 - 📚 [Examples](./docs/examples.md) — a vanilla renderer, a React hook, a status line.
 - 🎨 [Theming](./docs/theming.md) — what a renderer gets (icons, status vocabulary, labels).
@@ -51,7 +51,7 @@ See the [CHANGELOG](https://github.com/keenmate/web-dropzone/blob/main/CHANGELOG
 npm install @keenmate/web-dropzone-core
 ```
 
-## Build your own UI
+## Quick start — build your own UI
 
 `DropzoneEngine` is the seam for a UI of your own — a React / Vue / Svelte / Lit renderer, or plain DOM.
 `<web-dropzone>` is this same engine with the official renderer on top.
