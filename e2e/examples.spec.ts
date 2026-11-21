@@ -60,11 +60,6 @@ test.describe('Localization page (examples-localization.html)', () => {
         await page.locator('input[name="lo05-el-locale"][value=""]').check();
         await expect(out('lo05-out')).toContainText('summary: 1 file(s), 1,3 KB');
 
-        // LO06 — dropzone labels are text: the <b> shows as characters, with or without shouldEscapeLabels.
-        await expect(out('lo06-out')).toContainText('text:   Drop <b>files</b> here');
-        await page.locator('#lo06-escape').check();
-        await expect(out('lo06-out')).toContainText('markup: Drop &lt;b&gt;files&lt;/b&gt; here');
-
         expect(consoleErrors).toEqual([]);
     });
 });

@@ -9,7 +9,7 @@
             <code>web-dropzone.</code> key) → the element's own <code>translateCallback</code> → the page-wide
             <code>translateCallback</code> → the page dictionary <code>window.components.locale.labels</code> → the built-in English.
             The validation messages (<code>errors.*</code>, the <code>validation.error</code> of <code>file-reject</code>) go
-            through the same lookup. The page-wide toggles (LO02, LO03, LO05, LO06) are <strong>page-wide</strong>: they change
+            through the same lookup. The page-wide toggles (LO02, LO03, LO05) are <strong>page-wide</strong>: they change
             every dropzone on this page, on purpose.
         </div>
 
@@ -218,25 +218,7 @@ el.translateCallback = ({ key, params }) =&gt; {
         <!-- ============================================================= -->
         <div class="card">
             <h2>LO06 · <code>shouldEscapeLabels</code></h2>
-            <p>
-                Does not change anything in the dropzone: every dropzone label is TEXT (no label is an HTML template), so a
-                <code>&lt;b&gt;</code> in a label always shows as characters — with or without
-                <code>window.components.security.shouldEscapeLabels</code>. Data in placeholders (<code>{name}</code> = the
-                file name, e.g. <code>errors.duplicate</code>, <code>ariaLabels.removeFile</code>) is text the same way. The
-                toggle is here to show that the readout stays identical; components with markup labels (multiselect's
-                <code>labels.addNew</code>) are where it matters.
-            </p>
-            <div class="controls">
-                <label><input type="checkbox" id="lo06-escape"> <code>shouldEscapeLabels</code></label>
-            </div>
-            <div class="demo-area">
-                <label class="demo-label"><code>labels.prompt</code> = <code>Drop &lt;b&gt;files&lt;/b&gt; here</code></label>
-                <web-dropzone id="lo06" display-mode="list" multiple labels='{"labels.prompt": "Drop <b>files</b> here"}'></web-dropzone>
-                <div class="output"><div class="output-label">the prompt: markup → shown text</div><pre id="lo06-out"></pre></div>
-            </div>
-            <div class="code-block" data-language="js"><pre><code>el.labels = { 'labels.prompt': 'Drop &lt;b&gt;files&lt;/b&gt; here' };
-// → shown as "Drop &lt;b&gt;files&lt;/b&gt; here" (escaped), never bold
-window.components.security = { shouldEscapeLabels: true };   // no change in the dropzone</code></pre></div>
+            <p>Does not apply: every dropzone label is plain text (none is an HTML template), so markup in a label always shows as characters.</p>
         </div>
 
     <script type="module">
@@ -314,8 +296,6 @@ window.components.security = { shouldEscapeLabels: true };   // no change in the
                 `summary: ${text('lo05', '.dz__summary-text')}`,
                 `reject:  ${await rejectionOf('lo05', tooBig())}`,
             ]);
-            const p = part('lo06', '.dz__dropzone-text');
-            write('lo06-out', p ? [`markup: ${p.innerHTML.trim()}`, `text:   ${p.textContent.trim()}`] : ['(none)']);
         }
 
         // ── LO01 · instance labels.
@@ -375,12 +355,6 @@ window.components.security = { shouldEscapeLabels: true };   // no change in the
                 refreshAll();
             });
         }
-
-        // ── LO06 · shouldEscapeLabels (no effect: dropzone labels are text).
-        $('lo06-escape').addEventListener('change', (e) => {
-            window.components.security = { shouldEscapeLabels: e.target.checked };
-            refreshAll();
-        });
 
         (async () => {
             await $('lo05').whenReady();

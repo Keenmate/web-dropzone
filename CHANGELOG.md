@@ -41,7 +41,7 @@ from `DEFAULT_CONFIG`) → `engine.setOptions(partial)` → `engine.getOptions()
 
 - `examples-localization.html` — the shared localization page (LO01–LO06: instance `labels`, page-wide
   dictionary, `translateCallback` (own → page-wide), the `ariaLabels.prompt` twin following `labels.prompt`,
-  file sizes in the page locale, `shouldEscapeLabels` (no effect: dropzone labels are text)); the
+  file sizes in the page locale, `shouldEscapeLabels` (one line: does not apply — dropzone labels are text)); the
   `file-reject` validation messages (`errors.*`) translate on the page. Smoke test in `e2e/examples.spec.ts`.
 
 ### Changed (public engine, one source of defaults, 2026-11-21)
