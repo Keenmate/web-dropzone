@@ -561,6 +561,7 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
             progressCallback: cfg.renderRollingProgressCallback,
             renderRow: (file) => this.renderRow(file, 'rolling'),
             label: this.label,
+            locale: this.storeLocale,
             isDisabled: this.isStoreDisabled,
             updateQueueButton: (w, count, show) => this.updateRollingQueueButton(w, count, show),
         });
@@ -729,7 +730,7 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
         const prefix = appearance === 'grid' ? 'dz__preview-item' : 'dz__file-item';
         patchProgressFill(row, `${prefix}-progress-fill`, file.progress);
         if (appearance !== 'grid') {
-            patchProgressText(row, `${prefix}-progress-text`, file, this.label);
+            patchProgressText(row, `${prefix}-progress-text`, file, this.label, this.storeLocale);
         }
         patchStatusIcon(row, `${prefix}-status`, file, this.label);
         patchActionButton(

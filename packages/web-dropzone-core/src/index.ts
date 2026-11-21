@@ -59,6 +59,7 @@ export type {
 export {
     DEFAULT_CONFIG,
     formatFileSize,
+    formatPercent,
     getFileTypeCategory,
     getFileIcon,
     isImageFile,

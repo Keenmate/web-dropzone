@@ -1,5 +1,6 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { DEFAULT_CONFIG, DropzoneEngine, formatFileSize } from '@keenmate/web-dropzone-core';
+import { DEFAULT_CONFIG, DropzoneEngine, formatFileSize, formatPercent } from '@keenmate/web-dropzone-core';
+import { progressLabel } from '../../src/row-templates';
 import '../../src/index'; // registers <web-dropzone>
 
 /**
@@ -46,5 +47,14 @@ describe('locale', () => {
         await engine.addFiles([new File([new Uint8Array(4000)], 'big.bin')]);
         expect(errors).toHaveLength(1);
         expect(errors[0]).toContain('1,5 KB');
+    });
+
+    it('progress percents: the number follows the locale, the % sign stays (per-file 1 digit, overall 0)', () => {
+        const file = { status: 'uploading', progress: 12.5 } as any;
+        expect(progressLabel(file, undefined, 'de')).toBe('12,5%');
+        expect(progressLabel(file, undefined, 'en')).toBe('12.5%');
+        expect(formatPercent(40, 0, 'de')).toBe('40%');
+        (window as any).components.locale = { locale: 'cs' };
+        expect(progressLabel(file)).toBe('12,5%');
     });
 });

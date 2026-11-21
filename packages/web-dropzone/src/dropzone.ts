@@ -35,6 +35,7 @@ import {
     DropzoneEngine,
     DEFAULT_CONFIG,
     formatFileSize,
+    formatPercent,
     getFileTypeCategory,
     getFileIcon,
     isImageFile,
@@ -987,7 +988,7 @@ export class WebDropzone extends DropzoneEngine {
         row.classList.toggle('dz__popover-row--uploading', file.status === 'uploading');
 
         patchProgressFill(row, 'dz__popover-progress-fill', file.progress);
-        patchProgressText(row, 'dz__popover-progress-text', file, this.label);
+        patchProgressText(row, 'dz__popover-progress-text', file, this.label, this.config.locale);
         patchStatusIcon(row, 'dz__popover-status', file, this.label);
         patchRowActionButton(
             row.querySelector('.dz__popover-row-action[data-dz-action="row-action"]'),
@@ -1082,7 +1083,7 @@ export class WebDropzone extends DropzoneEngine {
         // pill, action button.
         if (appearance === 'list' || appearance === 'detailed' || appearance === 'rolling') {
             patchProgressFill(row, 'dz__file-item-progress-fill', file.progress);
-            patchProgressText(row, 'dz__file-item-progress-text', file, this.label);
+            patchProgressText(row, 'dz__file-item-progress-text', file, this.label, this.config.locale);
             patchStatusIcon(row, 'dz__file-item-status', file, this.label);
             patchRowActionButton(
                 row.querySelector('.dz__file-item-action[data-dz-action="row-action"]'),
@@ -1352,6 +1353,7 @@ export class WebDropzone extends DropzoneEngine {
             progressCallback: structural ? this.config.renderRollingProgressCallback : null,
             renderRow: (file) => this.renderListItem(file),
             label: this.label,
+            locale: this.config.locale,
             isDisabled: !!this.config.isDisabled,
             updateQueueButton: (w, count, show) => this.updateRollingQueueButton(w, count, show),
             onRowMounted: (row) => this.bindListRemoveHandlers(row),
@@ -1600,7 +1602,7 @@ export class WebDropzone extends DropzoneEngine {
                     <div class="dz__popover-progress-bar">
                         <div class="dz__popover-progress-fill" style="width: ${file.progress}%"></div>
                     </div>
-                    <span class="dz__popover-progress-text">${escapeHtml(RowTemplate.progressLabel(file, this.label))}</span>
+                    <span class="dz__popover-progress-text">${escapeHtml(RowTemplate.progressLabel(file, this.label, this.config.locale))}</span>
                 </td>
                 <td class="dz__popover-cell dz__popover-cell--action">
                     ${RowTemplate.renderRowActionButton(file, 'dz__popover-row-action', this.label, !!this.config.isDisabled)}
@@ -2074,7 +2076,7 @@ export class WebDropzone extends DropzoneEngine {
             <div class="dz__overall-progress-stats">
                 <span class="dz__overall-progress-counts">${this.renderOverallCountsInner(o)}</span>
                 <div class="dz__overall-progress-actions">${this.renderOverallActions(o)}</div>
-                <span class="dz__overall-progress-percent">${pct}%</span>
+                <span class="dz__overall-progress-percent">${formatPercent(pct, 0, this.config.locale)}</span>
             </div>
         `;
     }
@@ -2218,7 +2220,7 @@ export class WebDropzone extends DropzoneEngine {
         fillEl.style.width = `${overall.percent}%`;
         barEl?.setAttribute('aria-valuenow', String(pct));
         countsEl.innerHTML = this.renderOverallCountsInner(overall);
-        percentEl.textContent = `${pct}%`;
+        percentEl.textContent = formatPercent(pct, 0, this.config.locale);
 
         // Only rebuild the actions group when the visible button set crosses
         // a threshold (Pause/Resume/Retry appearing or disappearing). The

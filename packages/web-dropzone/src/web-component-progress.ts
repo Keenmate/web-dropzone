@@ -30,7 +30,7 @@ import {
     subscribeStoreEvents,
     type SatelliteElementConfig
 } from './satellite-base';
-import { escapeHtml, formatFileSize } from '@keenmate/web-dropzone-core';
+import { escapeHtml, formatFileSize, formatPercent } from '@keenmate/web-dropzone-core';
 import { runStoreAction } from './store-link';
 import type { DropzoneElement } from './web-component';
 import type { OverallProgress } from '@keenmate/web-dropzone-core';
@@ -148,7 +148,7 @@ export class DropzoneProgressElement extends SatelliteElement {
         fillEl.style.width = `${overall.percent}%`;
         barEl?.setAttribute('aria-valuenow', String(pct));
         countsEl.innerHTML = this.renderCountsInner(overall, totalFileCount);
-        percentEl.textContent = `${pct}%`;
+        percentEl.textContent = formatPercent(pct, 0, this.storeLocale);
 
         // Only rebuild the actions group when the visible button set
         // crosses a threshold. Otherwise tick churn would unmount a
@@ -169,7 +169,7 @@ export class DropzoneProgressElement extends SatelliteElement {
             <div class="dz__overall-progress-stats">
                 <span class="dz__overall-progress-counts">${this.renderCountsInner(o, totalFileCount)}</span>
                 <div class="dz__overall-progress-actions">${this.renderActions(o, pipelineActive)}</div>
-                <span class="dz__overall-progress-percent">${pct}%</span>
+                <span class="dz__overall-progress-percent">${formatPercent(pct, 0, this.storeLocale)}</span>
             </div>
         `;
     }

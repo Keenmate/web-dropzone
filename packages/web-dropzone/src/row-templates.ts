@@ -19,6 +19,7 @@
 
 import {
     formatFileSize,
+    formatPercent,
     getFileTypeCategory,
     getFileIcon,
     isImageFile,
@@ -263,8 +264,8 @@ export function renderRowActionButton(file: FileState, baseClass: string, labelF
  * Text next to a row's progress bar: the percent, or "Cancelling…" while a
  * cancel waits for the upload handler to settle.
  */
-export function progressLabel(file: FileState, label: LabelFn = defaultLabel): string {
-    return file.status === 'cancelling' ? label('messages.cancelling') : `${file.progress.toFixed(1)}%`;
+export function progressLabel(file: FileState, label: LabelFn = defaultLabel, locale?: string | null): string {
+    return file.status === 'cancelling' ? label('messages.cancelling') : formatPercent(file.progress, 1, locale);
 }
 
 /**
@@ -289,7 +290,7 @@ export function renderListItem(file: FileState, opts: RowTemplateOptions = {}): 
             ${showPart(p, 'name') ? `<span class="dz__file-item-name">${escapeHtml(file.name)}</span>` : ''}
             ${showPart(p, 'action') ? renderRowActionButton(file, 'dz__file-item-action', label, opts.isDisabled) : ''}
             ${showPart(p, 'cancel') ? renderCancelButton(file, 'dz__file-item-action', opts) : ''}
-            ${showPart(p, 'progress') ? `<div class="dz__file-item-progress">${listProgressInner(file, label)}</div>` : ''}
+            ${showPart(p, 'progress') ? `<div class="dz__file-item-progress">${listProgressInner(file, label, opts.locale)}</div>` : ''}
             ${showPart(p, 'status') ? renderStatusPill(file, 'dz__file-item-status', label) : ''}
             ${showPart(p, 'remove') ? renderRemoveButton(file, 'dz__file-item-remove', removable, opts.removeIcon, label, opts.isDisabled, opts.iconOptions) : ''}
         </div>
@@ -301,8 +302,8 @@ export function renderListItem(file: FileState, opts: RowTemplateOptions = {}): 
  * also what the rolling progress slot restores when its callback goes back
  * to the default.
  */
-export function listProgressInner(file: FileState, label: LabelFn = defaultLabel): string {
-    return `<div class="dz__file-item-progress-bar"><div class="dz__file-item-progress-fill" style="width: ${file.progress}%"></div></div><span class="dz__file-item-progress-text">${escapeHtml(progressLabel(file, label))}</span>`;
+export function listProgressInner(file: FileState, label: LabelFn = defaultLabel, locale?: string | null): string {
+    return `<div class="dz__file-item-progress-bar"><div class="dz__file-item-progress-fill" style="width: ${file.progress}%"></div></div><span class="dz__file-item-progress-text">${escapeHtml(progressLabel(file, label, locale))}</span>`;
 }
 
 export function renderDetailedItem(file: FileState, opts: RowTemplateOptions = {}): string {
@@ -329,7 +330,7 @@ export function renderDetailedItem(file: FileState, opts: RowTemplateOptions = {
                     <div class="dz__file-item-progress-bar">
                         <div class="dz__file-item-progress-fill" style="width: ${file.progress}%"></div>
                     </div>
-                    <span class="dz__file-item-progress-text">${escapeHtml(progressLabel(file, label))}</span>
+                    <span class="dz__file-item-progress-text">${escapeHtml(progressLabel(file, label, opts.locale))}</span>
                 </div>` : ''}
             </div>
             ${showPart(p, 'action') ? renderRowActionButton(file, 'dz__file-item-action', label, opts.isDisabled) : ''}

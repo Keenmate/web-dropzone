@@ -51,10 +51,11 @@ export function patchProgressText(
     row: HTMLElement,
     textClass: string,
     file: FileState,
-    label: LabelFn = defaultLabel
+    label: LabelFn = defaultLabel,
+    locale?: string | null
 ): void {
     const el = row.querySelector(`.${textClass}`);
-    if (el) el.textContent = progressLabel(file, label);
+    if (el) el.textContent = progressLabel(file, label, locale);
 }
 
 /**

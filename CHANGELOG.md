@@ -14,13 +14,14 @@ callback and store-access API below is breaking.
 ### Added (`locale` input, rulebook C-CA-38, 2026-11-21)
 
 - **`locale` input (attribute + property)** — BCP-47 locale for the numbers the dropzone formats: file sizes
-  (rows, summary, popover size column + totals, limits line, progress counts, the size validation messages)
-  and the `{count}` numbers in labels (`translateCallback` gets it as `ctx.locale`). Unset (or `auto`) = the
+  (rows, summary, popover size column + totals, limits line, progress counts, the size validation messages),
+  the progress percents (per-file `12,5%`, overall `40%` — the number through core `formatNumber`, same
+  fraction digits as before, a plain `%` sign; `en` output unchanged) and the `{count}` numbers in labels (`translateCallback` gets it as `ctx.locale`). Unset (or `auto`) = the
   page-wide `window.components.locale`, else the browser — as before. Live. Bound satellites follow their
   store's `locale`. UI strings stay `labels`.
 - **`@keenmate/web-dropzone-core`:** `DropzoneConfig.locale` — the same option on a standalone
   `DropzoneEngine` (default from `DEFAULT_CONFIG.locale`, unset; `updateConfig({ locale })` re-renders);
-  `formatFileSize(bytes, locale?)` takes an optional locale; `createLabelFn(…, getLocale?)` a fourth
+  `formatFileSize(bytes, locale?)` takes an optional locale; new `formatPercent(value, fractionDigits, locale?)`; `createLabelFn(…, getLocale?)` a fourth
   argument; `ValidationConfig.locale`.
 - `examples-localization.html` LO05 shows the element `locale` next to the page locale.
 

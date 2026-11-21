@@ -220,6 +220,8 @@ export interface RollingSurfaceOptions {
     /** The front row's HTML (a list row). */
     renderRow: (file: FileState) => string;
     label?: LabelFn;
+    /** The store's `locale` — the restored default progress percent. */
+    locale?: string | null;
     isDisabled: boolean;
     /** Create / refresh the queue badge inside the block. */
     updateQueueButton: (wrapper: HTMLElement, count: number, show: boolean) => void;
@@ -308,6 +310,6 @@ function applyRollingSlots(currentEl: HTMLElement, o: RollingSurfaceOptions, fro
     const progress = o.progressCallback;
     const progressSlot = currentEl.querySelector<HTMLElement>('.dz__file-item-progress');
     if (progress && progressSlot) {
-        applyRestorableSlot(progressSlot, () => progress(o.args), () => listProgressInner(front, o.label));
+        applyRestorableSlot(progressSlot, () => progress(o.args), () => listProgressInner(front, o.label, o.locale));
     }
 }

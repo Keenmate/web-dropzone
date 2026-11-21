@@ -103,6 +103,16 @@ export function formatFileSize(bytes: number, locale?: string | null): string {
 }
 
 /**
+ * Format a progress percent for people: `12.5%` / `12,5%` — the number through
+ * core `formatNumber` (`locale` — the dropzone's `locale` input — else
+ * `window.components.locale`, else the browser) with fixed fraction digits, no
+ * grouping, then a plain `%` (not the Intl percent style).
+ */
+export function formatPercent(value: number, fractionDigits: number, locale?: string | null): string {
+    return `${formatNumber(value, { locale: locale ?? undefined, minimumFractionDigits: fractionDigits, maximumFractionDigits: fractionDigits, shouldGroup: false })}%`;
+}
+
+/**
  * Get file type category from MIME type or extension
  */
 export function getFileTypeCategory(file: File): FileTypeCategory {
