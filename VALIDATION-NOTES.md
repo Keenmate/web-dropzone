@@ -85,20 +85,3 @@ preference, per-instance `data-theme`) and assert the resolved scheme;
 `e2e/contract-parity.spec.ts` cover the token values; `examples-theming.html`
 shows the dark card. Rulebook gap: the check doesn't look at the monorepo
 root. PASS with note.
-
-## C-BV-6 — input variables listed in the manifest but not declared
-
-`--dz-rem`, `--dz-font-family` and `--dz-file-list-max-height` are
-**input** variables: they are deliberately not declared on `:host`, and
-every read carries its fallback (`var(--dz-rem, 10px)`,
-`var(--dz-font-family, var(--base-font-family, inherit))`,
-`var(--dz-file-list-max-height, none)`). The same stylesheet is injected
-into the store host *and* every satellite shadow root, so a `:host`
-declaration would re-declare the value on each satellite and mask the one
-the consumer set on `<web-dropzone>` (or any ancestor) — see the note at
-the top of `variables.css`. They are listed in
-`component-variables.manifest.json` because that is where a consumer finds
-them (`kmwc doctor`'s `[vars]` check also requires every `--dz-*` the CSS
-reads to be there). Same decision as web-treeview's `C-BV-3 / C-BV-6`
-entry. Rulebook gap: a manifest marker for "input variable" (the
-`rulebook-gaps-from-devkit.md` #1 item). PASS with note.

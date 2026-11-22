@@ -11,6 +11,13 @@ No stable 1.0.0 is published, so the break ships as the next release
 candidate — but `^1.0.0-rc02` consumers will pull it: the event,
 callback and store-access API below is breaking.
 
+### Internal — base-variables sweep (C-BV-3 / C-BV-6 / C-BV-9) (2026-11-22)
+- `packages/web-dropzone/component-variables.manifest.json`: the 22 unset-by-design knobs are marked `"input": true` —
+  the 19 `--dz-sheet-*` sheet-chrome overrides (mapped onto core's `--_km-sheet-*` with no fallback, so the page-wide
+  `--km-sheet-*` still reaches them) and `--dz-rem` / `--dz-font-family` / `--dz-file-list-max-height` (each falls
+  back in the rule, so a value on `<web-dropzone>` reaches every satellite). The VALIDATION-NOTES `C-BV-6` entry is
+  dropped — the manifest marker replaces it. No CSS change, no visual change.
+
 ### Changed — BREAKING (engine settings one way, rulebook C-CA-39, 2026-11-21)
 
 Every Keenmate public engine takes settings the same way: `new DropzoneEngine(target, options)` (missing keys
