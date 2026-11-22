@@ -35,7 +35,7 @@ English), and persistence (`storageKey`, `saveStateCallback`, `loadStateCallback
 (`displayMode`, `icon`, `renderIconCallback`, `fileIcons`, …) are carried too but only a renderer reads
 them. Which element hooks / settings the engine takes is tabled in the README's
 [Build your own UI](../README.md#settings-shared-with-the-element). The meaning of each option is documented once, on the element:
-[`@keenmate/web-dropzone` usage → Attributes](https://github.com/keenmate/web-dropzone/blob/main/packages/web-dropzone/docs/usage.md#attributes).
+[`@keenmate/web-dropzone` usage → Attributes](https://github.com/keenmate/web-dropzone/blob/prod/packages/web-dropzone/docs/usage.md#attributes).
 
 ### Methods
 

@@ -1,6 +1,6 @@
 # @keenmate/web-dropzone
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/keenmate/web-dropzone/blob/main/LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/keenmate/web-dropzone/blob/prod/LICENSE)
 [![npm version](https://img.shields.io/npm/v/@keenmate/web-dropzone.svg)](https://www.npmjs.com/package/@keenmate/web-dropzone)
 
 > A file-upload web component — drag and drop, previews, validation, an upload queue with progress / pause / cancel / retry, and decoupled picker / list / indicator elements. Form-associated, themeable, framework-agnostic.
@@ -51,8 +51,8 @@ Earlier releases: [CHANGELOG](https://github.com/KeenMate/web-dropzone/blob/prod
 - 🎨 [Theming](./docs/theming.md) — `--dz-*` / `--base-*` variables, dark mode, `@layer` cascade, shadow parts.
 - 📚 [Examples / cookbook](./docs/examples.md) — uploads, decoupled satellites, forms, React, Vue, theming.
 - ♿ [Accessibility](./docs/accessibility.md) — keyboard, ARIA, focus.
-- 🏗️ [Architecture](https://github.com/keenmate/web-dropzone/blob/main/ARCHITECTURE.md) — store + satellites, the core / renderer split.
-- 📜 [Release history](https://github.com/keenmate/web-dropzone/blob/main/CHANGELOG.md)
+- 🏗️ [Architecture](https://github.com/keenmate/web-dropzone/blob/prod/ARCHITECTURE.md) — store + satellites, the core / renderer split.
+- 📜 [Release history](https://github.com/keenmate/web-dropzone/blob/prod/CHANGELOG.md)
 - 🧪 Live example pages: clone the repository and run `npm run dev` (`examples-*.html`).
 
 ## Install

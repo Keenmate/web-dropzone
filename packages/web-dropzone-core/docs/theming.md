@@ -18,4 +18,4 @@ What the package gives a renderer to stay visually consistent with `<web-dropzon
 
 To reuse the rendered element's look instead, use `@keenmate/web-dropzone` — its theming contract
 (`--dz-*` on the `--base-*` taxonomy, dark mode, cascade layers) is documented in
-[its theming.md](https://github.com/keenmate/web-dropzone/blob/main/packages/web-dropzone/docs/theming.md).
+[its theming.md](https://github.com/keenmate/web-dropzone/blob/prod/packages/web-dropzone/docs/theming.md).

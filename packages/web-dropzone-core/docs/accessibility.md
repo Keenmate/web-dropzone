@@ -4,7 +4,7 @@ This package renders nothing, so keyboard handling, ARIA, focus and contrast are
 job. See [usage.md](./usage.md) for the API.
 
 What a renderer built on the store should cover — the contract the official `<web-dropzone>` follows
-([its accessibility.md](https://github.com/keenmate/web-dropzone/blob/main/packages/web-dropzone/docs/accessibility.md)):
+([its accessibility.md](https://github.com/keenmate/web-dropzone/blob/prod/packages/web-dropzone/docs/accessibility.md)):
 
 - **A keyboard path to the file dialog.** Drag and drop is pointer-only; a focusable control
   (a native `<input type="file">` or a `<button>` that clicks it) must open the dialog with

@@ -43,8 +43,8 @@ Files:
   If the three versions or the pin disagree, stop and ask the user to reconcile before continuing.
 - **`npm view` in Step 1** — run both calls for **both** package names.
 - **`./CHANGELOG.md`** — at the root, covering both packages. Topmost `## [X.Y.Z] - YYYY-MM-DD` heading
-  **without** the `[PUBLISHED]` marker is the WIP section (its date may read `Unreleased` until it ships —
-  Step 3 sets it to today). Older sections carry legacy markers (`- PUBLISHED -`, `- RELEASED -`); leave them.
+  **without** the `[PUBLISHED]` marker is the WIP section (dated in the canonical form, e.g. `## [1.0.0-rc03] - 2026-11-22` —
+  Step 3 sets the date to today). Older sections carry legacy markers (`- PUBLISHED -`, `- RELEASED -`); leave them.
 - **`./README.md`** — at the root. Carries `## What's New in vX.Y.Z` sections near the top (one per release,
   the **two most recent** retained). Each package also has its own short `README.md`.
 - **`./packages/*/dist/`** — gitignored. Produced by `npm run build` from the root. Never staged.

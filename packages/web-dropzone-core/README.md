@@ -1,6 +1,6 @@
 # @keenmate/web-dropzone-core
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/keenmate/web-dropzone/blob/main/LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/keenmate/web-dropzone/blob/prod/LICENSE)
 [![npm version](https://img.shields.io/npm/v/@keenmate/web-dropzone-core.svg)](https://www.npmjs.com/package/@keenmate/web-dropzone-core)
 
 > The headless store of the [`@keenmate/web-dropzone`](https://www.npmjs.com/package/@keenmate/web-dropzone) family — file state, validation, the upload pipeline and the event substrate. No DOM rendering, no CSS, no custom elements.
@@ -47,7 +47,7 @@ Earlier releases: [CHANGELOG](https://github.com/KeenMate/web-dropzone/blob/prod
 - 📚 [Examples](./docs/examples.md) — a vanilla renderer, a React hook, a status line.
 - 🎨 [Theming](./docs/theming.md) — what a renderer gets (icons, status vocabulary, labels).
 - ♿ [Accessibility](./docs/accessibility.md) — what a renderer must cover.
-- 🏗️ [Architecture](https://github.com/keenmate/web-dropzone/blob/main/ARCHITECTURE.md) — the core / renderer split.
+- 🏗️ [Architecture](https://github.com/keenmate/web-dropzone/blob/prod/ARCHITECTURE.md) — the core / renderer split.
 
 ## Install
 

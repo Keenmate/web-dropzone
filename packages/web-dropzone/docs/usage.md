@@ -652,7 +652,7 @@ inserted escaped (no label is rendered as HTML), so placeholder values like `{na
 
 Tune any input per device class or window width without app-side viewport code — the shared
 mechanism of `@keenmate/web-components-core`
-([SPEC §6.7](https://github.com/keenmate/web-components-core/blob/main/docs/SPEC.md)). A **map** has
+([SPEC §6.7](https://github.com/keenmate/web-components-core/blob/prod/docs/SPEC.md)). A **map** has
 two axes, each keyed `mobile` / `tablet` / `desktop`:
 
 - **`device`** — what the device *is* (touch capability first, then the short side): a phone is

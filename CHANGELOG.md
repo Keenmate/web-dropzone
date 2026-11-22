@@ -455,7 +455,7 @@ Requires `@keenmate/web-components-core` `^1.0.0-rc21` (was `^1.0.0-rc15`). No c
   back. The old document click / keydown listeners are gone.
 - **`DropzoneElementConfig`** lists exactly the `<web-dropzone>` inputs: no `isHeadless` /
   `container` / `hostElement`; unset-by-default inputs are typed `| null`; adds `customStyles`.
-- `escapeHtml` (re-exported by both packages) is core's: it takes any value (`null` / `undefined`
+- `escapeHtml` (exported by `@keenmate/web-dropzone-core`) is core's: it takes any value (`null` / `undefined`
   → `''`). `packages/web-dropzone-core/src/dom-utils.ts` is gone.
 
 ### Changed (indicator drawer in the overlay tree, 2026-11-10)
@@ -1043,7 +1043,7 @@ Types renamed with the events: `FileAddedEventDetail` → `FileAddEventDetail`, 
   - `fileIcons` — a `Record<string, string>` keyed by **extension** (`psd`, `.fig` — leading dot optional, case-insensitive) **or** by **category** name (`image`, `archive`, `default`, …). Extension keys win over category keys.
   - `fileIconCallback: (file: File) => string | null | undefined` — consulted first; return HTML to use it, or `null`/`undefined` to fall through.
   - **Resolution order** (first hit wins): `fileIconCallback` → `fileIcons[extension]` → `fileIcons[category]` → built-in category icon. Honoured by the convenience form, the popover, and the `<web-dropzone-list>` satellite alike. Values are **raw HTML** (SVG / `<img>` / emoji) inserted via `innerHTML` and are **not sanitized** — see the new HTML Injection (XSS) notice in the README.
-- **`FILE_TYPE_ICONS` and `UI_ICONS` exports** from `@keenmate/web-dropzone-core` (and re-exported from `@keenmate/web-dropzone`) — the canonical Lucide category glyphs and the chrome glyphs (`cloudUpload`, `upload`, `paperclip`), plus a `FileIconOverrides` type for typing the two new hooks.
+- **`UI_ICONS` export** from `@keenmate/web-dropzone-core` (and re-exported from `@keenmate/web-dropzone`, next to the existing `FILE_TYPE_ICONS` category glyphs) — the chrome glyphs (`cloudUpload`, `upload`, `paperclip`), plus a `FileIconOverrides` type for typing the two new hooks.
 - **Static examples container image** (dev-only tooling; not part of the published packages). Mirrors the sibling `web-multiselect` setup: a two-stage `Dockerfile` (Vite builds `dist-examples/` → **nginx** serves it) with a hardened `nginx.conf` that silently `444`-drops vulnerability-scanner traffic (bad User-Agents, exploit-probe extensions/paths) and sends `no-cache` for the un-hashed HTML. Driven by `make image-build` / `image-run` / `image-stop` / `image-clean` with a per-developer `.makefile.env` (runner/name/port), plus a `docker-compose.yml`.
 
 ### Changed
