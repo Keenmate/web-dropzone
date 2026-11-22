@@ -111,7 +111,7 @@ defaults live once, in `DEFAULT_CONFIG` (the element's input rows read them):
 | `labels` | `labels` | yes — `engine.label()`, validation messages (default: the built-in English, `DEFAULT_LABELS`) |
 | `translateCallback` | `translateCallback` | yes — asked before the page-wide `window.components.locale.translateCallback` |
 | `renderIconCallback` | `renderIconCallback` | carried — the engine draws no icon; pass it to core `renderIcon()` when you draw one |
-| `fileIcons` / `getFileIconCallback` | same | carried — `getFileIcon(file, engine.getOptions(), engine.contextBase)` applies them |
+| `fileIcons` / `getFileIconCallback` | same | carried — `getFileIcon(file, engine.getOptions(), engine.contextBase)` resolves the value; draw it with core `renderIcon()` (markup / name / class list) |
 | validation, upload, gate options (`accept`, `maxFileSize`, …, `uploadFileCallback`, `before*Callback`) | same | yes |
 | `renderLoadingCallback` | — | no — the engine draws no loader (core `renderLoader()` reads the page-wide hook for yours) |
 | `locale` | `locale` | yes — the `{count}` numbers in `engine.label()`, the sizes in validation messages; pass `engine.getOptions().locale` to `formatFileSize(bytes, locale)` when you draw a size (default: unset — `DEFAULT_CONFIG.locale`, the page-wide `window.components.locale`, else the browser) |

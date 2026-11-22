@@ -151,7 +151,7 @@ function lookupIconMap(map: Record<string, string>, probe: string): string | und
 }
 
 /**
- * Resolve the icon markup for a file. Resolution order, first hit wins:
+ * Resolve the icon value for a file. Resolution order, first hit wins:
  *   1. `overrides.getFileIconCallback({ file })` (non-null return)
  *   2. `overrides.fileIcons[<extension>]`  (e.g. `psd`)
  *   3. `overrides.fileIcons[<category>]`   (e.g. `archive`)
@@ -161,8 +161,10 @@ function lookupIconMap(map: Record<string, string>, probe: string): string | und
  * full `DropzoneEngineOptions` qualifies, so renderers pass `this.config` directly.
  * `contextBase` (a store's context prototype — `controller` / `element` as
  * inherited getters) becomes the callback ctx's prototype, so the ctx carries
- * them non-enumerably without a per-row allocation of its own. Returns a raw
- * HTML string (see the XSS caveat on `DropzoneEngineOptions.fileIcons`).
+ * them non-enumerably without a per-row allocation of its own. Returns the
+ * icon VALUE (markup, a built-in / hook name, an icon-font class list, text);
+ * the renderers draw it through core `renderIcon` (see
+ * `DropzoneEngineOptions.fileIcons` for the forms and the XSS caveat).
  */
 export function getFileIcon(file: File, overrides?: FileIconOverrides, contextBase?: object): string {
     const callback = overrides?.getFileIconCallback;

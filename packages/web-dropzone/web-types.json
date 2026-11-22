@@ -1515,17 +1515,17 @@
               },
               {
                 "name": "fileIcons",
-                "description": "Icon overrides keyed by extension or category (raw HTML — NOT sanitized). Property-only object.",
+                "description": "Icon overrides keyed by extension or category. A value is markup (starts with `<`, inserted raw — NOT sanitized), a built-in icon name (`check`, `close`, … masked from `--base-icon-<name>`), a name `renderIconCallback` maps (ctx `{ file }`), an icon-font class list (`fa-solid fa-file-pdf` → `<i class=\"dz__icon …\">`), or text (an emoji). Property-only object.",
                 "type": "Record<string, string>"
               },
               {
                 "name": "getFileIconCallback",
-                "description": "Full-control file-icon resolver (raw HTML — NOT sanitized). `ctx`: `{ file }`. Return null to fall back to fileIcons / category.",
+                "description": "Full-control file-icon resolver. `ctx`: `{ file }`. Return an icon value — the same forms as `fileIcons` (markup NOT sanitized) — or null to fall back to fileIcons / category.",
                 "type": "(ctx: FileIconContext) => string | null | undefined"
               },
               {
                 "name": "renderIconCallback",
-                "description": "This element’s icon hook for the icon inputs (`icon`, `cancel-icon`, `remove-icon`, `overlay-icon`; a bound satellite’s `icon` too) — asked after markup and the built-in names (never sent here), before the page-wide `window.components.renderIconCallback`. `ctx`: `{ component, element, prefix }` + `{ file }` on a row button. Return markup (raw — NOT sanitized; empty string = no icon) or `null` / `undefined` = not mine. Live.",
+                "description": "This element’s icon hook for the icon inputs (`icon`, `cancel-icon`, `remove-icon`, `overlay-icon`, `fileIcons` / `getFileIconCallback` values; a bound satellite’s `icon` too) — asked after markup and the built-in names (never sent here), before the page-wide `window.components.renderIconCallback`. `ctx`: `{ component, element, prefix }` + `{ file }` on a row button / file-type icon. Return markup (raw — NOT sanitized; empty string = no icon) or `null` / `undefined` = not mine. Live.",
                 "type": "(name: string, ctx: IconRenderContext) => string | null | undefined"
               },
               {

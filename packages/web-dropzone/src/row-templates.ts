@@ -153,7 +153,7 @@ export interface RowTemplateOptions {
     parts?: ReadonlySet<FileItemPart>;
     /**
      * Consumer icon overrides (`fileIcons` map + `getFileIconCallback`) forwarded
-     * to `getFileIcon`. A full `DropzoneEngineOptions` satisfies this, so callers pass
+     * to `getFileIcon`; the value it picks is drawn by {@link renderFileIcon}. A full `DropzoneEngineOptions` satisfies this, so callers pass
      * their store config straight through. Absent → built-in category icons.
      */
     iconOverrides?: FileIconOverrides;
@@ -172,7 +172,7 @@ export interface RowTemplateOptions {
     cancelIcon?: string;
     /** `remove-icon` — the Remove glyph, read by {@link renderDzIcon} (default: the CSS-masked ✕). */
     removeIcon?: string;
-    /** Who draws `cancelIcon` / `removeIcon` (host + `renderIconCallback`); the row's `{ file }` is added to the ctx. */
+    /** Who draws `cancelIcon` / `removeIcon` and the file-type icon (host + `renderIconCallback`); the row's `{ file }` is added to the ctx. */
     iconOptions?: DzIconOptions;
     /** UI-string lookup (the store's `labels`); default: built-in English. */
     label?: LabelFn;
@@ -257,14 +257,62 @@ export function renderRemoveButton(file: FileState, baseClass: string, removable
 }
 
 /**
- * Inner content for the icon slot — `<img>` when thumbnail mode is on and
- * the file already has a preview URL, else the file-type emoji.
+ * Marks an element whose content is a row's file-type icon (not a thumbnail),
+ * so {@link repaintFileIcons} can find it; a thumbnail swap removes it.
  */
-export function renderPlaceholderInner(file: FileState, useThumbnail: boolean, iconOverrides?: FileIconOverrides, iconContext?: object): string {
-    if (useThumbnail && file.previewUrl) {
+export const FILE_ICON_ATTR = 'data-dz-file-icon';
+
+/**
+ * A row's file-type icon → HTML. The value comes from `getFileIcon`
+ * (`getFileIconCallback` → `fileIcons[<ext>]` → `fileIcons[<category>]` →
+ * the built-in inline-SVG icon) and goes through {@link renderDzIcon} like
+ * every other icon input: markup raw, a built-in name, the store's /
+ * page-wide `renderIconCallback`, an icon-font class list
+ * (`fa-solid fa-file-pdf` → `<i class="dz__icon fa-solid fa-file-pdf">`), else
+ * text. The hooks' ctx carries the row's `{ file }`.
+ */
+export function renderFileIcon(file: FileState, opts: RowTemplateOptions = {}): string {
+    return renderDzIcon(getFileIcon(file.file, opts.iconOverrides, opts.iconContext), rowIconOptions(file, opts.iconOptions));
+}
+
+/** Whether the icon slot shows a thumbnail `<img>` rather than the file-type icon. */
+function isThumbnailShown(file: FileState, useThumbnail: boolean): boolean {
+    return useThumbnail && !!file.previewUrl;
+}
+
+/** ` data-dz-file-icon` when the slot holds the file-type icon, else ''. */
+export function fileIconSlotAttr(file: FileState, useThumbnail: boolean): string {
+    return isThumbnailShown(file, useThumbnail) ? '' : ` ${FILE_ICON_ATTR}`;
+}
+
+/**
+ * Inner content for the icon slot — `<img>` when thumbnail mode is on and
+ * the file already has a preview URL, else the file-type icon
+ * ({@link renderFileIcon}).
+ */
+export function renderPlaceholderInner(file: FileState, useThumbnail: boolean, opts: RowTemplateOptions = {}): string {
+    if (isThumbnailShown(file, useThumbnail)) {
         return `<img src="${file.previewUrl}" alt="">`;
     }
-    return getFileIcon(file.file, iconOverrides, iconContext);
+    return renderFileIcon(file, opts);
+}
+
+/**
+ * Repaint every rendered file-type icon under `root` in place (the page-wide
+ * `window.components.renderIconCallback` changed — core `iconsChanged()`,
+ * C-CA-40). Only slots marked {@link FILE_ICON_ATTR} are touched, so
+ * thumbnails, rows, scroll and focus survive.
+ */
+export function repaintFileIcons(
+    root: ParentNode,
+    findFile: (id: string) => FileState | undefined,
+    opts: Pick<RowTemplateOptions, 'iconOverrides' | 'iconContext' | 'iconOptions'>
+): void {
+    root.querySelectorAll<HTMLElement>(`[${FILE_ICON_ATTR}]`).forEach((slot) => {
+        const id = slot.closest<HTMLElement>('[data-file-id]')?.dataset.fileId;
+        const file = id ? findFile(id) : undefined;
+        if (file) slot.innerHTML = renderFileIcon(file, opts);
+    });
 }
 
 /**
@@ -336,7 +384,7 @@ export function listProgressInner(file: FileState, label: LabelFn = defaultLabel
 export function renderDetailedItem(file: FileState, opts: RowTemplateOptions = {}): string {
     const category = getFileTypeCategory(file.file);
     const useThumbnail = opts.useThumbnail ?? false;
-    const inner = renderPlaceholderInner(file, useThumbnail, opts.iconOverrides, opts.iconContext);
+    const inner = renderPlaceholderInner(file, useThumbnail, opts);
     const reorderAttr = opts.reorderEligible ? ' data-reorder-bucket="complete"' : '';
     const removable = opts.removable !== false;
     const p = opts.parts;
@@ -349,7 +397,7 @@ export function renderDetailedItem(file: FileState, opts: RowTemplateOptions = {
                 </div>` : '';
     return `
         <div class="dz__file-item dz__file-item--detailed" data-file-id="${file.id}" data-status="${file.status}"${reorderAttr}${busyAttr(file)}>
-            ${showPart(p, 'icon') ? `<div class="dz__file-item-icon dz__file-item-icon--${category}">${inner}</div>` : ''}
+            ${showPart(p, 'icon') ? `<div class="dz__file-item-icon dz__file-item-icon--${category}"${fileIconSlotAttr(file, useThumbnail)}>${inner}</div>` : ''}
             <div class="dz__file-item-info">
                 ${showPart(p, 'name') ? `<div class="dz__file-item-name">${escapeHtml(file.name)}</div>` : ''}
                 ${meta}
@@ -379,7 +427,7 @@ export function renderGridItem(file: FileState, opts: RowTemplateOptions = {}): 
         ? ''
         : isImage && useThumbnail && file.previewUrl
             ? `<img src="${file.previewUrl}" alt="${escapeHtml(file.name)}" class="dz__preview-item-image">`
-            : `<div class="dz__preview-item-placeholder">${getFileIcon(file.file, opts.iconOverrides, opts.iconContext)}</div>`;
+            : `<div class="dz__preview-item-placeholder" ${FILE_ICON_ATTR}>${renderFileIcon(file, opts)}</div>`;
     const showName = showPart(p, 'name');
     const showAction = showPart(p, 'action');
     const showCancel = showPart(p, 'cancel');
@@ -407,7 +455,7 @@ export function renderGridItem(file: FileState, opts: RowTemplateOptions = {}): 
 export function renderBadgeItem(file: FileState, opts: RowTemplateOptions = {}): string {
     const statusClass = file.status !== 'pending' ? `dz__badge--${file.status}` : '';
     const useThumbnail = opts.useThumbnail ?? false;
-    const inner = renderPlaceholderInner(file, useThumbnail, opts.iconOverrides, opts.iconContext);
+    const inner = renderPlaceholderInner(file, useThumbnail, opts);
     const reorderAttr = opts.reorderEligible ? ' data-reorder-bucket="complete"' : '';
     const removable = opts.removable !== false;
     const p = opts.parts;
@@ -415,7 +463,7 @@ export function renderBadgeItem(file: FileState, opts: RowTemplateOptions = {}):
     return `
         <span class="dz__badge ${statusClass}" data-file-id="${file.id}" data-status="${file.status}"${reorderAttr}${busyAttr(file)}>
             <span class="dz__badge-text" title="${escapeHtml(file.name)}">
-                ${showPart(p, 'icon') ? `<span class="dz__badge-icon">${inner}</span>` : ''}
+                ${showPart(p, 'icon') ? `<span class="dz__badge-icon"${fileIconSlotAttr(file, useThumbnail)}>${inner}</span>` : ''}
                 ${showPart(p, 'name') ? `<span class="dz__badge-name">${escapeHtml(file.name)}</span>` : ''}
                 ${showPart(p, 'action') ? renderRowActionButton(file, 'dz__badge-action', label, opts.isDisabled) : ''}
                 ${showPart(p, 'cancel') ? renderCancelButton(file, 'dz__badge-action', opts) : ''}

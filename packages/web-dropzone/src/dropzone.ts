@@ -1035,11 +1035,12 @@ export class WebDropzone extends DropzoneEngine {
      * the preview hasn't resolved yet. Grid has its own placeholder→img path.
      */
     private swapPreviewIcon(slot: Element | null, file: FileState): void {
-        if (!slot || !file.previewUrl || slot.querySelector('img')) return;
+        if (!slot || !file.previewUrl || !slot.hasAttribute(RowTemplate.FILE_ICON_ATTR)) return;
         const img = document.createElement('img');
         img.src = file.previewUrl;
         img.alt = '';
         slot.replaceChildren(img);
+        slot.removeAttribute(RowTemplate.FILE_ICON_ATTR);   // a thumbnail now — no icon repaint
     }
 
     /**
@@ -1536,7 +1537,7 @@ export class WebDropzone extends DropzoneEngine {
      * Repaint every icon this store drew through core `renderIcon` in place —
      * the page-wide `window.components.renderIconCallback` changed (the
      * element's `iconsChanged()`, C-CA-40). Only the icon slots are replaced
-     * (prompt icon, row Cancel / Remove buttons in the list and the open
+     * (prompt icon, row Cancel / Remove buttons and file-type icons in the list and the open
      * popover), so files, scroll, focus and the open popover are kept. The
      * drag overlay is built per drag, so its next build reads the new hook.
      * Bound satellites repaint themselves (their own `iconsChanged()`).
@@ -1549,7 +1550,9 @@ export class WebDropzone extends DropzoneEngine {
             root.querySelectorAll<HTMLElement>('[data-dz-icon]').forEach((slot) => {
                 slot.innerHTML = RowTemplate.renderDzIcon(this.config.icon || DEFAULT_CONFIG.icon, opts);
             });
-            RowTemplate.repaintRowIcons(root, (id) => this.files.find((f) => f.id === id), this.config.cancelIcon, this.config.removeIcon, opts);
+            const findFile = (id: string) => this.files.find((f) => f.id === id);
+            RowTemplate.repaintRowIcons(root, findFile, this.config.cancelIcon, this.config.removeIcon, opts);
+            RowTemplate.repaintFileIcons(root, findFile, { iconOverrides: this.config, iconContext: this.contextBase, iconOptions: opts });
         }
     }
 
@@ -1602,7 +1605,7 @@ export class WebDropzone extends DropzoneEngine {
 
     private renderCompactItem(file: FileState): string {
         const useThumbnail = this.shouldShowThumbnails('popover');
-        const inner = RowTemplate.renderPlaceholderInner(file, useThumbnail, this.config);
+        const inner = RowTemplate.renderPlaceholderInner(file, useThumbnail, this.rowOpts(file, 'popover'));
         const statusClass = `dz__popover-status--${file.status}`;
         const isUploading = file.status === 'uploading';
         const removable = this.isFileUserRemovable(file);
@@ -1616,7 +1619,7 @@ export class WebDropzone extends DropzoneEngine {
         // programmatically.
         return `
             <tr class="dz__popover-row ${isUploading ? 'dz__popover-row--uploading' : ''}" data-file-id="${file.id}"${isUploading ? ' aria-busy="true"' : ''}>
-                <td class="dz__popover-cell dz__popover-cell--icon"><span class="dz__popover-placeholder">${inner}</span></td>
+                <td class="dz__popover-cell dz__popover-cell--icon"><span class="dz__popover-placeholder"${RowTemplate.fileIconSlotAttr(file, useThumbnail)}>${inner}</span></td>
                 <td class="dz__popover-cell dz__popover-cell--name">${escapeHtml(file.name)}</td>
                 <td class="dz__popover-cell dz__popover-cell--size">${formatFileSize(file.size, this.config.locale)}</td>
                 <td class="dz__popover-cell dz__popover-cell--progress">

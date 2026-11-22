@@ -183,3 +183,33 @@ test('assigning window.components.renderIconCallback later repaints store + sate
         await page.evaluate(() => { (window as any).components.renderIconCallback = null; });
     }
 });
+
+// ── fileIcons values go through core renderIcon ──────────────────────────────
+
+test('a fileIcons class list renders an icon-font <i class="dz__icon …"> (store row + bound list)', async ({ page }) => {
+    await add(page, 'fi', [{ name: 'a.pdf', type: 'application/pdf' }]);
+    const storeIcon = icon(page, 'fi', 'a.pdf').locator('i');
+    await expect(storeIcon).toHaveAttribute('class', 'dz__icon fa-solid fa-file-pdf');
+    const listIcon = page.locator('#fi-list').locator('.dz__badge:has(.dz__badge-name:text-is("a.pdf")) .dz__badge-icon i');
+    await expect(listIcon).toHaveAttribute('class', 'dz__icon fa-solid fa-file-pdf');
+});
+
+test('a fileIcons name the page hook answers later repaints the file icons in place (store + bound list)', async ({ page }) => {
+    await add(page, 'fi', [{ name: 'b.txt', type: 'text/plain' }]);
+    const storeSlot = icon(page, 'fi', 'b.txt');
+    const listSlot = page.locator('#fi-list').locator('.dz__badge:has(.dz__badge-name:text-is("b.txt")) .dz__badge-icon');
+    await expect(storeSlot.locator('i.dz__icon.later-file')).toHaveCount(1);   // unanswered → icon-font <i>
+    await expect(listSlot.locator('i.dz__icon.later-file')).toHaveCount(1);
+    await storeSlot.evaluate((el) => { (window as any).__fiSlot = el; });
+    try {
+        await page.evaluate(() => {
+            (window as any).components.renderIconCallback = (name: string, ctx: any) =>
+                name === 'later-file' ? `<b data-test-file-icon>${ctx.file?.name ?? '?'}</b>` : null;
+        });
+        await expect(storeSlot.locator('b[data-test-file-icon]')).toHaveText('b.txt');   // ctx carries { file }
+        await expect(listSlot.locator('b[data-test-file-icon]')).toHaveText('b.txt');
+        expect(await storeSlot.evaluate((el) => el === (window as any).__fiSlot)).toBe(true);   // repainted in place
+    } finally {
+        await page.evaluate(() => { (window as any).components.renderIconCallback = null; });
+    }
+});

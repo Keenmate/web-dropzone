@@ -76,7 +76,7 @@ export interface BeforeFilesCancelContext extends DropzoneContext {
     allFiles: FileState[];
 }
 
-/** `getFileIconCallback(ctx)` — return icon markup, or `null` to fall through. */
+/** `getFileIconCallback(ctx)` — return an icon value (markup / name / class list, read by core `renderIcon`), or `null` to fall through. */
 export interface FileIconContext extends DropzoneContext {
     /** The file whose icon is resolved. */
     file: File;

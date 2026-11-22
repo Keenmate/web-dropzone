@@ -607,10 +607,16 @@ export interface DropzoneEngineOptions {
      * Icon overrides layered on top of the built-in category icons, keyed by
      * file EXTENSION (`psd`, `.fig` — leading dot optional, case-insensitive)
      * OR by category name (`image`, `archive`, `default`, …). Extension keys
-     * win over category keys, which win over the built-in Lucide icon. Values
-     * are raw HTML strings (SVG / `<img>` / emoji).
+     * win over category keys, which win over the built-in Lucide icon. A value
+     * is read by core `renderIcon` like every icon input: markup (starts with
+     * `<` — SVG / `<img>`) raw; a built-in name (`check`, `close`, … —
+     * `BUILT_IN_ICON_NAMES`) masked from `--base-icon-<name>`; then
+     * `renderIconCallback` / the page-wide hook (ctx `{ file }`); an ASCII
+     * class list (`fa-solid fa-file-pdf`) → an icon-font
+     * `<i class="dz__icon fa-solid fa-file-pdf">`; anything else (an emoji)
+     * escaped text.
      *
-     * ⚠️ Raw HTML — inserted via `innerHTML`, NOT sanitized. Only pass markup
+     * ⚠️ Markup is inserted via `innerHTML`, NOT sanitized. Only pass markup
      * you control; never untrusted / user-supplied strings. See the HTML
      * Injection (XSS) notice in the README.
      */
@@ -619,22 +625,24 @@ export interface DropzoneEngineOptions {
     /**
      * Full-control icon resolver — `getFileIconCallback({ file })`,
      * consulted BEFORE `fileIcons` and the built-in categories. Return an
-     * HTML string to use it, or `null` / `undefined` to fall through to
-     * `fileIcons` → category → default. Runs per rendered row (sync).
+     * icon value (the same forms as `fileIcons` — markup, a built-in name, a
+     * name `renderIconCallback` maps, an icon-font class list, text) to use
+     * it, or `null` / `undefined` to fall through to `fileIcons` → category →
+     * default. Runs per rendered row (sync).
      *
-     * ⚠️ Raw HTML — same caveat as `fileIcons`: NOT sanitized.
+     * ⚠️ Markup — same caveat as `fileIcons`: NOT sanitized.
      */
     getFileIconCallback?: ((ctx: FileIconContext) => string | null | undefined) | null;
 
     /**
      * This element's icon hook — `renderIconCallback(name, ctx)` for the icon
-     * inputs (`icon`, `cancelIcon`, `removeIcon`, `overlayIcon`; a bound
+     * inputs (`icon`, `cancelIcon`, `removeIcon`, `overlayIcon`, `fileIcons` / `getFileIconCallback` values; a bound
      * satellite's `icon` too). Asked by core `renderIcon` AFTER markup and the
      * built-in names (`check`, `close`, …; never sent here) and BEFORE the
      * page-wide `window.components.renderIconCallback`. Return markup (`''` =
      * no icon), or `null` / `undefined` = not mine (the page hook, then an
      * icon-font `<i class="dz__icon …">` / text decide). `ctx`: `{ component,
-     * element, prefix: 'dz' }` + `{ file }` on a row button.
+     * element, prefix: 'dz' }` + `{ file }` on a row button / file-type icon.
      *
      * ⚠️ The returned markup is inserted raw — NOT sanitized.
      */
@@ -924,7 +932,7 @@ export type FileTypeCategory =
  * can take them without depending on the whole `DropzoneEngineOptions`. A full
  * `DropzoneEngineOptions` is structurally assignable to this, so renderers can just
  * pass `this.config`. See `DropzoneEngineOptions.fileIcons` / `.getFileIconCallback` for
- * the resolution order and the raw-HTML (XSS) caveat.
+ * the resolution order, the accepted value forms and the markup (XSS) caveat.
  */
 export interface FileIconOverrides {
     fileIcons?: Record<string, string> | null;

@@ -385,6 +385,8 @@ Every spec runs in three Playwright projects — chromium, firefox and webkit
 | Named icons in satellites (picker `icon`, list `remove-icon`) | ✓      | `icons.spec.ts` | `icons.html` |
 | Named `overlay-icon` drawn in the drag-overlay layer          | ✓      | `icons.spec.ts` | `icons.html` |
 | Page hook assigned later repaints store + satellites in place (rows / focus kept, C-CA-40) | ✓ | `icons.spec.ts` | `icons.html` |
+| `fileIcons` value through core `renderIcon`: class list → `<i class="dz__icon …">` (store row + bound list) | ✓ | `icons.spec.ts` | `icons.html` |
+| `fileIcons` name answered by a later page hook repaints file icons in place (ctx `{ file }`) | ✓ | `icons.spec.ts` | `icons.html` |
 
 ## 22. Keyboard + accessibility
 

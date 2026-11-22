@@ -697,7 +697,7 @@ const files = el.files       // current FileState[]</code></pre>
         <!-- CUSTOM FILE-TYPE ICONS -->
         <div class="card">
             <h2>DC17 · Custom file-type icons (<code>fileIcons</code> + <code>getFileIconCallback</code>)</h2>
-            <p>Each row's icon resolves from the file's <strong>category</strong> by default (Lucide glyphs). Override per <strong>extension</strong> or per <strong>category</strong> with the <code>fileIcons</code> map, or take full control with <code>getFileIconCallback</code>. Values are <strong>any HTML string</strong> — this demo mixes an inline <strong>SVG</strong> (<code>.psd</code>), an <strong><code>&lt;img&gt;</code></strong> (<code>.fig</code>), and <strong>emoji</strong> (<code>.sketch</code>, the <code>archive</code> category, and the callback).</p>
+            <p>Each row's icon resolves from the file's <strong>category</strong> by default (Lucide glyphs). Override per <strong>extension</strong> or per <strong>category</strong> with the <code>fileIcons</code> map, or take full control with <code>getFileIconCallback</code>. Values follow the icon rule (markup, a built-in or hook name, an icon-font class list, or text) — this demo mixes an inline <strong>SVG</strong> (<code>.psd</code>), an <strong><code>&lt;img&gt;</code></strong> (<code>.fig</code>), and <strong>emoji</strong> (<code>.sketch</code>, the <code>archive</code> category, and the callback).</p>
 
             <div class="form-group">
                 <label>Detailed list — overrides already applied</label>
@@ -724,7 +724,7 @@ const files = el.files       // current FileState[]</code></pre>
                             archive: '📦',    // whole CATEGORY → emoji
                         }
 
-                        // Consulted BEFORE the map. Return HTML to use it, or null to fall through.
+                        // Consulted BEFORE the map. Return an icon value to use it, or null to fall through.
                         el.getFileIconCallback = ({ file }) => /^invoice/i.test(file.name) ? '🧾' : null
 
                         window.seedIconDemo = () => {

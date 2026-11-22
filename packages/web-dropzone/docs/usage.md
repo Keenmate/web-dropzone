@@ -157,8 +157,8 @@ Properties with no attribute (objects, callbacks, read-only state). Callbacks ar
 | `beforeActionCallback` | `(detail: DropzoneActionEventDetail) => false \| void \| Promise<false \| void>` | Runs before any dropzone button activates — row ✕ / Cancel / Pause / Resume / Retry, the progress strip's bulk buttons, the popover's Clear all / Add more; on a bound satellite's buttons too (core `/actions`). `false` cancels the item `onClick`, the built-in and the `action` event; another return value is ignored. May be async. The built-in still asks its own gate (`beforeFilesRemoveCallback`, `beforeFilesCancelCallback`). |
 | `uploadFileCallback` | `(ctx: FileUploadContext) => Promise<void \| FileUploadResult>` | Component-driven upload handler; added files run through the worker pool. `ctx`: `{ file, signal, setProgress, startBytes, startPercent, metadata, setMetadata, uploadMetadata }`. |
 | `retryPolicy` | `RetryPolicy` | Retry policy applied when uploadFileCallback rejects. Property-only object. |
-| `fileIcons` | `Record<string, string>` | Icon overrides keyed by extension or category (raw HTML — NOT sanitized). Property-only object. |
-| `getFileIconCallback` | `(ctx: FileIconContext) => string \| null \| undefined` | Full-control file-icon resolver (raw HTML — NOT sanitized). `ctx`: `{ file }`. Return null to fall back to fileIcons / category. |
+| `fileIcons` | `Record<string, string>` | Icon overrides keyed by extension or category. A value is markup (starts with `<`, inserted raw — NOT sanitized), a built-in icon name (`check`, `close`, … masked from `--base-icon-<name>`), a name `renderIconCallback` maps (ctx `{ file }`), an icon-font class list (`fa-solid fa-file-pdf` → `<i class="dz__icon …">`), or text (an emoji). Property-only object. |
+| `getFileIconCallback` | `(ctx: FileIconContext) => string \| null \| undefined` | Full-control file-icon resolver. `ctx`: `{ file }`. Return an icon value — the same forms as `fileIcons` (markup NOT sanitized) — or null to fall back to fileIcons / category. |
 | `renderIconCallback` | `(name: string, ctx: IconRenderContext) => string \| null \| undefined` | This element’s icon hook for the icon inputs (`icon`, `cancel-icon`, `remove-icon`, `overlay-icon`; a bound satellite’s `icon` too) — asked after markup and the built-in names (never sent here), before the page-wide `window.components.renderIconCallback`. `ctx`: `{ component, element, prefix }` + `{ file }` on a row button. Return markup (raw — NOT sanitized; empty string = no icon) or `null` / `undefined` = not mine. Live. |
 | `translateCallback` | `TranslateCallback` | This element’s translation hook (core `/locale`): `({ component, key, template, params, locale }) => string \| null \| undefined`, asked for every label key this instance’s `labels` did not set, before the page-wide `window.components.locale.translateCallback`; bound satellites use it too. Return the finished text, or `null` / `undefined` = not mine. Live. |
 | `renderFileItemCallback` | `(ctx: FileItemRenderContext) => RenderCallbackResult` | Custom render for a single file row (structural mode). `ctx`: `{ file, fileIndex, displayMode, isInPopover }`. Result: string = the row HTML, HTMLElement = the row itself (kept; `file-row-update` fires on it), `null` / `undefined` = the built-in row, `false` = no row. |
@@ -319,7 +319,7 @@ Every callback takes **one** `ctx` object that also carries `controller` / `elem
 | `beforeFilesCancelCallback` | `{ files, allFiles }` | `false` vetoes (`cancelFile`, row ⊘; `cancelAll` / Cancel all ask once) |
 | `beforeActionCallback` | the `action` event detail (`{ action, item, source, file?, files, … }`) | `false` cancels the button (no `onClick`, no built-in, no `action` event); runs before the per-purpose gates above |
 | `uploadFileCallback` | `{ file, signal, setProgress, startBytes, startPercent, metadata, setMetadata, uploadMetadata }` | `Promise<void \| { metadata, downloadUrl, previewUrl, name }>` |
-| `getFileIconCallback` | `{ file }` | icon HTML, or `null` to fall through |
+| `getFileIconCallback` | `{ file }` | an icon value (markup / name / class list / text — see [File-type icons](#file-type-icons)), or `null` to fall through |
 | `renderIconCallback` | `(name, { component, element, prefix, file? })` | icon markup, or `null` = not mine (page hook / icon font next); never asked for a built-in name |
 | `translateCallback` | `{ component, key, template, params, locale }` (`key` = the full `web-dropzone.<key>`) | the finished text, or `null` = not mine (the page-wide `translateCallback` next); never asked for a key the instance `labels` set |
 | `renderFileItemCallback` | `{ file, fileIndex, displayMode, isInPopover }` | `RenderCallbackResult` (structural mode) |
@@ -371,24 +371,34 @@ const dropzone = document.querySelector('web-dropzone');
 // Map keyed by EXTENSION (leading dot optional, case-insensitive) or CATEGORY.
 // Extension keys win over category keys, which win over the built-in icon.
 dropzone.fileIcons = {
-  psd: '<svg viewBox="0 0 24 24">…</svg>',   // by extension
+  psd: '<svg viewBox="0 0 24 24">…</svg>',   // by extension — markup
   fig: '<img src="/icons/figma.svg" alt="">',
-  archive: '📦',                             // override a whole category
+  pdf: 'fa-solid fa-file-pdf',               // an icon-font class list → <i class="dz__icon fa-solid fa-file-pdf">
+  xlsx: 'my-sheet',                          // a name your renderIconCallback / the page hook maps
+  archive: '📦',                             // override a whole category — text
 };
 
-// Full-control resolver — consulted BEFORE the map. Return HTML to use it,
-// or null/undefined to fall through to fileIcons → category → default.
+// Full-control resolver — consulted BEFORE the map. Return an icon value to use
+// it, or null/undefined to fall through to fileIcons → category → default.
 dropzone.getFileIconCallback = ({ file }) =>
   file.name.endsWith('.sketch') ? '<svg>…</svg>' : null;
 ```
 
 **Resolution order** (first hit wins): `getFileIconCallback` → `fileIcons[extension]` → `fileIcons[category]` → built-in category icon.
 
-> ⚠️ Icon values are **raw HTML** inserted via `innerHTML` and are **NOT sanitized**. Only pass markup you control — never untrusted / user-supplied strings. See the [HTML injection (XSS) notice](#html-injection-xss-notice).
+The picked value is drawn like every [icon input](#icons) (core `renderIcon`): markup (starts with `<`) raw, a
+built-in name masked from `--base-icon-<name>`, a name the element's / page-wide `renderIconCallback` maps (ctx
+`{ component, element, prefix: 'dz', file }` — `file` is the row's file state), an ASCII class list as an
+icon-font `<i class="dz__icon …">`, anything else escaped text. The built-in category icons are inline SVG
+(markup). A bound `<web-dropzone-list>` draws them with its store's maps and hook, and changing
+`window.components.renderIconCallback` later repaints them in place (thumbnails untouched).
+
+> ⚠️ Markup values are inserted via `innerHTML` and are **NOT sanitized**. Only pass markup you control — never untrusted / user-supplied strings. See the [HTML injection (XSS) notice](#html-injection-xss-notice).
 
 ## Icons
 
-The icon inputs — `icon`, `cancel-icon`, `remove-icon`, `overlay-icon` (and the picker satellite's `icon`) — follow
+The icon inputs — `icon`, `cancel-icon`, `remove-icon`, `overlay-icon` (and the picker satellite's `icon`), plus the
+[file-type icon](#file-type-icons) values (`fileIcons` / `getFileIconCallback`) — follow
 core's one icon rule (`renderIcon`), first match wins:
 
 | Value | Renders as |
@@ -400,7 +410,7 @@ core's one icon rule (`renderIcon`), first match wins:
 | an ASCII class list (`fa-solid fa-trash`, `bi-paperclip`) | `<i class="dz__icon fa-solid fa-trash" aria-hidden="true">` — an icon font |
 | anything else (`📎`, `+`) | escaped text |
 
-`ctx` is `{ component, element, prefix: 'dz' }`, plus `{ file }` on a row Cancel / Remove button. A bound satellite
+`ctx` is `{ component, element, prefix: 'dz' }`, plus `{ file }` on a row Cancel / Remove button and a file-type icon. A bound satellite
 (`<web-dropzone-picker>`, `<web-dropzone-list>`) draws with its store's `renderIconCallback` (`element` = the
 `<web-dropzone>`). The hook's markup is inserted raw — NOT sanitized. Changing
 `window.components.renderIconCallback` later repaints the icons (store and bound satellites, in place). An
@@ -424,8 +434,8 @@ The following properties / callbacks accept **raw HTML** and are intentionally *
 
 | Property / callback | Output used in | Risk |
 |---------------------|----------------|------|
-| `fileIcons` (map values) | File-row icon slot (innerHTML) | HTML injection |
-| `getFileIconCallback` | File-row icon slot (innerHTML) | HTML injection |
+| `fileIcons` (map values) | File-row icon slot (innerHTML when the value starts with `<`) | HTML injection |
+| `getFileIconCallback` | File-row icon slot (innerHTML when the value starts with `<`) | HTML injection |
 | `icon` attr / property | Drop-zone + minimal prompt (innerHTML when the value starts with `<`) | HTML injection |
 | `overlay-icon` attr / property | Drag overlay (innerHTML when the value starts with `<`) | HTML injection |
 | `cancel-icon` / `remove-icon` attr / property | Row Cancel / Remove buttons (innerHTML when the value starts with `<`) | HTML injection |

@@ -23,6 +23,17 @@ from `DEFAULT_CONFIG`) → `engine.setOptions(partial)` → `engine.getOptions()
 | `el.controller.getConfig()` / `ctx.controller.getConfig()` (`DropzoneController`) | `controller.getOptions()` |
 | type `DropzoneConfig` (`@keenmate/web-dropzone-core`, re-exported by `@keenmate/web-dropzone`) | `DropzoneEngineOptions` — the engine's settings type (constructor `options`, `setOptions(partial: Partial<DropzoneEngineOptions>)`, `getOptions(): Readonly<DropzoneEngineOptions>`); no alias. The element config types (`DropzoneElementConfig`, `SatelliteElementConfig`, …) keep their names |
 
+### Changed (file-type icons through core `renderIcon`, 2026-11-22)
+
+- `fileIcons` values and `getFileIconCallback` results are now drawn by core `renderIcon`, like every other icon
+  input: besides markup (unchanged — still inserted raw, the first rule) they accept a built-in icon name, a name
+  the element's / page-wide `renderIconCallback` maps (ctx `{ file }`), and an icon-font class list
+  (`{ pdf: 'fa-solid fa-file-pdf' }` → `<i class="dz__icon fa-solid fa-file-pdf">`); anything else is escaped
+  text (an emoji looks the same; a plain ASCII word is now read as a class list). The built-in category icons
+  stay inline SVG. File-type icons repaint in place when `window.components.renderIconCallback` changes (store
+  rows, open popover, bound `<web-dropzone-list>`). `getFileIcon()` still returns the resolved value — draw it
+  with core `renderIcon` for the same result.
+
 ### Added (icons repaint, rulebook C-CA-40, 2026-11-22)
 
 - Changing the page-wide `window.components.renderIconCallback` after the dropzone rendered repaints its icons

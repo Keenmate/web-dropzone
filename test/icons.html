@@ -68,6 +68,12 @@
         <web-dropzone-list id="late-list" for="late" list-appearance="list"></web-dropzone-list>
     </div>
 
+    <div class="fixture">
+        <div class="fixture-label">fileIcons values through core renderIcon: { pdf: 'fa-solid fa-file-pdf', txt: 'later-file' } + a bound list (badges)</div>
+        <web-dropzone id="fi" accept="*/*" display-mode="detailed"></web-dropzone>
+        <web-dropzone-list id="fi-list" for="fi" list-appearance="badges"></web-dropzone-list>
+    </div>
+
     <script type="module">
         import '/src/index.ts';
         import { installAddNamed } from './fixture-kit.js';
@@ -81,6 +87,7 @@
                 '.PDF': '<i class="ico-pdf">P</i>',
                 text: '<i class="ico-text">T</i>',
             };
+            document.getElementById('fi').fileIcons = { pdf: 'fa-solid fa-file-pdf', txt: 'later-file' };
             const cb = document.getElementById('cb');
             cb.fileIcons = { text: '<i class="ico-text">T</i>' };
             window.__iconCtx = [];

@@ -53,6 +53,8 @@ import {
     renderGridItem,
     renderBadgeItem,
     repaintRowIcons,
+    repaintFileIcons,
+    FILE_ICON_ATTR,
     statusGlyph
 } from './row-templates';
 import type { RowTemplateOptions } from './row-templates';
@@ -157,7 +159,7 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
 
     /**
      * The page-wide `window.components.renderIconCallback` changed (core,
-     * C-CA-40): repaint the rows' Cancel / Remove icons in place with the
+     * C-CA-40): repaint the rows' Cancel / Remove and file-type icons in place with the
      * store's icon hook — rows, scroll and focus are kept.
      */
     protected override iconsChanged(): void {
@@ -165,8 +167,10 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
         if (!store) return;
         const cfg = store.getOptions();
         const files = store.getFiles();
-        repaintRowIcons(this.container, (id) => files.find((f) => f.id === id), cfg.cancelIcon, cfg.removeIcon,
-            { host: cfg.hostElement ?? this, renderIconCallback: cfg.renderIconCallback });
+        const findFile = (id: string) => files.find((f) => f.id === id);
+        const iconOptions = { host: cfg.hostElement ?? this, renderIconCallback: cfg.renderIconCallback };
+        repaintRowIcons(this.container, findFile, cfg.cancelIcon, cfg.removeIcon, iconOptions);
+        repaintFileIcons(this.container, findFile, { iconOverrides: cfg, iconContext: this.iconContext(), iconOptions });
     }
 
     // ========================================================================
@@ -699,11 +703,12 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
         const slot = row.querySelector(
             appearance === 'badges' ? '.dz__badge-icon' : '.dz__file-item-icon'
         );
-        if (!slot || slot.querySelector('img')) return; // no icon part, or already patched
+        if (!slot || !slot.hasAttribute(FILE_ICON_ATTR)) return; // no icon part, or already patched
         const img = document.createElement('img');
         img.src = file.previewUrl;
         img.alt = '';
         slot.replaceChildren(img);
+        slot.removeAttribute(FILE_ICON_ATTR);   // a thumbnail now — no icon repaint
     }
 
     private patchRow(id: string): void {
