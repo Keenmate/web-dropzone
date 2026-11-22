@@ -48,17 +48,17 @@ test.describe('Localization page (examples-localization.html)', () => {
 
         // LO05 — the page locale reaches the file sizes.
         await page.locator('input[name="lo05-locale"][value="en-US"]').check();
-        await expect(out('lo05-out')).toContainText('summary: 1 file(s), 1.3 KB');
+        await expect(out('lo05-out')).toContainText('summary: Files: 1, 1.3 KB');
         await page.locator('input[name="lo05-locale"][value="cs-CZ"]').check();
-        await expect(out('lo05-out')).toContainText('summary: 1 file(s), 1,3 KB');
+        await expect(out('lo05-out')).toContainText('summary: Files: 1, 1,3 KB');
         await expect(out('lo05-out')).toContainText('Maximum size is 1,5 KB');
         // LO05 — the element's own locale wins over the page one; unset follows the page again.
         await page.locator('input[name="lo05-el-locale"][value="en"]').check();
         await expect(out('lo05-out')).toContainText('locale:  en');
-        await expect(out('lo05-out')).toContainText('summary: 1 file(s), 1.3 KB');
+        await expect(out('lo05-out')).toContainText('summary: Files: 1, 1.3 KB');
         await expect(out('lo05-out')).toContainText('Maximum size is 1.5 KB');
         await page.locator('input[name="lo05-el-locale"][value=""]').check();
-        await expect(out('lo05-out')).toContainText('summary: 1 file(s), 1,3 KB');
+        await expect(out('lo05-out')).toContainText('summary: Files: 1, 1,3 KB');
 
         expect(consoleErrors).toEqual([]);
     });

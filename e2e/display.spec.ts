@@ -67,7 +67,7 @@ test.describe('selector-appearance="native"', () => {
         await expect(nat.locator('.dz__native-label')).toHaveText('report.pdf');
     });
 
-    test('multi-file label uses "N files chosen"', async ({ page }) => {
+    test('multi-file label uses "Files chosen: N"', async ({ page }) => {
         const nat = dz(page, 'native');
         await nat.evaluate((el: any) => {
             el.addFiles([
@@ -76,7 +76,7 @@ test.describe('selector-appearance="native"', () => {
                 new File(['z'], 'c.txt')
             ]);
         });
-        await expect(nat.locator('.dz__native-label')).toHaveText('3 files chosen');
+        await expect(nat.locator('.dz__native-label')).toHaveText('Files chosen: 3');
     });
 });
 
@@ -150,12 +150,12 @@ test.describe('text inputs', () => {
 });
 
 test.describe('labels — validation messages', () => {
-    test('rejections carry the labelled message ({size} / {count} placeholders)', async ({ page }) => {
+    test('rejections carry the labelled message ({ctx.count} / {ctx.name} read the spot context)', async ({ page }) => {
         const out = await page.evaluate(async () => {
             const el = document.createElement('web-dropzone') as any;
             el.setAttribute('max-file-count', '1');
             el.setAttribute('display-mode', 'list');
-            el.labels = { 'errors.maxFileCountOne': 'Jen {count} soubor', 'errors.duplicate': 'Dvojitý: {name}' };
+            el.labels = { 'errors.maxFileCount': 'Jen {ctx.count} soubor', 'errors.duplicate': 'Dvojitý: {ctx.name}' };
             document.body.append(el);
             await el.whenReady();
             const errors: string[] = [];

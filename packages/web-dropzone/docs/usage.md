@@ -120,8 +120,8 @@ shadow root (`custom-styles` / `getCustomStylesCallback`, page-wide per tag) is 
 | `cancel-icon` | `cancelIcon` |  |  | Row Cancel (⊘) button glyph — markup (starts with `<`, inserted raw — NOT sanitized), an icon name (masked from `--base-icon-<name>`), or text (an emoji). Unset = built-in icon. See [Icons](#icons). |
 | `remove-icon` | `removeIcon` |  |  | Row Remove (✕) button glyph — markup (starts with `<`, inserted raw — NOT sanitized), an icon name (masked from `--base-icon-<name>`), or text (an emoji). Unset = built-in icon. See [Icons](#icons). |
 | `icon` | `icon` |  |  | Prompt icon (emoji or markup). |
-| `labels` | `labels` | `DropzoneLabelOverrides` |  | Every UI string (see `DropzoneLabels` / `DEFAULT_LABELS`): flat `<elementType>.<name>` keys (`buttons.selectFiles`, `ariaLabels.cancelFile`; the full `web-dropzone.<key>` works too), merged per key over the built-in English; `{name}` / `{count}` / `{size}` / … placeholders: prompt, hint, empty, summary, status names, row + bulk buttons, popover, limits line, progress strip, validation messages. Satellites inherit them (and take their own `labels` on top). Property (object) or JSON attribute. Live. |
-| `locale` | `locale` | `string \| null` |  | BCP-47 locale for the numbers the dropzone formats — file sizes (rows, summary, popover totals, limits line, progress counts, size validation messages; `1,5 MB` in `cs`), the progress percents (`12,5%`) and the `{count}` numbers in labels — or unset (the page-wide `window.components.locale`, else the browser language; `auto` = unset). Bound satellites follow it. UI strings are `labels`. Live. |
+| `labels` | `labels` | `DropzoneLabelOverrides` |  | Every UI string (see `DropzoneLabels` / `DEFAULT_LABELS`): flat `<elementType>.<name>` keys (`buttons.selectFiles`, `ariaLabels.cancelFile`; the full `web-dropzone.<key>` works too), merged per key over the built-in English; `{ctx.name}` / `{ctx.count}` / `{ctx.size}` / … placeholders: prompt, hint, empty, summary, status names, row + bulk buttons, popover, limits line, progress strip, validation messages. Satellites inherit them (and take their own `labels` on top). Property (object) or JSON attribute. Live. |
+| `locale` | `locale` | `string \| null` |  | BCP-47 locale for the numbers the dropzone formats — file sizes (rows, summary, popover totals, limits line, progress counts, size validation messages; `1,5 MB` in `cs`), the progress percents (`12,5%`) and the `{ctx.count}` numbers in labels — or unset (the page-wide `window.components.locale`, else the browser language; `auto` = unset). Bound satellites follow it. UI strings are `labels`. Live. |
 | `popover-placement` | `popoverPlacement` | `'top' \| 'top-start' \| 'top-end' \| 'bottom' \| 'bottom-start' \| 'bottom-end' \| 'left' \| 'left-start' \| 'left-end' \| 'right' \| 'right-start' \| 'right-end'` | `'bottom-start'` | Placement of the compact-mode popover relative to the summary (floating-ui placement). |
 | `overlay-target` | `overlayTarget` | `HTMLElement \| string` |  | Element (or selector string) that acts as the full-viewport drag-overlay target. Assign an HTMLElement via the property; a selector string via the `overlay-target` attribute. |
 | `overlay-icon` | `overlayIcon` |  |  | Drag-overlay icon — markup (starts with `<`, inserted raw — NOT sanitized), an icon name (masked from `--base-icon-<name>`), or text (an emoji). See [Icons](#icons). |
@@ -580,7 +580,7 @@ type says where the text is shown: `buttons` (visible caption), `tooltips` (`tit
 `messages` (empty state / progress), `errors` (validation / failure). A text shown on two surfaces
 has two keys sharing the name (`ariaLabels.cancelFile` + `tooltips.cancelFile`). The full key
 prefixes the component name (`web-dropzone.buttons.selectFiles`); `labels` takes the short or the
-full key. `{name}`, `{count}`, `{size}`, `{status}` (…) placeholders are filled in. Set it as a
+full key. `{ctx.name}`, `{ctx.count}`, `{ctx.size}`, `{ctx.statusName}` (…) placeholders are filled in. Set it as a
 property or a JSON attribute; changes re-render live (satellites too). Every satellite also takes
 its **own** `labels` (property or JSON attribute), merged per key on top of its store's.
 
@@ -590,29 +590,34 @@ its **own** `labels` (property or JSON attribute), merged per key on top of its 
 
 ```javascript
 dropzone.labels = {
-  'ariaLabels.cancelFile': 'Zrušit {name}',
-  'tooltips.cancelFile': 'Zrušit {name}',
-  'ariaLabels.removeFile': 'Odebrat {name}',
+  'ariaLabels.cancelFile': 'Zrušit {ctx.name}',
+  'tooltips.cancelFile': 'Zrušit {ctx.name}',
+  'ariaLabels.removeFile': 'Odebrat {ctx.name}',
   'buttons.cancelAll': 'Zrušit vše',
   'labels.statusUploading': 'Nahrávám',
-  'ariaLabels.status': 'Stav: {status}',
+  'ariaLabels.status': 'Stav: {ctx.statusName}',
 };
 ```
 
 | Surface | Keys |
 |---|---|
-| Selector | `labels.prompt` (card text; also names the card input), `ariaLabels.prompt` (icon-only minimal button / a custom card prompt; unset = follows `labels.prompt`), `labels.hint`, `labels.dragActive`, `buttons.selectFiles`, `labels.noFileChosen`, `labels.filesChosen` (`{count}`), `labels.overlay` |
-| Status names | `labels.statusPending` / `…Uploading` / `…Paused` / `…Cancelling` / `…Complete` / `…Error` / `…Cancelled`, `labels.cancelTimeout`; `ariaLabels.status` (`{status}`), `ariaLabels.uploading` (indicator loader), `messages.cancelling` |
-| Row buttons (`{name}`) | `ariaLabels.pauseFile` / `resumeFile` / `retryFile` / `cancelFile` + the same names under `tooltips.*`; `ariaLabels.removeFile` |
+| Selector | `labels.prompt` (card text; also names the card input), `ariaLabels.prompt` (icon-only minimal button / a custom card prompt; unset = follows `labels.prompt`), `labels.hint`, `labels.dragActive`, `buttons.selectFiles`, `labels.noFileChosen`, `labels.filesChosen` (`FileCountLabelContext`), `labels.overlay` |
+| Status names | `labels.statusPending` / `…Uploading` / `…Paused` / `…Cancelling` / `…Complete` / `…Error` / `…Cancelled`, `labels.cancelTimeout`; `ariaLabels.status` (`StatusLabelContext`: `{ctx.statusName}`), `ariaLabels.uploading` (indicator loader), `messages.cancelling` |
+| Row buttons (`FileLabelContext`: `{ctx.name}`) | `ariaLabels.pauseFile` / `resumeFile` / `retryFile` / `cancelFile` + the same names under `tooltips.*`; `ariaLabels.removeFile` |
 | Bulk / popover buttons | `buttons.pauseAll` / `resumeAll` / `retryAll` / `cancelAll`, `buttons.addMore`, `buttons.clearAll`, `ariaLabels.close` |
-| List | `messages.noData`, `labels.summary` (`{count}`, `{size}`), `ariaLabels.viewFiles`, `labels.fileCount` / `labels.fileCountOne`, `labels.unknownType`, `buttons.showMore` / `buttons.showLess` (text toggle) + `ariaLabels.showMore` / `ariaLabels.showLess` (`+N` / `−` badge), `ariaLabels.showQueue` + `tooltips.showQueue` |
-| Popover limits line | `labels.limitMaxFileSize` / `limitMinFileSize` / `limitMaxTotalSize(Left)` / `limitMaxFileCount(Left)` / `limitMinFileCount` |
-| Progress strip | `messages.progressCounts`, `messages.progressPaused`, `messages.progressFailed` |
-| Indicator | `headers.indicator` (drawer title + its accessible name), `ariaLabels.indicatorStatus`, `messages.indicatorIdle` / `…Failed` / `…Uploading` / `…Paused` / `…Queued` / `…Done` |
-| Validation | `errors.maxFileSize`, `errors.minFileSize`, `errors.fileType`, `errors.rejected`, `errors.maxFileCount(One)`, `errors.duplicate`, `errors.maxTotalSize`, `errors.upload`; form validity `errors.required` (`required`), `errors.minFileCount(One)` (`min-file-count`), `errors.maxFileCount(One)` (`max-file-count`, also the add-rejection message) |
-| Screen-reader announcements | `ariaLabels.announceAdded(One)` (`{count}`), `ariaLabels.announceRejected` (`{name}`, `{reason}`), `ariaLabels.announceUploadDone(One)` (`{count}`), `ariaLabels.announceUploadFailed` (`{done}`, `{failed}`), `ariaLabels.announceRemoved` (`{name}`) — `''` silences one (see [accessibility.md](./accessibility.md#screen-reader-notes)) |
+| List | `messages.noData`, `labels.summary` (`SummaryLabelContext`: `{ctx.count}`, `{ctx.size}`), `ariaLabels.viewFiles`, `labels.fileCount` (`FileCountLabelContext`), `labels.unknownType`, `buttons.showMore` / `buttons.showLess` (text toggle) + `ariaLabels.showMore` / `ariaLabels.showLess` (`+N` / `−` badge; `showMore`: `FileCountLabelContext`, `ctx.count` = the hidden rows), `ariaLabels.showQueue` + `tooltips.showQueue` (`FileCountLabelContext`) |
+| Popover limits line | `labels.limitMaxFileSize` / `limitMinFileSize` / `limitMaxTotalSize(Left)` (`SizeLimitLabelContext`: `{ctx.size}`, `{ctx.left}`), `limitMaxFileCount(Left)` / `limitMinFileCount` (`CountLimitLabelContext`: `{ctx.count}` = the limit, `{ctx.left}`) |
+| Progress strip | `messages.progressCounts` (`ProgressCountsLabelContext`: `{ctx.completed}`, `{ctx.total}`, `{ctx.uploadedSize}`, `{ctx.totalSize}`; `ctx.count` = `total`), `messages.progressPaused`, `messages.progressFailed` (`FileCountLabelContext`) |
+| Indicator | `headers.indicator` (drawer title + its accessible name), `ariaLabels.indicatorStatus`, `messages.indicatorIdle` / `…Failed` / `…Uploading` / `…Paused` / `…Queued` / `…Done` (`FileCountLabelContext`) |
+| Validation | `errors.maxFileSize`, `errors.minFileSize`, `errors.maxTotalSize` (`SizeLimitLabelContext`: `{ctx.size}`), `errors.fileType`, `errors.rejected`, `errors.maxFileCount` (`CountLimitLabelContext`), `errors.duplicate` (`FileLabelContext`), `errors.upload`; form validity `errors.required` (`required`), `errors.minFileCount` (`min-file-count`), `errors.maxFileCount` (`max-file-count`, also the add-rejection message) |
+| Screen-reader announcements | `ariaLabels.announceAdded` (`FileCountLabelContext`), `ariaLabels.announceRejected` (`RejectedFileLabelContext`: `{ctx.name}`, `{ctx.reason}`), `ariaLabels.announceUploadDone` (`FileCountLabelContext`), `ariaLabels.announceUploadFailed` (`UploadResultLabelContext`: `{ctx.done}`, `{ctx.failed}`), `ariaLabels.announceRemoved` (`FileLabelContext`) — `''` silences one (see [accessibility.md](./accessibility.md#screen-reader-notes)) |
 
-`…One` variants are used when the count is 1 (`countLabel()`).
+**Values — the spot's context (`{ctx.*}`, rulebook D-NC-24).** A dynamic text passes its context as `{ ctx }`; a template
+reads `{ctx.<path>}` (numbers locale-formatted), a `translateCallback` gets the same object as `params.ctx` (raw numbers).
+Each context type (exported, see the table) has `ctx.count` where the text depends on a quantity — the number the
+text's noun agrees with, so an i18n library can pick the plural form
+(`i18next.t(key, { ...params, count: params.ctx?.count })`). The dropzone never pluralizes: no singular `…One` keys,
+and the English defaults put no plural noun right after a number (`Files: {ctx.count}`).
 
 **Page-wide (core `/locale`).** One assignment translates every dropzone on the page, live (the
 elements re-render through core's `localeChanged()`). `labels` is ONE flat dictionary of full keys —
@@ -623,7 +628,7 @@ window.components.locale = {
   locale: 'cs-CZ',                       // file sizes: "1,5 MB"
   labels: {
     'web-dropzone.labels.prompt': 'Přetáhněte soubory sem',
-    'web-dropzone.ariaLabels.cancelFile': 'Zrušit {name}',
+    'web-dropzone.ariaLabels.cancelFile': 'Zrušit {ctx.name}',
     'web-dropzone-indicator.headers.indicator': 'Fronta',   // one satellite only
   },
   // optional: the full key; return the text, or null = not mine
@@ -641,14 +646,14 @@ escapes them where it builds HTML. `formatFileSize(bytes, locale?)` uses the res
 `formatNumber`).
 
 **Per element: `locale`.** `<web-dropzone locale="de">` formats this dropzone's numbers — file sizes, the
-progress percents (`12,5%`) and the `{count}` numbers in labels — in German, whatever the page locale; unset (or `auto`) follows
+progress percents (`12,5%`) and the `{ctx.count}` numbers in labels — in German, whatever the page locale; unset (or `auto`) follows
 `window.components.locale.locale`, else the browser. Bound satellites (`<web-dropzone-list>`,
 `-progress`, `-indicator`, `-picker`) follow their store's `locale`; a standalone `DropzoneEngine` takes
 it as `config.locale`. It formats numbers only — the strings come from `labels` / the page dictionary. The element-less lookup is `resolveLabel(sources, key, vars)` (exported).
 
 A label set to `''` is deliberately empty and renders nothing (e.g. `'messages.noData': ''` hides the
 empty-list text); a missing / `undefined` key falls back to English. Labels are **text** — always
-inserted escaped (no label is rendered as HTML), so placeholder values like `{name}` are safe.
+inserted escaped (no label is rendered as HTML), so placeholder values like `{ctx.name}` are safe.
 
 ## Responsive rules
 
@@ -745,8 +750,8 @@ surrounding form refuses to submit (`invalid` fires instead of `submit`, unless 
 | Rule | When | `validity` flag | Message label |
 |---|---|---|---|
 | `required` | no file selected | `valueMissing` | `errors.required` ("Add a file.") |
-| `min-file-count="N"` | at least one file, fewer than N | `rangeUnderflow` | `errors.minFileCount(One)` ("At least {count} files required") |
-| `max-file-count="N"` | more than N files (the cap lowered after files were added — adds past it are rejected) | `rangeOverflow` | `errors.maxFileCount(One)` ("Maximum {count} files allowed") |
+| `min-file-count="N"` | at least one file, fewer than N | `rangeUnderflow` | `errors.minFileCount` ("Too few files. Minimum: {ctx.count}") |
+| `max-file-count="N"` | more than N files (the cap lowered after files were added — adds past it are rejected) | `rangeOverflow` | `errors.maxFileCount` ("Too many files. Maximum: {ctx.count}") |
 
 ```html
 <form>

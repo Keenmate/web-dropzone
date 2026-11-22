@@ -21,7 +21,7 @@ export const defaultFlag = (key: DefaultedFlag): Converter<boolean> =>
 /**
  * `labels` input: core `toObject()` with the labels shape check — a partial
  * `DropzoneLabels` object (property), or the same as a JSON attribute
- * (`labels='{"ariaLabels.cancelFile":"Zrušit {name}"}'`). Absent / `undefined` → the
+ * (`labels='{"ariaLabels.cancelFile":"Zrušit {ctx.name}"}'`). Absent / `undefined` → the
  * built-in English. A malformed attribute or a non-object / non-string value is
  * refused (core's rule: warning, `input-rejected`, previous value kept). Merged
  * per key at lookup time.

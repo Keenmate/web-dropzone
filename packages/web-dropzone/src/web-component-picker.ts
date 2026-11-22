@@ -260,7 +260,7 @@ export class DropzonePickerElement extends SatelliteElement {
                 ? noFileText
                 : files.length === 1
                     ? files[0].name
-                    : this.label('labels.filesChosen', { count: files.length });
+                    : this.label('labels.filesChosen', { ctx: { count: files.length } });
             inner = `
                 <div class="dz__dropzone dz__dropzone--native ${stateClass}">
                     ${inputHtml}

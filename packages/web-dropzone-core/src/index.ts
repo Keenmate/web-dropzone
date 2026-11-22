@@ -99,9 +99,20 @@ export {
     statusLabel,
     fileStatusLabel,
     isLabelsValue,
-    countLabel
+    fileLabelContext
 } from './labels';
-export type { DropzoneLabels, DropzoneLabelKey, DropzoneLabelOverrides, LabelFn, LabelVars, LabelSources, CountedLabelKey } from './labels';
+export type { DropzoneLabels, DropzoneLabelKey, DropzoneLabelOverrides, LabelFn, LabelParams, LabelSources } from './labels';
+export type {
+    FileLabelContext,
+    RejectedFileLabelContext,
+    StatusLabelContext,
+    FileCountLabelContext,
+    SummaryLabelContext,
+    SizeLimitLabelContext,
+    CountLimitLabelContext,
+    ProgressCountsLabelContext,
+    UploadResultLabelContext
+} from './types';
 
 // ---- Status-surface types ----------------------------------------------
 export type {

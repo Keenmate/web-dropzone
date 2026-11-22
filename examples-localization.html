@@ -82,7 +82,7 @@ window.components.locale = {
   labels: {
     'web-dropzone.labels.prompt': 'Přetáhněte soubory sem nebo klikněte',
     'web-dropzone.buttons.selectFiles': 'Vybrat soubory',
-    'web-dropzone.errors.maxFileSize': 'Soubor je příliš velký. Maximum je {size}',
+    'web-dropzone.errors.maxFileSize': 'Soubor je příliš velký. Maximum je {ctx.size}',
     'web-dropzone.errors.fileType': 'Tento typ souboru není povolen',
     'web-multiselect.placeholders.search': 'Hledat…',     // other components share the same JSON
   },
@@ -127,9 +127,9 @@ el.addEventListener('file-reject', (e) =&gt; console.log(e.detail.rejectedFiles[
 const sk = {
   'web-dropzone.labels.prompt': 'Presuňte súbory sem',
   'web-dropzone.buttons.selectFiles': 'Vybrať súbory',
-  'web-dropzone.errors.maxFileSize': 'Súbor je príliš veľký (max. {{size}})',
+  'web-dropzone.errors.maxFileSize': 'Súbor je príliš veľký (max. {{ctx.size}})',
 };
-const t = (key, params) =&gt; sk[key]?.replace(/\{\{(\w+)\}\}/g, (_, p) =&gt; params?.[p] ?? '');
+const t = (key, params) =&gt; sk[key]?.replace(/\{\{([\w.]+)\}\}/g, (_, p) =&gt; p.split('.').reduce((o, k) =&gt; o?.[k], params) ?? '');
 const exists = (key) =&gt; key in sk;
 
 // page-wide — every component on the page
@@ -138,7 +138,7 @@ window.components.locale = { translateCallback: ({ key, params }) =&gt; (exists(
 // one element — asked BEFORE the page-wide callback; null = not mine
 el.translateCallback = ({ key, params }) =&gt; {
   if (key === 'web-dropzone.labels.prompt') return 'Dateien hier ablegen';
-  if (key === 'web-dropzone.errors.maxFileSize') return `Datei zu groß (max. ${params.size})`;
+  if (key === 'web-dropzone.errors.maxFileSize') return `Datei zu groß (max. ${params.ctx.size})`;
   return null;
 };</code></pre></div>
         </div>
@@ -183,8 +183,8 @@ el.translateCallback = ({ key, params }) =&gt; {
         <div class="card">
             <h2>LO05 · <code>locale</code> + formatting</h2>
             <p>
-                File sizes (<code>{size}</code> in <code>labels.summary</code>, the limits line, the validation messages, the
-                popover's size column and the progress strip) and the <code>{count}</code> numbers in labels use the
+                File sizes (<code>{ctx.size}</code> in <code>labels.summary</code>, the limits line, the validation messages, the
+                popover's size column and the progress strip) and the numbers in labels (<code>{ctx.count}</code>) use the
                 element's <code>locale</code> input → the page <code>window.components.locale.locale</code> → the browser.
                 Sizes are the dropzone's only locale-specific output (no dates). Below: a compact dropzone holding a
                 1.3 KB file, limit 1.5 KB. The element's <code>locale</code> wins over the page locale; unset (or
@@ -206,10 +206,10 @@ el.translateCallback = ({ key, params }) =&gt; {
                 <web-dropzone id="lo05" display-mode="compact" max-file-size="1536" multiple></web-dropzone>
                 <div class="output"><div class="output-label">locale attribute, summary + the file-reject message</div><pre id="lo05-out"></pre></div>
             </div>
-            <div class="code-block" data-language="html" data-kmwc-snippet><pre><code>&lt;web-dropzone display-mode="compact" max-file-size="1536"&gt;&lt;/web-dropzone&gt;   &lt;!-- "1 file(s), 1.3 KB" --&gt;
-&lt;web-dropzone locale="de" display-mode="compact"&gt;&lt;/web-dropzone&gt;           &lt;!-- this one: "1 file(s), 1,3 KB" --&gt;
+            <div class="code-block" data-language="html" data-kmwc-snippet><pre><code>&lt;web-dropzone display-mode="compact" max-file-size="1536"&gt;&lt;/web-dropzone&gt;   &lt;!-- "Files: 1, 1.3 KB" --&gt;
+&lt;web-dropzone locale="de" display-mode="compact"&gt;&lt;/web-dropzone&gt;           &lt;!-- this one: "Files: 1, 1,3 KB" --&gt;
 &lt;script&gt;
-  window.components.locale = { locale: 'cs-CZ' };   // every dropzone without its own locale: "1 file(s), 1,3 KB"
+  window.components.locale = { locale: 'cs-CZ' };   // every dropzone without its own locale: "Files: 1, 1,3 KB"
 &lt;/script&gt;</code></pre></div>
         </div>
 
@@ -312,8 +312,8 @@ el.translateCallback = ({ key, params }) =&gt; {
         const CS = {
             'web-dropzone.labels.prompt': 'Přetáhněte soubory sem nebo klikněte',
             'web-dropzone.buttons.selectFiles': 'Vybrat soubory',
-            'web-dropzone.labels.summary': '{count} soubor(ů), {size}',
-            'web-dropzone.errors.maxFileSize': 'Soubor je příliš velký. Maximum je {size}',
+            'web-dropzone.labels.summary': '{ctx.count} soubor(ů), {ctx.size}',
+            'web-dropzone.errors.maxFileSize': 'Soubor je příliš velký. Maximum je {ctx.size}',
             'web-dropzone.errors.fileType': 'Tento typ souboru není povolen',
             'web-multiselect.placeholders.search': 'Hledat…',
         };
@@ -323,13 +323,13 @@ el.translateCallback = ({ key, params }) =&gt; {
         const sk = {
             'web-dropzone.labels.prompt': 'Presuňte súbory sem',
             'web-dropzone.buttons.selectFiles': 'Vybrať súbory',
-            'web-dropzone.errors.maxFileSize': 'Súbor je príliš veľký (max. {{size}})',
+            'web-dropzone.errors.maxFileSize': 'Súbor je príliš veľký (max. {{ctx.size}})',
         };
-        const t = (key, params) => sk[key].replace(/\{\{(\w+)\}\}/g, (_, p) => String(params?.[p] ?? ''));
+        const t = (key, params) => sk[key].replace(/\{\{([\w.]+)\}\}/g, (_, p) => String(p.split('.').reduce((o, k) => o?.[k], params) ?? ''));
         const pageTranslate = ({ key, params }) => (key in sk ? t(key, params) : null);
         const ownTranslate = ({ key, params }) => {
             if (key === 'web-dropzone.labels.prompt') return 'Dateien hier ablegen';
-            if (key === 'web-dropzone.errors.maxFileSize') return `Datei zu groß (max. ${params.size})`;
+            if (key === 'web-dropzone.errors.maxFileSize') return `Datei zu groß (max. ${params.ctx.size})`;
             return null;
         };
         $('lo03-page').addEventListener('change', (e) => { page.translateCallback = e.target.checked ? pageTranslate : null; applyPage(); });

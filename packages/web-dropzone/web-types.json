@@ -1000,12 +1000,12 @@
             },
             {
               "name": "labels",
-              "description": "Every UI string (see `DropzoneLabels` / `DEFAULT_LABELS`): flat `<elementType>.<name>` keys (`buttons.selectFiles`, `ariaLabels.cancelFile`; the full `web-dropzone.<key>` works too), merged per key over the built-in English; `{name}` / `{count}` / `{size}` / … placeholders: prompt, hint, empty, summary, status names, row + bulk buttons, popover, limits line, progress strip, validation messages. Satellites inherit them (and take their own `labels` on top). Property (object) or JSON attribute. Live.",
+              "description": "Every UI string (see `DropzoneLabels` / `DEFAULT_LABELS`): flat `<elementType>.<name>` keys (`buttons.selectFiles`, `ariaLabels.cancelFile`; the full `web-dropzone.<key>` works too), merged per key over the built-in English; dynamic texts read the context of their spot (`{ctx.name}`, `{ctx.count}`, `{ctx.size}`, …; see the `*LabelContext` of each key): prompt, hint, empty, summary, status names, row + bulk buttons, popover, limits line, progress strip, validation messages. Satellites inherit them (and take their own `labels` on top). Property (object) or JSON attribute. Live.",
               "value": { "type": "DropzoneLabelOverrides" }
             },
             {
               "name": "locale",
-              "description": "BCP-47 locale for the numbers the dropzone formats — file sizes (rows, summary, popover totals, limits line, progress counts, size validation messages; `1,5 MB` in `cs`), the progress percents (`12,5%`) and the `{count}` numbers in labels — or unset (the page-wide `window.components.locale`, else the browser language). Bound satellites follow it. UI strings are `labels`. Live.",
+              "description": "BCP-47 locale for the numbers the dropzone formats — file sizes (rows, summary, popover totals, limits line, progress counts, size validation messages; `1,5 MB` in `cs`), the progress percents (`12,5%`) and the numbers in labels (`{ctx.count}`) — or unset (the page-wide `window.components.locale`, else the browser language). Bound satellites follow it. UI strings are `labels`. Live.",
               "value": { "type": "string | null", "default": "null" }
             },
             {
@@ -1408,12 +1408,12 @@
               },
               {
                 "name": "labels",
-                "description": "Every UI string (see `DropzoneLabels` / `DEFAULT_LABELS`): flat `<elementType>.<name>` keys (`buttons.selectFiles`, `ariaLabels.cancelFile`; the full `web-dropzone.<key>` works too), merged per key over the built-in English; `{name}` / `{count}` / `{size}` / … placeholders: prompt, hint, empty, summary, status names, row + bulk buttons, popover, limits line, progress strip, validation messages. Satellites inherit them (and take their own `labels` on top). Property (object) or JSON attribute. Live.",
+                "description": "Every UI string (see `DropzoneLabels` / `DEFAULT_LABELS`): flat `<elementType>.<name>` keys (`buttons.selectFiles`, `ariaLabels.cancelFile`; the full `web-dropzone.<key>` works too), merged per key over the built-in English; dynamic texts read the context of their spot (`{ctx.name}`, `{ctx.count}`, `{ctx.size}`, …; see the `*LabelContext` of each key): prompt, hint, empty, summary, status names, row + bulk buttons, popover, limits line, progress strip, validation messages. Satellites inherit them (and take their own `labels` on top). Property (object) or JSON attribute. Live.",
                 "type": "DropzoneLabelOverrides"
               },
               {
                 "name": "locale",
-                "description": "BCP-47 locale for the numbers the dropzone formats — file sizes (rows, summary, popover totals, limits line, progress counts, size validation messages; `1,5 MB` in `cs`), the progress percents (`12,5%`) and the `{count}` numbers in labels — or unset (the page-wide `window.components.locale`, else the browser language). Bound satellites follow it. UI strings are `labels`. Live.",
+                "description": "BCP-47 locale for the numbers the dropzone formats — file sizes (rows, summary, popover totals, limits line, progress counts, size validation messages; `1,5 MB` in `cs`), the progress percents (`12,5%`) and the numbers in labels (`{ctx.count}`) — or unset (the page-wide `window.components.locale`, else the browser language). Bound satellites follow it. UI strings are `labels`. Live.",
                 "type": "string | null"
               },
               {

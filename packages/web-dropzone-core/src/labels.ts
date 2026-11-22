@@ -8,14 +8,17 @@
  * `labels` overrides (short or full keys; a satellite: its own, the page-wide
  * `<satellite tag>.<key>` entries, then its store's) → the page-wide flat
  * dictionary `window.components.locale.labels['web-dropzone.<key>']` → the
- * built-in English {@link DEFAULT_LABELS}. Placeholders in `{braces}`
- * (`{name}`, `{count}`, `{status}`) are filled from the call's `vars` — or by
- * the page's `translateCallback` (i18next / ICU). Labels are TEXT: every
- * renderer escapes them where it builds HTML.
+ * built-in English {@link DEFAULT_LABELS}. A dynamic text passes its text
+ * spot's context as `{ ctx }` (rulebook D-NC-24): a template reads
+ * `{ctx.<path>}` (`{ctx.count}`, `{ctx.name}`; numbers locale-formatted), the
+ * page's `translateCallback` (i18next / ICU) gets it as `params.ctx` (raw
+ * numbers; `ctx.count` = the number the noun agrees with, for plural rules —
+ * core never pluralizes). Labels are TEXT: every renderer escapes them where
+ * it builds HTML.
  */
 
 import { createLabels, formatLabel, getPageLocale, resolveLabel as resolveCoreLabel, type Labels, type TranslateCallback } from '@keenmate/web-components-core/locale';
-import type { FileState, FileStatus } from './types';
+import type { FileState, FileStatus, FileLabelContext } from './types';
 
 /** The component name — the prefix of the full label keys of the whole dropzone family. */
 export const LABELS_TAG = 'web-dropzone';
@@ -29,6 +32,10 @@ export const LABELS_TAG = 'web-dropzone';
  * (empty state / progress), `errors` (validation / failure). A text shown on
  * two surfaces has two keys sharing `<name>` (`ariaLabels.pauseFile` +
  * `tooltips.pauseFile`).
+ *
+ * Each dynamic key names its context type (`ctx: …`) and what `ctx.count` is. English defaults put no
+ * plural noun right after a number (`Files: {ctx.count}`), so one template fits every count; an app
+ * pluralizes through `translateCallback` (`params.ctx.count`).
  */
 export interface DropzoneLabels {
     /** Card prompt text. */
@@ -50,7 +57,7 @@ export interface DropzoneLabels {
     /** Drag-overlay text (`overlay-target`). */
     'labels.overlay': string;
 
-    /** Status names — the status pill's / indicator icon's tooltip, and `{status}` in `ariaLabels.status`. */
+    /** Status names — the status pill's / indicator icon's tooltip, and `{ctx.statusName}` in `ariaLabels.status`. */
     'labels.statusPending': string;
     'labels.statusUploading': string;
     'labels.statusPaused': string;
@@ -60,14 +67,14 @@ export interface DropzoneLabels {
     'labels.statusCancelled': string;
     /** Status name of an `error` file whose cancel timed out (`file.error === 'cancel-timeout'`). */
     'labels.cancelTimeout': string;
-    /** Status pill / summary icon accessible name; `{status}` is one of the status names. */
+    /** Status pill / summary icon accessible name. ctx: `StatusLabelContext` — `{ctx.statusName}` (one of the status names), `{ctx.status}`; no `ctx.count`. */
     'ariaLabels.status': string;
     /** Accessible name of the indicator's upload loader. */
     'ariaLabels.uploading': string;
     /** Text next to the progress bar while a cancel waits for the handler. */
     'messages.cancelling': string;
 
-    /** Row buttons (`{name}` = the file name): accessible name + tooltip. */
+    /** Row buttons: accessible name + tooltip. ctx: `FileLabelContext` — `{ctx.name}` = the file name; no `ctx.count`. */
     'ariaLabels.pauseFile': string;
     'tooltips.pauseFile': string;
     'ariaLabels.resumeFile': string;
@@ -76,7 +83,7 @@ export interface DropzoneLabels {
     'tooltips.retryFile': string;
     'ariaLabels.cancelFile': string;
     'tooltips.cancelFile': string;
-    /** Row remove (✕) button accessible name. */
+    /** Row remove (✕) button accessible name. ctx: `FileLabelContext` — `{ctx.name}`. */
     'ariaLabels.removeFile': string;
 
     /** Bulk actions in the overall-progress strip. */
@@ -87,41 +94,40 @@ export interface DropzoneLabels {
 
     /** Empty file list. */
     'messages.noData': string;
-    /** Compact summary line (`{count}`, `{size}` = total size). */
+    /** Compact summary line. ctx: `SummaryLabelContext` — `ctx.count` = the files, `{ctx.size}` = total size. */
     'labels.summary': string;
     /** Accessible name of the compact summary line (opens the popover). */
     'ariaLabels.viewFiles': string;
-    /** Native selector text for 2+ files (`{count}`). */
+    /** Native selector text for 2+ files. ctx: `FileCountLabelContext` — `ctx.count` = the chosen files. */
     'labels.filesChosen': string;
-    /** File count (`{count}`); `labels.fileCountOne` for exactly one. Popover header + footer. */
+    /** File count — popover header + footer. ctx: `FileCountLabelContext` — `ctx.count` = the files. */
     'labels.fileCount': string;
-    'labels.fileCountOne': string;
     /** Popover header buttons. */
     'buttons.addMore': string;
     'buttons.clearAll': string;
-    /** List cap toggle (`max-visible-file-count`, `{count}` = hidden rows): the text toggle's caption; the `+N` / `−` badge's accessible name. */
+    /** List cap toggle (`max-visible-file-count`): the text toggle's caption; the `+N` / `−` badge's accessible name. `showMore` ctx: `FileCountLabelContext` — `ctx.count` = the hidden rows. */
     'buttons.showMore': string;
     'ariaLabels.showMore': string;
     'buttons.showLess': string;
     'ariaLabels.showLess': string;
-    /** Rolling list queue button (`{count}`): accessible name + tooltip. */
+    /** Rolling list queue button: accessible name + tooltip. ctx: `FileCountLabelContext` — `ctx.count` = all files. */
     'ariaLabels.showQueue': string;
     'tooltips.showQueue': string;
     /** Type column fallback for a file without a MIME type. */
     'labels.unknownType': string;
 
-    /** Popover limits line parts (auto-derived when `labels.hint` is empty), joined with " · ". `{size}` / `{count}` = the limit. */
+    /** Popover limits line parts (auto-derived when `labels.hint` is empty), joined with " · ". Size parts — ctx: `SizeLimitLabelContext` (`{ctx.size}` = the limit; no `ctx.count`); count parts — ctx: `CountLimitLabelContext` (`ctx.count` = the limit). */
     'labels.limitMaxFileSize': string;
     'labels.limitMinFileSize': string;
     'labels.limitMaxTotalSize': string;
-    /** `{left}` = remaining size. */
+    /** `{ctx.left}` = remaining size. */
     'labels.limitMaxTotalSizeLeft': string;
     'labels.limitMaxFileCount': string;
-    /** `{left}` = remaining slots. */
+    /** `{ctx.left}` = remaining slots. */
     'labels.limitMaxFileCountLeft': string;
     'labels.limitMinFileCount': string;
 
-    /** Overall-progress strip: `{completed}`, `{total}`, `{uploadedSize}`, `{totalSize}`; paused / failed segments `{count}`. */
+    /** Overall-progress strip. Counts — ctx: `ProgressCountsLabelContext` (`{ctx.completed}`, `{ctx.total}`, `{ctx.uploadedSize}`, `{ctx.totalSize}`; `ctx.count` = `ctx.total`); paused / failed segments — ctx: `FileCountLabelContext` (`ctx.count` = those files). */
     'messages.progressCounts': string;
     'messages.progressPaused': string;
     'messages.progressFailed': string;
@@ -131,7 +137,7 @@ export interface DropzoneLabels {
     /** Indicator chip accessible name; the drawer + popover close button. */
     'ariaLabels.indicatorStatus': string;
     'ariaLabels.close': string;
-    /** Indicator chip text: idle, then by aggregate state (`{count}`). */
+    /** Indicator chip text: idle, then by aggregate state. ctx: `FileCountLabelContext` — `ctx.count` = the files in that state. */
     'messages.indicatorIdle': string;
     'messages.indicatorFailed': string;
     'messages.indicatorUploading': string;
@@ -139,40 +145,36 @@ export interface DropzoneLabels {
     'messages.indicatorQueued': string;
     'messages.indicatorDone': string;
 
-    /** Validation messages (`validation.error` in `file-reject`; `{size}` / `{count}` / `{name}`). */
+    /** Validation messages (`validation.error` in `file-reject`). Size errors — ctx: `SizeLimitLabelContext` (`{ctx.size}` = the limit); `errors.duplicate` — ctx: `FileLabelContext` (`{ctx.name}`). */
     'errors.maxFileSize': string;
     'errors.minFileSize': string;
     'errors.fileType': string;
     /** `beforeFilesAddCallback` returned `false` (code `rejected`). */
     'errors.rejected': string;
-    /** Also the form validity message for more files than `max-file-count` (`rangeOverflow`). */
+    /** Also the form validity message for more files than `max-file-count` (`rangeOverflow`). ctx: `CountLimitLabelContext` — `ctx.count` = the limit. */
     'errors.maxFileCount': string;
-    'errors.maxFileCountOne': string;
     'errors.duplicate': string;
     'errors.maxTotalSize': string;
     /** A failed upload's `error` when the handler threw something that isn't an `Error`. */
     'errors.upload': string;
-    /** Form validity message (`min-file-count` → `rangeUnderflow`). */
+    /** Form validity message (`min-file-count` → `rangeUnderflow`). ctx: `CountLimitLabelContext` — `ctx.count` = the limit. */
     'errors.minFileCount': string;
-    'errors.minFileCountOne': string;
     /** Form validity message (`required` → `valueMissing`): no file selected. */
     'errors.required': string;
 
     /**
      * Screen-reader announcements (core `announce()`, the page's one polite live
-     * region). `''` silences one. Files added — ONE per drop / pick (`{count}`);
-     * `ariaLabels.announceAddedOne` for exactly one.
+     * region). `''` silences one. Files added — ONE per drop / pick. ctx:
+     * `FileCountLabelContext` — `ctx.count` = the added files.
      */
     'ariaLabels.announceAdded': string;
-    'ariaLabels.announceAddedOne': string;
-    /** A file was rejected (`{name}`, `{reason}` = the validation message). */
+    /** A file was rejected. ctx: `RejectedFileLabelContext` — `{ctx.name}`, `{ctx.reason}` = the validation message; no `ctx.count`. */
     'ariaLabels.announceRejected': string;
-    /** An upload batch finished, all succeeded (`{count}`); `…One` for exactly one. */
+    /** An upload batch finished, all succeeded. ctx: `FileCountLabelContext` — `ctx.count` = the uploaded files. */
     'ariaLabels.announceUploadDone': string;
-    'ariaLabels.announceUploadDoneOne': string;
-    /** An upload batch finished with failures (`{done}`, `{failed}`). */
+    /** An upload batch finished with failures. ctx: `UploadResultLabelContext` — `{ctx.done}`, `{ctx.failed}`; `ctx.count` = `done + failed`. */
     'ariaLabels.announceUploadFailed': string;
-    /** A file removed by the user — row ✕, Clear all (`{name}`). */
+    /** A file removed by the user — row ✕, Clear all. ctx: `FileLabelContext` — `{ctx.name}`. */
     'ariaLabels.announceRemoved': string;
 }
 
@@ -204,19 +206,19 @@ export const DEFAULT_LABELS: Readonly<DropzoneLabels> = Object.freeze({
     'labels.statusError': 'Error',
     'labels.statusCancelled': 'Cancelled',
     'labels.cancelTimeout': 'Cancel timed out',
-    'ariaLabels.status': 'Status: {status}',
+    'ariaLabels.status': 'Status: {ctx.statusName}',
     'ariaLabels.uploading': 'Uploading',
     'messages.cancelling': 'Cancelling…',
 
-    'ariaLabels.pauseFile': 'Pause {name}',
-    'tooltips.pauseFile': 'Pause {name}',
-    'ariaLabels.resumeFile': 'Resume {name}',
-    'tooltips.resumeFile': 'Resume {name}',
-    'ariaLabels.retryFile': 'Retry {name}',
-    'tooltips.retryFile': 'Retry {name}',
-    'ariaLabels.cancelFile': 'Cancel {name}',
-    'tooltips.cancelFile': 'Cancel {name}',
-    'ariaLabels.removeFile': 'Remove {name}',
+    'ariaLabels.pauseFile': 'Pause {ctx.name}',
+    'tooltips.pauseFile': 'Pause {ctx.name}',
+    'ariaLabels.resumeFile': 'Resume {ctx.name}',
+    'tooltips.resumeFile': 'Resume {ctx.name}',
+    'ariaLabels.retryFile': 'Retry {ctx.name}',
+    'tooltips.retryFile': 'Retry {ctx.name}',
+    'ariaLabels.cancelFile': 'Cancel {ctx.name}',
+    'tooltips.cancelFile': 'Cancel {ctx.name}',
+    'ariaLabels.removeFile': 'Remove {ctx.name}',
 
     'buttons.pauseAll': 'Pause all',
     'buttons.resumeAll': 'Resume all',
@@ -224,70 +226,68 @@ export const DEFAULT_LABELS: Readonly<DropzoneLabels> = Object.freeze({
     'buttons.cancelAll': 'Cancel all',
 
     'messages.noData': 'No files selected',
-    'labels.summary': '{count} file(s), {size}',
+    'labels.summary': 'Files: {ctx.count}, {ctx.size}',
     'ariaLabels.viewFiles': 'Click to view files',
-    'labels.filesChosen': '{count} files chosen',
-    'labels.fileCount': '{count} files',
-    'labels.fileCountOne': '1 file',
+    'labels.filesChosen': 'Files chosen: {ctx.count}',
+    'labels.fileCount': 'Files: {ctx.count}',
     'buttons.addMore': 'Add more',
     'buttons.clearAll': 'Clear all',
-    'buttons.showMore': 'Show {count} more',
-    'ariaLabels.showMore': 'Show {count} more',
+    'buttons.showMore': 'Show {ctx.count} more',
+    'ariaLabels.showMore': 'Show {ctx.count} more',
     'buttons.showLess': 'Show less',
     'ariaLabels.showLess': 'Show less',
-    'ariaLabels.showQueue': 'Show all {count} files',
-    'tooltips.showQueue': 'Show all {count} files',
+    'ariaLabels.showQueue': 'Show all files ({ctx.count})',
+    'tooltips.showQueue': 'Show all files ({ctx.count})',
     'labels.unknownType': 'Unknown',
 
-    'labels.limitMaxFileSize': 'max {size} each',
-    'labels.limitMinFileSize': 'min {size} each',
-    'labels.limitMaxTotalSize': 'up to {size} total',
-    'labels.limitMaxTotalSizeLeft': 'up to {size} total · {left} left',
-    'labels.limitMaxFileCount': 'up to {count} files',
-    'labels.limitMaxFileCountLeft': 'up to {count} files · {left} left',
-    'labels.limitMinFileCount': 'at least {count} files',
+    'labels.limitMaxFileSize': 'max {ctx.size} each',
+    'labels.limitMinFileSize': 'min {ctx.size} each',
+    'labels.limitMaxTotalSize': 'up to {ctx.size} total',
+    'labels.limitMaxTotalSizeLeft': 'up to {ctx.size} total · {ctx.left} left',
+    'labels.limitMaxFileCount': 'files: up to {ctx.count}',
+    'labels.limitMaxFileCountLeft': 'files: up to {ctx.count} · {ctx.left} left',
+    'labels.limitMinFileCount': 'files: at least {ctx.count}',
 
-    'messages.progressCounts': '{completed} of {total} · {uploadedSize} / {totalSize}',
-    'messages.progressPaused': '{count} paused',
-    'messages.progressFailed': '{count} failed',
+    'messages.progressCounts': '{ctx.completed} of {ctx.total} · {ctx.uploadedSize} / {ctx.totalSize}',
+    'messages.progressPaused': '{ctx.count} paused',
+    'messages.progressFailed': '{ctx.count} failed',
 
     'headers.indicator': 'Uploads',
     'ariaLabels.indicatorStatus': 'Upload status',
     'ariaLabels.close': 'Close',
     'messages.indicatorIdle': 'No uploads',
-    'messages.indicatorFailed': '{count} failed',
-    'messages.indicatorUploading': '{count} uploading',
-    'messages.indicatorPaused': '{count} paused',
-    'messages.indicatorQueued': '{count} queued',
-    'messages.indicatorDone': '{count} done',
+    'messages.indicatorFailed': '{ctx.count} failed',
+    'messages.indicatorUploading': '{ctx.count} uploading',
+    'messages.indicatorPaused': '{ctx.count} paused',
+    'messages.indicatorQueued': '{ctx.count} queued',
+    'messages.indicatorDone': '{ctx.count} done',
 
-    'errors.maxFileSize': 'File is too large. Maximum size is {size}',
-    'errors.minFileSize': 'File is too small. Minimum size is {size}',
+    'errors.maxFileSize': 'File is too large. Maximum size is {ctx.size}',
+    'errors.minFileSize': 'File is too small. Minimum size is {ctx.size}',
     'errors.fileType': 'File type not accepted',
     'errors.rejected': 'File rejected',
-    'errors.maxFileCount': 'Maximum {count} files allowed',
-    'errors.maxFileCountOne': 'Maximum 1 file allowed',
-    'errors.duplicate': 'Duplicate file: {name}',
-    'errors.maxTotalSize': 'Total size would exceed {size}',
+    'errors.maxFileCount': 'Too many files. Maximum: {ctx.count}',
+    'errors.duplicate': 'Duplicate file: {ctx.name}',
+    'errors.maxTotalSize': 'Total size would exceed {ctx.size}',
     'errors.upload': 'Upload failed',
-    'errors.minFileCount': 'At least {count} files required',
-    'errors.minFileCountOne': 'At least 1 file required',
+    'errors.minFileCount': 'Too few files. Minimum: {ctx.count}',
     'errors.required': 'Add a file.',
 
-    'ariaLabels.announceAdded': '{count} files added',
-    'ariaLabels.announceAddedOne': '1 file added',
-    'ariaLabels.announceRejected': '{name} was rejected: {reason}',
-    'ariaLabels.announceUploadDone': 'Upload complete: {count} files',
-    'ariaLabels.announceUploadDoneOne': 'Upload complete: 1 file',
-    'ariaLabels.announceUploadFailed': '{done} uploaded, {failed} failed',
-    'ariaLabels.announceRemoved': '{name} removed'
+    'ariaLabels.announceAdded': 'Files added: {ctx.count}',
+    'ariaLabels.announceRejected': '{ctx.name} was rejected: {ctx.reason}',
+    'ariaLabels.announceUploadDone': 'Upload complete. Files: {ctx.count}',
+    'ariaLabels.announceUploadFailed': 'Uploaded: {ctx.done}, failed: {ctx.failed}',
+    'ariaLabels.announceRemoved': '{ctx.name} removed'
 });
 
-/** Placeholder values for {@link resolveLabel}. */
-export type LabelVars = Readonly<Record<string, string | number>>;
+/**
+ * The values of a label call: the text spot's context as `{ ctx }` (one of the `*LabelContext` types);
+ * templates read `{ctx.<path>}`. Static labels take none.
+ */
+export type LabelParams = Readonly<{ ctx: object }>;
 
-/** A bound label lookup — `(key, vars) => string`. */
-export type LabelFn = (key: DropzoneLabelKey, vars?: LabelVars) => string;
+/** A bound label lookup — `(key, { ctx }) => string`. */
+export type LabelFn = (key: DropzoneLabelKey, params?: LabelParams) => string;
 
 /** A labels source, or several — most specific first (a satellite's own `labels`, then its store's). */
 export type LabelSources =
@@ -325,16 +325,16 @@ function mergeSources(overrides: LabelSources): Partial<DropzoneLabels> | null {
  * THE label lookup without an element: the first source that has `key` (the
  * element's `labels`; for a satellite its own `labels`, then its store's) →
  * the page-wide `window.components.locale.labels['web-dropzone.<key>']` →
- * {@link DEFAULT_LABELS}; then `{placeholder}`s are filled from `vars`
- * (unknown placeholders are left as written). Elements go through
+ * {@link DEFAULT_LABELS}; then `{ctx.<path>}` placeholders are filled from
+ * `params` (unknown placeholders are left as written). Elements go through
  * {@link createLabelFn} (adds the page's `translateCallback`).
  */
 export function resolveLabel(
     overrides: LabelSources,
     key: DropzoneLabelKey,
-    vars?: LabelVars
+    params?: LabelParams
 ): string {
-    return formatLabel(resolveCoreLabel(LABELS_TAG, DEFAULT_LABELS, mergeSources(overrides), key), vars);
+    return formatLabel(resolveCoreLabel(LABELS_TAG, DEFAULT_LABELS, mergeSources(overrides), key), params);
 }
 
 /**
@@ -346,7 +346,7 @@ export function resolveLabel(
  * own `translateCallback` (asked before the page-wide one) — passed explicitly
  * so a standalone engine / a satellite uses the store's; unset → core reads
  * `host.translateCallback`. `getLocale` = the `locale` setting (the engine's /
- * the store's for a satellite): the `{count}` numbers and `translateCallback`'s
+ * the store's for a satellite): the numbers in `{ctx.*}` placeholders and `translateCallback`'s
  * `ctx.locale`; unset → the page-wide locale, else the browser.
  */
 export function createLabelFn(
@@ -357,9 +357,9 @@ export function createLabelFn(
 ): LabelFn {
     let labels: Labels<DropzoneLabels> | null = null;
     let labelsHost: Element | null = null;
-    return (key, vars) => {
+    return (key, params) => {
         const host = getHost?.() ?? (typeof document !== 'undefined' ? document.documentElement : null);
-        if (!host) return resolveLabel(getOverrides(), key, vars);
+        if (!host) return resolveLabel(getOverrides(), key, params);
         if (!labels || labelsHost !== host) {
             labels = createLabels(host, DEFAULT_LABELS, () => mergeSources(getOverrides()), {
                 tag: LABELS_TAG,
@@ -368,7 +368,7 @@ export function createLabelFn(
             });
             labelsHost = host;
         }
-        return labels.text(key, vars);
+        return labels.text(key, params);
     };
 }
 
@@ -399,19 +399,11 @@ export function pageLabelsFor(tag: string): DropzoneLabelOverrides | undefined {
 }
 
 /** The built-in English lookup (no overrides). */
-export const defaultLabel: LabelFn = (key, vars) => resolveLabel(undefined, key, vars);
+export const defaultLabel: LabelFn = (key, params) => resolveLabel(undefined, key, params);
 
-/** Keys with a singular variant `<key>One`, used when `count === 1`. */
-export type CountedLabelKey =
-    | 'labels.fileCount'
-    | 'errors.maxFileCount'
-    | 'errors.minFileCount'
-    | 'ariaLabels.announceAdded'
-    | 'ariaLabels.announceUploadDone';
-
-/** A count label: `<key>One` for exactly one, else `<key>` with `{count}` filled. */
-export function countLabel(label: LabelFn, key: CountedLabelKey, count: number): string {
-    return count === 1 ? label(`${key}One` as DropzoneLabelKey, { count }) : label(key, { count });
+/** The {@link FileLabelContext} of a file (a `FileState` or a native `File`). */
+export function fileLabelContext(file: Pick<FileState, 'name' | 'size' | 'type'>): FileLabelContext {
+    return { name: file.name, size: file.size, type: file.type ?? '' };
 }
 
 const STATUS_KEYS: Record<FileStatus, DropzoneLabelKey> = {

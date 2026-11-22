@@ -11,6 +11,34 @@ No stable 1.0.0 is published, so the break ships as the next release
 candidate — but `^1.0.0-rc02` consumers will pull it: the event,
 callback and store-access API below is breaking.
 
+### Changed — BREAKING: label templates read the text's context (`{ctx.*}`, `ctx.count`) (2026-11-23)
+- **BREAKING: every dynamic label passes its text spot's context as `{ ctx }`** (core rc25 dotted-path labels,
+  rulebook D-NC-24) — templates read `{ctx.<path>}`, numbers locale-formatted; a `translateCallback` gets the context
+  raw as `params.ctx`. The dropzone has no text callbacks, so each spot gets a small exported typed context (both
+  packages): `FileLabelContext` (`name`, `size`, `type` — row buttons + action-item texts, `errors.duplicate`,
+  `ariaLabels.announceRemoved`), `RejectedFileLabelContext` (+ `reason`), `StatusLabelContext` (`status`,
+  `statusName` — `ariaLabels.status`), `FileCountLabelContext` (`count`), `SummaryLabelContext` (`count`, `size`,
+  `bytes`), `SizeLimitLabelContext` (`size`, `bytes`, `left?`, `leftBytes?`), `CountLimitLabelContext` (`count` = the
+  limit, `left?`), `ProgressCountsLabelContext` (`completed`, `total`, `uploadedSize`, `totalSize`, `count` = `total`),
+  `UploadResultLabelContext` (`done`, `failed`, `count` = `done + failed`). No aliases for `{name}` / `{count}` /
+  `{size}` / `{status}` (→ `{ctx.statusName}`) / `{left}` / `{completed}` / `{total}` / `{uploadedSize}` /
+  `{totalSize}` / `{reason}` / `{done}` / `{failed}`.
+- **`ctx.count` = the number the text's noun agrees with** (for an i18n library's plurals:
+  `i18next.t(key, { ...params, count: params.ctx?.count })`); the dropzone never pluralizes. **BREAKING:** the
+  singular keys are removed — `labels.fileCountOne`, `errors.maxFileCountOne`, `errors.minFileCountOne`,
+  `ariaLabels.announceAddedOne`, `ariaLabels.announceUploadDoneOne` — and with them `countLabel()` / `CountedLabelKey`.
+  `LabelVars` → `LabelParams` (`{ ctx }`); new `fileLabelContext(file)`.
+- **English defaults put no plural noun after a number:** `labels.summary` `{count} file(s), {size}` →
+  `Files: {ctx.count}, {ctx.size}`; `labels.filesChosen` → `Files chosen: {ctx.count}`; `labels.fileCount` →
+  `Files: {ctx.count}`; `ariaLabels.showQueue` / `tooltips.showQueue` → `Show all files ({ctx.count})`;
+  `labels.limitMaxFileCount(Left)` / `limitMinFileCount` → `files: up to {ctx.count}` (`· {ctx.left} left`) /
+  `files: at least {ctx.count}`; `errors.maxFileCount` → `Too many files. Maximum: {ctx.count}`;
+  `errors.minFileCount` → `Too few files. Minimum: {ctx.count}`; `ariaLabels.announceAdded` →
+  `Files added: {ctx.count}`; `ariaLabels.announceUploadDone` → `Upload complete. Files: {ctx.count}`;
+  `ariaLabels.announceUploadFailed` → `Uploaded: {ctx.done}, failed: {ctx.failed}`.
+- Docs: usage guide labels table (context per key) + the `{ctx.*}` rule, accessibility guide, `ai/*.txt`, README
+  What's New, release notes; example pages DC10 / DC-announce / LO02 / LO03 / LO05 updated; unit + e2e tests.
+
 ### Added (`required`, rulebook C-CA-41, 2026-11-22)
 - `required` / `el.isRequired` (`toBool('presence')`, reflects) on `<web-dropzone>`: no file selected →
   `validity.valueMissing` with the new `errors.required` label ("Add a file."), so the form refuses to submit.

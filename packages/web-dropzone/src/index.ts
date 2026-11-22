@@ -31,7 +31,22 @@ export type {
 export { STATUS_ICONS, ACTION_ICONS, CANCEL_ICON, actionForStatus } from '@keenmate/web-dropzone-core';
 // UI strings — the `labels` input (one lookup: resolveLabel).
 export { DEFAULT_LABELS, resolveLabel, createLabelFn } from '@keenmate/web-dropzone-core';
-export type { DropzoneLabels, DropzoneLabelKey, DropzoneLabelOverrides, LabelFn } from '@keenmate/web-dropzone-core';
+export type {
+    DropzoneLabels,
+    DropzoneLabelKey,
+    DropzoneLabelOverrides,
+    LabelFn,
+    LabelParams,
+    FileLabelContext,
+    RejectedFileLabelContext,
+    StatusLabelContext,
+    FileCountLabelContext,
+    SummaryLabelContext,
+    SizeLimitLabelContext,
+    CountLimitLabelContext,
+    ProgressCountsLabelContext,
+    UploadResultLabelContext
+} from '@keenmate/web-dropzone-core';
 export type { RowAction } from '@keenmate/web-dropzone-core';
 // Shared loader (renderLoadingCallback / window.components.renderLoadingCallback)
 export type { LoaderRenderContext, RenderLoaderCallback, LoadStateCallback, SaveStateCallback } from '@keenmate/web-components-core';

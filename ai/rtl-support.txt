@@ -69,7 +69,7 @@ rendered as-is; mixed-direction names are handled by the browser's bidi
 algorithm. Sizes are formatted as "1.5 MB" (not localized).
 
 <web-dropzone dir="rtl" display-mode="list"
-  labels='{"labels.prompt":"اسحب الملفات هنا أو انقر للتصفح","buttons.selectFiles":"اختر الملفات","ariaLabels.removeFile":"إزالة {name}","ariaLabels.cancelFile":"إلغاء {name}"}'>
+  labels='{"labels.prompt":"اسحب الملفات هنا أو انقر للتصفح","buttons.selectFiles":"اختر الملفات","ariaLabels.removeFile":"إزالة {ctx.name}","ariaLabels.cancelFile":"إلغاء {ctx.name}"}'>
 </web-dropzone>
 
 CUSTOM RTL TWEAKS

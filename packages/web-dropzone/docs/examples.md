@@ -231,7 +231,7 @@ Every UI string is one `labels` input, merged per key over English.
 dropzone.labels = {
   'labels.prompt': 'Přetáhněte soubory sem',
   'buttons.selectFiles': 'Vybrat soubory',
-  'ariaLabels.removeFile': 'Odebrat {name}',
+  'ariaLabels.removeFile': 'Odebrat {ctx.name}',
   'labels.statusUploading': 'Nahrávám',
 };
 ```

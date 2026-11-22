@@ -18,7 +18,7 @@ short or the full key.
 SETTING LABELS
 --------------
 Property (object):
-dz.labels = { 'ariaLabels.cancelFile': 'Zrusit {name}', 'labels.prompt': 'Pretahnete soubory sem' };
+dz.labels = { 'ariaLabels.cancelFile': 'Zrusit {ctx.name}', 'labels.prompt': 'Pretahnete soubory sem' };
 
 Attribute (JSON object of strings):
 <web-dropzone display-mode="list"
@@ -31,7 +31,7 @@ Attribute (JSON object of strings):
   the previous value. Absent / empty attribute -> built-in English.
 - Assigning a new object replaces the previous overrides (no deep merge with
   the previous object) - spread it yourself:
-    dz.labels = { ...dz.labels, 'ariaLabels.retryFile': 'Znovu {name}' };
+    dz.labels = { ...dz.labels, 'ariaLabels.retryFile': 'Znovu {ctx.name}' };
 
 ALL KEYS AND DEFAULTS
 ---------------------
@@ -46,10 +46,10 @@ Prompt / selector:
   labels.dragActive     'Drop files here'      card text while a drag is over it
   buttons.selectFiles   'Select files'         button / native selector, big-card browse button
   labels.noFileChosen   'No file chosen'       native selector when empty
-  labels.filesChosen    '{count} files chosen' native selector, 2+ files
+  labels.filesChosen    'Files chosen: {ctx.count}' native selector, 2+ files
   labels.overlay        'Drop files here'      drag-overlay text (overlay-target)
 
-Status names (status pill / indicator icon tooltip; {status} in ariaLabels.status):
+Status names (status pill / indicator icon tooltip; {ctx.statusName} in ariaLabels.status):
   labels.statusPending     'Pending'
   labels.statusUploading   'Uploading'
   labels.statusPaused      'Paused'
@@ -59,16 +59,16 @@ Status names (status pill / indicator icon tooltip; {status} in ariaLabels.statu
   labels.statusCancelled   'Cancelled'
   labels.cancelTimeout     'Cancel timed out'   status name of an error file whose cancel
                                                 timed out (file.error === 'cancel-timeout')
-  ariaLabels.status        'Status: {status}'   pill / summary icon aria-label
+  ariaLabels.status        'Status: {ctx.statusName}'   pill / summary icon aria-label
   ariaLabels.uploading     'Uploading'          indicator upload loader aria-label
   messages.cancelling      'Cancelling…'        text next to the bar while a cancel waits
 
-Row buttons ({name} = file name):
-  ariaLabels.pauseFile  / tooltips.pauseFile    'Pause {name}'
-  ariaLabels.resumeFile / tooltips.resumeFile   'Resume {name}'
-  ariaLabels.retryFile  / tooltips.retryFile    'Retry {name}'
-  ariaLabels.cancelFile / tooltips.cancelFile   'Cancel {name}'
-  ariaLabels.removeFile                         'Remove {name}'
+Row buttons ({ctx.name} = file name):
+  ariaLabels.pauseFile  / tooltips.pauseFile    'Pause {ctx.name}'
+  ariaLabels.resumeFile / tooltips.resumeFile   'Resume {ctx.name}'
+  ariaLabels.retryFile  / tooltips.retryFile    'Retry {ctx.name}'
+  ariaLabels.cancelFile / tooltips.cancelFile   'Cancel {ctx.name}'
+  ariaLabels.removeFile                         'Remove {ctx.name}'
 
 Bulk actions (overall-progress strip / <web-dropzone-progress>):
   buttons.pauseAll     'Pause all'
@@ -78,67 +78,77 @@ Bulk actions (overall-progress strip / <web-dropzone-progress>):
 
 List / popover:
   messages.noData        'No files selected'          empty file list
-  labels.summary         '{count} file(s), {size}'    compact summary line
+  labels.summary         'Files: {ctx.count}, {ctx.size}'    compact summary line
   ariaLabels.viewFiles   'Click to view files'        summary line aria-label
-  labels.fileCount       '{count} files'              popover header / footer
-  labels.fileCountOne    '1 file'
+  labels.fileCount       'Files: {ctx.count}'             popover header / footer
   buttons.addMore        'Add more'                   popover header
   buttons.clearAll       'Clear all'                  popover header
   ariaLabels.close       'Close'                      popover / drawer close button
-  buttons.showMore / ariaLabels.showMore   'Show {count} more'   max-visible-file-count
+  buttons.showMore / ariaLabels.showMore   'Show {ctx.count} more'   max-visible-file-count
                          toggle: text caption / the "+N" badge's aria-label
   buttons.showLess / ariaLabels.showLess   'Show less'
-  ariaLabels.showQueue / tooltips.showQueue  'Show all {count} files'  rolling queue button
+  ariaLabels.showQueue / tooltips.showQueue  'Show all files ({ctx.count})'  rolling queue button
   labels.unknownType     'Unknown'                    type column without a MIME type
 
 Popover limits line (used when labels.hint is empty; joined with " · "):
-  labels.limitMaxFileSize       'max {size} each'
-  labels.limitMinFileSize       'min {size} each'
-  labels.limitMaxTotalSize      'up to {size} total'
-  labels.limitMaxTotalSizeLeft  'up to {size} total · {left} left'
-  labels.limitMaxFileCount      'up to {count} files'
-  labels.limitMaxFileCountLeft  'up to {count} files · {left} left'
-  labels.limitMinFileCount      'at least {count} files'
+  labels.limitMaxFileSize       'max {ctx.size} each'
+  labels.limitMinFileSize       'min {ctx.size} each'
+  labels.limitMaxTotalSize      'up to {ctx.size} total'
+  labels.limitMaxTotalSizeLeft  'up to {ctx.size} total · {ctx.left} left'
+  labels.limitMaxFileCount      'files: up to {ctx.count}'
+  labels.limitMaxFileCountLeft  'files: up to {ctx.count} · {ctx.left} left'
+  labels.limitMinFileCount      'files: at least {ctx.count}'
 
 Progress strip (overall progress / <web-dropzone-progress>):
-  messages.progressCounts  '{completed} of {total} · {uploadedSize} / {totalSize}'
-  messages.progressPaused  '{count} paused'
-  messages.progressFailed  '{count} failed'
+  messages.progressCounts  '{ctx.completed} of {ctx.total} · {ctx.uploadedSize} / {ctx.totalSize}'
+  messages.progressPaused  '{ctx.count} paused'
+  messages.progressFailed  '{ctx.count} failed'
 
 Indicator (<web-dropzone-indicator>):
   headers.indicator           'Uploads'        drawer title + the drawer dialog's name (aria-labelledby)
   ariaLabels.indicatorStatus  'Upload status'  chip aria-label
   messages.indicatorIdle      'No uploads'     chip text with nothing queued
   messages.indicatorFailed / indicatorUploading / indicatorPaused / indicatorQueued /
-  indicatorDone  '{count} failed' / '{count} uploading' / ... / '{count} done'
+  indicatorDone  '{ctx.count} failed' / '{ctx.count} uploading' / ... / '{ctx.count} done'
 
 Validation (file-reject validation.error, form validity):
-  errors.maxFileSize      'File is too large. Maximum size is {size}'
-  errors.minFileSize      'File is too small. Minimum size is {size}'
+  errors.maxFileSize      'File is too large. Maximum size is {ctx.size}'
+  errors.minFileSize      'File is too small. Minimum size is {ctx.size}'
   errors.fileType         'File type not accepted'
   errors.rejected         'File rejected'            (beforeFilesAddCallback said false)
-  errors.maxFileCount     'Maximum {count} files allowed'   (also the max-file-count rangeOverflow validity)
-  errors.maxFileCountOne  'Maximum 1 file allowed'
-  errors.duplicate        'Duplicate file: {name}'
-  errors.maxTotalSize     'Total size would exceed {size}'
+  errors.maxFileCount     'Too many files. Maximum: {ctx.count}'   (also the max-file-count rangeOverflow validity)
+  errors.duplicate        'Duplicate file: {ctx.name}'
+  errors.maxTotalSize     'Total size would exceed {ctx.size}'
   errors.upload           'Upload failed'            (handler threw a non-Error)
-  errors.minFileCount     'At least {count} files required'   (min-file-count rangeUnderflow validity)
-  errors.minFileCountOne  'At least 1 file required'
+  errors.minFileCount     'Too few files. Minimum: {ctx.count}'   (min-file-count rangeUnderflow validity)
   errors.required         'Add a file.'              (required: valueMissing validity)
 
 Screen-reader announcements (core announce(); '' silences one):
-  ariaLabels.announceAdded(One), ariaLabels.announceRejected,
-  ariaLabels.announceUploadDone(One), ariaLabels.announceUploadFailed,
-  ariaLabels.announceRemoved
-`...One` keys are used when the count is exactly 1 (countLabel(label, key, n)).
+  ariaLabels.announceAdded         'Files added: {ctx.count}'
+  ariaLabels.announceRejected      '{ctx.name} was rejected: {ctx.reason}'
+  ariaLabels.announceUploadDone    'Upload complete. Files: {ctx.count}'
+  ariaLabels.announceUploadFailed  'Uploaded: {ctx.done}, failed: {ctx.failed}'
+  ariaLabels.announceRemoved       '{ctx.name} removed'
 
-PLACEHOLDERS
+PLACEHOLDERS — {ctx.*} (rulebook D-NC-24)
 ------------
-{name}    file name (row buttons, errors.duplicate)
-{status}  a status name (ariaLabels.status)
-{count}   a number (labels.summary, labels.fileCount, buttons.showMore, limits, indicator, errors)
-{size}    a formatted size ('5.0 MB') (summary, limits, size errors)
-{left} / {completed} / {total} / {uploadedSize} / {totalSize}  see the keys above
+A dynamic label gets its text spot's context as { ctx }; templates read {ctx.<path>}
+(numbers locale-formatted). translateCallback gets the same object as params.ctx (raw numbers).
+ctx.count = the number the text's noun agrees with — plural rules belong to the app's
+i18n library: i18next.t(key, { ...params, count: params.ctx?.count }). No singular
+"...One" keys; the English defaults put no plural noun after a number ("Files: 3").
+Context types (exported from both packages):
+  FileLabelContext           { name, size, type }       row buttons, errors.duplicate, announceRemoved
+  RejectedFileLabelContext   + reason                   announceRejected
+  StatusLabelContext         { status, statusName }     ariaLabels.status
+  FileCountLabelContext      { count }                  filesChosen, fileCount, showMore (hidden rows),
+                                                        showQueue, progressPaused/Failed, indicator*,
+                                                        announceAdded, announceUploadDone
+  SummaryLabelContext        { count, size, bytes }     labels.summary
+  SizeLimitLabelContext      { size, bytes, left?, leftBytes? }  size limits + size errors
+  CountLimitLabelContext     { count, left? }           count limits, errors.max/minFileCount
+  ProgressCountsLabelContext { completed, total, uploadedSize, totalSize, count = total }
+  UploadResultLabelContext   { done, failed, count = done + failed }  announceUploadFailed
 Unknown placeholders are left as written. Only the keys above are looked up.
 
 COMPLETE CZECH EXAMPLE
@@ -152,12 +162,12 @@ dz.labels = {
   'labels.overlay': 'Pusťte soubory sem',
   'labels.statusPending': 'Čeká', 'labels.statusUploading': 'Nahrává se', 'labels.statusPaused': 'Pozastaveno',
   'labels.statusCancelling': 'Ruší se…', 'labels.statusComplete': 'Hotovo', 'labels.statusError': 'Chyba',
-  'labels.statusCancelled': 'Zrušeno', 'ariaLabels.status': 'Stav: {status}',
+  'labels.statusCancelled': 'Zrušeno', 'ariaLabels.status': 'Stav: {ctx.statusName}',
   'labels.cancelTimeout': 'Zrušení vypršelo', 'messages.cancelling': 'Ruší se…',
-  'ariaLabels.pauseFile': 'Pozastavit {name}', 'ariaLabels.resumeFile': 'Pokračovat {name}',
-  'ariaLabels.retryFile': 'Zkusit znovu {name}', 'ariaLabels.cancelFile': 'Zrušit {name}', 'ariaLabels.removeFile': 'Odebrat {name}',
-  'tooltips.pauseFile': 'Pozastavit {name}', 'tooltips.resumeFile': 'Pokračovat {name}',
-  'tooltips.retryFile': 'Zkusit znovu {name}', 'tooltips.cancelFile': 'Zrušit {name}',
+  'ariaLabels.pauseFile': 'Pozastavit {ctx.name}', 'ariaLabels.resumeFile': 'Pokračovat {ctx.name}',
+  'ariaLabels.retryFile': 'Zkusit znovu {ctx.name}', 'ariaLabels.cancelFile': 'Zrušit {ctx.name}', 'ariaLabels.removeFile': 'Odebrat {ctx.name}',
+  'tooltips.pauseFile': 'Pozastavit {ctx.name}', 'tooltips.resumeFile': 'Pokračovat {ctx.name}',
+  'tooltips.retryFile': 'Zkusit znovu {ctx.name}', 'tooltips.cancelFile': 'Zrušit {ctx.name}',
   'buttons.pauseAll': 'Pozastavit vše', 'buttons.resumeAll': 'Pokračovat vše',
   'buttons.retryAll': 'Zkusit vše znovu', 'buttons.cancelAll': 'Zrušit vše'
 };
@@ -168,14 +178,14 @@ Every lookup goes through one function:
 
 import { resolveLabel, DEFAULT_LABELS, createLabelFn } from '@keenmate/web-dropzone';
 
-resolveLabel(sources, key, vars?)
+resolveLabel(sources, key, params?)
   sources = one labels object or an array (most specific first: a satellite's
   own labels, then its store's); the first that has key wins ->
   window.components.locale.labels['web-dropzone.<key>'] -> DEFAULT_LABELS[key],
-  then {placeholders} filled from vars.
+  then {ctx.*} placeholders filled from params ({ ctx }).
 
-resolveLabel({ 'ariaLabels.cancelFile': 'Stop {name}' }, 'ariaLabels.cancelFile', { name: 'a.pdf' })  // 'Stop a.pdf'
-resolveLabel(null, 'ariaLabels.status', { status: 'Paused' })                                     // 'Status: Paused'
+resolveLabel({ 'ariaLabels.cancelFile': 'Stop {ctx.name}' }, 'ariaLabels.cancelFile', { ctx: { name: 'a.pdf' } })  // 'Stop a.pdf'
+resolveLabel(null, 'ariaLabels.status', { ctx: { status: 'paused', statusName: 'Paused' } })              // 'Status: Paused'
 
 const label = createLabelFn(() => dz.labels);    // bound lookup, reads live
 label('buttons.retryAll');
@@ -191,16 +201,18 @@ window.components.locale = {
     'web-dropzone.labels.prompt': 'Přetáhněte soubory sem',
     'web-dropzone-indicator.headers.indicator': 'Fronta',   // that satellite only
   },
-  translateCallback: ({ key, params }) => (i18next.exists(key) ? i18next.t(key, params) : null),
+  translateCallback: ({ key, params }) => {
+    const options = { ...params, count: params.ctx?.count };   // i18next plural keys _one / _few / _other
+    return i18next.exists(key, options) ? i18next.t(key, options) : null;
+  },
 };
 translateCallback gets the FULL key; null / undefined = not mine. It is never
 asked for a key the instance set in its own labels.
 
 Also exported from @keenmate/web-dropzone-core: defaultLabel, statusLabel(label,
 status), fileStatusLabel(label, file) (returns labels.cancelTimeout for timed-out
-cancels), isLabelsValue(value), types DropzoneLabels, DropzoneLabelKey,
-DropzoneLabelOverrides,
-LabelFn, LabelVars.
+cancels), isLabelsValue(value), fileLabelContext(file), types DropzoneLabels,
+DropzoneLabelKey, DropzoneLabelOverrides, LabelFn, LabelParams + the *LabelContext types above.
 
 SATELLITES
 ----------

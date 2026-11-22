@@ -75,7 +75,7 @@ export {
 
 // Status / action icons live in `../core/icons` so the satellite renderers
 // and any user-provided callbacks can share the same Lucide SVG family.
-import { actionForStatus, UI_ICONS, statusLabel, countLabel } from '@keenmate/web-dropzone-core';
+import { actionForStatus, UI_ICONS, statusLabel } from '@keenmate/web-dropzone-core';
 // Row templates (list / detailed / grid / badges) are shared with the
 // `<web-dropzone-list>` satellite via `./row-templates` — single source of
 // truth so the polished styling in `_file-item.css` applies identically
@@ -625,7 +625,7 @@ export class WebDropzone extends DropzoneEngine {
                 ? this.label('labels.noFileChosen')
                 : count === 1
                     ? this.files[0].name
-                    : this.label('labels.filesChosen', { count });
+                    : this.label('labels.filesChosen', { ctx: { count } });
             return `
                 <div class="dz__dropzone dz__dropzone--native ${disabled}">
                     ${input}
@@ -1385,8 +1385,8 @@ export class WebDropzone extends DropzoneEngine {
         if (countEl) countEl.textContent = String(queueCount);
         queueBtn.classList.toggle('dz__rolling-queue--hidden', !showQueueBtn);
         queueBtn.disabled = !!this.config.isDisabled;
-        queueBtn.setAttribute('aria-label', this.label('ariaLabels.showQueue', { count: queueCount }));
-        queueBtn.setAttribute('title', this.label('tooltips.showQueue', { count: queueCount }));
+        queueBtn.setAttribute('aria-label', this.label('ariaLabels.showQueue', { ctx: { count: queueCount } }));
+        queueBtn.setAttribute('title', this.label('tooltips.showQueue', { ctx: { count: queueCount } }));
     }
 
     /**
@@ -1424,8 +1424,8 @@ export class WebDropzone extends DropzoneEngine {
 
         const hidden = this.files.length - cap;
         return isBadges
-            ? `<button type="button" class="dz__badge dz__badge--more" data-dz-action="toggle-visible" aria-label="${escapeHtml(this.label('ariaLabels.showMore', { count: hidden }))}"${dis}>+${hidden}</button>`
-            : `<button type="button" class="dz__show-more" data-dz-action="toggle-visible"${dis}>${escapeHtml(this.label('buttons.showMore', { count: hidden }))}</button>`;
+            ? `<button type="button" class="dz__badge dz__badge--more" data-dz-action="toggle-visible" aria-label="${escapeHtml(this.label('ariaLabels.showMore', { ctx: { count: hidden } }))}"${dis}>+${hidden}</button>`
+            : `<button type="button" class="dz__show-more" data-dz-action="toggle-visible"${dis}>${escapeHtml(this.label('buttons.showMore', { ctx: { count: hidden } }))}</button>`;
     }
 
     /** Attach the "Show more / Show less" click handler within a subtree.
@@ -1655,7 +1655,7 @@ export class WebDropzone extends DropzoneEngine {
             return `<span class="dz__summary-icon" data-status="pending">${UI_ICONS.paperclip}</span>`;
         }
         const s = overall.aggregateStatus;
-        const aria = escapeHtml(this.label('ariaLabels.status', { status: statusLabel(this.label, s) }));
+        const aria = escapeHtml(this.label('ariaLabels.status', { ctx: { status: s, statusName: statusLabel(this.label, s) } }));
         const busy = s === 'uploading' ? ' aria-busy="true"' : '';
         return `<span class="dz__summary-icon dz__summary-icon--${s}" data-status="${s}" aria-label="${aria}"${busy}>${RowTemplate.statusGlyph(s)}</span>`;
     }
@@ -1725,7 +1725,7 @@ export class WebDropzone extends DropzoneEngine {
     /** The built-in summary line: status icon + "N files (size)" — opens the popover. */
     private renderDefaultSummary(): string {
         const totalSize = this.files.reduce((sum, f) => sum + f.size, 0);
-        const text = this.label('labels.summary', { count: this.files.length, size: formatFileSize(totalSize, this.config.locale) });
+        const text = this.label('labels.summary', { ctx: { count: this.files.length, size: formatFileSize(totalSize, this.config.locale), bytes: totalSize } });
         return `
             <div class="dz__summary-line" ${this.config.isDisabled ? 'tabindex="-1" aria-disabled="true"' : 'tabindex="0"'} role="button" aria-label="${escapeHtml(this.label('ariaLabels.viewFiles'))}">
                 ${this.renderSummaryIcon()}
@@ -1963,11 +1963,11 @@ export class WebDropzone extends DropzoneEngine {
     }
 
     /**
-     * Build the popover's file-count label ("3 files", "1 file"). Used in the
+     * Build the popover's file-count label ("Files: 3"). Used in the
      * header in place of a static "Selected Files" title.
      */
     private getFileCountLabel(): string {
-        return countLabel(this.label, 'labels.fileCount', this.files.length);
+        return this.label('labels.fileCount', { ctx: { count: this.files.length } });
     }
 
     /**
@@ -1989,8 +1989,8 @@ export class WebDropzone extends DropzoneEngine {
         const maxCount = this.config.maxFileCount ?? 0;
         const minCount = this.config.minFileCount ?? 0;
 
-        if (maxFileSize > 0) parts.push(this.label('labels.limitMaxFileSize', { size: formatFileSize(maxFileSize, this.config.locale) }));
-        if (minFileSize > 0) parts.push(this.label('labels.limitMinFileSize', { size: formatFileSize(minFileSize, this.config.locale) }));
+        if (maxFileSize > 0) parts.push(this.label('labels.limitMaxFileSize', { ctx: { size: formatFileSize(maxFileSize, this.config.locale), bytes: maxFileSize } }));
+        if (minFileSize > 0) parts.push(this.label('labels.limitMinFileSize', { ctx: { size: formatFileSize(minFileSize, this.config.locale), bytes: minFileSize } }));
 
         // Total size cap — show "X left" once there are files so the user knows
         // their remaining headroom. FluentUI does the same.
@@ -1998,9 +1998,9 @@ export class WebDropzone extends DropzoneEngine {
             if (this.files.length > 0) {
                 const used = this.files.reduce((sum, f) => sum + f.size, 0);
                 const left = Math.max(0, maxTotal - used);
-                parts.push(this.label('labels.limitMaxTotalSizeLeft', { size: formatFileSize(maxTotal, this.config.locale), left: formatFileSize(left, this.config.locale) }));
+                parts.push(this.label('labels.limitMaxTotalSizeLeft', { ctx: { size: formatFileSize(maxTotal, this.config.locale), bytes: maxTotal, left: formatFileSize(left, this.config.locale), leftBytes: left } }));
             } else {
-                parts.push(this.label('labels.limitMaxTotalSize', { size: formatFileSize(maxTotal, this.config.locale) }));
+                parts.push(this.label('labels.limitMaxTotalSize', { ctx: { size: formatFileSize(maxTotal, this.config.locale), bytes: maxTotal } }));
             }
         }
 
@@ -2008,13 +2008,13 @@ export class WebDropzone extends DropzoneEngine {
         if (maxCount > 0) {
             if (this.files.length > 0) {
                 const left = Math.max(0, maxCount - this.files.length);
-                parts.push(this.label('labels.limitMaxFileCountLeft', { count: maxCount, left }));
+                parts.push(this.label('labels.limitMaxFileCountLeft', { ctx: { count: maxCount, left } }));
             } else {
-                parts.push(this.label('labels.limitMaxFileCount', { count: maxCount }));
+                parts.push(this.label('labels.limitMaxFileCount', { ctx: { count: maxCount } }));
             }
         }
 
-        if (minCount > 0) parts.push(this.label('labels.limitMinFileCount', { count: minCount }));
+        if (minCount > 0) parts.push(this.label('labels.limitMinFileCount', { ctx: { count: minCount } }));
 
         return parts.join(' · ');
     }
@@ -2112,17 +2112,18 @@ export class WebDropzone extends DropzoneEngine {
      */
     private renderOverallCountsInner(o: ReturnType<WebDropzone['getOverallProgress']>): string {
         const pausedSegment = o.pausedCount > 0
-            ? ` · <span class="dz__overall-progress-paused">${escapeHtml(this.label('messages.progressPaused', { count: o.pausedCount }))}</span>`
+            ? ` · <span class="dz__overall-progress-paused">${escapeHtml(this.label('messages.progressPaused', { ctx: { count: o.pausedCount } }))}</span>`
             : '';
         const failedSegment = o.failedCount > 0
-            ? ` · <span class="dz__overall-progress-failed">${escapeHtml(this.label('messages.progressFailed', { count: o.failedCount }))}</span>`
+            ? ` · <span class="dz__overall-progress-failed">${escapeHtml(this.label('messages.progressFailed', { ctx: { count: o.failedCount } }))}</span>`
             : '';
-        const counts = this.label('messages.progressCounts', {
+        const counts = this.label('messages.progressCounts', { ctx: {
             completed: o.completedCount,
             total: this.files.length,
             uploadedSize: formatFileSize(o.uploadedBytes, this.config.locale),
-            totalSize: formatFileSize(o.totalBytes, this.config.locale)
-        });
+            totalSize: formatFileSize(o.totalBytes, this.config.locale),
+            count: this.files.length
+        } });
         return `${escapeHtml(counts)}${pausedSegment}${failedSegment}`;
     }
 

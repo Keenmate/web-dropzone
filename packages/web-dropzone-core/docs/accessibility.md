@@ -17,7 +17,7 @@ What a renderer built on the store should cover — the contract the official `<
 - **Progress semantics.** `role="progressbar"` with `aria-valuenow` from `file.progress` /
   `getOverallProgress().percent`; mark a row `aria-busy="true"` while its file uploads.
 - **Announcements.** The store announces by itself through core `announce()` (the page's one polite
-  live region): files added (one message per drop / pick), rejections (`{name}` + the localised
+  live region): files added (one message per drop / pick), rejections (`{ctx.name}` + the localised
   `validation.error`), a finished upload batch, a user removal (`removeFile` / `clear` with
   `{ confirm: true }`) — the `ariaLabels.announce*` labels; `''` silences one. Still render rejected files
   (`file-reject`) visibly.

@@ -80,7 +80,7 @@ export function patchStatusIcon(
     el.className = `${statusClass} ${statusClass}--${status}`;
     const name = fileStatusLabel(label, file);
     el.title = name;
-    el.setAttribute('aria-label', label('ariaLabels.status', { status: name }));
+    el.setAttribute('aria-label', label('ariaLabels.status', { ctx: { status: file.status, statusName: name } }));
     el.innerHTML = statusGlyph(status);
 }
 

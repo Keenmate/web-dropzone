@@ -230,8 +230,11 @@ interface DropzoneLabels { prompt; hint; dragActive; selectFiles; noFileChosen; 
   pauseFile; resumeFile; retryFile; cancelFile; removeFile;
   pauseAll; resumeAll; retryAll; cancelAll: string }
 type DropzoneLabelKey = keyof DropzoneLabels;
-type LabelVars = Readonly<Record<string, string | number>>;
-type LabelFn = (key: DropzoneLabelKey, vars?: LabelVars) => string;
+type LabelParams = Readonly<{ ctx: object }>;   // the text spot's *LabelContext; templates read {ctx.<path>}
+type LabelFn = (key: DropzoneLabelKey, params?: LabelParams) => string;
+// Label contexts: FileLabelContext, RejectedFileLabelContext, StatusLabelContext, FileCountLabelContext,
+// SummaryLabelContext, SizeLimitLabelContext, CountLimitLabelContext, ProgressCountsLabelContext,
+// UploadResultLabelContext — ctx.count = the number the text's noun agrees with (plural rules).
 
 DropzoneEngineOptions
 --------------

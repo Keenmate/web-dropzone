@@ -29,14 +29,34 @@ describe('locale', () => {
         expect(el.locale).toBe('de');
     });
 
-    it('a standalone engine: {count} in labels follows the locale option; unset follows the page; setOptions is live', () => {
-        const engine = new DropzoneEngine(document.createElement('div'), { locale: 'de', labels: { 'labels.hint': '{count} files' } });
-        expect(engine.label('labels.hint', { count: 1234 })).toBe('1.234 files');
+    it('a standalone engine: {ctx.count} in labels follows the locale option; unset follows the page; setOptions is live', () => {
+        const engine = new DropzoneEngine(document.createElement('div'), { locale: 'de', labels: { 'labels.hint': '{ctx.count} files' } });
+        expect(engine.label('labels.hint', { ctx: { count: 1234 } })).toBe('1.234 files');
         engine.setOptions({ locale: 'en' });
-        expect(engine.label('labels.hint', { count: 1234 })).toBe('1,234 files');
+        expect(engine.label('labels.hint', { ctx: { count: 1234 } })).toBe('1,234 files');
         engine.setOptions({ locale: undefined });
         (window as any).components.locale = { locale: 'de' };
-        expect(engine.label('labels.hint', { count: 1234 })).toBe('1.234 files');
+        expect(engine.label('labels.hint', { ctx: { count: 1234 } })).toBe('1.234 files');
+    });
+
+    it('labels read the spot context ({ctx.*}); translateCallback gets it as params.ctx (raw numbers)', async () => {
+        const element = document.createElement('div');
+        const seen: Array<{ key: string; ctx: any }> = [];
+        const engine = new DropzoneEngine(element, {
+            locale: 'en',
+            maxFileCount: 1,
+            translateCallback: ({ key, params }: any) => {
+                seen.push({ key, ctx: params?.ctx });
+                return key === 'web-dropzone.errors.maxFileCount' ? `max=${params.ctx.count}` : null;
+            }
+        });
+        expect(engine.label('labels.fileCount', { ctx: { count: 1234 } })).toBe('Files: 1,234');
+        expect(engine.label('ariaLabels.removeFile', { ctx: { name: 'a.txt', size: 1, type: '' } })).toBe('Remove a.txt');
+        const errors: string[] = [];
+        element.addEventListener('file-reject', (e: any) => { for (const r of e.detail.rejectedFiles) errors.push(r.validation.error); });
+        await engine.addFiles([new File(['a'], 'a.txt'), new File(['b'], 'b.txt')]);
+        expect(errors).toEqual(['max=1']);
+        expect(seen.find(s => s.key === 'web-dropzone.errors.maxFileCount')?.ctx).toEqual({ count: 1 });
     });
 
     it('a standalone engine: size validation messages use the locale option', async () => {

@@ -223,7 +223,7 @@ export abstract class SatelliteElement<TEvents extends EventMap = Record<string,
 
     /**
      * The bound store's `locale` (a satellite has no `locale` input — it follows
-     * its store): the file sizes it formats and the `{count}` numbers in its
+     * its store): the file sizes it formats and the numbers in its `{ctx.*}`
      * labels. Unset → the page-wide locale, else the browser.
      */
     protected get storeLocale(): string | null | undefined {

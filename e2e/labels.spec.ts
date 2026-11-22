@@ -2,7 +2,7 @@ import { test, expect, dz, addNamed, pendingNames } from './fixtures';
 
 /**
  * `labels` — the UI-string input (partial object, merged per key over the
- * built-in English; `{name}` / `{count}` / `{status}` placeholders; property or
+ * built-in English; `{ctx.name}` / `{ctx.count}` / `{ctx.statusName}` placeholders; property or
  * JSON attribute; live). Fixture: test/cancel.html (#q in-element list,
  * #list-store + its list / progress satellites).
  */
@@ -33,7 +33,7 @@ test('property: per-key merge, placeholders, live re-render', async ({ page }) =
     await addNamed(page, 'q', ['a.txt']);
     await expect.poll(() => pendingNames(page)).toContain('a.txt');
     await dz(page, 'q').evaluate(async (el: any) => {
-        el.labels = { 'ariaLabels.cancelFile': 'Zrušit {name}', 'labels.statusUploading': 'Nahrávám', 'ariaLabels.status': 'Stav: {status}', 'buttons.cancelAll': 'Zrušit vše', 'labels.prompt': 'Sem soubory' };
+        el.labels = { 'ariaLabels.cancelFile': 'Zrušit {ctx.name}', 'labels.statusUploading': 'Nahrávám', 'ariaLabels.status': 'Stav: {ctx.statusName}', 'buttons.cancelAll': 'Zrušit vše', 'labels.prompt': 'Sem soubory' };
         await el.whenSettled();
     });
     const row = rowOf(page, 'q', 'a.txt');
@@ -90,7 +90,7 @@ test('satellites (list + progress) follow the store labels, live', async ({ page
     await addNamed(page, 'list-store', ['x.txt', 'y.txt']);
     await expect.poll(() => pendingNames(page)).toContain('x.txt');
     await dz(page, 'list-store').evaluate(async (el: any) => {
-        el.labels = { 'ariaLabels.cancelFile': 'Stop {name}', 'buttons.cancelAll': 'Stop everything' };
+        el.labels = { 'ariaLabels.cancelFile': 'Stop {ctx.name}', 'buttons.cancelAll': 'Stop everything' };
         await el.whenSettled();
     });
     const satRow = page.locator('#list-sat').locator('.dz__file-item:has(.dz__file-item-name:text-is("x.txt"))');
@@ -121,7 +121,7 @@ test.describe('page-wide labels + locale (core /locale)', () => {
             (window as any).components.locale = {
                 decimalSeparator: ',',
                 labels: { 'web-dropzone-progress.buttons.cancelAll': 'Progress: stop' },
-                translateCallback: ({ key, params }: any) => key === 'web-dropzone.ariaLabels.cancelFile' ? `[${params.name}]` : null,
+                translateCallback: ({ key, params }: any) => key === 'web-dropzone.ariaLabels.cancelFile' ? `[${params.ctx.name}]` : null,
             };
         });
         await expect(page.locator('#progress-sat').locator('[data-dz-action="cancel-all"]')).toHaveText('Progress: stop');
@@ -144,7 +144,7 @@ test.describe('page-wide labels + locale (core /locale)', () => {
             el.translateCallback = ({ key, params }: any) =>
                 key === 'web-dropzone.labels.prompt' ? 'OWN prompt'
                     : key === 'web-dropzone.labels.hint' ? 'OWN hint'
-                        : key === 'web-dropzone.ariaLabels.cancelFile' ? `OWN ${params.name}` : null;
+                        : key === 'web-dropzone.ariaLabels.cancelFile' ? `OWN ${params.ctx.name}` : null;
             el.labels = { 'labels.hint': 'Instance hint' };
             await el.whenSettled();
         });
@@ -155,7 +155,7 @@ test.describe('page-wide labels + locale (core /locale)', () => {
         await expect(dz(page, 'q').locator('[data-dz-action="cancel-all"]')).toHaveText('PAGE');
         // a bound satellite asks its store's hook
         await page.locator('#list-store').evaluate(async (el: any) => {
-            el.translateCallback = ({ key, params }: any) => key === 'web-dropzone.ariaLabels.cancelFile' ? `STORE ${params.name}` : null;
+            el.translateCallback = ({ key, params }: any) => key === 'web-dropzone.ariaLabels.cancelFile' ? `STORE ${params.ctx.name}` : null;
             await el.whenSettled();
         });
         const satRow = page.locator('#list-sat').locator('.dz__file-item:has(.dz__file-item-name:text-is("y.txt"))');

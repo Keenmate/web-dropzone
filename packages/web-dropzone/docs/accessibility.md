@@ -52,7 +52,7 @@ Calls from code (`addFiles()`, `removeFile()`, …) work under both.
 | Minimal selector button (icon only) | native `button` | `aria-label` = the `ariaLabels.prompt` label (unset: follows a customized `labels.prompt`) |
 | Row status glyph | `aria-label` | `ariaLabels.status` label, e.g. "Status: Uploading" |
 | Row root while its file uploads | `aria-busy="true"` | — (the inline loader is `aria-hidden`) |
-| Row Cancel / Remove / action buttons | native `button` | `ariaLabels.cancelFile` / `ariaLabels.removeFile` / `ariaLabels.pauseFile` / `ariaLabels.resumeFile` / `ariaLabels.retryFile` labels with `{name}` = the file name (cancel + row action also set `title` from `tooltips.*`) |
+| Row Cancel / Remove / action buttons | native `button` | `ariaLabels.cancelFile` / `ariaLabels.removeFile` / `ariaLabels.pauseFile` / `ariaLabels.resumeFile` / `ariaLabels.retryFile` labels with `{ctx.name}` = the file name (cancel + row action also set `title` from `tooltips.*`) |
 | "Show more" toggle | native `button` | `buttons.showMore` / `buttons.showLess` (text toggle) or `ariaLabels.showMore` / `ariaLabels.showLess` (the `+N` / `−` badge) label |
 | Overall progress bar | `role="progressbar"` | `aria-valuenow` (0–100), `aria-valuemin="0"`, `aria-valuemax="100"` |
 | Compact summary line | `role="button"` | `ariaLabels.viewFiles` label |
@@ -80,10 +80,10 @@ so assistive technology announces the field as required (plus `:state(required)`
 
   | When | Label (default English) |
   |---|---|
-  | Files added — ONE message per drop / pick, not per file | `ariaLabels.announceAdded` "{count} files added" / `ariaLabels.announceAddedOne` "1 file added" |
-  | A file rejected (same message as the add, after it) | `ariaLabels.announceRejected` "{name} was rejected: {reason}" (`reason` = the validation message) |
-  | An upload batch finished (the worker pool drained) | `ariaLabels.announceUploadDone` "Upload complete: {count} files" / `ariaLabels.announceUploadDoneOne`; with failures `ariaLabels.announceUploadFailed` "{done} uploaded, {failed} failed" |
-  | A file removed by the user (row ✕, Clear all) | `ariaLabels.announceRemoved` "{name} removed" |
+  | Files added — ONE message per drop / pick, not per file | `ariaLabels.announceAdded` "Files added: {ctx.count}" |
+  | A file rejected (same message as the add, after it) | `ariaLabels.announceRejected` "{ctx.name} was rejected: {ctx.reason}" (`reason` = the validation message) |
+  | An upload batch finished (the worker pool drained) | `ariaLabels.announceUploadDone` "Upload complete. Files: {ctx.count}"; with failures `ariaLabels.announceUploadFailed` "Uploaded: {ctx.done}, failed: {ctx.failed}" |
+  | A file removed by the user (row ✕, Clear all) | `ariaLabels.announceRemoved` "{ctx.name} removed" |
 
   Upload progress is not announced (the progress bar has its own `aria-valuenow`); a programmatic
   `removeFile()` / `clear()` (without `{ confirm: true }`) and a single-file replace are not either.

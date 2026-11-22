@@ -22,7 +22,7 @@
 import { fileLogger, initLogger, uiLogger } from './logger';
 import { announce, createStateStore, dispatch, runBeforeCallback, withComponentContext, type StateStore } from '@keenmate/web-components-core';
 import { createDropzoneController, type DropzoneController } from './controller';
-import { createLabelFn, countLabel, labelTemplate, type CountedLabelKey, type DropzoneLabelKey, type LabelFn, type LabelVars } from './labels';
+import { createLabelFn, fileLabelContext, labelTemplate, type DropzoneLabelKey, type LabelFn, type LabelParams } from './labels';
 import { runAction, type ActionSource } from '@keenmate/web-components-core/actions';
 import type {
     DropzoneAction,
@@ -48,7 +48,12 @@ import type {
     DropzoneState,
     OverallProgress,
     FileCancelResult,
-    FileUploadResult
+    FileUploadResult,
+    FileCountLabelContext,
+    CountLimitLabelContext,
+    SizeLimitLabelContext,
+    RejectedFileLabelContext,
+    UploadResultLabelContext
 } from './types';
 // Module-level pure helpers + DEFAULT_CONFIG live in `./dropzone-shared`
 // so both core and renderer can import them without circular dependencies.
@@ -109,7 +114,7 @@ export interface DropzoneActionRequest {
     runBuiltIn?: (detail: DropzoneActionEventDetail) => void | Promise<void>;
 }
 
-/** The label key of each action's item text (row actions take `{ name }`). */
+/** The label key of each action's item text (row actions get a `FileLabelContext`). */
 const ACTION_TEXT_KEYS = {
     'remove': 'ariaLabels.removeFile',
     'cancel': 'ariaLabels.cancelFile',
@@ -433,7 +438,7 @@ export class DropzoneEngine {
         this.dropFiles(ids);
 
         // `{ confirm: true }` = a user removal (row ✕, Clear all) — say it.
-        if (opts?.confirm) this.announceParts(removed.map(f => this.announceLabel('ariaLabels.announceRemoved', { name: f.name })));
+        if (opts?.confirm) this.announceParts(removed.map(f => this.announceLabel('ariaLabels.announceRemoved', { ctx: fileLabelContext(f) })));
     }
 
     /**
@@ -534,7 +539,7 @@ export class DropzoneEngine {
         let item = cache.get(action);
         if (!item) cache.set(action, item = { action });
         // Same object every time (the busy key); the text follows the current labels.
-        item.text = this.label(ACTION_TEXT_KEYS[action], file ? { name: file.name } : undefined);
+        item.text = this.label(ACTION_TEXT_KEYS[action], file ? { ctx: fileLabelContext(file) } : undefined);
         return item;
     }
 
@@ -1466,7 +1471,7 @@ export class DropzoneEngine {
                     file,
                     validation: {
                         valid: false,
-                        error: countLabel(this.label, 'errors.maxFileCount', maxCount),
+                        error: this.label('errors.maxFileCount', { ctx: { count: maxCount } satisfies CountLimitLabelContext }),
                         code: 'count'
                     }
                 });
@@ -1486,7 +1491,7 @@ export class DropzoneEngine {
                         file,
                         validation: {
                             valid: false,
-                            error: this.label('errors.duplicate', { name: file.name }),
+                            error: this.label('errors.duplicate', { ctx: fileLabelContext(file) }),
                             code: 'duplicate'
                         }
                     });
@@ -1502,7 +1507,7 @@ export class DropzoneEngine {
                     file,
                     validation: {
                         valid: false,
-                        error: this.label('errors.maxTotalSize', { size: formatFileSize(maxTotal, this.config.locale) }),
+                        error: this.label('errors.maxTotalSize', { ctx: { size: formatFileSize(maxTotal, this.config.locale), bytes: maxTotal } satisfies SizeLimitLabelContext }),
                         code: 'size'
                     }
                 });
@@ -1531,7 +1536,7 @@ export class DropzoneEngine {
             for (const file of extra) {
                 rejectedFiles.push({
                     file: file.file,
-                    validation: { valid: false, error: countLabel(this.label, 'errors.maxFileCount', 1), code: 'count' }
+                    validation: { valid: false, error: this.label('errors.maxFileCount', { ctx: { count: 1 } satisfies CountLimitLabelContext }), code: 'count' }
                 });
             }
             acceptedFiles = [first];
@@ -1565,8 +1570,8 @@ export class DropzoneEngine {
 
         // ONE screen-reader announcement per drop / pick: the added count, then each rejection.
         this.announceParts([
-            acceptedFiles.length > 0 ? this.announceCount('ariaLabels.announceAdded', acceptedFiles.length) : '',
-            ...rejectedFiles.map(r => this.announceLabel('ariaLabels.announceRejected', { name: r.file.name, reason: r.validation.error ?? '' }))
+            acceptedFiles.length > 0 ? this.announceLabel('ariaLabels.announceAdded', { ctx: { count: acceptedFiles.length } satisfies FileCountLabelContext }) : '',
+            ...rejectedFiles.map(r => this.announceLabel('ariaLabels.announceRejected', { ctx: { ...fileLabelContext(r.file), reason: r.validation.error ?? '' } satisfies RejectedFileLabelContext }))
         ]);
 
         // Re-render the row set. Per-file events were already reported
@@ -1783,13 +1788,8 @@ export class DropzoneEngine {
     // ========================================================================
 
     /** An announcement label — `''` when the consumer silenced it (its template is `''`). */
-    protected announceLabel(key: DropzoneLabelKey, vars?: LabelVars): string {
-        return labelTemplate(this.config.labels, key) === '' ? '' : this.label(key, vars);
-    }
-
-    /** A counted announcement label (`<key>One` for exactly one); the count goes in raw. */
-    protected announceCount(key: CountedLabelKey & `ariaLabels.announce${string}`, count: number): string {
-        return this.announceLabel(count === 1 ? `${key}One` as DropzoneLabelKey : key, { count });
+    protected announceLabel(key: DropzoneLabelKey, params?: LabelParams): string {
+        return labelTemplate(this.config.labels, key) === '' ? '' : this.label(key, params);
     }
 
     /** Announce the non-empty parts as ONE polite message (a newer message replaces an unread one). */
@@ -1799,7 +1799,7 @@ export class DropzoneEngine {
         if (text) announce(text, { document: this.contextElement.ownerDocument });
     }
 
-    /** The upload pool drained: "Upload complete: N files" / "N uploaded, M failed". */
+    /** The upload pool drained: "Upload complete. Files: N" / "Uploaded: N, failed: M". */
     protected announceDrainEnd(): void {
         const ids = this.drainFileIds;
         this.drainFileIds = new Set();
@@ -1812,8 +1812,8 @@ export class DropzoneEngine {
         }
         if (done + failed === 0) return;
         this.announceParts([failed > 0
-            ? this.announceLabel('ariaLabels.announceUploadFailed', { done, failed })
-            : this.announceCount('ariaLabels.announceUploadDone', done)]);
+            ? this.announceLabel('ariaLabels.announceUploadFailed', { ctx: { done, failed, count: done + failed } satisfies UploadResultLabelContext })
+            : this.announceLabel('ariaLabels.announceUploadDone', { ctx: { count: done } satisfies FileCountLabelContext })]);
     }
 
     // ========================================================================

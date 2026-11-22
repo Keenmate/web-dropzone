@@ -18,6 +18,7 @@ import type {
     AddFilesOptions,
     DedupeMode,
     FileState,
+    SizeLimitLabelContext,
     ValidationResult
 } from './types';
 import type { ValidateContext } from './interaction';
@@ -104,11 +105,11 @@ export function validateFile(
     contextBase?: object,
     label?: LabelFn
 ): ValidationResult {
-    const text: LabelFn = label ?? ((key, vars) => resolveLabel(config.labels, key, vars));
+    const text: LabelFn = label ?? ((key, params) => resolveLabel(config.labels, key, params));
     if (config.maxFileSize && config.maxFileSize > 0 && file.size > config.maxFileSize) {
         return {
             valid: false,
-            error: text('errors.maxFileSize', { size: formatFileSize(config.maxFileSize, config.locale) }),
+            error: text('errors.maxFileSize', { ctx: { size: formatFileSize(config.maxFileSize, config.locale), bytes: config.maxFileSize } satisfies SizeLimitLabelContext }),
             code: 'size'
         };
     }
@@ -116,7 +117,7 @@ export function validateFile(
     if (config.minFileSize && config.minFileSize > 0 && file.size < config.minFileSize) {
         return {
             valid: false,
-            error: text('errors.minFileSize', { size: formatFileSize(config.minFileSize, config.locale) }),
+            error: text('errors.minFileSize', { ctx: { size: formatFileSize(config.minFileSize, config.locale), bytes: config.minFileSize } satisfies SizeLimitLabelContext }),
             code: 'size'
         };
     }

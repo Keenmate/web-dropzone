@@ -441,7 +441,7 @@ Every spec runs in three Playwright projects — chromium, firefox and webkit
 | `keep-alive-when-removed` keeps uploads running          | ✓     | `cancel.spec.ts` | `cancel.html` |
 | `form.reset()` during an upload → cancel, then remove           | ✓     | `cancel.spec.ts` | `cancel.html` |
 | `multiple="false"` replace: running upload cancelled (`file-cancel` → `file-remove`); idle → sync remove before add; batch keeps first | ✓ | `cancel.spec.ts` | `cancel.html` |
-| New label keys: validation messages (`errorMaxFileCountOne`, …) | ✓     | `display.spec.ts` | (inline element) |
+| New label keys: validation messages (`errors.maxFileCount` with `{ctx.count}`, …) | ✓     | `display.spec.ts` | (inline element) |
 | Satellite own `labels` over the store's (per key, live property); malformed attribute keeps previous | ✓ | `satellites-extra.spec.ts` | `satellites-extra.html` |
 
 ## 25. Core lifecycle (defer / release / destroy) + readonly

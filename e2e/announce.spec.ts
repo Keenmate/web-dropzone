@@ -28,16 +28,16 @@ test.beforeEach(async ({ page }) => {
     await page.waitForFunction(() => (window as any).__ready === true);
 });
 
-test('a drop of 3 files is ONE announcement: "3 files added"', async ({ page }) => {
+test('a drop of 3 files is ONE announcement: "Files added: 3"', async ({ page }) => {
     await drop(page, 'drop', ['a.txt', 'b.txt', 'c.txt']);
-    await expect(region(page)).toHaveText('3 files added');
+    await expect(region(page)).toHaveText('Files added: 3');
     await expect(region(page)).toHaveAttribute('role', 'status');
     expect(await dz(page, 'drop').evaluate((el: any) => el.files.length)).toBe(3);
 });
 
-test('one file uses the singular form', async ({ page }) => {
+test('one file: the same template (no singular key — plurals belong to translateCallback)', async ({ page }) => {
     await addNamed(page, 'drop', ['one.txt']);
-    await expect(region(page)).toHaveText('1 file added');
+    await expect(region(page)).toHaveText('Files added: 1');
 });
 
 test('a rejected file says its name and the reason', async ({ page }) => {
@@ -47,26 +47,26 @@ test('a rejected file says its name and the reason', async ({ page }) => {
 
 test('added + rejected in one drop are one message', async ({ page }) => {
     await drop(page, 'drop', ['ok.txt', 'bad.png']);
-    await expect(region(page)).toHaveText('1 file added. bad.png was rejected: File type not accepted');
+    await expect(region(page)).toHaveText('Files added: 1. bad.png was rejected: File type not accepted');
 });
 
-test('a finished upload batch: "Upload complete: 2 files"; with a failure: "1 uploaded, 1 failed"', async ({ page }) => {
+test('a finished upload batch: "Upload complete. Files: 2"; with a failure: "Uploaded: 1, failed: 1"', async ({ page }) => {
     await addNamed(page, 'up', ['u1.txt', 'u2.txt']);
     await expect.poll(() => pendingNames(page)).toEqual(['u1.txt', 'u2.txt']);
     await resolveUpload(page, 'u1.txt', 'ok');
     await resolveUpload(page, 'u2.txt', 'ok');
-    await expect(region(page)).toHaveText('Upload complete: 2 files');
+    await expect(region(page)).toHaveText('Upload complete. Files: 2');
 
     await addNamed(page, 'up', ['u3.txt', 'u4.txt']);
     await expect.poll(() => pendingNames(page)).toEqual(['u3.txt', 'u4.txt']);
     await resolveUpload(page, 'u3.txt', 'ok');
     await resolveUpload(page, 'u4.txt', 'fail');
-    await expect(region(page)).toHaveText('1 uploaded, 1 failed');
+    await expect(region(page)).toHaveText('Uploaded: 1, failed: 1');
 });
 
 test('a user removal (row ✕) says "<name> removed"; a programmatic removeFile does not', async ({ page }) => {
     await addNamed(page, 'drop', ['gone.txt', 'stay.txt']);
-    await expect(region(page)).toHaveText('2 files added');
+    await expect(region(page)).toHaveText('Files added: 2');
     await dz(page, 'drop').locator('.dz__file-item:has(.dz__file-item-name:text-is("gone.txt")) [data-dz-action="remove"]').click();
     await expect(region(page)).toHaveText('gone.txt removed');
 
@@ -75,11 +75,11 @@ test('a user removal (row ✕) says "<name> removed"; a programmatic removeFile 
     expect(await said(page)).toBe('gone.txt removed');
 });
 
-test('numbers go to translateCallback raw', async ({ page }) => {
+test('numbers go to translateCallback raw, as params.ctx', async ({ page }) => {
     await page.evaluate(() => {
         ((window as any).components ??= {}).locale = {
             translateCallback: ({ key, params }: any) =>
-                key === 'web-dropzone.ariaLabels.announceAdded' ? `count:${typeof params.count}:${params.count}` : undefined
+                key === 'web-dropzone.ariaLabels.announceAdded' ? `count:${typeof params.ctx.count}:${params.ctx.count}` : undefined
         };
     });
     await addNamed(page, 'drop', ['n1.txt', 'n2.txt']);

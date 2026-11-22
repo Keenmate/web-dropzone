@@ -90,17 +90,17 @@ test.describe('dismissal', () => {
 });
 
 test.describe('labels.summary', () => {
-    test('{count} and {size} are filled in and follow the selection', async ({ page }) => {
+    test('{ctx.count} and {ctx.size} are filled in and follow the selection', async ({ page }) => {
         await addNamed(page, 'pop', ['a.txt']);
         await expect(summary(page, 'pop').locator('.dz__summary-text')).toHaveText('1 docs · 64 B');
         await addNamed(page, 'pop', ['b.txt']);
         await expect(summary(page, 'pop').locator('.dz__summary-text')).toHaveText('2 docs · 128 B');
     });
 
-    test('the default template is "{count} file(s), {size}"; a live change re-renders', async ({ page }) => {
+    test('the default template is "Files: {ctx.count}, {ctx.size}"; a live change re-renders', async ({ page }) => {
         await addNamed(page, 'top', ['a.txt']);
-        await expect(summary(page, 'top').locator('.dz__summary-text')).toHaveText('1 file(s), 64 B');
-        await dz(page, 'top').evaluate(async (el: any) => { el.labels = { 'labels.summary': 'Files: {count}' }; await el.whenSettled(); });
-        await expect(summary(page, 'top').locator('.dz__summary-text')).toHaveText('Files: 1');
+        await expect(summary(page, 'top').locator('.dz__summary-text')).toHaveText('Files: 1, 64 B');
+        await dz(page, 'top').evaluate(async (el: any) => { el.labels = { 'labels.summary': 'Soubory: {ctx.count}' }; await el.whenSettled(); });
+        await expect(summary(page, 'top').locator('.dz__summary-text')).toHaveText('Soubory: 1');
     });
 });

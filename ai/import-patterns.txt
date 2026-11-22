@@ -68,7 +68,7 @@ Note: DedupeMode, ProgressMode, RetryPolicy, SelectorAppearance,
 ListAppearance, RollingRotation, CardSize, GridLayout, GridStatus,
 DropzoneState, escapeHtml, DropzoneEngine, createDropzoneController,
 validateFile, isFileTypeAccepted, DEFAULT_CONFIG, statusLabel,
-fileStatusLabel, isLabelsValue, LabelVars are exported from
+fileStatusLabel, isLabelsValue, fileLabelContext, LabelParams + the *LabelContext types are exported from
 @keenmate/web-dropzone-core (not re-exported by the renderer package).
 
 HEADLESS CORE

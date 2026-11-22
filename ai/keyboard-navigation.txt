@@ -56,11 +56,11 @@ Card selector input         labels.prompt (aria-labelledby the visible prompt te
                             a renderPromptCallback prompt -> ariaLabels.prompt)
 Minimal selector (icon)     ariaLabels.prompt (unset: follows a customized labels.prompt)
 Button / native selector    buttons.selectFiles (visible text)
-Row Cancel                  ariaLabels.cancelFile  'Cancel {name}'
-Row Remove                  ariaLabels.removeFile  'Remove {name}'
+Row Cancel                  ariaLabels.cancelFile  'Cancel {ctx.name}'
+Row Remove                  ariaLabels.removeFile  'Remove {ctx.name}'
 Row action                  ariaLabels.pauseFile / resumeFile / retryFile
-Status pill                 ariaLabels.status  'Status: {status}'
-                            ({status} = labels.status*; timed-out cancel ->
+Status pill                 ariaLabels.status  'Status: {ctx.statusName}'
+                            ({ctx.statusName} = labels.status*; timed-out cancel ->
                             labels.cancelTimeout)
 Bulk buttons                buttons.pauseAll / resumeAll / cancelAll / retryAll
 

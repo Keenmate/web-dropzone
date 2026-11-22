@@ -109,8 +109,9 @@ be async; returning `false` cancels.
   `createFileState`, `DEFAULT_CONFIG`.
 - **Icons** — `STATUS_ICONS`, `ACTION_ICONS`, `actionForStatus()`, `CANCEL_ICON`, `FILE_TYPE_ICONS`,
   `UI_ICONS`, `FILE_ICONS` (Lucide SVG strings).
-- **Labels** — `DEFAULT_LABELS`, `resolveLabel`, `createLabelFn`, `countLabel`, `statusLabel`,
-  `fileStatusLabel`, `isLabelsValue` — the same per-key-merged UI strings the element uses.
+- **Labels** — `DEFAULT_LABELS`, `resolveLabel`, `createLabelFn`, `statusLabel`,
+  `fileStatusLabel`, `fileLabelContext`, `isLabelsValue` — the same per-key-merged UI strings the element uses;
+  a dynamic text takes its spot's context (`label(key, { ctx })`, the `*LabelContext` types; templates read `{ctx.*}`).
 - **Status surface** — `StatusSurfaceArgs`, `StatusSurfaceCallback`, `StatusSurfaceResult`,
   `StatusAggregate`: the contract of indicator-style UIs (focal file + aggregate counts + overall percent).
 - **Types** — every callback ctx (`ValidateContext`, `BeforeFilesAddContext`, `FileUploadContext`, …),

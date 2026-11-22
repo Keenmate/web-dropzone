@@ -59,7 +59,7 @@ import {
 } from '@keenmate/web-components-core';
 import { WebDropzone } from './dropzone';
 import { linkStoreController, linkStoreReorder, linkStoreActions, announceStoreBuild } from './store-link';
-import { initLogger, createDropzoneController, countLabel, defaultLabel, DEFAULT_CONFIG } from '@keenmate/web-dropzone-core';
+import { initLogger, createDropzoneController, defaultLabel, DEFAULT_CONFIG } from '@keenmate/web-dropzone-core';
 import { labelsConverter, defaultFlag } from './inputs';
 import type {
     DropzoneController,
@@ -183,8 +183,8 @@ const INPUTS: readonly InputDef[] = [
     { configKey: 'cancelIcon',              attribute: 'cancel-icon',         converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'Row Cancel (⊘) button glyph — markup (starts with `<`, inserted raw — NOT sanitized), a built-in icon name (`check`, `close`, … masked from `--base-icon-<name>`), a name `renderIconCallback` maps, an icon-font class list (`fa-solid fa-upload` → `<i class="dz__icon …">`), or text (an emoji). Unset = built-in icon.' },
     { configKey: 'removeIcon',              attribute: 'remove-icon',         converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'Row Remove (✕) button glyph — markup (starts with `<`, inserted raw — NOT sanitized), a built-in icon name (`check`, `close`, … masked from `--base-icon-<name>`), a name `renderIconCallback` maps, an icon-font class list (`fa-solid fa-upload` → `<i class="dz__icon …">`), or text (an emoji). Unset = built-in icon.' },
     { configKey: 'icon',                    attribute: 'icon',                converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'Prompt icon — markup (starts with `<`, inserted raw), a built-in icon name (`check`, `close`, … masked from `--base-icon-<name>`), a name `renderIconCallback` maps, an icon-font class list (`fa-solid fa-upload` → `<i class="dz__icon …">`), or text (an emoji).' },
-    { configKey: 'labels',                  attribute: 'labels',              converter: labelsConverter,                                                              on: 'update', type: 'DropzoneLabelOverrides', description: 'Every UI string (see `DropzoneLabels` / `DEFAULT_LABELS`): flat `<elementType>.<name>` keys (`buttons.selectFiles`, `ariaLabels.cancelFile`; the full `web-dropzone.<key>` works too), merged per key over the built-in English; `{name}` / `{count}` / `{size}` / … placeholders: prompt, hint, empty, summary, status names, row + bulk buttons, popover, limits line, progress strip, validation messages. Satellites inherit them (and take their own `labels` on top). Property (object) or JSON attribute. Live.' },
-    { configKey: 'locale',                  attribute: 'locale',              converter: toText({ isNullable: true }), default: DEFAULT_CONFIG.locale,                    on: 'update', description: 'BCP-47 locale for the numbers the dropzone formats — file sizes (rows, summary, popover totals, limits line, progress counts, size validation messages; `1,5 MB` in `cs`), the progress percents (`12,5%`) and the `{count}` numbers in labels — or unset (the page-wide `window.components.locale`, else the browser language). Bound satellites follow it. UI strings are `labels`. Live.' },
+    { configKey: 'labels',                  attribute: 'labels',              converter: labelsConverter,                                                              on: 'update', type: 'DropzoneLabelOverrides', description: 'Every UI string (see `DropzoneLabels` / `DEFAULT_LABELS`): flat `<elementType>.<name>` keys (`buttons.selectFiles`, `ariaLabels.cancelFile`; the full `web-dropzone.<key>` works too), merged per key over the built-in English; dynamic texts read the context of their spot (`{ctx.name}`, `{ctx.count}`, `{ctx.size}`, …; see the `*LabelContext` of each key): prompt, hint, empty, summary, status names, row + bulk buttons, popover, limits line, progress strip, validation messages. Satellites inherit them (and take their own `labels` on top). Property (object) or JSON attribute. Live.' },
+    { configKey: 'locale',                  attribute: 'locale',              converter: toText({ isNullable: true }), default: DEFAULT_CONFIG.locale,                    on: 'update', description: 'BCP-47 locale for the numbers the dropzone formats — file sizes (rows, summary, popover totals, limits line, progress counts, size validation messages; `1,5 MB` in `cs`), the progress percents (`12,5%`) and the numbers in labels (`{ctx.count}`) — or unset (the page-wide `window.components.locale`, else the browser language). Bound satellites follow it. UI strings are `labels`. Live.' },
 
     // ── Compact mode ──────────────────────────────────────────────────────────
     { configKey: 'popoverPlacement',        attribute: 'popover-placement',   converter: toEnum(PLACEMENTS, { default: DEFAULT_CONFIG.popoverPlacement }),                              shouldReflect: true, on: 'update', description: 'Placement of the compact-mode popover relative to its trigger (a core /positioning placement; flips when there is no room).' },
@@ -811,12 +811,12 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
         const anchor = this.getValidityAnchor();
         this.setValidityFlag(
             'rangeUnderflow',
-            isChecked && min > 0 && fileCount > 0 && fileCount < min ? countLabel(label, 'errors.minFileCount', min) : null,
+            isChecked && min > 0 && fileCount > 0 && fileCount < min ? label('errors.minFileCount', { ctx: { count: min } }) : null,
             anchor,
         );
         this.setValidityFlag(
             'rangeOverflow',
-            isChecked && max > 0 && fileCount > max ? countLabel(label, 'errors.maxFileCount', max) : null,
+            isChecked && max > 0 && fileCount > max ? label('errors.maxFileCount', { ctx: { count: max } }) : null,
             anchor,
         );
         this.refreshRequired();

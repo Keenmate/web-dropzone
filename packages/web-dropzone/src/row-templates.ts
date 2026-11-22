@@ -29,7 +29,8 @@ import {
     CANCEL_ICON,
     actionForStatus,
     defaultLabel,
-    fileStatusLabel
+    fileStatusLabel,
+    fileLabelContext
 } from '@keenmate/web-dropzone-core';
 import type { FileState, FileItemPart, FileIconOverrides, LabelFn, RowAction, FileStatus } from '@keenmate/web-dropzone-core';
 import { renderIcon } from '@keenmate/web-components-core';
@@ -66,15 +67,16 @@ export function renderDzIcon(icon: string | null | undefined, opts: DzIconOption
     return renderIcon(icon, options);
 }
 
-/** The label key of a row action button (aria-label / tooltip, `{name}` = file). */
+/** The label key of a row action button (aria-label / tooltip; ctx: `FileLabelContext`). */
 export const ACTION_LABEL_KEYS = { pause: 'pauseFile', resume: 'resumeFile', retry: 'retryFile' } as const satisfies Record<RowAction, string>;
 
 /** A row action's accessible name + tooltip (`ariaLabels.<name>` / `tooltips.<name>`). */
-export function rowActionTexts(action: RowAction, file: Pick<FileState, 'name'>, label: LabelFn = defaultLabel): { aria: string; title: string } {
+export function rowActionTexts(action: RowAction, file: Pick<FileState, 'name' | 'size' | 'type'>, label: LabelFn = defaultLabel): { aria: string; title: string } {
     const name = ACTION_LABEL_KEYS[action];
+    const ctx = fileLabelContext(file);
     return {
-        aria: label(`ariaLabels.${name}`, { name: file.name }),
-        title: label(`tooltips.${name}`, { name: file.name })
+        aria: label(`ariaLabels.${name}`, { ctx }),
+        title: label(`tooltips.${name}`, { ctx })
     };
 }
 
@@ -99,8 +101,9 @@ export function busyAttr(file: Pick<FileState, 'status'>): string {
 
 /** Status pill — glyph + the status name as tooltip / accessible name (`labels`). */
 export function renderStatusPill(file: FileState, cls: string, label: LabelFn = defaultLabel): string {
-    const name = escapeHtml(fileStatusLabel(label, file));
-    const aria = escapeHtml(label('ariaLabels.status', { status: fileStatusLabel(label, file) }));
+    const statusName = fileStatusLabel(label, file);
+    const name = escapeHtml(statusName);
+    const aria = escapeHtml(label('ariaLabels.status', { ctx: { status: file.status, statusName } }));
     return `<span class="${cls} ${cls}--${file.status}" title="${name}" aria-label="${aria}" data-status="${file.status}">${statusGlyph(file.status)}</span>`;
 }
 
@@ -212,8 +215,9 @@ export function renderCancelButton(file: FileState, baseClass: string, opts: Row
     const inert = offered ? '' : ' tabindex="-1" aria-hidden="true"';
     const disabled = file.status === 'cancelling' || opts.isDisabled ? ' disabled' : '';
     const label = opts.label ?? defaultLabel;
-    const aria = escapeHtml(label('ariaLabels.cancelFile', { name: file.name }));
-    const title = escapeHtml(label('tooltips.cancelFile', { name: file.name }));
+    const ctx = fileLabelContext(file);
+    const aria = escapeHtml(label('ariaLabels.cancelFile', { ctx }));
+    const title = escapeHtml(label('tooltips.cancelFile', { ctx }));
     return `<button type="button" class="${cls}" data-dz-action="cancel" data-file-id="${file.id}" aria-label="${aria}" title="${title}"${inert}${disabled}>${renderDzIcon(opts.cancelIcon, rowIconOptions(file, opts.iconOptions)) || CANCEL_ICON}</button>`;
 }
 
@@ -352,7 +356,7 @@ export function removeButtonAttrs(file: FileState, baseClass: string, removable 
     const inert = removable ? '' : ' tabindex="-1" aria-hidden="true"';
     // Disabled while a cancel is waiting for the handler to settle, or while the store is disabled.
     const disabled = file.status === 'cancelling' || isDisabled ? ' disabled' : '';
-    return `class="${cls}" data-dz-action="remove" data-file-id="${file.id}" aria-label="${escapeHtml(label('ariaLabels.removeFile', { name: file.name }))}"${inert}${disabled}`;
+    return `class="${cls}" data-dz-action="remove" data-file-id="${file.id}" aria-label="${escapeHtml(label('ariaLabels.removeFile', { ctx: fileLabelContext(file) }))}"${inert}${disabled}`;
 }
 
 export function renderListItem(file: FileState, opts: RowTemplateOptions = {}): string {

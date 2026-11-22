@@ -127,7 +127,7 @@ test.describe('min-file-count → rangeUnderflow', () => {
     test('1 of 2 → rangeUnderflow with errors.minFileCount, submit blocked; 2 → valid', async ({ page }) => {
         await addNamed(page, 'min', ['a.txt']);
         const v = await validity(page, 'min');
-        expect(v).toMatchObject({ rangeUnderflow: true, valueMissing: false, valid: false, message: 'At least 2 files required' });
+        expect(v).toMatchObject({ rangeUnderflow: true, valueMissing: false, valid: false, message: 'Too few files. Minimum: 2' });
         expect(await submit(page, 'min')).toBe(false);
         await addNamed(page, 'min', ['b.txt']);
         expect((await validity(page, 'min')).valid).toBe(true);
@@ -157,7 +157,7 @@ test.describe('max-file-count → rangeOverflow', () => {
         expect((await validity(page, 'req')).valid).toBe(true);
         await dz(page, 'req').evaluate((el: any) => { el.maxFileCount = 2; });
         const v = await validity(page, 'req');
-        expect(v).toMatchObject({ rangeOverflow: true, rangeUnderflow: false, valueMissing: false, message: 'Maximum 2 files allowed' });
+        expect(v).toMatchObject({ rangeOverflow: true, rangeUnderflow: false, valueMissing: false, message: 'Too many files. Maximum: 2' });
         expect(await submit(page, 'req')).toBe(false);
         await dz(page, 'req').evaluate(async (el: any) => { await el.removeFile(el.files[0].id); });
         expect((await validity(page, 'req')).valid).toBe(true);

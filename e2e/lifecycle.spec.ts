@@ -64,7 +64,7 @@ test.describe('re-parent keeps the popover (D1)', () => {
         await move(page, 'lc-pop', 'pop-away');
         await expect(page.locator('#pop-away #lc-pop')).toHaveCount(1);
         await expect(popover(page)).toBeVisible();
-        await expect(popover(page).locator('.dz__popover-count')).toHaveText('2 files');
+        await expect(popover(page).locator('.dz__popover-count')).toHaveText('Files: 2');
 
         await page.keyboard.press('Escape');
         await expect(popover(page)).toHaveCount(0);

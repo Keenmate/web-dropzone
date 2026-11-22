@@ -15,8 +15,8 @@
     <button id="outside" type="button">outside</button>
 
     <div class="fixture">
-        <div class="fixture-label">default placement (bottom-start), labels.summary="{count} docs · {size}"</div>
-        <web-dropzone id="pop" accept="*/*" display-mode="compact" labels='{"labels.summary": "{count} docs · {size}"}'></web-dropzone>
+        <div class="fixture-label">default placement (bottom-start), labels.summary="{ctx.count} docs · {ctx.size}"</div>
+        <web-dropzone id="pop" accept="*/*" display-mode="compact" labels='{"labels.summary": "{ctx.count} docs · {ctx.size}"}'></web-dropzone>
     </div>
 
     <div class="spacer"></div>

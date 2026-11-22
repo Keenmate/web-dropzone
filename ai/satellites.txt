@@ -167,7 +167,7 @@ Attributes (plus the shared inputs):
   labels    own UI strings over the store's: indicatorTitle (drawer title,
             "Uploads"), indicatorIdle (idle chip, "No uploads"), indicatorStatus
             (aria), close, indicatorFailed / ...Uploading /
-            ...Paused / ...Queued / ...Done ("{count} failed", ...)
+            ...Paused / ...Queued / ...Done ("{ctx.count} failed", ...)
 
 Default chip: spinner / status glyph + label ("N failed" > "N uploading" >
 "N paused" > "N queued" > "N done", from labels) + overall percent.

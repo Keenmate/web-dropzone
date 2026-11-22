@@ -259,6 +259,111 @@ export interface OverallProgress {
     aggregateStatus: 'uploading' | 'paused' | 'error' | 'complete';
 }
 
+// ---- Label contexts (`labels` templates read `{ctx.<path>}`, rulebook D-NC-24) ----
+// A dynamic label gets its text spot's context as `{ ctx }`: a template reads `{ctx.count}`,
+// `{ctx.name}`, … (numbers locale-formatted); a `translateCallback` gets the same object as
+// `params.ctx` (numbers raw). `ctx.count` = the number the text's noun agrees with — for an
+// i18n library's plural rules (`i18next.t(key, { ...params, count: params.ctx?.count })`).
+
+/**
+ * Label context of a text about ONE file — the row buttons (`ariaLabels.*File` /
+ * `tooltips.*File`), the row action-item texts, `errors.duplicate`, `ariaLabels.announceRemoved`.
+ * No `ctx.count`.
+ */
+export interface FileLabelContext {
+    /** The file name. */
+    name: string;
+    /** The file size in bytes. */
+    size: number;
+    /** The MIME type (`''` when unknown). */
+    type: string;
+}
+
+/** Label context of `ariaLabels.announceRejected`: the file + why. No `ctx.count`. */
+export interface RejectedFileLabelContext extends FileLabelContext {
+    /** The validation message (`validation.error`). */
+    reason: string;
+}
+
+/** Label context of `ariaLabels.status` (status pill / summary icon accessible name). No `ctx.count`. */
+export interface StatusLabelContext {
+    /** The status. */
+    status: FileStatus;
+    /** Its display name (`labels.status*` / `labels.cancelTimeout`). */
+    statusName: string;
+}
+
+/**
+ * Label context of a plain file count: `labels.filesChosen`, `labels.fileCount`, `buttons.showMore` /
+ * `ariaLabels.showMore` (the hidden rows), `ariaLabels.showQueue` / `tooltips.showQueue` (all files),
+ * `messages.progressPaused` / `messages.progressFailed`, `messages.indicator*`,
+ * `ariaLabels.announceAdded`, `ariaLabels.announceUploadDone`.
+ */
+export interface FileCountLabelContext {
+    /** The number of files the text is about (the noun agrees with it). */
+    count: number;
+}
+
+/** Label context of the compact summary line (`labels.summary`). */
+export interface SummaryLabelContext {
+    /** The number of files (the noun agrees with it). */
+    count: number;
+    /** The total size, formatted (`1.5 MB`). */
+    size: string;
+    /** The total size in bytes. */
+    bytes: number;
+}
+
+/**
+ * Label context of a size limit — `labels.limitMaxFileSize` / `limitMinFileSize` / `limitMaxTotalSize` /
+ * `limitMaxTotalSizeLeft`, `errors.maxFileSize` / `minFileSize` / `maxTotalSize`. No `ctx.count`.
+ */
+export interface SizeLimitLabelContext {
+    /** The limit, formatted (`10 MB`). */
+    size: string;
+    /** The limit in bytes. */
+    bytes: number;
+    /** `labels.limitMaxTotalSizeLeft` only: the remaining size, formatted. */
+    left?: string;
+    /** `labels.limitMaxTotalSizeLeft` only: the remaining size in bytes. */
+    leftBytes?: number;
+}
+
+/**
+ * Label context of a file-count limit — `labels.limitMaxFileCount` / `limitMaxFileCountLeft` /
+ * `limitMinFileCount`, `errors.maxFileCount` / `errors.minFileCount` (also the form validity messages).
+ */
+export interface CountLimitLabelContext {
+    /** The limit — the number of files the text's noun agrees with. */
+    count: number;
+    /** `labels.limitMaxFileCountLeft` only: the remaining slots. */
+    left?: number;
+}
+
+/** Label context of the overall-progress strip's counts (`messages.progressCounts`). */
+export interface ProgressCountsLabelContext {
+    /** Files done (completed). */
+    completed: number;
+    /** Files in the queue. */
+    total: number;
+    /** Uploaded bytes, formatted. */
+    uploadedSize: string;
+    /** Total bytes, formatted. */
+    totalSize: string;
+    /** The number the text's noun agrees with: `total` ("3 of 12" agrees with 12). */
+    count: number;
+}
+
+/** Label context of `ariaLabels.announceUploadFailed` (a batch finished with failures). */
+export interface UploadResultLabelContext {
+    /** Files uploaded. */
+    done: number;
+    /** Files failed. */
+    failed: number;
+    /** The number the text's noun agrees with: the batch size (`done + failed`). */
+    count: number;
+}
+
 /**
  * Per-file upload handler (`uploadFileCallback`). Called once per attempt by
  * the worker pool with one {@link FileUploadContext}: `file`, `signal`,
@@ -551,14 +656,15 @@ export interface DropzoneEngineOptions {
      * UI strings (`labels` input) — a partial {@link DropzoneLabels} object
      * (flat `<elementType>.<name>` keys: `buttons.selectFiles`,
      * `ariaLabels.cancelFile`; the full `web-dropzone.<key>` works too) merged
-     * per key over the built-in English defaults; `{name}` / `{count}` /
-     * `{status}` placeholders. Resolved through `resolveLabel`.
+     * per key over the built-in English defaults; a dynamic text reads its
+     * spot's context — `{ctx.name}`, `{ctx.count}`, … (each key's context
+     * type is listed on {@link DropzoneLabels}). Resolved through `resolveLabel`.
      */
     labels?: DropzoneLabelOverrides | null;
     /**
      * BCP-47 locale for the numbers the dropzone formats — file sizes
      * (`1,5 MB` in `cs`), the limits line, validation messages and the
-     * `{count}` numbers in labels — or unset (`null` / `undefined` / `'auto'`):
+     * numbers in labels (`{ctx.count}`) — or unset (`null` / `undefined` / `'auto'`):
      * the page-wide `window.components.locale`, else the browser language
      * (core `resolveLocale`). Bound satellites follow their store's. UI
      * strings are `labels`. Live (`setOptions({ locale })` re-renders).

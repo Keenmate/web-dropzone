@@ -100,11 +100,11 @@ export interface DropzoneIndicatorElementConfig extends SatelliteElementConfig {
 function defaultChipLabel(args: StatusSurfaceArgs, label: LabelFn): string {
     const a = args.aggregate;
     if (a.total === 0)   return label('messages.indicatorIdle');
-    if (a.error > 0)     return label('messages.indicatorFailed', { count: a.error });
-    if (a.uploading > 0) return label('messages.indicatorUploading', { count: a.uploading });
-    if (a.paused > 0)    return label('messages.indicatorPaused', { count: a.paused });
-    if (a.pending > 0)   return label('messages.indicatorQueued', { count: a.pending });
-    return label('messages.indicatorDone', { count: a.complete });
+    if (a.error > 0)     return label('messages.indicatorFailed', { ctx: { count: a.error } });
+    if (a.uploading > 0) return label('messages.indicatorUploading', { ctx: { count: a.uploading } });
+    if (a.paused > 0)    return label('messages.indicatorPaused', { ctx: { count: a.paused } });
+    if (a.pending > 0)   return label('messages.indicatorQueued', { ctx: { count: a.pending } });
+    return label('messages.indicatorDone', { ctx: { count: a.complete } });
 }
 
 export class DropzoneIndicatorElement extends SatelliteElement {

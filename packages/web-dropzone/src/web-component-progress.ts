@@ -176,17 +176,18 @@ export class DropzoneProgressElement extends SatelliteElement {
 
     private renderCountsInner(o: OverallProgress, totalFileCount: number): string {
         const pausedSegment = o.pausedCount > 0
-            ? ` · <span class="dz__overall-progress-paused">${escapeHtml(this.label('messages.progressPaused', { count: o.pausedCount }))}</span>`
+            ? ` · <span class="dz__overall-progress-paused">${escapeHtml(this.label('messages.progressPaused', { ctx: { count: o.pausedCount } }))}</span>`
             : '';
         const failedSegment = o.failedCount > 0
-            ? ` · <span class="dz__overall-progress-failed">${escapeHtml(this.label('messages.progressFailed', { count: o.failedCount }))}</span>`
+            ? ` · <span class="dz__overall-progress-failed">${escapeHtml(this.label('messages.progressFailed', { ctx: { count: o.failedCount } }))}</span>`
             : '';
-        const counts = this.label('messages.progressCounts', {
+        const counts = this.label('messages.progressCounts', { ctx: {
             completed: o.completedCount,
             total: totalFileCount,
             uploadedSize: formatFileSize(o.uploadedBytes, this.storeLocale),
-            totalSize: formatFileSize(o.totalBytes, this.storeLocale)
-        });
+            totalSize: formatFileSize(o.totalBytes, this.storeLocale),
+            count: totalFileCount
+        } });
         return `${escapeHtml(counts)}${pausedSegment}${failedSegment}`;
     }
 

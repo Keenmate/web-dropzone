@@ -31,7 +31,7 @@ selector-appearance:
            drag-drop onto it still works)
   minimal  icon-only button with count badge
   native   mimics <input type="file">: button + "No file chosen" / filename /
-           "N files chosen" text. Drag-drop still works.
+           "Files chosen: N" text. Drag-drop still works.
 
 list-appearance:
   list      simple rows
@@ -94,12 +94,12 @@ otherwise it falls back to the normal stacked layout.
 COMPACT / POPOVER
 -----------------
 <web-dropzone display-mode="compact"
-              labels='{"labels.summary":"{count} file(s), {size}"}'
+              labels='{"labels.summary":"Files: {ctx.count}, {ctx.size}"}'
               popover-placement="bottom-start"></web-dropzone>
 
-- Card + popover: a summary line ("{count} file(s), {size}" by default) is the
+- Card + popover: a summary line ("Files: {ctx.count}, {ctx.size}" by default) is the
   trigger. With button / minimal selectors the selector itself is the trigger.
-- labels.summary placeholders: {count}, {size}.
+- labels.summary placeholders: {ctx.count}, {ctx.size}.
 - popover-placement: top|bottom|left|right with optional -start/-end
   (default bottom-start). Positioned by core /positioning createPopover()
   (auto-flips on viewport collisions, shift, viewport caps, autoUpdate).
@@ -181,7 +181,7 @@ OTHER LIST KNOBS
 max-visible-file-count="7" rows shown before a "Show N more" / "Show less"
                            toggle (badges: "+N" pill). 0 = show all. Default 7.
 messages.noData               text when the list is empty (default "No files selected")
-labels.summary             compact summary line (default "{count} file(s), {size}")
+labels.summary             compact summary line (default "Files: {ctx.count}, {ctx.size}")
 sink-completed             completed files move to the end of the rendered list
 sink-completed-delay       ms a completed row stays put first (default 1500)
                            (visual only; dz.files order and events unchanged)
