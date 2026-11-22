@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0-rc03] - Unreleased
+## [1.0.0-rc03] - 2026-11-22
 
 No stable 1.0.0 is published, so the break ships as the next release
 candidate — but `^1.0.0-rc02` consumers will pull it: the event,
@@ -201,6 +201,7 @@ from `DEFAULT_CONFIG`) → `engine.setOptions(partial)` → `engine.getOptions()
 - Internal: one rolling renderer (`renderRollingSurface`) for `<web-dropzone>` and `<web-dropzone-list>` (the
   two copies are gone); the satellite's front row now gets the store's labels / icons / disabled state.
 
+### Changed (icons through core `renderIcon`, 2026-11-17)
 
 - **BREAKING (visible): the icon inputs `icon`, `cancel-icon`, `remove-icon`, `overlay-icon`** (and
   `<web-dropzone-picker icon>`) follow core's one icon rule. Markup (a value starting with `<`: `<svg>`,
@@ -310,6 +311,8 @@ Needs `@keenmate/web-components-core` `^1.0.0-rc25`.
 
 ### Internal — core 1.0.0-rc24 (2026-11-15)
 - core `^1.0.0-rc24` (was `^1.0.0-rc22`).
+- devDependency `@keenmate/base-css-variables` `^2.0.2` (was `^2.0.1`; 2.0.2 defines `--base-touch-target-min`,
+  so the `check:contract` exception for it is gone).
 
 ### Internal — devkit 1.0.0-rc14 (2026-11-13)
 - **Example pages on `@keenmate/web-components-devkit` `^1.0.0-rc14`** — every hand-written code
@@ -525,6 +528,10 @@ Requires `@keenmate/web-components-core` `^1.0.0-rc21` (was `^1.0.0-rc15`). No c
   drawer and popover lists no longer scroll-chain into the page; `dvh` / `dvw` sizes.
 - Values assigned before the elements are defined (e.g. a picker's `uploadMetadata`) are applied by
   core; the satellites' own rescue code is gone.
+- The four satellite tags (`web-dropzone-picker`, `-list`, `-indicator`, `-progress`) get a
+  `:not(:defined)` rule in the package CSS (`base.css`): light-DOM text is transparent until the element
+  upgrades — no display change, no reflow on upgrade. `--dz-preview-item-size` is declared in
+  `variables.css`.
 
 ### Internal (core alignment, 2026-11-09)
 
