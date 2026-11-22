@@ -38,6 +38,10 @@ callback and store-access API below is breaking.
   `ariaLabels.announceUploadFailed` → `Uploaded: {ctx.done}, failed: {ctx.failed}`.
 - Docs: usage guide labels table (context per key) + the `{ctx.*}` rule, accessibility guide, `ai/*.txt`, README
   What's New, release notes; example pages DC10 / DC-announce / LO02 / LO03 / LO05 updated; unit + e2e tests.
+- `examples-localization.html`: LO03 shows the real i18next setup (`labels.summary_one` / `_few` / `_other`) and the
+  generic bridge (`i18next.exists(key, options) ? i18next.t(key, options) : null`, `options.count = params.ctx?.count`;
+  the page picks the same Slovak forms with `Intl.PluralRules`); new LO07 — a Czech file count from the element's
+  own `translateCallback` (1 soubor / 3 soubory / 5 souborů); the LO02 Czech dictionary drops `soubor(ů)`.
 
 ### Added (`required`, rulebook C-CA-41, 2026-11-22)
 - `required` / `el.isRequired` (`toBool('presence')`, reflects) on `<web-dropzone>`: no file selected →

@@ -101,9 +101,11 @@ el.addEventListener('file-reject', (e) =&gt; console.log(e.detail.rejectedFiles[
                 <code>{ component, key, template, params, locale }</code> — <code>key</code> is the full
                 <code>web-dropzone.&lt;elementType&gt;.&lt;name&gt;</code> — and returns the text, or <code>null</code> = not mine.
                 The element's own <code>translateCallback</code> is asked first (German, only <code>labels.prompt</code> and
-                <code>errors.maxFileSize</code> here); its <code>null</code> passes the key on to the page-wide one (a small
-                Slovak i18next-like lookup). A key the instance <code>labels</code> set (the second dropzone's
-                <code>labels.prompt</code>) is never sent to any callback.
+                <code>errors.maxFileSize</code> here); its <code>null</code> passes the key on to the page-wide one — the app's
+                i18next (Slovak, with plural forms: the bridge hands i18next <code>params.ctx.count</code> as its <code>count</code>;
+                the compact dropzone below holds 3 files → "3 súbory"). The page itself runs without i18next: the same forms are
+                picked with <code>Intl.PluralRules('sk')</code>. A key the instance <code>labels</code> set (the second
+                dropzone's <code>labels.prompt</code>) is never sent to any callback.
             </p>
             <div class="controls">
                 <label><input type="checkbox" id="lo03-page"> page-wide <code>translateCallback</code> (Slovak)</label>
@@ -121,19 +123,38 @@ el.addEventListener('file-reject', (e) =&gt; console.log(e.detail.rejectedFiles[
                             labels='{"labels.prompt": "Instance wins"}'></web-dropzone>
                     </div>
                 </div>
+                <div class="form-group">
+                    <label class="demo-label">Compact, 3 files — <code>labels.summary</code> (plural)</label>
+                    <web-dropzone id="lo03c" display-mode="compact" multiple></web-dropzone>
+                </div>
                 <div class="output"><div class="output-label">rendered strings + the file-reject message</div><pre id="lo03-out"></pre></div>
             </div>
-            <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>// an i18next-like lookup: a dictionary + t(key, params)
-const sk = {
-  'web-dropzone.labels.prompt': 'Presuňte súbory sem',
-  'web-dropzone.buttons.selectFiles': 'Vybrať súbory',
-  'web-dropzone.errors.maxFileSize': 'Súbor je príliš veľký (max. {{ctx.size}})',
-};
-const t = (key, params) =&gt; sk[key]?.replace(/\{\{([\w.]+)\}\}/g, (_, p) =&gt; p.split('.').reduce((o, k) =&gt; o?.[k], params) ?? '');
-const exists = (key) =&gt; key in sk;
+            <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>// the app's own i18next — its JSON, plural forms as i18next's _one / _few / _other suffixes
+i18next.init({
+  lng: 'sk',
+  interpolation: { escapeValue: false },   // the component escapes what goes into HTML
+  resources: { sk: { translation: {
+    'web-dropzone': {
+      labels: {
+        prompt: 'Presuňte súbory sem',
+        summary_one: '{{count}} súbor, {{ctx.size}}',
+        summary_few: '{{count}} súbory, {{ctx.size}}',
+        summary_other: '{{count}} súborov, {{ctx.size}}',
+      },
+      buttons: { selectFiles: 'Vybrať súbory' },
+      errors: { maxFileSize: 'Súbor je príliš veľký (max. {{ctx.size}})' },
+    },
+  } } },
+});
 
-// page-wide — every component on the page
-window.components.locale = { translateCallback: ({ key, params }) =&gt; (exists(key) ? t(key, params) : null) };
+// page-wide — ONE generic bridge for every key of every component. params.ctx = the label's context;
+// ctx.count = the number the text's noun agrees with → i18next's `count` (exists() needs it too)
+window.components.locale = {
+  translateCallback: ({ key, params }) =&gt; {
+    const options = { ...params, count: params.ctx?.count };
+    return i18next.exists(key, options) ? i18next.t(key, options) : null;   // null = not mine
+  },
+};
 
 // one element — asked BEFORE the page-wide callback; null = not mine
 el.translateCallback = ({ key, params }) =&gt; {
@@ -221,6 +242,39 @@ el.translateCallback = ({ key, params }) =&gt; {
             <p>Does not apply: every dropzone label is plain text (none is an HTML template), so markup in a label always shows as characters.</p>
         </div>
 
+        <!-- ============================================================= -->
+        <!-- LO07 · File count in Czech (plural rules)                      -->
+        <!-- ============================================================= -->
+        <div class="card">
+            <h2>LO07 · File count in Czech (plural rules)</h2>
+            <p>
+                The same element, translated by its own <code>translateCallback</code>. <code>params.ctx.count</code> is the number
+                the noun agrees with — here the files in the dropzone — so <code>Intl.PluralRules('cs')</code> picks the form:
+                "1 soubor / 3 soubory / 5 souborů". The compact summary (<code>labels.summary</code>) and the popover header
+                (<code>labels.fileCount</code>) both switch. No i18n library needed; with i18next it is the one generic bridge of LO03.
+            </p>
+            <div class="controls"><strong class="muted">files in the dropzone</strong>
+                <label><input type="radio" name="lo07-count" value="1" checked> 1</label>
+                <label><input type="radio" name="lo07-count" value="3"> 3</label>
+                <label><input type="radio" name="lo07-count" value="5"> 5</label>
+            </div>
+            <div class="demo-area">
+                <web-dropzone id="lo07" display-mode="compact" locale="cs" multiple></web-dropzone>
+                <div class="output"><div class="output-label">rendered summary</div><pre id="lo07-out"></pre></div>
+            </div>
+            <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>const plural = new Intl.PluralRules('cs');
+const forms = { one: 'soubor', few: 'soubory', many: 'souboru', other: 'souborů' };
+const files = (count) =&gt; `${count} ${forms[plural.select(count)]}`;
+
+el.translateCallback = ({ key, params }) =&gt; {
+  if (key === 'web-dropzone.labels.summary') return `${files(params.ctx.count)}, ${params.ctx.size}`;
+  if (key === 'web-dropzone.labels.fileCount') return files(params.ctx.count);
+  return null;   // null = not mine → the next layer / English
+};
+
+// with i18next: the one generic bridge of LO03 (labels.summary_one / _few / _other in the app's JSON)</code></pre></div>
+        </div>
+
     <script type="module">
         const $ = (id) => document.getElementById(id);
         const bytes = (name, size) => new File([new Uint8Array(size)], name, { type: name.endsWith('.pdf') ? 'application/pdf' : 'text/plain' });
@@ -286,6 +340,7 @@ el.translateCallback = ({ key, params }) =&gt; {
                 `#lo03a  prompt: ${prompt('lo03a')}   button: ${browse('lo03a')}`,
                 `#lo03a  reject: ${await rejectionOf('lo03a', tooBig())}`,
                 `#lo03b  prompt: ${prompt('lo03b')}   button: ${browse('lo03b')}`,
+                `#lo03c  summary: ${text('lo03c', '.dz__summary-text')}`,
             ]);
             write('lo04-out', [
                 `card prompt:         ${prompt('lo04-card')}`,
@@ -296,6 +351,7 @@ el.translateCallback = ({ key, params }) =&gt; {
                 `summary: ${text('lo05', '.dz__summary-text')}`,
                 `reject:  ${await rejectionOf('lo05', tooBig())}`,
             ]);
+            write('lo07-out', [`summary: ${text('lo07', '.dz__summary-text')}`]);
         }
 
         // ── LO01 · instance labels.
@@ -312,7 +368,7 @@ el.translateCallback = ({ key, params }) =&gt; {
         const CS = {
             'web-dropzone.labels.prompt': 'Přetáhněte soubory sem nebo klikněte',
             'web-dropzone.buttons.selectFiles': 'Vybrat soubory',
-            'web-dropzone.labels.summary': '{ctx.count} soubor(ů), {ctx.size}',
+            'web-dropzone.labels.summary': 'Počet souborů: {ctx.count}, {ctx.size}',   // flat: no noun right after the number
             'web-dropzone.errors.maxFileSize': 'Soubor je příliš velký. Maximum je {ctx.size}',
             'web-dropzone.errors.fileType': 'Tento typ souboru není povolen',
             'web-multiselect.placeholders.search': 'Hledat…',
@@ -320,13 +376,23 @@ el.translateCallback = ({ key, params }) =&gt; {
         $('lo02-dict').addEventListener('change', (e) => { page.labels = e.target.checked ? CS : null; applyPage(); });
 
         // ── LO03 · translateCallback.
-        const sk = {
+        // The snippet's i18next setup without loading i18next: the same Slovak forms, picked with Intl.PluralRules.
+        const skPlural = new Intl.PluralRules('sk');
+        const SK = {
             'web-dropzone.labels.prompt': 'Presuňte súbory sem',
+            'web-dropzone.labels.summary': { one: '{{count}} súbor, {{ctx.size}}', few: '{{count}} súbory, {{ctx.size}}', other: '{{count}} súborov, {{ctx.size}}' },
             'web-dropzone.buttons.selectFiles': 'Vybrať súbory',
             'web-dropzone.errors.maxFileSize': 'Súbor je príliš veľký (max. {{ctx.size}})',
         };
-        const t = (key, params) => sk[key].replace(/\{\{([\w.]+)\}\}/g, (_, p) => String(p.split('.').reduce((o, k) => o?.[k], params) ?? ''));
-        const pageTranslate = ({ key, params }) => (key in sk ? t(key, params) : null);
+        const interpolate = (template, options) =>
+            template.replace(/\{\{([\w.]+)\}\}/g, (_, path) => String(path.split('.').reduce((o, k) => o?.[k], options) ?? ''));
+        const pageTranslate = ({ key, params }) => {
+            const entry = SK[key];
+            if (entry === undefined) return null;   // not mine
+            const options = { ...params, count: params.ctx?.count };
+            const template = typeof entry === 'string' ? entry : (entry[skPlural.select(options.count)] ?? entry.other);
+            return interpolate(template, options);
+        };
         const ownTranslate = ({ key, params }) => {
             if (key === 'web-dropzone.labels.prompt') return 'Dateien hier ablegen';
             if (key === 'web-dropzone.errors.maxFileSize') return `Datei zu groß (max. ${params.ctx.size})`;
@@ -356,9 +422,29 @@ el.translateCallback = ({ key, params }) =&gt; {
             });
         }
 
-        (async () => {
-            await $('lo05').whenReady();
-            await $('lo05').addFiles([bytes('notes.txt', 1300)]);
+        // ── LO07 · Czech plural forms from the element's own translateCallback.
+        const csPlural = new Intl.PluralRules('cs');
+        const csForms = { one: 'soubor', few: 'soubory', many: 'souboru', other: 'souborů' };
+        const csFiles = (count) => `${count} ${csForms[csPlural.select(count)]}`;
+        // With i18next: the generic bridge shown in LO03.
+        $('lo07').translateCallback = ({ key, params }) => {
+            if (key === 'web-dropzone.labels.summary') return `${csFiles(params.ctx.count)}, ${params.ctx.size}`;
+            if (key === 'web-dropzone.labels.fileCount') return csFiles(params.ctx.count);
+            return null;
+        };
+        const setLo07Count = async (count) => {
+            await $('lo07').clear();
+            await $('lo07').addFiles(Array.from({ length: count }, (_, i) => bytes(`file-${i + 1}.txt`, 1024)));
             refreshAll();
+        };
+        for (const radio of document.querySelectorAll('input[name="lo07-count"]')) {
+            radio.addEventListener('change', (e) => setLo07Count(Number(e.target.value)));
+        }
+
+        (async () => {
+            await Promise.all(['lo05', 'lo03c', 'lo07'].map((id) => $(id).whenReady()));
+            await $('lo05').addFiles([bytes('notes.txt', 1300)]);
+            await $('lo03c').addFiles(['a.txt', 'b.txt', 'c.txt'].map((name) => bytes(name, 512)));
+            await setLo07Count(1);
         })();
     </script>

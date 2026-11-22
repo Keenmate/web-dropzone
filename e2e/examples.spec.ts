@@ -6,7 +6,7 @@ import { test, expect } from './fixtures';
  */
 
 test.describe('Localization page (examples-localization.html)', () => {
-    /** The shared LO01–LO06 page: no console errors, every toggle changes the text its readout shows. */
+    /** The shared LO01–LO07 page: no console errors, every toggle changes the text its readout shows. */
     test('every toggle changes the shown text', async ({ page }) => {
         const consoleErrors: string[] = [];
         page.on('console', (m) => { if (m.type() === 'error') consoleErrors.push(m.text()); });
@@ -33,6 +33,7 @@ test.describe('Localization page (examples-localization.html)', () => {
         await expect(out('lo03-out')).toContainText('#lo03a  prompt: Presuňte súbory sem   button: Vybrať súbory');
         await expect(out('lo03-out')).toContainText('#lo03a  reject: Súbor je príliš veľký (max. 1.5 KB)');
         await expect(out('lo03-out')).toContainText('#lo03b  prompt: Instance wins   button: Vybrať súbory');
+        await expect(out('lo03-out')).toContainText('#lo03c  summary: 3 súbory, 1.5 KB');
         await page.locator('#lo03-own').check();
         await expect(out('lo03-out')).toContainText('#lo03a  prompt: Dateien hier ablegen   button: Vybrať súbory');
         await expect(out('lo03-out')).toContainText('#lo03a  reject: Datei zu groß (max. 1.5 KB)');
@@ -59,6 +60,13 @@ test.describe('Localization page (examples-localization.html)', () => {
         await expect(out('lo05-out')).toContainText('Maximum size is 1.5 KB');
         await page.locator('input[name="lo05-el-locale"][value=""]').check();
         await expect(out('lo05-out')).toContainText('summary: Files: 1, 1,3 KB');
+
+        // LO07 — the element's own translateCallback picks the Czech plural form from ctx.count.
+        await expect(out('lo07-out')).toContainText('summary: 1 soubor, 1,0 KB');
+        await page.locator('input[name="lo07-count"][value="3"]').check();
+        await expect(out('lo07-out')).toContainText('summary: 3 soubory, 3,0 KB');
+        await page.locator('input[name="lo07-count"][value="5"]').check();
+        await expect(out('lo07-out')).toContainText('summary: 5 souborů, 5,0 KB');
 
         expect(consoleErrors).toEqual([]);
     });
