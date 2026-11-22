@@ -27,7 +27,7 @@
     </div>
 
     <div class="fixture">
-        <div class="fixture-label">min-file-count="2" — form submit blocked until 2+ files via setValidity</div>
+        <div class="fixture-label">min-file-count="2" — form submit blocked while 1 file (rangeUnderflow); empty = valid (not required)</div>
         <form id="min-count-form">
             <web-dropzone id="min-count" name="docs" min-file-count="2" max-file-count="10" accept="*/*" display-mode="detailed"></web-dropzone>
             <button type="submit">Submit</button>

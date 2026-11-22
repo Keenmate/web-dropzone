@@ -11,6 +11,26 @@ No stable 1.0.0 is published, so the break ships as the next release
 candidate — but `^1.0.0-rc02` consumers will pull it: the event,
 callback and store-access API below is breaking.
 
+### Added (`required`, rulebook C-CA-41, 2026-11-22)
+- `required` / `el.isRequired` (`toBool('presence')`, reflects) on `<web-dropzone>`: no file selected →
+  `validity.valueMissing` with the new `errors.required` label ("Add a file."), so the form refuses to submit.
+  Core (`refreshRequired`, SPEC §6.6) sets `aria-required` on the internals and `:state(required)`; read-only /
+  disabled (incl. a disabled `<fieldset>`) are never missing. Empty = no file (what the form would submit).
+  Re-evaluated on every add / remove / clear, form reset and input change. The validation bubble anchors on the
+  visible selector (button / minimal / native button, the compact summary line, else the drop card).
+- `max-file-count`: more files than the cap (only possible when it is lowered after files were added — adds past
+  it stay rejected) → `validity.rangeOverflow` with the existing `errors.maxFileCount(One)` label.
+- Example `examples-form.html` FI06 "Required + validation"; e2e `required.spec.ts` (`test/required.html`).
+
+### Changed — BREAKING (`min-file-count` validity flag, 2026-11-22)
+- `min-file-count` sets `validity.rangeUnderflow` (was `valueMissing`) and only while at least one file is
+  selected: an EMPTY dropzone without `required` is now valid (like native min rules skip an empty field). An app
+  reading `validity.valueMissing` for the min rule must read `rangeUnderflow`; `min-file-count="1"` meaning
+  "required" becomes `required`. Message unchanged (`errors.minFileCount(One)`).
+- The count rules no longer apply while read-only / disabled (native: barred from constraint validation).
+- The element sets validity only through core `setValidityFlag` (no direct `internals.setValidity`), so the count
+  flags and core's `valueMissing` never clear each other.
+
 ### Internal — base-variables sweep (C-BV-3 / C-BV-6 / C-BV-9) (2026-11-22)
 - `packages/web-dropzone/component-variables.manifest.json`: the 22 unset-by-design knobs are marked `"input": true` —
   the 19 `--dz-sheet-*` sheet-chrome overrides (mapped onto core's `--_km-sheet-*` with no fallback, so the page-wide

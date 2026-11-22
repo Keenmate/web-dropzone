@@ -67,7 +67,9 @@ Every spec runs in three Playwright projects — chromium, firefox and webkit
 | `max-total-size` aggregate cap                                | ✓      | `validation-rules.spec.ts` | `validation-rules.html` |
 | Size attributes take units (core `toBytes`, binary: `2MiB`, `1.5GB`, `300 kB`); an invalid size is refused (`input-rejected`, previous value kept) | ✓ | `core-alignment.spec.ts` | `core-alignment.html` |
 | `max-file-count` rejects with code="count"                    | ✓      | `validation.spec.ts` | `validation.html`  |
-| `min-file-count` form-validity gate (setValidity)             | ✓      | `validation-rules.spec.ts` | `validation-rules.html` |
+| `min-file-count` form-validity gate (`rangeUnderflow`; empty + not required = valid) | ✓ | `validation-rules.spec.ts`, `required.spec.ts` | `validation-rules.html`, `required.html` |
+| `required` → `valueMissing` (`errors.required`), `:state(required)`, `aria-required`; readonly / disabled / fieldset → valid | ✓ | `required.spec.ts` | `required.html` |
+| `max-file-count` lowered below the selection → `rangeOverflow` (`errors.maxFileCount`) | ✓ | `required.spec.ts` | `required.html` |
 | `accept` MIME / extension filter (code="type")                | ✓      | `validation.spec.ts` | `validation.html`  |
 | `validateCallback` (custom sync rule)                         | ✓      | `validation.spec.ts` | `validation.html`  |
 | Duplicate detection — `dedupe-mode="name"` (default)          | ✓      | `validation-rules.spec.ts` | `validation-rules.html` |
@@ -220,7 +222,8 @@ Every spec runs in three Playwright projects — chromium, firefox and webkit
 | Zero-files → no FormData entry under the configured name      | ✓      | `form.spec.ts` | `form.html` |
 | `form.reset()` clears selection (formResetCallback)           | ✓      | `form.spec.ts` | `form.html` |
 | Unnamed dropzone → no FormData entry at all                   | ✓      | `form.spec.ts` | `form.html` |
-| `min-file-count` blocks form submit via setValidity           | ✓      | `validation-rules.spec.ts` | `validation-rules.html` |
+| `min-file-count` blocks form submit (`rangeUnderflow`)        | ✓      | `validation-rules.spec.ts` | `validation-rules.html` |
+| `required` blocks form submit; a file / form reset re-evaluate; bubble anchored on the selector | ✓ | `required.spec.ts` | `required.html` |
 | `el.form` resolves the owning `<form>` (even unnamed)         | ✓      | `form-delegation.spec.ts` | `form.html` |
 | Delegated `change` listener resolves `event.target.form`      | ✓      | `form-delegation.spec.ts` | `form.html` |
 | Dropzone outside any `<form>` → `el.form === null`            | ✓      | `form-delegation.spec.ts` | `form.html` |

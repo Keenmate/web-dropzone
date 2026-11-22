@@ -176,6 +176,49 @@ app.post('/upload', upload.array('attachments'), (req, res) => {
             </div>
         </div>
 
+        <!-- REQUIRED + VALIDATION -->
+        <div class="card">
+            <h2>FI06 · Required + validation</h2>
+            <p><code>required</code> blocks the submit while no file is selected (<code>validity.valueMissing</code>, message <code>errors.required</code>). The count rules have their own flags: at least one file but fewer than <code>min-file-count</code> is <code>rangeUnderflow</code> (<code>errors.minFileCount</code>); more than <code>max-file-count</code> (only possible when the cap is lowered after files were added) is <code>rangeOverflow</code> (<code>errors.maxFileCount</code>). An empty dropzone without <code>required</code> is valid; read-only and disabled are never invalid. Submit with no file, then with one: the browser shows its bubble on the drop card.</p>
+
+            <kmwc-demo>
+                <form id="required-form" novalidate>
+                    <web-dropzone id="required-dz" name="evidence" required min-file-count="2" max-file-count="4" display-mode="detailed"></web-dropzone>
+                    <div class="form-actions">
+                        <button type="submit">Submit</button>
+                        <button type="reset">Reset</button>
+                        <button type="button" id="required-lower-max">Lower max-file-count to 1</button>
+                    </div>
+                </form>
+                <div class="output" id="required-status"></div>
+                <script type="module" data-kmwc-show>
+                    const form = document.getElementById('required-form')
+                    const dz = document.getElementById('required-dz')
+                    const status = document.getElementById('required-status')
+
+                    const flags = ['valueMissing', 'rangeUnderflow', 'rangeOverflow']
+                    const show = async () => {
+                        await dz.whenSettled()
+                        const set = flags.filter((f) => dz.validity[f])
+                        status.textContent = `validity: ${set.join(' / ') || 'valid'} — ${dz.validationMessage || '(no message)'}`
+                    }
+
+                    // novalidate + reportValidity(): the native bubble, and the submit stays in the page.
+                    form.addEventListener('submit', (e) => {
+                        e.preventDefault()
+                        if (form.reportValidity()) status.textContent = `submitted ${dz.files.length} file(s)`
+                    })
+                    form.addEventListener('reset', () => setTimeout(show))
+                    dz.addEventListener('change', show)
+                    document.getElementById('required-lower-max').addEventListener('click', () => {
+                        dz.maxFileCount = 1
+                        show()
+                    })
+                    show()
+                </script>
+            </kmwc-demo>
+        </div>
+
         <footer>
             <p><a href="index.html">← Back to Examples</a></p>
         </footer>

@@ -5,7 +5,7 @@ import { test, expect, type Page, dz, log } from './fixtures';
  *
  * Fixture: test/validation-rules.html. Covers the rules not exercised
  * by validation.spec.ts: min-file-size, max-total-size, min-file-count
- * + form validity, and dedupe-mode.
+ * + form validity (rangeUnderflow; `required` is required.spec.ts), and dedupe-mode.
  */
 
 const PAGE = '/test/validation-rules.html';
@@ -54,16 +54,12 @@ test.describe('max-total-size (aggregate cap)', () => {
 });
 
 test.describe('min-file-count + form validity', () => {
-    test('zero files → form submit blocked (preventDefault not enough; setValidity short-circuits)', async ({ page }) => {
-        // Form validity gate fires natively — no submit handler runs at all
-        // when min-file-count isn't satisfied. The fixture's submit handler
-        // would log 'submitted'; with the gate active we expect nothing.
+    test('zero files, not required → submit goes through (empty is the required rule, not the min rule)', async ({ page }) => {
         await page.locator('#min-count-form button[type="submit"]').click();
-        const text = await log(page, 'min-count').textContent();
-        expect(text ?? '').not.toContain('submitted');
+        await expect(log(page, 'min-count')).toContainText('submitted');
     });
 
-    test('1 file (under min=2) — still blocked', async ({ page }) => {
+    test('1 file (under min=2) — blocked (rangeUnderflow; the native gate means no submit handler runs)', async ({ page }) => {
         await stage(page, 'min-count', [{ name: 'lone.txt', size: 64 }]);
         await page.locator('#min-count-form button[type="submit"]').click();
         const text = await log(page, 'min-count').textContent();

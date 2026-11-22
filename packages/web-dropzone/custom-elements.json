@@ -8478,7 +8478,7 @@
               "default": "0",
               "attribute": "max-file-count",
               "reflects": true,
-              "description": "Maximum number of files. 0 = unlimited."
+              "description": "Maximum number of files. 0 = unlimited. Adds past it are rejected (code `count`); when more files than this are selected anyway (the limit lowered after files were added), the form validity is `rangeOverflow` (message `errors.maxFileCount`)."
             },
             {
               "kind": "field",
@@ -8490,7 +8490,7 @@
               "default": "0",
               "attribute": "min-file-count",
               "reflects": true,
-              "description": "Minimum number of files; reflected into the form validity (valueMissing)."
+              "description": "Minimum number of files; reflected into the form validity as `rangeUnderflow` (message `errors.minFileCount`) while at least one file but fewer than this are selected. An empty selection is not checked — that is `required` (`valueMissing`). Never rejects files on add. 0 = no minimum."
             },
             {
               "kind": "field",
@@ -8527,6 +8527,18 @@
               "attribute": "disabled",
               "reflects": true,
               "description": "Disable the dropzone (like a native control: no clicks / drops, every button — selector, rows, bulk actions, satellites — disabled and out of the tab order; boolean attribute — present = on). An ancestor `<fieldset disabled>` disables it too (core `isEffectivelyDisabled`); `el.isDisabled` keeps the authored value."
+            },
+            {
+              "kind": "field",
+              "name": "isRequired",
+              "privacy": "public",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "attribute": "required",
+              "reflects": true,
+              "description": "Required (like a native control): with no file selected, the form validity is `valueMissing` (message `errors.required`) and the form refuses to submit; the host gets `aria-required` and `:state(required)` (core). Never missing while read-only or disabled. Boolean attribute — present = on."
             },
             {
               "kind": "field",
@@ -9430,7 +9442,7 @@
                 "text": "number"
               },
               "default": "0",
-              "description": "Maximum number of files. 0 = unlimited."
+              "description": "Maximum number of files. 0 = unlimited. Adds past it are rejected (code `count`); when more files than this are selected anyway (the limit lowered after files were added), the form validity is `rangeOverflow` (message `errors.maxFileCount`)."
             },
             {
               "name": "min-file-count",
@@ -9439,7 +9451,7 @@
                 "text": "number"
               },
               "default": "0",
-              "description": "Minimum number of files; reflected into the form validity (valueMissing)."
+              "description": "Minimum number of files; reflected into the form validity as `rangeUnderflow` (message `errors.minFileCount`) while at least one file but fewer than this are selected. An empty selection is not checked — that is `required` (`valueMissing`). Never rejects files on add. 0 = no minimum."
             },
             {
               "name": "max-visible-file-count",
@@ -9467,6 +9479,15 @@
               },
               "default": "false",
               "description": "Disable the dropzone (like a native control: no clicks / drops, every button — selector, rows, bulk actions, satellites — disabled and out of the tab order; boolean attribute — present = on). An ancestor `<fieldset disabled>` disables it too (core `isEffectivelyDisabled`); `el.isDisabled` keeps the authored value."
+            },
+            {
+              "name": "required",
+              "fieldName": "isRequired",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Required (like a native control): with no file selected, the form validity is `valueMissing` (message `errors.required`) and the form refuses to submit; the host gets `aria-required` and `:state(required)` (core). Never missing while read-only or disabled. Boolean attribute — present = on."
             },
             {
               "name": "readonly",

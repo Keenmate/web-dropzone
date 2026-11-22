@@ -18,7 +18,7 @@ class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneController>
   readonly form: HTMLFormElement | null          // from BlissElement
   // + one typed accessor per input row, from DropzoneElementConfig (the
   //   element interface extends it): isMultiple, isDisabled, isReadonly,
-  //   isFilesInside, shouldAutoUpload, isUploadedFileRemovalAllowed,
+  //   isRequired (element-only), isFilesInside, shouldAutoUpload, isUploadedFileRemovalAllowed,
   //   isThumbnailsShown, displayMode, selectorAppearance, listAppearance,
   //   gridLayout, gridStatus, rollingRotation, cardSize,
   //   overlayTarget, labels, accept, maxFileSize, customStyles,

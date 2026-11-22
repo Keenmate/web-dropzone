@@ -22,6 +22,7 @@ components' input tables — the same source the runtime uses.
 - [Responsive rules](#responsive-rules)
 - [File state](#file-state)
 - [Form integration](#form-integration)
+- [Required and validation](#required-and-validation)
 - [RTL](#rtl)
 - [Satellites](#satellites)
 - [Logging](#logging)
@@ -96,11 +97,12 @@ shadow root (`custom-styles` / `getCustomStylesCallback`, page-wide per tag) is 
 | `max-file-size` | `maxFileSize` | `number` | `0` | Maximum size per file in bytes (the attribute takes a size: "5MB", "1.5GB", "300 kB", "2MiB" — binary units). 0 = unlimited. |
 | `min-file-size` | `minFileSize` | `number` | `0` | Minimum size per file in bytes. 0 = no minimum. |
 | `max-total-size` | `maxTotalSize` | `number` | `0` | Maximum combined size of all files in bytes. 0 = unlimited. |
-| `max-file-count` | `maxFileCount` | `number` | `0` | Maximum number of files. 0 = unlimited. |
-| `min-file-count` | `minFileCount` | `number` | `0` | Minimum number of files; reflected into the form validity (valueMissing). |
+| `max-file-count` | `maxFileCount` | `number` | `0` | Maximum number of files. 0 = unlimited. Adds past it are rejected (code `count`); when more files than this are selected anyway (the limit lowered after files were added), the form validity is `rangeOverflow` (message `errors.maxFileCount`). |
+| `min-file-count` | `minFileCount` | `number` | `0` | Minimum number of files; reflected into the form validity as `rangeUnderflow` (message `errors.minFileCount`) while at least one file but fewer than this are selected. An empty selection is not checked — that is `required` (`valueMissing`). Never rejects files on add. 0 = no minimum. |
 | `max-visible-file-count` | `maxVisibleFileCount` | `number` | `7` | How many file rows are visible before the list scrolls. |
 | `dedupe-mode` | `dedupeMode` | `'name' \| 'name-size' \| 'none'` | `'name'` | How duplicate files are detected: by name, name+size, or not at all. |
 | `disabled` | `isDisabled` | `boolean` | `false` | Disable the dropzone (like a native control: no clicks / drops, every button — selector, rows, bulk actions, satellites — disabled and out of the tab order; boolean attribute — present = on). An ancestor `<fieldset disabled>` disables it too (core `isEffectivelyDisabled`); `el.isDisabled` keeps the authored value. |
+| `required` | `isRequired` | `boolean` | `false` | Required (like a native control): with no file selected, the form validity is `valueMissing` (message `errors.required`) and the form refuses to submit; the host gets `aria-required` and `:state(required)` (core). Never missing while read-only or disabled. Boolean attribute — present = on. |
 | `readonly` | `isReadonly` | `boolean` | `false` | Read-only (like a native control): the user cannot change the selection — no add (click / drop / overlay / Add more), no row Remove, no Clear all — but the files stay visible and ARE submitted with the form. Uploads keep running; the programmatic API is unaffected. |
 | `render-mode` | `renderMode` | `'bulk' \| 'structural' \| 'headless' \| null` |  | Render mode — who renders the file list. When absent it is inferred from the presence of renderer-trigger attributes (display-mode / selector-appearance / list-appearance → bulk; none → headless). `structural` is the only way to opt into render callbacks. |
 | `progress-throttle` | `progressThrottle` | `number` | `0` | Throttle interval in ms for file-progress events. 0 = every tick. |
@@ -607,7 +609,7 @@ dropzone.labels = {
 | Popover limits line | `labels.limitMaxFileSize` / `limitMinFileSize` / `limitMaxTotalSize(Left)` / `limitMaxFileCount(Left)` / `limitMinFileCount` |
 | Progress strip | `messages.progressCounts`, `messages.progressPaused`, `messages.progressFailed` |
 | Indicator | `headers.indicator` (drawer title + its accessible name), `ariaLabels.indicatorStatus`, `messages.indicatorIdle` / `…Failed` / `…Uploading` / `…Paused` / `…Queued` / `…Done` |
-| Validation | `errors.maxFileSize`, `errors.minFileSize`, `errors.fileType`, `errors.rejected`, `errors.maxFileCount(One)`, `errors.duplicate`, `errors.maxTotalSize`, `errors.upload`; form validity `errors.minFileCount(One)` |
+| Validation | `errors.maxFileSize`, `errors.minFileSize`, `errors.fileType`, `errors.rejected`, `errors.maxFileCount(One)`, `errors.duplicate`, `errors.maxTotalSize`, `errors.upload`; form validity `errors.required` (`required`), `errors.minFileCount(One)` (`min-file-count`), `errors.maxFileCount(One)` (`max-file-count`, also the add-rejection message) |
 | Screen-reader announcements | `ariaLabels.announceAdded(One)` (`{count}`), `ariaLabels.announceRejected` (`{name}`, `{reason}`), `ariaLabels.announceUploadDone(One)` (`{count}`), `ariaLabels.announceUploadFailed` (`{done}`, `{failed}`), `ariaLabels.announceRemoved` (`{name}`) — `''` silences one (see [accessibility.md](./accessibility.md#screen-reader-notes)) |
 
 `…One` variants are used when the count is 1 (`countLabel()`).
@@ -716,7 +718,7 @@ surrounding `<form>` as real `File` entries under that name — the same as `<in
 
 ```html
 <form action="/upload" method="post" enctype="multipart/form-data">
-  <web-dropzone name="attachments" min-file-count="1"></web-dropzone>
+  <web-dropzone name="attachments" required></web-dropzone>
   <button type="submit">Send</button>
 </form>
 ```
@@ -727,12 +729,57 @@ form.addEventListener('submit', (e) => {
 });
 ```
 
-- `min-file-count` is reflected into the form validity (`valueMissing`, message from the
-  `errors.minFileCount` label) — the form refuses to submit a short selection; `checkValidity()`,
-  `reportValidity()`, `validity`, `validationMessage` and `willValidate` are on the element.
+- `required`, `min-file-count` and `max-file-count` are reflected into the form validity — see
+  [Required and validation](#required-and-validation).
 - `disabled` (or an ancestor `<fieldset disabled>`) — nothing is submitted; `readonly` — the user
   can't change the selection, the files are still submitted.
 - A form reset clears the selection.
+
+## Required and validation
+
+The dropzone takes part in native constraint validation like `<input type="file">`: while invalid the
+surrounding form refuses to submit (`invalid` fires instead of `submit`, unless `<form novalidate>`),
+`:invalid` matches the host, and `checkValidity()`, `reportValidity()`, `validity`, `validationMessage` and
+`willValidate` are on the element. Each rule has its own flag, so an app can tell "empty" from "too few":
+
+| Rule | When | `validity` flag | Message label |
+|---|---|---|---|
+| `required` | no file selected | `valueMissing` | `errors.required` ("Add a file.") |
+| `min-file-count="N"` | at least one file, fewer than N | `rangeUnderflow` | `errors.minFileCount(One)` ("At least {count} files required") |
+| `max-file-count="N"` | more than N files (the cap lowered after files were added — adds past it are rejected) | `rangeOverflow` | `errors.maxFileCount(One)` ("Maximum {count} files allowed") |
+
+```html
+<form>
+  <web-dropzone name="evidence" required min-file-count="2" max-file-count="4"></web-dropzone>
+  <button type="submit">Send</button>
+</form>
+```
+
+```javascript
+const dz = form.querySelector('web-dropzone');
+await dz.whenSettled();
+dz.validity.valueMissing;   // true — nothing selected
+dz.validationMessage;       // "Add a file."
+dz.reportValidity();        // false — the browser's bubble points at the drop card / button
+```
+
+- An empty dropzone WITHOUT `required` is valid — the count rules skip an empty value, like native
+  `min` rules skip an empty field. "At least one file" is `required`; "two or more" is `required` +
+  `min-file-count="2"`.
+- Read-only and disabled (own `disabled` or an ancestor `<fieldset disabled>`) are never invalid —
+  native controls in those states are barred from validation.
+- The host carries `aria-required` (through `ElementInternals`) and `:state(required)` while `required`
+  is set — the native `:required` pseudo-class doesn't match a custom element:
+
+```css
+web-dropzone:state(required) { /* e.g. a required marker */ }
+web-dropzone:invalid:not(:focus-within) { /* … */ }
+```
+
+- The validation bubble is anchored on the visible selector: the button (button / minimal / native
+  appearance), the compact summary line, else the drop card; headless — the host.
+- Every rule re-evaluates live: on every add / remove / clear (user or programmatic), on a form reset,
+  and when `required`, `min-file-count`, `max-file-count`, `readonly`, `disabled` or the labels change.
 
 ## RTL
 

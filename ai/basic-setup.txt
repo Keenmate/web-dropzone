@@ -151,6 +151,7 @@ the prefixed config key (no aliases):
 dz.isMultiple                    <-> multiple
 dz.isDisabled                    <-> disabled   (reflected; fieldset disabled too)
 dz.isReadonly                    <-> readonly   (reflected; selection locked, still submitted)
+dz.isRequired                    <-> required   (reflected; no file = valueMissing, aria-required)
 dz.isFilesInside                 <-> files-inside
 dz.isThumbnailsShown             <-> show-thumbnails   (tri-state: null = auto)
 dz.shouldAutoUpload              <-> auto-upload

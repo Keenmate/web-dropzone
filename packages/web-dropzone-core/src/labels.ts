@@ -145,15 +145,18 @@ export interface DropzoneLabels {
     'errors.fileType': string;
     /** `beforeFilesAddCallback` returned `false` (code `rejected`). */
     'errors.rejected': string;
+    /** Also the form validity message for more files than `max-file-count` (`rangeOverflow`). */
     'errors.maxFileCount': string;
     'errors.maxFileCountOne': string;
     'errors.duplicate': string;
     'errors.maxTotalSize': string;
     /** A failed upload's `error` when the handler threw something that isn't an `Error`. */
     'errors.upload': string;
-    /** Form validity message (`min-file-count`). */
+    /** Form validity message (`min-file-count` → `rangeUnderflow`). */
     'errors.minFileCount': string;
     'errors.minFileCountOne': string;
+    /** Form validity message (`required` → `valueMissing`): no file selected. */
+    'errors.required': string;
 
     /**
      * Screen-reader announcements (core `announce()`, the page's one polite live
@@ -269,6 +272,7 @@ export const DEFAULT_LABELS: Readonly<DropzoneLabels> = Object.freeze({
     'errors.upload': 'Upload failed',
     'errors.minFileCount': 'At least {count} files required',
     'errors.minFileCountOne': 'At least 1 file required',
+    'errors.required': 'Add a file.',
 
     'ariaLabels.announceAdded': '{count} files added',
     'ariaLabels.announceAddedOne': '1 file added',

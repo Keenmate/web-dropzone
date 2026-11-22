@@ -156,11 +156,12 @@ const INPUTS: readonly InputDef[] = [
     { configKey: 'maxFileSize',             attribute: 'max-file-size',       converter: toBytes({ default: DEFAULT_CONFIG.maxFileSize }),                                                                     shouldReflect: true, on: 'update', description: 'Maximum size per file in bytes (the attribute takes a size: "5MB", "1.5GB", "300 kB", "2MiB" — binary units). 0 = unlimited.' },
     { configKey: 'minFileSize',             attribute: 'min-file-size',       converter: toBytes({ default: DEFAULT_CONFIG.minFileSize }),                                                                     shouldReflect: true, on: 'update', description: 'Minimum size per file in bytes. 0 = no minimum.' },
     { configKey: 'maxTotalSize',            attribute: 'max-total-size',      converter: toBytes({ default: DEFAULT_CONFIG.maxTotalSize }),                                                                     shouldReflect: true, on: 'update', description: 'Maximum combined size of all files in bytes. 0 = unlimited.' },
-    { configKey: 'maxFileCount',            attribute: 'max-file-count',      converter: toInt({ min: 0, default: DEFAULT_CONFIG.maxFileCount }),                                                        shouldReflect: true, on: 'update', description: 'Maximum number of files. 0 = unlimited.' },
-    { configKey: 'minFileCount',            attribute: 'min-file-count',      converter: toInt({ min: 0, default: DEFAULT_CONFIG.minFileCount }),                                                        shouldReflect: true, on: 'update', description: 'Minimum number of files; reflected into the form validity (valueMissing).' },
+    { configKey: 'maxFileCount',            attribute: 'max-file-count',      converter: toInt({ min: 0, default: DEFAULT_CONFIG.maxFileCount }),                                                        shouldReflect: true, on: 'update', description: 'Maximum number of files. 0 = unlimited. Adds past it are rejected (code `count`); when more files than this are selected anyway (the limit lowered after files were added), the form validity is `rangeOverflow` (message `errors.maxFileCount`).' },
+    { configKey: 'minFileCount',            attribute: 'min-file-count',      converter: toInt({ min: 0, default: DEFAULT_CONFIG.minFileCount }),                                                        shouldReflect: true, on: 'update', description: 'Minimum number of files; reflected into the form validity as `rangeUnderflow` (message `errors.minFileCount`) while at least one file but fewer than this are selected. An empty selection is not checked — that is `required` (`valueMissing`). Never rejects files on add. 0 = no minimum.' },
     { configKey: 'maxVisibleFileCount',         attribute: 'max-visible-file-count',   converter: toInt({ min: 0, default: DEFAULT_CONFIG.maxVisibleFileCount }),                                                        shouldReflect: true, on: 'update', description: 'How many file rows are visible before the list scrolls.' },
     { configKey: 'dedupeMode',              attribute: 'dedupe-mode',         converter: toEnum(['name', 'name-size', 'none'] as const, { default: DEFAULT_CONFIG.dedupeMode }),          shouldReflect: true, on: 'update', description: 'How duplicate files are detected: by name, name+size, or not at all.' },
     { configKey: 'isDisabled',              attribute: 'disabled',            converter: toBool('presence'),                                                           shouldReflect: true, on: 'update', type: 'boolean', description: 'Disable the dropzone (like a native control: no clicks / drops, every button — selector, rows, bulk actions, satellites — disabled and out of the tab order; boolean attribute — present = on). An ancestor `<fieldset disabled>` disables it too (core `isEffectivelyDisabled`); `el.isDisabled` keeps the authored value.' },
+    { configKey: 'isRequired',              attribute: 'required',            converter: toBool('presence'), default: false,                                           shouldReflect: true, on: 'update', type: 'boolean', description: 'Required (like a native control): with no file selected, the form validity is `valueMissing` (message `errors.required`) and the form refuses to submit; the host gets `aria-required` and `:state(required)` (core). Never missing while read-only or disabled. Boolean attribute — present = on.' },
     { configKey: 'isReadonly',              attribute: 'readonly',            converter: toBool('presence'),                                                           shouldReflect: true, on: 'update', type: 'boolean', description: 'Read-only (like a native control): the user cannot change the selection — no add (click / drop / overlay / Add more), no row Remove, no Clear all — but the files stay visible and ARE submitted with the form. Uploads keep running; the programmatic API is unaffected.' },
 
     // ── Operating mode ────────────────────────────────────────────────────────
@@ -307,6 +308,8 @@ export type DropzoneElementConfig = Omit<
     /** Extra shadow-root CSS (raw); the instance layer over the page-wide one. */
     customStyles?: string | null;
     shouldKeepAliveWhenRemoved?: boolean;
+    /** Required: no file selected → `valueMissing` (core, SPEC §6.6). */
+    isRequired?: boolean;
     renderLoadingCallback?: RenderLoaderCallback | null;
 };
 
@@ -435,6 +438,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
     protected override disabledChanged(isDisabled: boolean): void {
         this.#dropzone?.setOptions({ isDisabled });
         this.#syncArmed();
+        this.#syncValidity(this.#dropzone?.getFiles().length ?? 0);
     }
 
     /**
@@ -534,15 +538,20 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
             storePartial[key] = value === null ? undefined : value;
         }
         delete storePartial.isDisabled; // applied by disabledChanged() (input OR fieldset)
+        delete storePartial.isRequired; // element-only: form validity (core refreshRequired)
         if (this.#dropzone && Object.keys(storePartial).length > 0) {
             this.#dropzone.setOptions(storePartial as Partial<DropzoneEngineOptions>);
         }
 
-        // Form-relevant changes re-stamp the FormData; minFileCount alone only
-        // affects validity.
+        // Form-relevant changes re-stamp the FormData; the count rules,
+        // read-only and the labels only affect validity (`isRequired` is core's,
+        // re-evaluated after every flush).
         if ('name' in partial) {
             this.#syncFormValue();
-        } else if ('minFileCount' in partial || 'labels' in partial || 'translateCallback' in partial || 'locale' in partial) {
+        } else if (
+            'minFileCount' in partial || 'maxFileCount' in partial || 'isReadonly' in partial ||
+            'labels' in partial || 'translateCallback' in partial || 'locale' in partial
+        ) {
             this.#syncValidity(this.#dropzone?.getFiles().length ?? 0);
         }
     }
@@ -737,6 +746,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
         // Element-only inputs: the store never reads them.
         delete cfg.customStyles;
         delete cfg.shouldKeepAliveWhenRemoved;
+        delete cfg.isRequired;
 
         cfg.isDisabled = this.isEffectivelyDisabled;
 
@@ -780,22 +790,57 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
     }
 
     /**
-     * Reflect `minFileCount` into the form's native validity. When the selection
-     * is short, the surrounding form's submit refuses with the native validation
-     * message instead of silently submitting an incomplete payload.
+     * The count rules → the form's native validity, each its own flag through
+     * core `setValidityFlag` (SPEC §6.6), so they never clear `required`'s
+     * `valueMissing` (core) or each other:
+     * - `minFileCount`: at least one file but fewer than the minimum →
+     *   `rangeUnderflow` (`errors.minFileCount`). An empty selection is not
+     *   checked here — that is `required` (native min rules skip an empty field).
+     * - `maxFileCount`: more files than the maximum → `rangeOverflow`
+     *   (`errors.maxFileCount`). Adds past the cap are rejected, so this only
+     *   happens when the cap is lowered after files were added.
+     * Read-only / disabled (native: barred from constraint validation) clear
+     * both. Then `refreshRequired()` re-evaluates `valueMissing`.
      */
     #syncValidity(fileCount: number): void {
-        const internals = this.internals;
-        if (!internals) return;
-        const min = this.#dropzone?.getOptions().minFileCount ?? 0;
-        if (min > 0 && fileCount < min) {
-            internals.setValidity(
-                { valueMissing: true },
-                countLabel(this.#dropzone?.label ?? defaultLabel, 'errors.minFileCount', min)
-            );
-        } else {
-            internals.setValidity({});
-        }
+        const options = this.#dropzone?.getOptions();
+        const label = this.#dropzone?.label ?? defaultLabel;
+        const isChecked = !this.config.isReadonly && !this.isEffectivelyDisabled;
+        const min = options?.minFileCount ?? 0;
+        const max = options?.maxFileCount ?? 0;
+        const anchor = this.getValidityAnchor();
+        this.setValidityFlag(
+            'rangeUnderflow',
+            isChecked && min > 0 && fileCount > 0 && fileCount < min ? countLabel(label, 'errors.minFileCount', min) : null,
+            anchor,
+        );
+        this.setValidityFlag(
+            'rangeOverflow',
+            isChecked && max > 0 && fileCount > max ? countLabel(label, 'errors.maxFileCount', max) : null,
+            anchor,
+        );
+        this.refreshRequired();
+    }
+
+    /** `required`: empty = no file selected (what the form would submit). */
+    protected override isValueEmpty(): boolean {
+        return (this.#dropzone?.getFiles().length ?? 0) === 0;
+    }
+
+    /** The `valueMissing` message — the `errors.required` label. */
+    protected override getRequiredMessage(): string {
+        return (this.#dropzone?.label ?? defaultLabel)('errors.required');
+    }
+
+    /**
+     * The validation bubble points at the visible selector: the button
+     * (button / minimal / native appearance), the compact summary line, else
+     * the drop card. Headless (nothing rendered) → the host.
+     */
+    protected override getValidityAnchor(): HTMLElement | undefined {
+        return this.#container.querySelector<HTMLElement>(
+            '.dz__button, .dz__minimal, .dz__native-button, .dz__summary-line, .dz__dropzone',
+        ) ?? undefined;
     }
 
     // ── public API ────────────────────────────────────────────────────────────

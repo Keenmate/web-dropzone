@@ -117,13 +117,14 @@ Validation (file-reject validation.error, form validity):
   errors.minFileSize      'File is too small. Minimum size is {size}'
   errors.fileType         'File type not accepted'
   errors.rejected         'File rejected'            (beforeFilesAddCallback said false)
-  errors.maxFileCount     'Maximum {count} files allowed'
+  errors.maxFileCount     'Maximum {count} files allowed'   (also the max-file-count rangeOverflow validity)
   errors.maxFileCountOne  'Maximum 1 file allowed'
   errors.duplicate        'Duplicate file: {name}'
   errors.maxTotalSize     'Total size would exceed {size}'
   errors.upload           'Upload failed'            (handler threw a non-Error)
-  errors.minFileCount     'At least {count} files required'   (min-file-count validity)
+  errors.minFileCount     'At least {count} files required'   (min-file-count rangeUnderflow validity)
   errors.minFileCountOne  'At least 1 file required'
+  errors.required         'Add a file.'              (required: valueMissing validity)
 
 Screen-reader announcements (core announce(); '' silences one):
   ariaLabels.announceAdded(One), ariaLabels.announceRejected,

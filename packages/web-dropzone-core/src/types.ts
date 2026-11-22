@@ -417,13 +417,16 @@ export interface DropzoneEngineOptions {
     maxTotalSize?: number;
     /** Maximum number of files (when isMultiple is true). 0 = no cap.
      *  When an incoming batch would exceed this, the first N files that still
-     *  fit are accepted and the rest are rejected with `code: 'count'`. */
+     *  fit are accepted and the rest are rejected with `code: 'count'`.
+     *  More files than this anyway (the cap lowered after files were added):
+     *  the custom element's form validity is `rangeOverflow`. */
     maxFileCount?: number;
     /** Minimum number of files required for the surrounding form to be valid.
-     *  Does NOT reject files on add — instead, when `files.length < N`, the
-     *  custom element calls `ElementInternals.setValidity({ valueMissing })`
-     *  so the form's native submit refuses until the user meets the floor.
-     *  Mirrors svelte-fluentui's `InputFile.minFiles`. 0 = no minimum. */
+     *  Does NOT reject files on add — instead, while `0 < files.length < N`,
+     *  the custom element sets the form validity flag `rangeUnderflow`
+     *  (message `errors.minFileCount`) so the form's native submit refuses
+     *  until the user meets the floor. An empty selection is `required`'s
+     *  (`valueMissing`), not this rule's. 0 = no minimum. */
     minFileCount?: number;
     /**
      * Visible-row cap. When set and the selection has more files than this,

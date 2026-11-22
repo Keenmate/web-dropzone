@@ -323,12 +323,12 @@
         },
         {
           "name": "max-file-count",
-          "description": "Maximum number of files. 0 = unlimited.",
+          "description": "Maximum number of files. 0 = unlimited. Adds past it are rejected (code `count`); when more files than this are selected anyway (the limit lowered after files were added), the form validity is `rangeOverflow` (message `errors.maxFileCount`).",
           "values": []
         },
         {
           "name": "min-file-count",
-          "description": "Minimum number of files; reflected into the form validity (valueMissing).",
+          "description": "Minimum number of files; reflected into the form validity as `rangeUnderflow` (message `errors.minFileCount`) while at least one file but fewer than this are selected. An empty selection is not checked — that is `required` (`valueMissing`). Never rejects files on add. 0 = no minimum.",
           "values": []
         },
         {
@@ -348,6 +348,11 @@
         {
           "name": "disabled",
           "description": "Disable the dropzone (like a native control: no clicks / drops, every button — selector, rows, bulk actions, satellites — disabled and out of the tab order; boolean attribute — present = on). An ancestor `<fieldset disabled>` disables it too (core `isEffectivelyDisabled`); `el.isDisabled` keeps the authored value.",
+          "values": []
+        },
+        {
+          "name": "required",
+          "description": "Required (like a native control): with no file selected, the form validity is `valueMissing` (message `errors.required`) and the form refuses to submit; the host gets `aria-required` and `:state(required)` (core). Never missing while read-only or disabled. Boolean attribute — present = on.",
           "values": []
         },
         {

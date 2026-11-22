@@ -89,13 +89,13 @@ adds, while one list and one indicator show the shared queue.
 
 ## Form field with validation and a confirm gate
 
-The dropzone submits real `File` entries with its form, enforces `min-file-count` through the native
+The dropzone submits real `File` entries with its form, enforces `required` / `min-file-count` through the native
 constraint API, and can ask before a batch is added or removed.
 
 ```html
 <form id="claim" action="/claims" method="post" enctype="multipart/form-data">
   <input name="subject" required>
-  <web-dropzone name="evidence" accept="image/*,.pdf" min-file-count="1" max-file-count="5"
+  <web-dropzone name="evidence" accept="image/*,.pdf" required max-file-count="5"
                 max-file-size="10MB" display-mode="grid" show-thumbnails></web-dropzone>
   <button>Submit claim</button>
 </form>

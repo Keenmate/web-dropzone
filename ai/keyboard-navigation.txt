@@ -133,4 +133,5 @@ TESTING CHECKLIST
 - Tab reaches the selector; Enter opens the dialog.
 - Each row's Cancel / Remove buttons are reachable and named "<verb> <file>".
 - Compact mode: Enter on the summary opens the popover; Escape closes it.
-- min-file-count: submitting a short form shows the native validation message.
+- required / min-file-count: submitting an empty / short form shows the native
+  validation message, anchored on the visible selector; required sets aria-required.

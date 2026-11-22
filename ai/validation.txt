@@ -28,6 +28,7 @@ INPUTS
 | max-total-size  | maxTotalSize  | 0       | bytes across the whole selection         |
 | max-file-count  | maxFileCount  | 0       | files, 0 = unlimited                     |
 | min-file-count  | minFileCount  | 0       | form validity only (never rejects)       |
+| required        | isRequired    | false   | form validity: no file = valueMissing    |
 | dedupe-mode     | dedupeMode    | 'name'  | name | name-size | none                  |
 
 Byte sizes go through core toBytes(): "5242880", "5MB", "5 mb", "300 kB",
@@ -135,11 +136,12 @@ Map validation.code to your own text for i18n.
 
 MIN FILE COUNT / FORM VALIDITY
 ------------------------------
-min-file-count never rejects files. With a name set and inside a <form>, when
-fewer files are selected the element reports
-ElementInternals validity { valueMissing: true } with the message
-"At least N file(s) required", so native form submission is blocked.
-See form-integration.txt.
+min-file-count never rejects files. Inside a <form>, when at least one but
+fewer than N files are selected the element reports validity
+{ rangeUnderflow: true } with the message "At least N file(s) required", so
+native form submission is blocked. An empty selection is `required`'s
+({ valueMissing: true }, "Add a file."); more files than max-file-count (cap
+lowered after the add) is { rangeOverflow: true }. See form-integration.txt.
 
 LIMITS HINT
 -----------

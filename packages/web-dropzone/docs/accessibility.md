@@ -62,8 +62,11 @@ Calls from code (`addFiles()`, `removeFile()`, …) work under both.
 | Indicator upload loader | `role="status"` container (core `renderLoader()`) | — |
 
 Disabled / read-only state on the selector: native `disabled` / `aria-disabled="true"` (above).
-Form validity (`min-file-count`) uses the native constraint API — `valueMissing` with the
-`errors.minFileCount` message — so the browser announces it on submit.
+Form validity uses the native constraint API, so the browser announces it on submit: `required` →
+`valueMissing` (`errors.required`), `min-file-count` → `rangeUnderflow` (`errors.minFileCount`),
+`max-file-count` → `rangeOverflow` (`errors.maxFileCount`); the bubble points at the visible selector.
+`required` also sets `aria-required="true"` on the host through `ElementInternals` (`internals.ariaRequired`),
+so assistive technology announces the field as required (plus `:state(required)` for styling).
 
 ## Screen-reader notes
 

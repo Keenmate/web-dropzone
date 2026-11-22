@@ -24,7 +24,7 @@ events-callbacks.txt     - event table, on* twins, ctx/detail context, gates,
                            file-cancel / file-delete
 satellites.txt           - picker / list / indicator / progress, for= binding,
                            Mode A/B, status-surface callbacks, custom satellites
-form-integration.txt     - form association, File blobs, min-file-count validity,
+form-integration.txt     - form association, File blobs, required / min / max-file-count validity,
                            reset, fieldset disabled, upload-then-submit
 keyboard-navigation.txt  - keyboard support and accessibility as implemented
 styling-theming.txt      - --dz-* variables, --dz-rem, --base-* layer, dark mode,
@@ -141,6 +141,7 @@ max-file-count / max-file-size / max-total-size / min-* -> validation.txt
 max-visible-file-count -> display-modes.txt
 metadata / setMetadata -> upload-pipeline.txt, events-callbacks.txt
 min-file-count (validity) -> form-integration.txt, validation.txt
+required (validity)       -> form-integration.txt, validation.txt
 mode (bulk/structural/headless) -> display-modes.txt
 Mode A / Mode B -> satellites.txt, advanced-patterns.txt
 multiple -> validation.txt

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — required + count validity</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-dropzone { display: block; max-width: 420px; }
+        form { display: grid; gap: 8px; max-width: 420px; }
+        button { width: fit-content; }
+    </style>
+</head>
+<body>
+    <h1>required + min / max file count (form validity)</h1>
+    <p>Targeted by <code>e2e/required.spec.ts</code>.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">required + min-file-count="2" + max-file-count="3"</div>
+        <form id="req-form">
+            <web-dropzone id="req" name="docs" required min-file-count="2" max-file-count="3" accept="*/*" display-mode="detailed"></web-dropzone>
+            <button type="submit" id="req-submit">Submit</button>
+            <button type="reset" id="req-reset">Reset</button>
+        </form>
+        <div class="event-log" id="req-log"></div>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">required, button appearance (anchor = the button)</div>
+        <form id="btn-form">
+            <web-dropzone id="btn" name="one" required selector-appearance="button" list-appearance="list"></web-dropzone>
+            <button type="submit" id="btn-submit">Submit</button>
+        </form>
+        <div class="event-log" id="btn-log"></div>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">min-file-count="2", not required (empty = valid)</div>
+        <form id="min-form">
+            <web-dropzone id="min" name="docs" min-file-count="2" accept="*/*" display-mode="detailed"></web-dropzone>
+            <button type="submit" id="min-submit">Submit</button>
+        </form>
+        <div class="event-log" id="min-log"></div>
+    </div>
+
+    <script type="module">
+        import '/src/index.ts';
+        import { installAddNamed } from './fixture-kit.js';
+        installAddNamed();
+
+        for (const id of ['req', 'btn', 'min']) {
+            document.getElementById(`${id}-form`).addEventListener('submit', (e) => {
+                e.preventDefault();
+                document.getElementById(`${id}-log`).textContent += 'submitted\n';
+            });
+        }
+    </script>
+</body>
+</html>
