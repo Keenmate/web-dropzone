@@ -63,6 +63,17 @@
    POPOVER
    ========================================================================== */
 .dz__popover {
+  /* The phone sheet (.km-sheet, sheet.css) keeps the popover's background. */
+  --_km-sheet-bg: var(--dz-popover-bg);
+  --_km-sheet-color: var(--dz-text-color-1);
+  display: flex;
+  flex-direction: column;
+  background: var(--dz-popover-bg);
+  overflow: hidden;
+}
+
+/* The anchored panel's geometry; a phone sheet is core's full-screen frame (.km-sheet). */
+.dz__popover:not(.km-sheet) {
   position: absolute;
   z-index: var(--dz-popover-z-index);
   width: var(--dz-popover-width);
@@ -70,9 +81,6 @@
   max-height: var(--dz-popover-max-height);
   min-width: var(--dz-popover-min-width);
   min-height: var(--dz-popover-min-height);
-  display: flex;
-  flex-direction: column;
-  background: var(--dz-popover-bg);
   border: var(--dz-popover-border);
   border-radius: var(--dz-popover-border-radius);
   box-shadow: var(--dz-popover-box-shadow);
@@ -82,7 +90,6 @@
      trigger as it grows. The `size` middleware clamps maxWidth /
      maxHeight to the viewport so the user can't drag it off-screen. */
   resize: var(--dz-popover-resize);
-  overflow: hidden;
 }
 
 /* Popover sticky-top wrapper — groups header + limits hint so both share a

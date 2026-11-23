@@ -240,10 +240,14 @@ icon show the CSS-only `.dz__loader--inline` while uploading (the row carries `a
 
 On a phone (core's device classification — touch-primary with a short side under the tablet line, so a
 narrowed desktop window keeps the anchored panel) the `<web-dropzone-indicator>` drawer and the
-compact-mode popover become the same edge-to-edge full-screen sheet (`.dz__indicator-drawer--sheet` /
-`.dz__popover--sheet`) (`100dvw` × `100dvh`, no border /
-radius / shadow, no resize handle), with `env(safe-area-inset-*)` padding on all four edges and a close
+compact-mode popover become the same edge-to-edge full-screen sheet — core's `.km-sheet` frame (plus the
+`.dz__indicator-drawer--sheet` / `.dz__popover--sheet` hooks): `100dvw` × `100dvh`, no border /
+radius / shadow, no resize handle, the modal tier (`--base-z-modal`; `--dz-popover-z-index` is the anchored
+panel's only), `env(safe-area-inset-*)` padding on all four edges, background / text colour from
+`--dz-popover-bg` (popover) / `--dz-surface-color` (drawer) / `--dz-text-color-1`, and a close
 button (`.dz__indicator-drawer-close` / `.dz__popover-close` — the popover's shows on a phone only).
+Both sheets are modal (core modal session): the page behind is inert, Tab stays inside the sheet,
+Escape / the phone Back gesture / the close button close it and focus returns to the trigger.
 The drawer header, its title and both close buttons are core's shared sheet chrome
 (`.km-sheet-header` / `.km-sheet-title` / `.km-sheet-close`, a 44px `--base-touch-target-min` chip
 with the masked `--base-icon-close`; the `dz__` classes stay as hooks). Theme it page-wide with

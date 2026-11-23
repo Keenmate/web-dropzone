@@ -11,6 +11,22 @@ No stable 1.0.0 is published, so the break ships as the next release
 candidate — but `^1.0.0-rc02` consumers will pull it: the event,
 callback and store-access API below is breaking.
 
+### Changed — the phone sheets are modal, in core's `.km-sheet` frame (2026-11-24)
+- **The compact popover's phone sheet is modal** (core `startModalSession`, rulebook C-CA-19): the page behind is
+  `inert`, Tab stays inside the sheet, Escape / the phone Back gesture / the close button close it and focus returns
+  to the trigger (the session's `end()` — the hand-written focus return on the close button is gone). Before, only
+  Back closed it and Tab walked out into the page. Widening past the phone line while open ends the session (the
+  anchored panel is non-modal again).
+- **Both phone sheets (popover + indicator drawer) use core's full-screen frame `.km-sheet`** (`SHEET_CHROME_CSS`)
+  instead of dz's own `inset: 0` / `100dvw × 100dvh` rules in `sheet.css`: pinned top / inline-start (the keyboard
+  inset sizing needs it), safe-area padding, enter animation on the motion tokens. The sheet's background / colour
+  stay `--dz-popover-bg` (popover) / `--dz-surface-color` (drawer) / `--dz-text-color-1` (mapped onto core's
+  `--_km-sheet-bg` / `--_km-sheet-color`). The popover's sheet is now in the **modal tier** (`--base-z-modal`, 7000);
+  `--dz-popover-z-index` / `-width` / `-max-*` / `-min-*` / `-border` / `-border-radius` / `-box-shadow` / `-resize`
+  style the anchored panel only (the sheet already ignored all but the z-index). `.dz__popover--sheet` /
+  `.dz__indicator-drawer--sheet` stay as hooks.
+- e2e `phone-sheet.spec.ts`: frame + tier + `--dz-popover-bg`, page inert + Tab trapped, Escape / Back return focus.
+
 ### Changed — BREAKING: built on core `1.0.0-rc26` (the naming release) (2026-11-23)
 - Both packages need `@keenmate/web-components-core` **`^1.0.0-rc26`**.
 - **BREAKING: `el.setAttributes({ … })` → `el.setProperties({ … })`** on every element (core's inherited batch

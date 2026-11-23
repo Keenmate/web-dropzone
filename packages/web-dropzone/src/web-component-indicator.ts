@@ -623,7 +623,7 @@ export class DropzoneIndicatorElement extends SatelliteElement {
         this.drawerExit = null;
         this.resetDrawerPresentation();
         if (isSheet) {
-            drawer.classList.add('dz__indicator-drawer--sheet');
+            drawer.classList.add('km-sheet', 'dz__indicator-drawer--sheet');
         } else {
             drawer.classList.add('km-drawer', `km-drawer--${this.drawerSide()}`);
         }
@@ -686,7 +686,7 @@ export class DropzoneIndicatorElement extends SatelliteElement {
         if (!drawer) return;
         drawer.removeAttribute('data-closing');
         drawer.classList.remove('km-drawer', 'km-drawer--start', 'km-drawer--end', 'km-drawer--top', 'km-drawer--bottom',
-            'km-drawer--closing', 'dz__indicator-drawer--sheet');
+            'km-drawer--closing', 'km-sheet', 'dz__indicator-drawer--sheet');
     }
 
     /**

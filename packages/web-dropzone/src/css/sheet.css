@@ -4,12 +4,11 @@
    One presentation for both overlay panels (responsive-overlay.md: D-RO-2 = A
    full-screen). A phone is core's device classification (src/phone-sheet.ts,
    `resolvePresentation('auto', env)` → fullscreen), not a width: the panels
-   carry `dz__indicator-drawer--sheet` / `dz__popover--sheet` while they are a
-   sheet (the popover is un-anchored then). Imported by main.css into the `overrides` layer,
-   so it beats the panels' own geometry (popover.css, indicator.css — both in
-   `component`) and the inline position core's anchor() wrote is gone first
-   (the popover is un-anchored on a phone). Also shows / hides the popover's
-   close button (core's .km-sheet-close; it shows on a phone only). */
+   carry core's `km-sheet` plus `dz__indicator-drawer--sheet` / `dz__popover--sheet`
+   while they are a sheet (the popover is un-anchored then, so the inline
+   position core's anchor() wrote is gone). Imported by main.css into the
+   `overrides` layer. Shows / hides the popover's close button (core's
+   .km-sheet-close; it shows on a phone only). */
 
 /* ==========================================================================
    CLOSE BUTTON
@@ -24,32 +23,20 @@
 }
 
 /* ==========================================================================
-   PHONE PRESENTATION — edge-to-edge full-screen sheet
+   PHONE PRESENTATION — core's full-screen frame
    ==========================================================================
    Every drawer position (edge strips AND the inline chip-anchored drop-down)
-   and the compact popover become a fixed 100dvw x 100dvh sheet; the drawer's
-   closed state keeps each edge's slide transform, its open state's
-   translate(0, 0) is untouched. box-sizing + four-edge env(safe-area-inset-*)
-   keep the header and rows out of the notch / home indicator / landscape side
-   bars while the background stays full-bleed. */
-/* A phone sheet: every drawer position and the compact popover. */
+   and the compact popover become core's full-screen sheet (`.km-sheet` from
+   SHEET_CHROME_CSS: fixed 100dvw x 100dvh pinned top / inline-start — the
+   keyboard inset needs that —, safe-area padding, the modal tier, motion
+   tokens), in a core modal session. The panels' own floating geometry
+   (popover.css, indicator.css) is scoped to `:not(.km-sheet)`, so nothing is
+   out-ranked here. The frame's background / text colour stay the panels' own
+   (--dz-popover-bg, --dz-surface-color / --dz-text-color-1 → core's private
+   --_km-sheet-bg / --_km-sheet-color, set on the panels). */
 .dz__indicator-drawer--sheet,
 .dz__popover--sheet {
     --dz-popover-border-radius: 0;
-    position: fixed;
-    inset: 0;
-    box-sizing: border-box;
-    width: 100dvw;
-    height: 100dvh;
-    min-width: 0;
-    min-height: 0;
-    max-width: none;
-    max-height: none;
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-    border: none;
-    border-radius: 0;
-    box-shadow: none;
-    resize: none;
 }
 
 /* The chip is 44px (--base-touch-target-min) by core's sheet chrome (D-RO-7 = A). */

@@ -24,7 +24,7 @@
 
 import { createLayer, createPopover } from '@keenmate/web-components-core/positioning';
 import type { Layer, Placement, PopoverHandle } from '@keenmate/web-components-core/positioning';
-import { adoptStyles, createId, deepActiveElement, dispatch, ICON_CSS, renderSlot, renderSlotHtml, SHEET_CHROME_CSS, startSheetSession, observePageDrag, Z_INDEX, type SheetSession, type SlotHtml } from '@keenmate/web-components-core';
+import { adoptStyles, createId, deepActiveElement, dispatch, ICON_CSS, renderSlot, renderSlotHtml, SHEET_CHROME_CSS, startModalSession, observePageDrag, Z_INDEX, type ModalSession, type SlotHtml } from '@keenmate/web-components-core';
 import styles from './css/main.css?inline';
 import { isPhoneSheet, observePhoneSheet } from './phone-sheet';
 import {
@@ -151,13 +151,14 @@ export class WebDropzone extends DropzoneEngine {
     private popoverSaveTimer: number | null = null;
     /** Follows core's phone presentation while the popover is open (a sheet on a phone, un-anchored). */
     private stopPopoverPhoneWatch: (() => void) | null = null;
-    /** Core sheet session while the popover is a phone sheet: Back closes it, page scroll locked, keyboard inset. */
-    private popoverSheetSession: SheetSession | null = null;
+    /** Core modal session while the popover is a phone sheet (SPEC §12.19): page inert, Tab trapped,
+     *  Escape / Back close it, page scroll locked, keyboard inset; `end()` gives focus back. */
+    private popoverSheetSession: ModalSession | null = null;
     /** Whether the open popover is presented as a phone sheet (null while closed). */
     private popoverIsSheet: boolean | null = null;
     /** The anchored panel's inline width / height (persisted or user-resized), put away while it is a sheet. */
     private popoverAnchoredSize: { width: string; height: string } = { width: '', height: '' };
-    /** What had focus when the popover opened — the close button gives focus back to it. */
+    /** What had focus when the popover opened — the phone sheet's modal session gives focus back to it. */
     private popoverReturnFocus: HTMLElement | null = null;
     /** When true, the maxVisibleFileCount cap is ignored and all files are
      *  rendered. Toggled by the "Show N more" / "Show less" button at the
@@ -1897,12 +1898,8 @@ export class WebDropzone extends DropzoneEngine {
         this.applyPopoverPresentation();
 
         // Add event handlers
-        this.popover.querySelector('[data-dz-action="close"]')?.addEventListener('click', () => {
-            // The sheet's close button (phones only): focus goes back to the trigger.
-            const returnFocus = this.popoverReturnFocus ?? this.getPopoverAnchor();
-            this.closePopover();
-            if (returnFocus?.isConnected) returnFocus.focus({ preventScroll: true });
-        });
+        // The sheet's close button (phones only): the modal session's end() gives focus back.
+        this.popover.querySelector('[data-dz-action="close"]')?.addEventListener('click', () => this.closePopover());
 
         const clearBtn = this.popover.querySelector<HTMLElement>('[data-dz-action="clear"]');
         clearBtn?.addEventListener('click', async (e) => {
@@ -2331,12 +2328,26 @@ export class WebDropzone extends DropzoneEngine {
                 style.height = this.popoverAnchoredSize.height;
             }
             this.popoverIsSheet = isSheet;
+            // The frame is core's full-screen sheet (.km-sheet, SHEET_CHROME_CSS);
+            // dz__popover--sheet stays as the hook for the close button.
+            this.popover.classList.toggle('km-sheet', isSheet);
             this.popover.classList.toggle('dz__popover--sheet', isSheet);
-            // A sheet runs a core sheet session: the phone Back gesture closes
-            // it, the page behind doesn't scroll, the keyboard inset is kept.
-            this.popoverSheetSession?.end();
+            // A sheet is MODAL (core modal session, SPEC §12.19): the page behind
+            // is inert, Tab stays inside, Escape / the phone Back gesture close it,
+            // the page doesn't scroll, the keyboard inset is kept; end() gives
+            // focus back. Its trigger is the popover itself: the sheet is the open
+            // popover's presentation (a child in the overlay tree), so the modal
+            // doesn't dismiss it as one of the page's overlays. Turning back into
+            // the anchored panel keeps focus where it is.
+            this.popoverSheetSession?.end({ shouldReturnFocus: false });
             this.popoverSheetSession = isSheet
-                ? startSheetSession(this.popover, { backCallback: () => this.closePopover(), logSource: this.config.hostElement ?? undefined })
+                ? startModalSession(this.popover, {
+                    dismissCallback: () => this.closePopover(),
+                    trigger: this.popover,
+                    returnFocusTo: this.popoverReturnFocus ?? this.getPopoverAnchor(),
+                    shouldFitToVisibleViewport: true,
+                    logSource: this.config.hostElement ?? undefined,
+                })
                 : null;
         }
         this.popoverHandle.setAnchored(this.isActive && !isSheet);

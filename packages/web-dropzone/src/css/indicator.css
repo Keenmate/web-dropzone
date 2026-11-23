@@ -196,12 +196,17 @@
     --_km-sheet-drawer-bg: var(--dz-surface-color);
     --_km-sheet-drawer-color: var(--dz-text-color-1);
     --_km-sheet-drawer-shadow: 0 calc(0.8 * var(--dz-rem, 10px)) calc(3 * var(--dz-rem, 10px)) var(--dz-shadow-color);
+    /* The phone sheet (core .km-sheet, sheet.css) keeps the drawer's colours. */
+    --_km-sheet-bg: var(--dz-surface-color);
+    --_km-sheet-color: var(--dz-text-color-1);
     background: var(--dz-surface-color);
     color: var(--dz-text-color-1);
-    border: 1px solid var(--dz-border-color);
-    box-shadow: 0 calc(0.8 * var(--dz-rem, 10px)) calc(3 * var(--dz-rem, 10px)) var(--dz-shadow-color);
     display: flex;
     flex-direction: column;
+}
+.dz__indicator-drawer:not(.km-sheet) {
+    border: 1px solid var(--dz-border-color);
+    box-shadow: 0 calc(0.8 * var(--dz-rem, 10px)) calc(3 * var(--dz-rem, 10px)) var(--dz-shadow-color);
 }
 
 /* An edge drawer exists only while open (or sliding out). */
@@ -267,7 +272,8 @@
     padding: calc(1.2 * var(--dz-rem, 10px)) calc(1.6 * var(--dz-rem, 10px));
 }
 
-/* PHONE PRESENTATION — the drawer goes edge-to-edge full-screen: sheet.css
-   (shared with the compact popover; main.css, `overrides` layer). */
+/* PHONE PRESENTATION — the drawer is core's full-screen frame (.km-sheet,
+   SHEET_CHROME_CSS) in a modal session; sheet.css (shared with the compact
+   popover; main.css, `overrides` layer). */
 
 } /* @layer component */
