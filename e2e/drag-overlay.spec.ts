@@ -142,6 +142,9 @@ test.describe('two overlays on one page', () => {
 
         const second = overlay(page).nth(await overlayIndexFor(page, 'target2'));
         await dragFiles(second, 'dragenter');
+        // A real drag's dragovers end with the drop; a pulse after it starts a new page drag
+        // (core observePageDrag) and re-mounts both overlays — racy (it ran on).
+        await stopPulse(page);
         await dragFiles(second, 'drop', ['two.txt']);
 
         await expect(overlay(page)).toHaveCount(0);

@@ -50,6 +50,7 @@ import {
     toFunction,
     toCustom,
     type CustomStylesHandle,
+    type CustomStylesOptions,
     type InputDef,
     type Converter,
     type EventDef,
@@ -281,7 +282,7 @@ const EVENTS: readonly EventDef[] = [
  */
 export type DropzoneElementConfig = Omit<
     DropzoneEngineOptions,
-    | 'isHeadless' | 'container' | 'hostElement' | 'attachLayerStyles'
+    | 'isHeadless' | 'container' | 'hostElement' | 'customStylesOptions'
     | 'accept' | 'icon' | 'cancelIcon' | 'removeIcon' | 'overlayIcon' | 'name' | 'storageKey'
     | 'renderMode' | 'selectorAppearance' | 'listAppearance' | 'cardSize' | 'isThumbnailsShown'
     | 'controls' | 'itemControls' | 'labels'
@@ -347,8 +348,6 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
     #container: HTMLElement;
     /** Core's custom-CSS handle (page layer + instance layer), made on the first build. */
     #customStyles: CustomStylesHandle | null = null;
-    /** Live extra-root handles (the open drag overlay layer), refreshed with `#customStyles`. */
-    readonly #layerStyles = new Set<CustomStylesHandle>();
     /** Unsubscribe from the shared page-drag tracker (set while `highlight-on-page-drag` is live). */
     #unsubscribePageDrag?: () => void;
     /** A file drag is over the page (core `observePageDrag`). */
@@ -459,46 +458,24 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
      * layer `window.components['web-dropzone'].customStyles` /
      * `.getCustomStylesCallback(ctx)`, then this instance's `customStyles` /
      * `getCustomStylesCallback`. One handle, made on the first build, refreshed
-     * per build.
+     * per build. The drag overlay's core layer gets the same options
+     * (`createLayer({ customStylesOptions })`, engine option) — core refreshes
+     * that layer's copy with this handle.
      */
     #applyCustomStyles(): void {
-        for (const handle of this.#layerStyles) handle.refresh();
         if (this.#customStyles) return this.#customStyles.refresh();
-        this.#customStyles = createCustomStyles(this, this.#shadow, {
-            cssClass: 'dz-custom-styles',
-            getContext: () => this.withContext({}),
-            getInstanceStyles: () => ({
-                css: this.config.customStyles as string | null,
-                callback: this.config.getCustomStylesCallback as ((ctx: object) => string | null | undefined) | null,
-            }),
-        });
+        this.#customStyles = createCustomStyles(this, this.#shadow, this.#customStylesOptions);
     }
 
-    /**
-     * The same custom CSS (page + instance layers) for a shadow root outside the
-     * host — the drag overlay's core layer. `shouldShareLayers: false`: an extra
-     * root, so the host's shared entry (what satellites read as owner CSS) stays
-     * the main handle's. Refreshed with the main one while open; the engine
-     * destroys it with the layer.
-     */
-    #attachLayerStyles(root: ShadowRoot): { destroy(): void } {
-        const handle = createCustomStyles(this, root, {
-            cssClass: 'dz-custom-styles',
-            shouldShareLayers: false,
-            getContext: () => this.withContext({}),
-            getInstanceStyles: () => ({
-                css: this.config.customStyles as string | null,
-                callback: this.config.getCustomStylesCallback as ((ctx: object) => string | null | undefined) | null,
-            }),
-        });
-        this.#layerStyles.add(handle);
-        return {
-            destroy: () => {
-                this.#layerStyles.delete(handle);
-                handle.destroy();
-            },
-        };
-    }
+    /** The custom-CSS options: the host's handle and the drag overlay's layer (one object). */
+    readonly #customStylesOptions: CustomStylesOptions = {
+        cssClass: 'dz-custom-styles',
+        getContext: () => this.withContext({}),
+        getInstanceStyles: () => ({
+            css: this.config.customStyles as string | null,
+            callback: this.config.getCustomStylesCallback as ((ctx: object) => string | null | undefined) | null,
+        }),
+    };
 
     /**
      * In-place change: patch the live store via `setOptions`. A change to any
@@ -524,7 +501,6 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
         // Custom styles are a shadow-root concern, not a store change.
         if ('customStyles' in partial || 'getCustomStylesCallback' in partial) {
             this.#customStyles?.refresh();
-            for (const handle of this.#layerStyles) handle.refresh();
         }
 
         const storePartial: Record<string, unknown> = {};
@@ -753,7 +729,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
         // Shadow DOM container for popover anchoring + form-element host.
         cfg.container = this.#container;
         cfg.hostElement = this;
-        cfg.attachLayerStyles = (root: ShadowRoot) => this.#attachLayerStyles(root);
+        cfg.customStylesOptions = this.#customStylesOptions;
         return cfg as DropzoneEngineOptions;
     }
 

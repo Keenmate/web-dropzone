@@ -11,6 +11,17 @@ No stable 1.0.0 is published, so the break ships as the next release
 candidate — but `^1.0.0-rc02` consumers will pull it: the event,
 callback and store-access API below is breaking.
 
+### Changed — the drag overlay's custom CSS comes from core `createLayer({ customStylesOptions })` (2026-11-24)
+- The drag overlay's core layer gets the element's `customStyles` / `getCustomStylesCallback` (page-wide +
+  instance) through core's `createLayer(host, { customStylesOptions })` (core rc26) — core creates, refreshes
+  (with the host's own handle: an instance `customStyles` change while the overlay is open applies at once) and
+  destroys it. The element's own extra-root handle set + its hand refresh loops are gone.
+- Engine option (both packages): `attachLayerStyles(root)` → **`customStylesOptions`** (core
+  `CustomStylesOptions`, the object `<web-dropzone>` gives its own `createCustomStyles`). Engine wiring set by
+  the element, added after rc02 and never published — no break.
+- e2e `drag-overlay.spec.ts` "two overlays": the synthetic dragover pulse stops before the drop (a pulse after it
+  starts a new page drag and re-mounts the overlays — the test was racy).
+
 ### Changed — the phone sheets are modal, in core's `.km-sheet` frame (2026-11-24)
 - **The compact popover's phone sheet is modal** (core `startModalSession`, rulebook C-CA-19): the page behind is
   `inert`, Tab stays inside the sheet, Escape / the phone Back gesture / the close button close it and focus returns

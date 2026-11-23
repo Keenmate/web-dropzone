@@ -202,7 +202,6 @@ export class WebDropzone extends DropzoneEngine {
     /** The overlay's element (inside its core layer) while a file drag is over the page. */
     private dragOverlay: HTMLElement | null = null;
     private overlayLayer: Layer | null = null;
-    private overlayLayerStyles: { destroy(): void } | null = null;
     /** Core `observePageDrag` subscription while an overlay target is set up. */
     private stopOverlayDragWatch: (() => void) | null = null;
     // Keeps the layer's theme attributes in step with the host's while the
@@ -2697,12 +2696,12 @@ export class WebDropzone extends DropzoneEngine {
             className: 'dz__overlay',
             zIndex: `var(--dz-overlay-z-index, ${Z_INDEX.popover})`,
             cssVars: WebDropzone.OVERLAY_VARS,
+            // The element's customStyles / getCustomStylesCallback (page + instance)
+            // — page CSS can't reach a layer's shadow root; core keeps it current.
+            ...(this.config.customStylesOptions ? { customStylesOptions: this.config.customStylesOptions } : {}),
         });
         layer.place(this.overlayTarget.getBoundingClientRect());
         this.overlayLayer = layer;
-        // The element's customStyles / getCustomStylesCallback (page + instance) —
-        // page CSS can't reach a layer's shadow root.
-        this.overlayLayerStyles = this.config.attachLayerStyles?.(layer.layer.shadowRoot!) ?? null;
         this.dragOverlay = layer.element;
         this.dragOverlay.innerHTML = `
             <div class="dz__overlay-content">
@@ -2780,8 +2779,6 @@ export class WebDropzone extends DropzoneEngine {
         if (!this.dragOverlay) return;
         this.overlaySchemeObserver?.disconnect();
         this.overlaySchemeObserver = null;
-        this.overlayLayerStyles?.destroy();
-        this.overlayLayerStyles = null;
         this.overlayLayer?.destroy();
         this.overlayLayer = null;
         this.dragOverlay = null;

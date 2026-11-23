@@ -8,7 +8,7 @@
 // hoisted copy).
 import type { Placement } from '@keenmate/web-components-core/positioning';
 import type { TranslateCallback } from '@keenmate/web-components-core/locale';
-import type { LoadStateCallback, SaveStateCallback, RenderIconCallback } from '@keenmate/web-components-core';
+import type { CustomStylesOptions, LoadStateCallback, SaveStateCallback, RenderIconCallback } from '@keenmate/web-components-core';
 import type {
     ValidateContext,
     BeforeFilesAddContext,
@@ -1010,11 +1010,12 @@ export interface DropzoneEngineOptions {
     /** Host element for appending hidden inputs (for form integration with shadow DOM) */
     hostElement?: HTMLElement;
     /**
-     * Engine wiring (set by `<web-dropzone>`): the element's custom CSS for a shadow
-     * root the engine renders outside the host (the drag overlay's core layer). Called
-     * when the layer opens; the returned handle is destroyed with the layer.
+     * Engine wiring (set by `<web-dropzone>`): the element's custom-CSS options (the
+     * object its own `createCustomStyles` gets). The engine passes them to core's
+     * `createLayer`, so the drag overlay's layer carries the same page-wide + instance
+     * custom CSS and follows its changes while open.
      */
-    attachLayerStyles?: (root: ShadowRoot) => { destroy(): void };
+    customStylesOptions?: CustomStylesOptions;
 }
 
 /**
