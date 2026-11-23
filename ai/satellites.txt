@@ -22,7 +22,7 @@ core's plumbing for free:
   assigning undefined) resets it to its default.
 - `ready` attribute / :state(ready) / `ready` event / isReady / whenReady()
   after its first build; `defer` + release(); destroy(); `motion` attribute;
-  theme context (data-context-theme, theme-source); setAttributes() / batch().
+  theme context (data-context-theme, theme-source); setProperties() / batch().
 - a window.components[tag] registry entry per tag (logging, getInstances(),
   customStyles) and a per-instance logger (DROPZONE bundle).
 
@@ -98,10 +98,10 @@ Attributes (plus the shared inputs above):
   inside="true"        (isFilesInside) files-inside layout: renders a <slot>
                        inside the card; put a <web-dropzone-list nested="true">
                        as its child
-  highlight-on-page-drag  (shouldHighlightOnPageDrag) arm while files are
-                       dragged anywhere over the page (`armed` attr +
-                       :state(armed), picker.isArmed, card bg
-                       --dz-dropzone-bg-armed); unset = the store's setting
+  highlight-on-page-drag  (shouldHighlightOnPageDrag) drop-active while files are
+                       dragged anywhere over the page (`drop-active` attr +
+                       :state(drop-active), picker.isDropActive, card bg
+                       --dz-dropzone-bg-drop-active); unset = the store's setting
 
 Properties (JS only), Mode B per-picker routing:
   uploadFileCallback   FileUploadHandler stamped on every file this picker adds

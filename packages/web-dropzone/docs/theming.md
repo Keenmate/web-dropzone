@@ -55,7 +55,7 @@ web-dropzone {
 | `[ready]` / `:state(ready)` | After the first build (core). FOUC guard for a page: `web-dropzone:not([ready]) { visibility: hidden }` |
 | `[disabled]` / `:disabled` | Disabled (also via an ancestor `<fieldset disabled>`) |
 | `[readonly]` | Read-only (surface modifier `.dz__dropzone--readonly`) |
-| `[armed]` / `:state(armed)` | Files are dragged over the page (`highlight-on-page-drag`) |
+| `[drop-active]` / `:state(drop-active)` | Files are dragged over the page (`highlight-on-page-drag`) |
 | `[data-context-theme]` | Page theme mirrored by web-components-core (`dark` / `light`) |
 | `[data-motion]` | The element's own motion level (core `motion` attribute) |
 
@@ -288,9 +288,9 @@ as `@keenmate/web-dropzone/manifest`).
 | `--base-border-color` | Default border / separator color — dropzone dashed border, item separator. |
 | `--base-danger-color` | Validation errors, error-state borders, remove-button hover. |
 | `--base-success-color` | Completed-upload borders + status icon; standalone fallback of the drop-target look. |
-| `--base-success-bg-subtle` | Fallback of --dz-dropzone-bg-armed when the contract has no --base-drop-target-bg. |
+| `--base-success-bg-subtle` | Fallback of --dz-dropzone-bg-drop-active when the contract has no --base-drop-target-bg. |
 | `--base-success-bg-subtle-hover` | Fallback of --dz-dropzone-bg-active when the contract has no --base-drop-target-bg-active. |
-| `--base-drop-target-bg` | Card background while files are dragged anywhere over the page (--dz-dropzone-bg-armed, highlight-on-page-drag). |
+| `--base-drop-target-bg` | Card background while files are dragged anywhere over the page (--dz-dropzone-bg-drop-active, highlight-on-page-drag). |
 | `--base-drop-target-bg-active` | Card background while files are dragged over it (--dz-dropzone-bg-active). |
 | `--base-drop-target-border-color` | Card border colour while files are dragged over it (--dz-dropzone-border-active). |
 | `--base-warning-color` | Warning-state borders + status icon. |
@@ -432,7 +432,7 @@ as `@keenmate/web-dropzone/manifest`).
 |---|---|
 | `--dz-dropzone-bg` | dropzone bg |
 | `--dz-dropzone-bg-active` | Drop-target background while dragging over — chains --base-drop-target-bg-active (success 15% light / 30% dark) |
-| `--dz-dropzone-bg-armed` | Armed drop-target background while files are dragged anywhere over the page (highlight-on-page-drag) — chains --base-drop-target-bg (success 10% light / 20% dark) |
+| `--dz-dropzone-bg-drop-active` | Drop-active target background while files are dragged anywhere over the page (highlight-on-page-drag) — chains --base-drop-target-bg (success 10% light / 20% dark) |
 | `--dz-dropzone-bg-hover` | dropzone bg hover |
 | `--dz-dropzone-border` | dropzone border |
 | `--dz-dropzone-border-active` | Drop-target border while dragging over — 2px solid --base-drop-target-border-color (success) |

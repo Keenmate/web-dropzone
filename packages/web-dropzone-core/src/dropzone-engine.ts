@@ -1953,9 +1953,7 @@ export class DropzoneEngine {
     protected get stateStore(): StateStore<DropzoneState> {
         if (this.host?.stateStore) return this.host.stateStore;
         return (this.ownStateStore ??= createStateStore<DropzoneState>(this.element, {
-            getKey: () => this.config.storageKey,
-            getLoadCallback: () => this.config.loadStateCallback,
-            getSaveCallback: () => this.config.saveStateCallback,
+            getConfig: () => this.config,
             toContext: (data) => this.ctx(data),
         }));
     }

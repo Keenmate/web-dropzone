@@ -30,7 +30,7 @@ imports the auto-script pairs as "service → service" are:
   `status-surface.ts`) — Side-layer helpers, so the rows look the same in every
   element;
 - `phone-sheet.ts`, the phone-sheet decision over core's `resolvePresentation`
-  (the page-wide drag tracking is core's `watchPageDrag`).
+  (the page-wide drag tracking is core's `observePageDrag`).
 
 None of these holds per-instance business state; the store's state lives in
 `@keenmate/web-dropzone-core`. Same shape as web-treeview's subsystem split

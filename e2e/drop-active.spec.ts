@@ -1,26 +1,26 @@
 import { test, expect } from './fixtures';
 
 /**
- * `highlight-on-page-drag` — the "armed" state: while FILES are dragged
- * anywhere over the page, every opted-in drop target gets the `armed`
- * attribute + `:state(armed)` and its card takes `--dz-dropzone-bg-armed`
+ * `highlight-on-page-drag` — the "drop-active" state: while FILES are dragged
+ * anywhere over the page, every opted-in drop target gets the `drop-active`
+ * attribute + `:state(drop-active)` and its card takes `--dz-dropzone-bg-drop-active`
  * (chains `--base-drop-target-bg`). Off by default.
  *
- * Fixture: test/armed.html. Drags are synthetic, dispatched on `#outside`
+ * Fixture: test/drop-active.html. Drags are synthetic, dispatched on `#outside`
  * (not a drop target); `__startDrag()` also runs a `dragover` pulse, as a
  * live native drag does (the tracker's heartbeat ends a silent drag).
  */
 
-const PAGE = '/test/armed.html';
+const PAGE = '/test/drop-active.html';
 
-const isArmed = (page: import('@playwright/test').Page, id: string) =>
-    page.evaluate((id) => document.getElementById(id)!.hasAttribute('armed'), id);
+const isDropActive = (page: import('@playwright/test').Page, id: string) =>
+    page.evaluate((id) => document.getElementById(id)!.hasAttribute('drop-active'), id);
 
-const armedState = (page: import('@playwright/test').Page, id: string) =>
-    page.evaluate((id) => (document.getElementById(id) as any).matches(':state(armed)'), id);
+const dropActiveState = (page: import('@playwright/test').Page, id: string) =>
+    page.evaluate((id) => (document.getElementById(id) as any).matches(':state(drop-active)'), id);
 
-const managedPickerArmed = (page: import('@playwright/test').Page, id: string) =>
-    page.evaluate((id) => document.getElementById(id)!.shadowRoot!.querySelector('web-dropzone-picker')!.hasAttribute('armed'), id);
+const managedPickerDropActive = (page: import('@playwright/test').Page, id: string) =>
+    page.evaluate((id) => document.getElementById(id)!.shadowRoot!.querySelector('web-dropzone-picker')!.hasAttribute('drop-active'), id);
 
 const cardBg = (page: import('@playwright/test').Page, id: string) =>
     page.evaluate((id) => getComputedStyle((window as any).__card(id)).backgroundColor, id);
@@ -37,38 +37,38 @@ test.afterEach(async ({ page }) => {
     await page.evaluate(() => (window as any).__stopPulse?.());
 });
 
-test('off by default: a file drag over the page never arms a dropzone without the attribute', async ({ page }) => {
+test('off by default: a file drag over the page never activates a dropzone without the attribute', async ({ page }) => {
     expect(await page.evaluate(() => (document.getElementById('plain') as any).shouldHighlightOnPageDrag)).toBe(false);
     await page.evaluate(() => (window as any).__startDrag());
-    await expect(page.locator('#bulk')).toHaveAttribute('armed', '');
-    expect(await isArmed(page, 'plain')).toBe(false);
-    expect(await page.evaluate(() => (document.getElementById('plain') as any).isArmed)).toBe(false);
+    await expect(page.locator('#bulk')).toHaveAttribute('drop-active', '');
+    expect(await isDropActive(page, 'plain')).toBe(false);
+    expect(await page.evaluate(() => (document.getElementById('plain') as any).isDropActive)).toBe(false);
     await expect.poll(() => cardBg(page, 'plain')).not.toBe('rgb(7, 8, 9)');
 });
 
-test('on: a file drag anywhere over the page arms every opted-in target (attribute, :state, isArmed, bg)', async ({ page }) => {
-    for (const id of ['bulk', 'structural', 'picker']) expect(await isArmed(page, id)).toBe(false);
+test('on: a file drag anywhere over the page activates every opted-in target (attribute, :state, isDropActive, bg)', async ({ page }) => {
+    for (const id of ['bulk', 'structural', 'picker']) expect(await isDropActive(page, id)).toBe(false);
 
     await page.evaluate(() => (window as any).__startDrag());
-    await expect(page.locator('#bulk')).toHaveAttribute('armed', '');
-    await expect(page.locator('#structural')).toHaveAttribute('armed', '');
-    await expect(page.locator('#picker')).toHaveAttribute('armed', '');
-    expect(await armedState(page, 'bulk')).toBe(true);
-    expect(await armedState(page, 'picker')).toBe(true);
-    expect(await page.evaluate(() => (document.getElementById('bulk') as any).isArmed)).toBe(true);
+    await expect(page.locator('#bulk')).toHaveAttribute('drop-active', '');
+    await expect(page.locator('#structural')).toHaveAttribute('drop-active', '');
+    await expect(page.locator('#picker')).toHaveAttribute('drop-active', '');
+    expect(await dropActiveState(page, 'bulk')).toBe(true);
+    expect(await dropActiveState(page, 'picker')).toBe(true);
+    expect(await page.evaluate(() => (document.getElementById('bulk') as any).isDropActive)).toBe(true);
     // Bulk mode: the managed picker inherits the store's setting and tints its card.
-    expect(await managedPickerArmed(page, 'bulk')).toBe(true);
+    expect(await managedPickerDropActive(page, 'bulk')).toBe(true);
     await expect.poll(() => cardBg(page, 'bulk')).toBe('rgb(7, 8, 9)');
     await expect.poll(() => cardBg(page, 'structural')).toBe('rgb(7, 8, 9)');
     await expect.poll(() => cardBg(page, 'picker')).toBe('rgb(7, 8, 9)');
 });
 
-test('the card under the pointer keeps -bg-active over the armed tint', async ({ page }) => {
+test('the card under the pointer keeps -bg-active over the drop-active tint', async ({ page }) => {
     await page.evaluate(() => {
         document.documentElement.style.setProperty('--base-drop-target-bg-active', 'rgb(1, 2, 3)');
         (window as any).__startDrag();
     });
-    await expect(page.locator('#bulk')).toHaveAttribute('armed', '');
+    await expect(page.locator('#bulk')).toHaveAttribute('drop-active', '');
     await page.evaluate(() => {
         const card = (window as any).__card('bulk') as HTMLElement;
         const dt = new DataTransfer();
@@ -79,27 +79,27 @@ test('the card under the pointer keeps -bg-active over the armed tint', async ({
     await expect.poll(() => cardBg(page, 'structural')).toBe('rgb(7, 8, 9)');
 });
 
-test('disabled targets never arm', async ({ page }) => {
+test('disabled targets never activate', async ({ page }) => {
     await page.evaluate(() => (window as any).__startDrag());
-    await expect(page.locator('#bulk')).toHaveAttribute('armed', '');
-    expect(await isArmed(page, 'disabled')).toBe(false);
-    expect(await managedPickerArmed(page, 'disabled')).toBe(false);
+    await expect(page.locator('#bulk')).toHaveAttribute('drop-active', '');
+    expect(await isDropActive(page, 'disabled')).toBe(false);
+    expect(await managedPickerDropActive(page, 'disabled')).toBe(false);
 });
 
 for (const end of ['drop', 'dragleave', 'dragend', 'Escape'] as const) {
     test(`cleared on ${end}`, async ({ page }) => {
         await page.evaluate(() => (window as any).__startDrag());
-        await expect(page.locator('#bulk')).toHaveAttribute('armed', '');
+        await expect(page.locator('#bulk')).toHaveAttribute('drop-active', '');
         // Synchronous: cleared by the event itself, not by the heartbeat.
         expect(await page.evaluate((t) => (window as any).__endDrag(t), end)).toBe(false);
-        for (const id of ['structural', 'picker']) expect(await isArmed(page, id)).toBe(false);
-        expect(await managedPickerArmed(page, 'bulk')).toBe(false);
-        expect(await armedState(page, 'bulk')).toBe(false);
+        for (const id of ['structural', 'picker']) expect(await isDropActive(page, id)).toBe(false);
+        expect(await managedPickerDropActive(page, 'bulk')).toBe(false);
+        expect(await dropActiveState(page, 'bulk')).toBe(false);
     });
 }
 
-test('enter/leave across elements is counted: only the leave out of the window disarms', async ({ page }) => {
-    const armedAfter = await page.evaluate(() => {
+test('enter/leave across elements is counted: only the leave out of the window clears it', async ({ page }) => {
+    const dropActiveAfter = await page.evaluate(() => {
         const w = window as any;
         w.__startDrag();
         const fire = (el: Element, type: string) => {
@@ -110,45 +110,45 @@ test('enter/leave across elements is counted: only the leave out of the window d
         const bulk = document.getElementById('bulk')!;
         fire(document.body, 'dragenter');             // pointer moves to <body> (depth 2)
         fire(document.getElementById('outside')!, 'dragleave'); // ... leaving #outside (depth 1)
-        const midway = bulk.hasAttribute('armed');
+        const midway = bulk.hasAttribute('drop-active');
         w.__stopPulse();
         fire(document.body, 'dragleave');              // out of the window (depth 0)
-        return { midway, after: bulk.hasAttribute('armed') };
+        return { midway, after: bulk.hasAttribute('drop-active') };
     });
-    expect(armedAfter).toEqual({ midway: true, after: false });
+    expect(dropActiveAfter).toEqual({ midway: true, after: false });
 });
 
-test('a silent drag (no dragover pulse — Esc on an external drag) disarms via the heartbeat', async ({ page }) => {
+test('a silent drag (no dragover pulse — Esc on an external drag) clears it via the heartbeat', async ({ page }) => {
     await page.evaluate(() => (window as any).__startDrag());
-    await expect(page.locator('#bulk')).toHaveAttribute('armed', '');
+    await expect(page.locator('#bulk')).toHaveAttribute('drop-active', '');
     await page.evaluate(() => (window as any).__stopPulse());
-    await expect(page.locator('#bulk')).not.toHaveAttribute('armed', '', { timeout: 2000 });
+    await expect(page.locator('#bulk')).not.toHaveAttribute('drop-active', '', { timeout: 2000 });
 });
 
-test('a text drag never arms', async ({ page }) => {
+test('a text drag never activates', async ({ page }) => {
     await page.evaluate(() => (window as any).__startDrag('text'));
     await page.waitForTimeout(200);
-    for (const id of ['bulk', 'structural', 'picker']) expect(await isArmed(page, id)).toBe(false);
+    for (const id of ['bulk', 'structural', 'picker']) expect(await isDropActive(page, id)).toBe(false);
 });
 
-test('disconnect clears the armed state; the other instances stay armed', async ({ page }) => {
+test('disconnect clears the drop-active state; the other instances stay drop-active', async ({ page }) => {
     await page.evaluate(() => (window as any).__startDrag());
-    await expect(page.locator('#bulk')).toHaveAttribute('armed', '');
+    await expect(page.locator('#bulk')).toHaveAttribute('drop-active', '');
     const result = await page.evaluate(() => {
         const bulk = document.getElementById('bulk')!;
         bulk.remove();
-        return { bulk: bulk.hasAttribute('armed'), structural: document.getElementById('structural')!.hasAttribute('armed') };
+        return { bulk: bulk.hasAttribute('drop-active'), structural: document.getElementById('structural')!.hasAttribute('drop-active') };
     });
     expect(result).toEqual({ bulk: false, structural: true });
 });
 
 test('toggling the input live subscribes / unsubscribes (reactive)', async ({ page }) => {
     await page.evaluate(() => (window as any).__startDrag());
-    await expect(page.locator('#structural')).toHaveAttribute('armed', '');
+    await expect(page.locator('#structural')).toHaveAttribute('drop-active', '');
     await page.evaluate(() => document.getElementById('structural')!.removeAttribute('highlight-on-page-drag'));
-    await expect(page.locator('#structural')).not.toHaveAttribute('armed', '');
+    await expect(page.locator('#structural')).not.toHaveAttribute('drop-active', '');
     await page.evaluate(() => { (document.getElementById('plain') as any).shouldHighlightOnPageDrag = true; });
-    await expect(page.locator('#plain')).toHaveAttribute('armed', '');
+    await expect(page.locator('#plain')).toHaveAttribute('drop-active', '');
 });
 
 test('all instances share ONE page listener set (added once, removed with the last)', async ({ page }) => {
@@ -163,7 +163,7 @@ test('all instances share ONE page listener set (added once, removed with the la
     });
     expect(await page.evaluate(() => (window as any).__dragenterCaptureRemoves)).toBe(0);
     await page.evaluate(() => (window as any).__startDrag());
-    await expect(page.locator('#picker')).toHaveAttribute('armed', '');
+    await expect(page.locator('#picker')).toHaveAttribute('drop-active', '');
     await page.evaluate(() => (window as any).__endDrag('drop'));
 
     // ...the last one out removes it; a new opt-in adds it again (once).

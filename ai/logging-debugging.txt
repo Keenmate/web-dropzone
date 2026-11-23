@@ -110,7 +110,7 @@ Render callbacks ignored
 
 Property set but not applied when read back
   -> writes coalesce on a microtask: await dz.whenSettled(), or use
-     dz.setAttributes({...}) / dz.batch(fn). Element methods flush first.
+     dz.setProperties({...}) / dz.batch(fn). Element methods flush first.
 
 Files rejected unexpectedly
   -> listen to file-reject and log validation.code; dedupe-mode="name" rejects

@@ -19,7 +19,7 @@
  */
 
 import styles from './css/main.css?inline';
-import { adoptStyles, applyArmedState, ICON_CSS, watchPageDrag, toBool, toEnum, toFunction, toText, toValue, type InputDef } from '@keenmate/web-components-core';
+import { adoptStyles, setDropActiveState, ICON_CSS, observePageDrag, toBool, toEnum, toFunction, toText, toValue, type InputDef } from '@keenmate/web-components-core';
 import {
     SatelliteElement,
     SATELLITE_INPUTS,
@@ -56,7 +56,7 @@ const INPUTS: readonly InputDef[] = [
     { configKey: 'isDisabled', attribute: 'disabled', converter: toBool('presence'), shouldReflect: true, on: 'update', type: 'boolean', description: 'Disable this picker (like a native control: no clicks / drops, not focusable, greyed). A disabled store disables it too.' },
     { configKey: 'isReadonly', attribute: 'readonly', converter: toBool('presence'), shouldReflect: true, on: 'update', type: 'boolean', description: 'Read-only (like a native control): this picker adds no files, but stays visible and focusable. A read-only store makes it read-only too.' },
     { configKey: 'isFilesInside', attribute: 'inside', converter: toBool('default-false'), on: 'update', type: 'boolean', description: 'Files-inside layout: the card slots its light-DOM children (a `<web-dropzone-list nested>`) below the prompt. Set by the store when it mounts the picker itself.' },
-    { configKey: 'shouldHighlightOnPageDrag', attribute: 'highlight-on-page-drag', converter: toBool('tristate'), on: 'update', type: 'boolean | null', description: 'Arm the picker while files are dragged anywhere over the page (`armed` attribute + `:state(armed)`). Unset = the bound store\'s `highlight-on-page-drag`.' },
+    { configKey: 'shouldHighlightOnPageDrag', attribute: 'highlight-on-page-drag', converter: toBool('tristate'), on: 'update', type: 'boolean | null', description: 'Mark the picker drop-active while files are dragged anywhere over the page (`drop-active` attribute + `:state(drop-active)`). Unset = the bound store\'s `highlight-on-page-drag`.' },
     { configKey: 'uploadFileCallback', converter: toFunction(), on: 'none', type: 'FileUploadHandler | null', description: 'Mode B: upload handler stamped onto every file this picker adds (wins over the store\'s `uploadFileCallback` for those files).' },
     { configKey: 'uploadMetadata', converter: toValue(), on: 'none', type: 'Record<string, unknown> | null', description: 'Mode B: metadata stamped onto every file this picker adds (`ctx.uploadMetadata` in the upload handler).' },
 ];
@@ -86,9 +86,9 @@ export class DropzonePickerElement extends SatelliteElement {
     private dragCounter = 0;
     /** Unsubscribe from the shared page-drag tracker (set while `highlight-on-page-drag` is live). */
     private unsubscribePageDrag: (() => void) | null = null;
-    /** A file drag is over the page (core `watchPageDrag`). */
+    /** A file drag is over the page (core `observePageDrag`). */
     private isPageDragging = false;
-    private isArmedState = false;
+    private isDropActiveState = false;
 
     constructor() {
         super();
@@ -166,12 +166,12 @@ export class DropzonePickerElement extends SatelliteElement {
     }
 
     /**
-     * True while the picker is armed (`highlight-on-page-drag` + files are
-     * dragged over the page + it accepts drops). Mirrors the `armed` attribute
-     * / `:state(armed)`.
+     * True while the picker is drop-active (`highlight-on-page-drag` + files are
+     * dragged over the page + it accepts drops). Mirrors the `drop-active` attribute
+     * / `:state(drop-active)`.
      */
-    get isArmed(): boolean {
-        return this.isArmedState;
+    get isDropActive(): boolean {
+        return this.isDropActiveState;
     }
 
     // ========================================================================
@@ -316,7 +316,7 @@ export class DropzonePickerElement extends SatelliteElement {
     }
 
     // ========================================================================
-    // ARMED (highlight-on-page-drag)
+    // DROP-ACTIVE (highlight-on-page-drag)
     // ========================================================================
 
     /** Own `highlight-on-page-drag` wins; unset → the bound store's setting. */
@@ -329,11 +329,11 @@ export class DropzonePickerElement extends SatelliteElement {
     private syncPageDrag(): void {
         const shouldTrack = this.isConnected && !!this.store && this.isPageDragHighlighted();
         if (shouldTrack && !this.unsubscribePageDrag) {
-            this.unsubscribePageDrag = watchPageDrag({
+            this.unsubscribePageDrag = observePageDrag({
                 types: ['Files'],
-                onChange: (isDragging) => {
+                changeCallback: (isDragging) => {
                     this.isPageDragging = isDragging;
-                    this.syncArmed();
+                    this.syncDropActive();
                 },
             });
         } else if (!shouldTrack && this.unsubscribePageDrag) {
@@ -341,15 +341,15 @@ export class DropzonePickerElement extends SatelliteElement {
             this.unsubscribePageDrag = null;
             this.isPageDragging = false;
         }
-        this.syncArmed();
+        this.syncDropActive();
     }
 
-    /** Armed = tracking + a file drag over the page + the picker accepts drops. */
-    private syncArmed(): void {
-        const isArmed = !!this.unsubscribePageDrag && this.isPageDragging && !this.isAddBlocked();
-        if (isArmed === this.isArmedState) return;
-        this.isArmedState = isArmed;
-        applyArmedState(this, this.internals, isArmed);
+    /** Drop-active = tracking + a file drag over the page + the picker accepts drops. */
+    private syncDropActive(): void {
+        const isDropActive = !!this.unsubscribePageDrag && this.isPageDragging && !this.isAddBlocked();
+        if (isDropActive === this.isDropActiveState) return;
+        this.isDropActiveState = isDropActive;
+        setDropActiveState(this, this.internals, isDropActive);
     }
 
     /**

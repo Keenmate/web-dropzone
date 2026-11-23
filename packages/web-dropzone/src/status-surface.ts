@@ -289,7 +289,7 @@ function renderRollingDefault(wrapper: HTMLElement, o: RollingSurfaceOptions): v
         // when it ends (core animateOut — at once with motion off / reduced).
         wrapper.insertBefore(newCurrentEl, previousCurrent);
         const toRemove = previousCurrent;
-        animateOut([toRemove], { className: 'dz__rolling-current--leaving', onDone: () => toRemove.remove() });
+        animateOut([toRemove], { className: 'dz__rolling-current--leaving', doneCallback: () => toRemove.remove() });
     } else if (previousCurrent) {
         // slide-in: snap-replace; the new slot's keyframe is the only motion.
         previousCurrent.replaceWith(newCurrentEl);

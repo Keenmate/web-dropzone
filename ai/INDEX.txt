@@ -52,7 +52,7 @@ auto-upload / autoUpload -> upload-pipeline.txt, form-integration.txt
 B
 -
 badges (list-appearance) -> display-modes.txt
-batch() / setAttributes() -> basic-setup.txt
+batch() / setProperties() -> basic-setup.txt
 beforeFilesCancelCallback -> events-callbacks.txt, upload-pipeline.txt
 beforeFilesAddCallback -> validation.txt, events-callbacks.txt
 beforeFilesRemoveCallback -> events-callbacks.txt
@@ -83,7 +83,7 @@ dark mode / data-theme / data-context-theme -> styling-theming.txt
 data-dz-action -> custom-rendering.txt
 ready attribute / :state(ready) / defer / release() -> basic-setup.txt, styling-theming.txt
 readonly -> form-integration.txt
-armed / :state(armed) / highlight-on-page-drag -> basic-setup.txt, styling-theming.txt, satellites.txt
+drop-active / :state(drop-active) / highlight-on-page-drag -> basic-setup.txt, styling-theming.txt, satellites.txt
 dedupe-mode -> validation.txt
 DEFAULT_LABELS -> labels-i18n.txt
 destroy() -> upload-pipeline.txt, advanced-patterns.txt
@@ -118,7 +118,7 @@ glossary (cancel/abort/remove/delete/clear/destroy) -> upload-pipeline.txt
 H
 -
 headless mode -> display-modes.txt, advanced-patterns.txt, satellites.txt
-highlight-on-page-drag (armed drop target) -> basic-setup.txt, styling-theming.txt, satellites.txt
+highlight-on-page-drag (drop-active target) -> basic-setup.txt, styling-theming.txt, satellites.txt
 
 I
 -

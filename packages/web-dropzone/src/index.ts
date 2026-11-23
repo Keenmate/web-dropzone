@@ -49,7 +49,7 @@ export type {
 } from '@keenmate/web-dropzone-core';
 export type { RowAction } from '@keenmate/web-dropzone-core';
 // Shared loader (renderLoadingCallback / window.components.renderLoadingCallback)
-export type { LoaderRenderContext, RenderLoaderCallback, LoadStateCallback, SaveStateCallback } from '@keenmate/web-components-core';
+export type { LoaderRenderContext, RenderLoadingCallback, LoadStateCallback, SaveStateCallback } from '@keenmate/web-components-core';
 
 // The renderer class, for standalone use without the custom element (it
 // extends the headless `DropzoneEngine`; `<web-dropzone>` never exposes it —

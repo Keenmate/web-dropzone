@@ -303,7 +303,7 @@ export class DropzoneIndicatorElement extends SatelliteElement {
             // Only while attached; Escape gives focus back to the chip (the reference).
             shouldCloseOnEscape: () => this.isConnected,
             shouldCloseOnOutsideClick: () => this.isConnected,
-            onClose: () => this.syncDrawerClosed(),
+            closeCallback: () => this.syncDrawerClosed(),
         });
     }
 
@@ -350,7 +350,7 @@ export class DropzoneIndicatorElement extends SatelliteElement {
         const { header, title, close } = createSheetHeader({
             title: this.label('headers.indicator'),
             closeLabel: this.label('ariaLabels.close'),
-            onClose: () => {
+            closeCallback: () => {
                 this.setDrawerOpen(false);
                 this.chipEl.focus({ preventScroll: true });
             },
@@ -633,7 +633,7 @@ export class DropzoneIndicatorElement extends SatelliteElement {
         // so it stays modal in both modes.
         if (!isSheet && this.config.drawerMode !== 'modal') {
             this.drawerSession = startPanelSession(drawer, {
-                onDismiss: (reason) => this.closeModalDrawer(reason),
+                dismissCallback: (reason) => this.closeModalDrawer(reason),
                 trigger: this.chipEl,
                 returnFocusTo: this.chipEl,
                 initialFocus: this.drawerCloseBtn ?? undefined,
@@ -644,11 +644,11 @@ export class DropzoneIndicatorElement extends SatelliteElement {
         }
         this.drawerSession = startModalSession(drawer, {
             backdrop: !isSheet,
-            onDismiss: () => this.closeModalDrawer(),
+            dismissCallback: () => this.closeModalDrawer(),
             trigger: this.chipEl,
             returnFocusTo: this.chipEl,
             initialFocus: this.drawerCloseBtn ?? undefined,
-            shouldObserveKeyboardInset: isSheet,
+            shouldFitToVisibleViewport: isSheet,
             logSource: this,
         });
     }
@@ -667,7 +667,7 @@ export class DropzoneIndicatorElement extends SatelliteElement {
         drawer.setAttribute('data-closing', '');
         this.drawerExit = animateOut([drawer], {
             className: 'km-drawer--closing',
-            onDone: () => {
+            doneCallback: () => {
                 this.drawerExit = null;
                 this.resetDrawerPresentation();
             },
@@ -727,7 +727,7 @@ export {
     formatFileSize,
     STATUS_ICONS
 } from '@keenmate/web-dropzone-core';
-export type { LoaderRenderContext, RenderLoaderCallback } from '@keenmate/web-components-core';
+export type { LoaderRenderContext, RenderLoadingCallback } from '@keenmate/web-components-core';
 export type {
     StatusSurfaceArgs,
     StatusSurfaceCallback,

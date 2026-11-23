@@ -125,7 +125,7 @@ shadow root (`custom-styles` / `getCustomStylesCallback`, page-wide per tag) is 
 | `popover-placement` | `popoverPlacement` | `'top' \| 'top-start' \| 'top-end' \| 'bottom' \| 'bottom-start' \| 'bottom-end' \| 'left' \| 'left-start' \| 'left-end' \| 'right' \| 'right-start' \| 'right-end'` | `'bottom-start'` | Placement of the compact-mode popover relative to the summary (floating-ui placement). |
 | `overlay-target` | `overlayTarget` | `HTMLElement \| string` |  | Element (or selector string) that acts as the full-viewport drag-overlay target. Assign an HTMLElement via the property; a selector string via the `overlay-target` attribute. |
 | `overlay-icon` | `overlayIcon` |  |  | Drag-overlay icon — markup (starts with `<`, inserted raw — NOT sanitized), an icon name (masked from `--base-icon-<name>`), or text (an emoji). See [Icons](#icons). |
-| `highlight-on-page-drag` | `shouldHighlightOnPageDrag` | `boolean` | `false` | Arm the drop target while FILES are dragged anywhere over the page: the host gets the `armed` attribute + `:state(armed)` and the card takes `--dz-dropzone-bg-armed` (the card under the pointer keeps `--dz-dropzone-bg-active`). Cleared on drop anywhere, when the drag leaves the window, on Escape / `dragend`, and on disconnect. Never armed while disabled / read-only; text and other non-file drags never arm. One shared page listener for all instances. |
+| `highlight-on-page-drag` | `shouldHighlightOnPageDrag` | `boolean` | `false` | Mark the drop target drop-active while FILES are dragged anywhere over the page: the host gets the `drop-active` attribute + `:state(drop-active)` and the card takes `--dz-dropzone-bg-drop-active` (the card under the pointer keeps `--dz-dropzone-bg-active`). Cleared on drop anywhere, when the drag leaves the window, on Escape / `dragend`, and on disconnect. Never drop-active while disabled / read-only; text and other non-file drags never activate it. One shared page listener for all instances. |
 | `name` | `name` |  |  | Form field name. Files submit as real FormData blobs under this name. |
 | `concurrency` | `concurrency` | `number` | `1` | Maximum concurrent uploads through the worker pool. |
 | `cancel-timeout` | `cancelTimeout` | `number` | `2000` | How long (ms) a cancel waits for the aborted upload handler to settle (the row shows "Cancelling…"). Settles in time → `cancelled`; otherwise `cancel-timeout-behavior` applies and later results are ignored. |
@@ -149,7 +149,7 @@ Properties with no attribute (objects, callbacks, read-only state). Callbacks ar
 
 | Property | Type | Description |
 |---|---|---|
-| `isArmed` | `boolean` | True while the dropzone is armed (`highlight-on-page-drag` + files are dragged over the page + it accepts drops). Mirrors the `armed` attribute / `:state(armed)`. (read-only) |
+| `isDropActive` | `boolean` | True while the dropzone is drop-active (`highlight-on-page-drag` + files are dragged over the page + it accepts drops). Mirrors the `drop-active` attribute / `:state(drop-active)`. (read-only) |
 | `files` | `FileState[]` | Get all current files. (read-only) |
 | `hasActiveUploads` | `boolean` | `true` while any file is pending / uploading / paused / cancelling — work that leaving the page (or removing the element) would lose. Graceful exit: `await el.cancelAll(); el.destroy()`. (read-only) |
 | `validateCallback` | `(ctx: ValidateContext) => ValidationResult` | Custom per-file validation, after the built-in size / type checks. `ctx`: `{ file, existingFiles }`. Sync. |
@@ -849,7 +849,7 @@ attribute resets the input to its default, and an invalid value — an unknown e
 `list-appearance="cards"` — is **refused**: a warning plus the core `input-rejected` event, and the
 previous value stays (there is no silent fallback). From core every satellite also gets the `ready`
 attribute / event / `:state(ready)` / `whenReady()`, `motion`, the theme context (`theme-source`),
-`defer` / `release()`, `setAttributes()` / `batch()`, `destroy()`, a per-instance logger (its own level: `el.enableLogging()`)
+`defer` / `release()`, `setProperties()` / `batch()`, `destroy()`, a per-instance logger (its own level: `el.enableLogging()`)
 and a `window.components['web-dropzone-picker']` (etc.) registry entry.
 
 #### Shared inputs (every satellite)
@@ -879,7 +879,7 @@ The shared inputs, plus:
 | `disabled` | `isDisabled` | boolean (presence) | `false` | Disable this picker like a native control: no clicks / drops, not focusable. Presence semantics — `disabled="false"` **is** disabled. A disabled store disables it too |
 | `readonly` | `isReadonly` | boolean (presence) | `false` | Read-only: adds no files, but the control stays focusable (`aria-disabled="true"`) and never opens the file dialog. A read-only store makes it read-only too |
 | `inside` | `isFilesInside` | boolean | `false` | Files-inside layout: the card slots its children — put a `<web-dropzone-list nested>` inside |
-| `highlight-on-page-drag` | `shouldHighlightOnPageDrag` | `true` / `false` (tristate) | the store's | Arm while files are dragged over the page (`armed` + `:state(armed)`, `picker.isArmed`) |
+| `highlight-on-page-drag` | `shouldHighlightOnPageDrag` | `true` / `false` (tristate) | the store's | Drop-active while files are dragged over the page (`drop-active` + `:state(drop-active)`, `picker.isDropActive`) |
 | — | `uploadFileCallback` | `FileUploadHandler \| null` |  | Mode B: upload handler stamped onto every file this picker adds (wins over the store's for those files) |
 | — | `uploadMetadata` | `Record<string, unknown> \| null` |  | Mode B: metadata stamped onto every file this picker adds (`ctx.uploadMetadata`) |
 
@@ -987,7 +987,7 @@ The same controls are exported for bundlers: `enableLogging`, `disableLogging`, 
   fire it again.
 - **Defer.** `defer` (or `shouldDefer`) holds the first build until `release()` (or removing the
   attribute) — set everything first, build once.
-- **Batching.** `el.setAttributes({ … })` / `el.batch(() => { … })` apply many inputs as one rebuild;
+- **Batching.** `el.setProperties({ … })` / `el.batch(() => { … })` apply many inputs as one rebuild;
   property writes are coalesced on a microtask anyway. `await el.whenSettled()` resolves once they
   are applied; methods apply pending writes themselves.
 - **Removal vs move.** A DOM move (re-parent / reorder) keeps everything. Removing `<web-dropzone>`

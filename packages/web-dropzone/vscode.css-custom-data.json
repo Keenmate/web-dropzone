@@ -217,8 +217,8 @@
       "values": []
     },
     {
-      "name": "--dz-dropzone-bg-armed",
-      "description": "Armed drop-target background while files are dragged anywhere over the page (highlight-on-page-drag) — chains --base-drop-target-bg (success 10% light / 20% dark)",
+      "name": "--dz-dropzone-bg-drop-active",
+      "description": "Drop-active target background while files are dragged anywhere over the page (highlight-on-page-drag) — chains --base-drop-target-bg (success 10% light / 20% dark)",
       "values": []
     },
     {
@@ -1636,8 +1636,8 @@
       "values": []
     },
     {
-      "name": "--dz-dropzone-bg-armed",
-      "description": "Armed drop-target background while files are dragged anywhere over the page (highlight-on-page-drag) — chains --base-drop-target-bg (success 10% light / 20% dark)",
+      "name": "--dz-dropzone-bg-drop-active",
+      "description": "Drop-active target background while files are dragged anywhere over the page (highlight-on-page-drag) — chains --base-drop-target-bg (success 10% light / 20% dark)",
       "values": []
     },
     {
@@ -3055,8 +3055,8 @@
       "values": []
     },
     {
-      "name": "--dz-dropzone-bg-armed",
-      "description": "Armed drop-target background while files are dragged anywhere over the page (highlight-on-page-drag) — chains --base-drop-target-bg (success 10% light / 20% dark)",
+      "name": "--dz-dropzone-bg-drop-active",
+      "description": "Drop-active target background while files are dragged anywhere over the page (highlight-on-page-drag) — chains --base-drop-target-bg (success 10% light / 20% dark)",
       "values": []
     },
     {
@@ -4474,8 +4474,8 @@
       "values": []
     },
     {
-      "name": "--dz-dropzone-bg-armed",
-      "description": "Armed drop-target background while files are dragged anywhere over the page (highlight-on-page-drag) — chains --base-drop-target-bg (success 10% light / 20% dark)",
+      "name": "--dz-dropzone-bg-drop-active",
+      "description": "Drop-active target background while files are dragged anywhere over the page (highlight-on-page-drag) — chains --base-drop-target-bg (success 10% light / 20% dark)",
       "values": []
     },
     {
@@ -5893,8 +5893,8 @@
       "values": []
     },
     {
-      "name": "--dz-dropzone-bg-armed",
-      "description": "Armed drop-target background while files are dragged anywhere over the page (highlight-on-page-drag) — chains --base-drop-target-bg (success 10% light / 20% dark)",
+      "name": "--dz-dropzone-bg-drop-active",
+      "description": "Drop-active target background while files are dragged anywhere over the page (highlight-on-page-drag) — chains --base-drop-target-bg (success 10% light / 20% dark)",
       "values": []
     },
     {

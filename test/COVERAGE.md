@@ -203,11 +203,11 @@ Every spec runs in three Playwright projects — chromium, firefox and webkit
 | `overlayTarget` property as an HTMLElement                    | ✓      | `drag-overlay.spec.ts` | `drag-overlay.html` |
 | `overlay-target="#id"` (documented selector form)             | ✓      | `drag-overlay.spec.ts` (NOTES #1 fixed) | `drag-overlay.html` |
 | Overlay takes the host's color-scheme (dark on light page, light on dark, live) | ✓ | `drag-overlay-theme.spec.ts` | `drag-overlay-theme.html` |
-| `highlight-on-page-drag` off by default (no `armed`)          | ✓      | `armed.spec.ts` | `armed.html` |
-| Armed while a file drag is over the page (attr, `:state`, bg, bulk / structural / picker) | ✓ | `armed.spec.ts` | `armed.html` |
-| Armed cleared on drop / dragleave out / dragend / Escape / heartbeat / disconnect | ✓ | `armed.spec.ts` | `armed.html` |
-| Text drag / disabled never arm; under-pointer card keeps -bg-active | ✓  | `armed.spec.ts` | `armed.html` |
-| All instances share one page listener set (ref-counted)       | ✓      | `armed.spec.ts` | `armed.html` |
+| `highlight-on-page-drag` off by default (no `drop-active`)          | ✓      | `drop-active.spec.ts` | `drop-active.html` |
+| Drop-active while a file drag is over the page (attr, `:state`, bg, bulk / structural / picker) | ✓ | `drop-active.spec.ts` | `drop-active.html` |
+| Drop-active cleared on drop / dragleave out / dragend / Escape / heartbeat / disconnect | ✓ | `drop-active.spec.ts` | `drop-active.html` |
+| Text drag / disabled never activate; under-pointer card keeps -bg-active | ✓  | `drop-active.spec.ts` | `drop-active.html` |
+| All instances share one page listener set (ref-counted)       | ✓      | `drop-active.spec.ts` | `drop-active.html` |
 
 > Drags are synthetic: a constructed `DataTransfer` carrying real `File`
 > objects reports `types` including `"Files"` in Chromium, so

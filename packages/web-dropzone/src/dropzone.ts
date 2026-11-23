@@ -24,7 +24,7 @@
 
 import { createLayer, createPopover } from '@keenmate/web-components-core/positioning';
 import type { Layer, Placement, PopoverHandle } from '@keenmate/web-components-core/positioning';
-import { adoptStyles, createId, deepActiveElement, dispatch, ICON_CSS, renderSlot, renderSlotHtml, SHEET_CHROME_CSS, startSheetSession, watchPageDrag, Z_INDEX, type SheetSession, type SlotHtml } from '@keenmate/web-components-core';
+import { adoptStyles, createId, deepActiveElement, dispatch, ICON_CSS, renderSlot, renderSlotHtml, SHEET_CHROME_CSS, startSheetSession, observePageDrag, Z_INDEX, type SheetSession, type SlotHtml } from '@keenmate/web-components-core';
 import styles from './css/main.css?inline';
 import { isPhoneSheet, observePhoneSheet } from './phone-sheet';
 import {
@@ -202,7 +202,7 @@ export class WebDropzone extends DropzoneEngine {
     private dragOverlay: HTMLElement | null = null;
     private overlayLayer: Layer | null = null;
     private overlayLayerStyles: { destroy(): void } | null = null;
-    /** Core `watchPageDrag` subscription while an overlay target is set up. */
+    /** Core `observePageDrag` subscription while an overlay target is set up. */
     private stopOverlayDragWatch: (() => void) | null = null;
     // Keeps the layer's theme attributes in step with the host's while the
     // overlay is shown (a theme switch mid-drag).
@@ -1883,7 +1883,7 @@ export class WebDropzone extends DropzoneEngine {
             shouldCloseOnOutsideClick: () => this.isActive,
             shouldCloseOnEscape: () => this.isActive,
             getInsideElements: () => [this.inputEl, this.getPopoverAnchor()],
-            onClose: () => this.closePopover(),
+            closeCallback: () => this.closePopover(),
         });
         this.isPopoverOpen = true;
         const focused = deepActiveElement();
@@ -2336,7 +2336,7 @@ export class WebDropzone extends DropzoneEngine {
             // it, the page behind doesn't scroll, the keyboard inset is kept.
             this.popoverSheetSession?.end();
             this.popoverSheetSession = isSheet
-                ? startSheetSession(this.popover, { onBack: () => this.closePopover(), logSource: this.config.hostElement ?? undefined })
+                ? startSheetSession(this.popover, { backCallback: () => this.closePopover(), logSource: this.config.hostElement ?? undefined })
                 : null;
         }
         this.popoverHandle.setAnchored(this.isActive && !isSheet);
@@ -2642,9 +2642,9 @@ export class WebDropzone extends DropzoneEngine {
         // the page shows the overlay; drop / Escape / leaving the window / the
         // dragover heartbeat stopping (an external drag cancelled with Escape)
         // hides it — for every overlay on the page at once (one shared watcher).
-        this.stopOverlayDragWatch = watchPageDrag({
+        this.stopOverlayDragWatch = observePageDrag({
             types: ['Files'],
-            onChange: (isDragging) => (isDragging ? this.showOverlay() : this.removeOverlay()),
+            changeCallback: (isDragging) => (isDragging ? this.showOverlay() : this.removeOverlay()),
         });
         window.addEventListener('blur', this.boundHandleWindowBlur);
 

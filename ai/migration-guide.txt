@@ -296,7 +296,7 @@ pre-rc builds -> 1.0.0-rc01
 - Built on web-components-core BlissElement:
   * property writes coalesce on a microtask - `await el.whenSettled()` before
     reading derived state (methods flush, so el.prop = x; el.method() works);
-  * el.setAttributes({...}) takes camelCase config keys and flushes; el.batch(fn);
+  * el.setProperties({...}) takes camelCase config keys and flushes; el.batch(fn);
   * optional-string getters return null (not '') when unset.
 - Attribute renames: max-size -> max-file-size, max-files -> max-file-count
   (config maxSize -> maxFileSize, maxFiles -> maxFileCount).

@@ -330,9 +330,9 @@
         },
         {
           "kind": "js",
-          "name": "RenderLoaderCallback",
+          "name": "RenderLoadingCallback",
           "declaration": {
-            "name": "RenderLoaderCallback",
+            "name": "RenderLoadingCallback",
             "package": "@keenmate/web-components-core"
           }
         },
@@ -1139,7 +1139,7 @@
             },
             {
               "kind": "method",
-              "name": "setAttributes",
+              "name": "setProperties",
               "privacy": "public",
               "parameters": [
                 {
@@ -1262,6 +1262,62 @@
             },
             {
               "kind": "field",
+              "name": "isLoggingEnabled",
+              "privacy": "public",
+              "readonly": true,
+              "type": {
+                "text": "boolean"
+              },
+              "description": "This element has its own log level that prints something (set by `enableLogging()`, not `silent`)."
+            },
+            {
+              "kind": "field",
+              "name": "controller",
+              "type": {
+                "text": "DropzoneController | null"
+              },
+              "description": "The component's public facade (SPEC §12.34) — the same object every event detail and callback `ctx` carries as `controller`; `undefined` for a component without one.",
+              "readonly": true,
+              "privacy": "public",
+              "inheritedFrom": {
+                "name": "SatelliteElement",
+                "module": "src/satellite-base.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "on",
+              "privacy": "public",
+              "parameters": [
+                {
+                  "name": "name",
+                  "type": {
+                    "text": "string"
+                  }
+                },
+                {
+                  "name": "handler",
+                  "type": {
+                    "text": "(event: CustomEvent) => void"
+                  }
+                },
+                {
+                  "name": "options",
+                  "type": {
+                    "text": "AddEventListenerOptions"
+                  },
+                  "optional": true
+                }
+              ],
+              "return": {
+                "type": {
+                  "text": "() => void"
+                }
+              },
+              "description": "Typed `addEventListener` for a declared event; returns an unsubscribe function (SPEC §12.5)."
+            },
+            {
+              "kind": "field",
               "name": "form",
               "privacy": "public",
               "readonly": true,
@@ -1346,19 +1402,6 @@
                 }
               ],
               "description": "Programmatically bind to a `<web-dropzone>` element, bypassing the\n`for=` attribute. Use when mounting the satellite inside another\nshadow root (where `document.getElementById` can't reach the store).\n\nSafe to call before the element connects — the binding is used when it\nactivates. Calling after connection tears down the current wiring and\nre-binds.\n\n`owner` — the element that mounted this satellite and owns it (the store\nfor its bulk-mode UI, the indicator for its drawer list); its custom CSS\n(page + instance layers) also applies to this satellite. Default none.",
-              "inheritedFrom": {
-                "name": "SatelliteElement",
-                "module": "src/satellite-base.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "controller",
-              "type": {
-                "text": "DropzoneController | null"
-              },
-              "description": "The bound store's public controller (the same object as the store's\n`el.controller`), or `null` until the store is built. Lets consumer\ncode reach the store from a satellite reference.",
-              "readonly": true,
               "inheritedFrom": {
                 "name": "SatelliteElement",
                 "module": "src/satellite-base.ts"
@@ -1463,7 +1506,7 @@
             },
             {
               "name": "input-rejected",
-              "description": "Fired when a written value is refused (core, SPEC §6): an invalid attribute or property value, or an unknown `setAttributes()` key. The element warns and keeps its previous value. Detail `{ configKey, attribute?, value, reason?, kept, source }`. Twin callback `onInputRejected`."
+              "description": "Fired when a written value is refused (core, SPEC §6): an invalid attribute or property value, or an unknown `setProperties()` key. The element warns and keeps its previous value. Detail `{ configKey, attribute?, value, reason?, kept, source }`. Twin callback `onInputRejected`."
             }
           ],
           "customElement": true,
@@ -1654,8 +1697,8 @@
               "description": "Drop-target background while dragging over — chains --base-drop-target-bg-active (success 15% light / 30% dark)"
             },
             {
-              "name": "--dz-dropzone-bg-armed",
-              "description": "Armed drop-target background while files are dragged anywhere over the page (highlight-on-page-drag) — chains --base-drop-target-bg (success 10% light / 20% dark)"
+              "name": "--dz-dropzone-bg-drop-active",
+              "description": "Drop-active target background while files are dragged anywhere over the page (highlight-on-page-drag) — chains --base-drop-target-bg (success 10% light / 20% dark)"
             },
             {
               "name": "--dz-dropzone-bg-hover",
@@ -2896,7 +2939,7 @@
             },
             {
               "kind": "method",
-              "name": "setAttributes",
+              "name": "setProperties",
               "privacy": "public",
               "parameters": [
                 {
@@ -3019,6 +3062,62 @@
             },
             {
               "kind": "field",
+              "name": "isLoggingEnabled",
+              "privacy": "public",
+              "readonly": true,
+              "type": {
+                "text": "boolean"
+              },
+              "description": "This element has its own log level that prints something (set by `enableLogging()`, not `silent`)."
+            },
+            {
+              "kind": "field",
+              "name": "controller",
+              "type": {
+                "text": "DropzoneController | null"
+              },
+              "description": "The component's public facade (SPEC §12.34) — the same object every event detail and callback `ctx` carries as `controller`; `undefined` for a component without one.",
+              "readonly": true,
+              "privacy": "public",
+              "inheritedFrom": {
+                "name": "SatelliteElement",
+                "module": "src/satellite-base.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "on",
+              "privacy": "public",
+              "parameters": [
+                {
+                  "name": "name",
+                  "type": {
+                    "text": "string"
+                  }
+                },
+                {
+                  "name": "handler",
+                  "type": {
+                    "text": "(event: CustomEvent) => void"
+                  }
+                },
+                {
+                  "name": "options",
+                  "type": {
+                    "text": "AddEventListenerOptions"
+                  },
+                  "optional": true
+                }
+              ],
+              "return": {
+                "type": {
+                  "text": "() => void"
+                }
+              },
+              "description": "Typed `addEventListener` for a declared event; returns an unsubscribe function (SPEC §12.5)."
+            },
+            {
+              "kind": "field",
               "name": "form",
               "privacy": "public",
               "readonly": true,
@@ -3103,19 +3202,6 @@
                 }
               ],
               "description": "Programmatically bind to a `<web-dropzone>` element, bypassing the\n`for=` attribute. Use when mounting the satellite inside another\nshadow root (where `document.getElementById` can't reach the store).\n\nSafe to call before the element connects — the binding is used when it\nactivates. Calling after connection tears down the current wiring and\nre-binds.\n\n`owner` — the element that mounted this satellite and owns it (the store\nfor its bulk-mode UI, the indicator for its drawer list); its custom CSS\n(page + instance layers) also applies to this satellite. Default none.",
-              "inheritedFrom": {
-                "name": "SatelliteElement",
-                "module": "src/satellite-base.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "controller",
-              "type": {
-                "text": "DropzoneController | null"
-              },
-              "description": "The bound store's public controller (the same object as the store's\n`el.controller`), or `null` until the store is built. Lets consumer\ncode reach the store from a satellite reference.",
-              "readonly": true,
               "inheritedFrom": {
                 "name": "SatelliteElement",
                 "module": "src/satellite-base.ts"
@@ -3237,7 +3323,7 @@
             },
             {
               "name": "input-rejected",
-              "description": "Fired when a written value is refused (core, SPEC §6): an invalid attribute or property value, or an unknown `setAttributes()` key. The element warns and keeps its previous value. Detail `{ configKey, attribute?, value, reason?, kept, source }`. Twin callback `onInputRejected`."
+              "description": "Fired when a written value is refused (core, SPEC §6): an invalid attribute or property value, or an unknown `setProperties()` key. The element warns and keeps its previous value. Detail `{ configKey, attribute?, value, reason?, kept, source }`. Twin callback `onInputRejected`."
             }
           ],
           "customElement": true,
@@ -3428,8 +3514,8 @@
               "description": "Drop-target background while dragging over — chains --base-drop-target-bg-active (success 15% light / 30% dark)"
             },
             {
-              "name": "--dz-dropzone-bg-armed",
-              "description": "Armed drop-target background while files are dragged anywhere over the page (highlight-on-page-drag) — chains --base-drop-target-bg (success 10% light / 20% dark)"
+              "name": "--dz-dropzone-bg-drop-active",
+              "description": "Drop-active target background while files are dragged anywhere over the page (highlight-on-page-drag) — chains --base-drop-target-bg (success 10% light / 20% dark)"
             },
             {
               "name": "--dz-dropzone-bg-hover",
@@ -4472,11 +4558,11 @@
           "members": [
             {
               "kind": "field",
-              "name": "isArmed",
+              "name": "isDropActive",
               "type": {
                 "text": "boolean"
               },
-              "description": "True while the picker is armed (`highlight-on-page-drag` + files are\ndragged over the page + it accepts drops). Mirrors the `armed` attribute\n/ `:state(armed)`.",
+              "description": "True while the picker is drop-active (`highlight-on-page-drag` + files are\ndragged over the page + it accepts drops). Mirrors the `drop-active` attribute\n/ `:state(drop-active)`.",
               "readonly": true
             },
             {
@@ -4638,7 +4724,7 @@
               },
               "default": "null",
               "attribute": "highlight-on-page-drag",
-              "description": "Arm the picker while files are dragged anywhere over the page (`armed` attribute + `:state(armed)`). Unset = the bound store's `highlight-on-page-drag`."
+              "description": "Mark the picker drop-active while files are dragged anywhere over the page (`drop-active` attribute + `:state(drop-active)`). Unset = the bound store's `highlight-on-page-drag`."
             },
             {
               "kind": "field",
@@ -4749,7 +4835,7 @@
             },
             {
               "kind": "method",
-              "name": "setAttributes",
+              "name": "setProperties",
               "privacy": "public",
               "parameters": [
                 {
@@ -4872,6 +4958,62 @@
             },
             {
               "kind": "field",
+              "name": "isLoggingEnabled",
+              "privacy": "public",
+              "readonly": true,
+              "type": {
+                "text": "boolean"
+              },
+              "description": "This element has its own log level that prints something (set by `enableLogging()`, not `silent`)."
+            },
+            {
+              "kind": "field",
+              "name": "controller",
+              "type": {
+                "text": "DropzoneController | null"
+              },
+              "description": "The component's public facade (SPEC §12.34) — the same object every event detail and callback `ctx` carries as `controller`; `undefined` for a component without one.",
+              "readonly": true,
+              "privacy": "public",
+              "inheritedFrom": {
+                "name": "SatelliteElement",
+                "module": "src/satellite-base.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "on",
+              "privacy": "public",
+              "parameters": [
+                {
+                  "name": "name",
+                  "type": {
+                    "text": "string"
+                  }
+                },
+                {
+                  "name": "handler",
+                  "type": {
+                    "text": "(event: CustomEvent) => void"
+                  }
+                },
+                {
+                  "name": "options",
+                  "type": {
+                    "text": "AddEventListenerOptions"
+                  },
+                  "optional": true
+                }
+              ],
+              "return": {
+                "type": {
+                  "text": "() => void"
+                }
+              },
+              "description": "Typed `addEventListener` for a declared event; returns an unsubscribe function (SPEC §12.5)."
+            },
+            {
+              "kind": "field",
               "name": "form",
               "privacy": "public",
               "readonly": true,
@@ -4956,19 +5098,6 @@
                 }
               ],
               "description": "Programmatically bind to a `<web-dropzone>` element, bypassing the\n`for=` attribute. Use when mounting the satellite inside another\nshadow root (where `document.getElementById` can't reach the store).\n\nSafe to call before the element connects — the binding is used when it\nactivates. Calling after connection tears down the current wiring and\nre-binds.\n\n`owner` — the element that mounted this satellite and owns it (the store\nfor its bulk-mode UI, the indicator for its drawer list); its custom CSS\n(page + instance layers) also applies to this satellite. Default none.",
-              "inheritedFrom": {
-                "name": "SatelliteElement",
-                "module": "src/satellite-base.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "controller",
-              "type": {
-                "text": "DropzoneController | null"
-              },
-              "description": "The bound store's public controller (the same object as the store's\n`el.controller`), or `null` until the store is built. Lets consumer\ncode reach the store from a satellite reference.",
-              "readonly": true,
               "inheritedFrom": {
                 "name": "SatelliteElement",
                 "module": "src/satellite-base.ts"
@@ -5081,7 +5210,7 @@
                 "text": "boolean | null"
               },
               "default": "null",
-              "description": "Arm the picker while files are dragged anywhere over the page (`armed` attribute + `:state(armed)`). Unset = the bound store's `highlight-on-page-drag`."
+              "description": "Mark the picker drop-active while files are dragged anywhere over the page (`drop-active` attribute + `:state(drop-active)`). Unset = the bound store's `highlight-on-page-drag`."
             },
             {
               "name": "defer",
@@ -5125,7 +5254,7 @@
             },
             {
               "name": "input-rejected",
-              "description": "Fired when a written value is refused (core, SPEC §6): an invalid attribute or property value, or an unknown `setAttributes()` key. The element warns and keeps its previous value. Detail `{ configKey, attribute?, value, reason?, kept, source }`. Twin callback `onInputRejected`."
+              "description": "Fired when a written value is refused (core, SPEC §6): an invalid attribute or property value, or an unknown `setProperties()` key. The element warns and keeps its previous value. Detail `{ configKey, attribute?, value, reason?, kept, source }`. Twin callback `onInputRejected`."
             }
           ],
           "customElement": true,
@@ -5316,8 +5445,8 @@
               "description": "Drop-target background while dragging over — chains --base-drop-target-bg-active (success 15% light / 30% dark)"
             },
             {
-              "name": "--dz-dropzone-bg-armed",
-              "description": "Armed drop-target background while files are dragged anywhere over the page (highlight-on-page-drag) — chains --base-drop-target-bg (success 10% light / 20% dark)"
+              "name": "--dz-dropzone-bg-drop-active",
+              "description": "Drop-active target background while files are dragged anywhere over the page (highlight-on-page-drag) — chains --base-drop-target-bg (success 10% light / 20% dark)"
             },
             {
               "name": "--dz-dropzone-bg-hover",
@@ -6497,7 +6626,7 @@
             },
             {
               "kind": "method",
-              "name": "setAttributes",
+              "name": "setProperties",
               "privacy": "public",
               "parameters": [
                 {
@@ -6620,6 +6749,62 @@
             },
             {
               "kind": "field",
+              "name": "isLoggingEnabled",
+              "privacy": "public",
+              "readonly": true,
+              "type": {
+                "text": "boolean"
+              },
+              "description": "This element has its own log level that prints something (set by `enableLogging()`, not `silent`)."
+            },
+            {
+              "kind": "field",
+              "name": "controller",
+              "type": {
+                "text": "DropzoneController | null"
+              },
+              "description": "The component's public facade (SPEC §12.34) — the same object every event detail and callback `ctx` carries as `controller`; `undefined` for a component without one.",
+              "readonly": true,
+              "privacy": "public",
+              "inheritedFrom": {
+                "name": "SatelliteElement",
+                "module": "src/satellite-base.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "on",
+              "privacy": "public",
+              "parameters": [
+                {
+                  "name": "name",
+                  "type": {
+                    "text": "string"
+                  }
+                },
+                {
+                  "name": "handler",
+                  "type": {
+                    "text": "(event: CustomEvent) => void"
+                  }
+                },
+                {
+                  "name": "options",
+                  "type": {
+                    "text": "AddEventListenerOptions"
+                  },
+                  "optional": true
+                }
+              ],
+              "return": {
+                "type": {
+                  "text": "() => void"
+                }
+              },
+              "description": "Typed `addEventListener` for a declared event; returns an unsubscribe function (SPEC §12.5)."
+            },
+            {
+              "kind": "field",
               "name": "form",
               "privacy": "public",
               "readonly": true,
@@ -6708,19 +6893,6 @@
                 "name": "SatelliteElement",
                 "module": "src/satellite-base.ts"
               }
-            },
-            {
-              "kind": "field",
-              "name": "controller",
-              "type": {
-                "text": "DropzoneController | null"
-              },
-              "description": "The bound store's public controller (the same object as the store's\n`el.controller`), or `null` until the store is built. Lets consumer\ncode reach the store from a satellite reference.",
-              "readonly": true,
-              "inheritedFrom": {
-                "name": "SatelliteElement",
-                "module": "src/satellite-base.ts"
-              }
             }
           ],
           "superclass": {
@@ -6794,7 +6966,7 @@
             },
             {
               "name": "input-rejected",
-              "description": "Fired when a written value is refused (core, SPEC §6): an invalid attribute or property value, or an unknown `setAttributes()` key. The element warns and keeps its previous value. Detail `{ configKey, attribute?, value, reason?, kept, source }`. Twin callback `onInputRejected`."
+              "description": "Fired when a written value is refused (core, SPEC §6): an invalid attribute or property value, or an unknown `setProperties()` key. The element warns and keeps its previous value. Detail `{ configKey, attribute?, value, reason?, kept, source }`. Twin callback `onInputRejected`."
             }
           ],
           "customElement": true,
@@ -6985,8 +7157,8 @@
               "description": "Drop-target background while dragging over — chains --base-drop-target-bg-active (success 15% light / 30% dark)"
             },
             {
-              "name": "--dz-dropzone-bg-armed",
-              "description": "Armed drop-target background while files are dragged anywhere over the page (highlight-on-page-drag) — chains --base-drop-target-bg (success 10% light / 20% dark)"
+              "name": "--dz-dropzone-bg-drop-active",
+              "description": "Drop-active target background while files are dragged anywhere over the page (highlight-on-page-drag) — chains --base-drop-target-bg (success 10% light / 20% dark)"
             },
             {
               "name": "--dz-dropzone-bg-hover",
@@ -8160,11 +8332,11 @@
             },
             {
               "kind": "field",
-              "name": "isArmed",
+              "name": "isDropActive",
               "type": {
                 "text": "boolean"
               },
-              "description": "True while the dropzone is armed (`highlight-on-page-drag` + files are\ndragged over the page + it accepts drops). Mirrors the `armed` attribute\n/ `:state(armed)`.",
+              "description": "True while the dropzone is drop-active (`highlight-on-page-drag` + files are\ndragged over the page + it accepts drops). Mirrors the `drop-active` attribute\n/ `:state(drop-active)`.",
               "readonly": true
             },
             {
@@ -8864,7 +9036,7 @@
               },
               "default": "false",
               "attribute": "highlight-on-page-drag",
-              "description": "Arm the drop target while FILES are dragged anywhere over the page: the host gets the `armed` attribute + `:state(armed)` and the card takes `--dz-dropzone-bg-armed` (the card under the pointer keeps `--dz-dropzone-bg-active`). Cleared on drop anywhere, when the drag leaves the window, on Escape / `dragend`, and on disconnect. Never armed while disabled / read-only; text and other non-file drags never arm. One shared page listener for all instances."
+              "description": "Mark the drop target drop-active while FILES are dragged anywhere over the page: the host gets the `drop-active` attribute + `:state(drop-active)` and the card takes `--dz-dropzone-bg-drop-active` (the card under the pointer keeps `--dz-dropzone-bg-active`). Cleared on drop anywhere, when the drag leaves the window, on Escape / `dragend`, and on disconnect. Never drop-active while disabled / read-only; text and other non-file drags never activate it. One shared page listener for all instances."
             },
             {
               "kind": "field",
@@ -9285,7 +9457,7 @@
             },
             {
               "kind": "method",
-              "name": "setAttributes",
+              "name": "setProperties",
               "privacy": "public",
               "parameters": [
                 {
@@ -9405,6 +9577,58 @@
                 }
               },
               "description": "Clear this element's own log level: it follows its component type / the page again."
+            },
+            {
+              "kind": "field",
+              "name": "isLoggingEnabled",
+              "privacy": "public",
+              "readonly": true,
+              "type": {
+                "text": "boolean"
+              },
+              "description": "This element has its own log level that prints something (set by `enableLogging()`, not `silent`)."
+            },
+            {
+              "kind": "field",
+              "name": "controller",
+              "privacy": "public",
+              "readonly": true,
+              "type": {
+                "text": "unknown"
+              },
+              "description": "The component's public facade (SPEC §12.34) — the same object every event detail and callback `ctx` carries as `controller`; `undefined` for a component without one."
+            },
+            {
+              "kind": "method",
+              "name": "on",
+              "privacy": "public",
+              "parameters": [
+                {
+                  "name": "name",
+                  "type": {
+                    "text": "string"
+                  }
+                },
+                {
+                  "name": "handler",
+                  "type": {
+                    "text": "(event: CustomEvent) => void"
+                  }
+                },
+                {
+                  "name": "options",
+                  "type": {
+                    "text": "AddEventListenerOptions"
+                  },
+                  "optional": true
+                }
+              ],
+              "return": {
+                "type": {
+                  "text": "() => void"
+                }
+              },
+              "description": "Typed `addEventListener` for a declared event; returns an unsubscribe function (SPEC §12.5)."
             },
             {
               "kind": "field",
@@ -9750,7 +9974,7 @@
                 "text": "boolean"
               },
               "default": "false",
-              "description": "Arm the drop target while FILES are dragged anywhere over the page: the host gets the `armed` attribute + `:state(armed)` and the card takes `--dz-dropzone-bg-armed` (the card under the pointer keeps `--dz-dropzone-bg-active`). Cleared on drop anywhere, when the drag leaves the window, on Escape / `dragend`, and on disconnect. Never armed while disabled / read-only; text and other non-file drags never arm. One shared page listener for all instances."
+              "description": "Mark the drop target drop-active while FILES are dragged anywhere over the page: the host gets the `drop-active` attribute + `:state(drop-active)` and the card takes `--dz-dropzone-bg-drop-active` (the card under the pointer keeps `--dz-dropzone-bg-active`). Cleared on drop anywhere, when the drag leaves the window, on Escape / `dragend`, and on disconnect. Never drop-active while disabled / read-only; text and other non-file drags never activate it. One shared page listener for all instances."
             },
             {
               "name": "name",
@@ -9953,7 +10177,7 @@
             },
             {
               "name": "input-rejected",
-              "description": "Fired when a written value is refused (core, SPEC §6): an invalid attribute or property value, or an unknown `setAttributes()` key. The element warns and keeps its previous value. Detail `{ configKey, attribute?, value, reason?, kept, source }`. Twin callback `onInputRejected`."
+              "description": "Fired when a written value is refused (core, SPEC §6): an invalid attribute or property value, or an unknown `setProperties()` key. The element warns and keeps its previous value. Detail `{ configKey, attribute?, value, reason?, kept, source }`. Twin callback `onInputRejected`."
             }
           ],
           "customElement": true,
@@ -10144,8 +10368,8 @@
               "description": "Drop-target background while dragging over — chains --base-drop-target-bg-active (success 15% light / 30% dark)"
             },
             {
-              "name": "--dz-dropzone-bg-armed",
-              "description": "Armed drop-target background while files are dragged anywhere over the page (highlight-on-page-drag) — chains --base-drop-target-bg (success 10% light / 20% dark)"
+              "name": "--dz-dropzone-bg-drop-active",
+              "description": "Drop-active target background while files are dragged anywhere over the page (highlight-on-page-drag) — chains --base-drop-target-bg (success 10% light / 20% dark)"
             },
             {
               "name": "--dz-dropzone-bg-hover",

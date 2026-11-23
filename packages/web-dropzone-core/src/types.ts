@@ -687,9 +687,9 @@ export interface DropzoneEngineOptions {
     /** Icon for the drag overlay. Read by core `renderIcon`: markup (starts with `<`) raw — ⚠️ NOT sanitized; a built-in name (`check`, `close`, … — `BUILT_IN_ICON_NAMES`) masked from `--base-icon-<name>` in `currentColor`; then `renderIconCallback` / the page-wide hook; an ASCII class list (`fa-solid fa-upload`) → an icon-font `<i class="dz__icon …">`; anything else (an emoji) escaped text. */
     overlayIcon?: string;
     /**
-     * Arm the drop target while files are dragged anywhere over the page
-     * (`highlight-on-page-drag`): the host gets `armed` + `:state(armed)` and
-     * the card takes `--dz-dropzone-bg-armed`. A bound picker satellite
+     * Mark the drop target drop-active while files are dragged anywhere over the page
+     * (`highlight-on-page-drag`): the host gets `drop-active` + `:state(drop-active)` and
+     * the card takes `--dz-dropzone-bg-drop-active`. A bound picker satellite
      * inherits it unless it sets its own attribute. Default `false`.
      */
     shouldHighlightOnPageDrag?: boolean;

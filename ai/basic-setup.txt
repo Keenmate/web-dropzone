@@ -158,9 +158,9 @@ dz.shouldAutoUpload              <-> auto-upload
 dz.isUploadedFileRemovalAllowed  <-> allow-uploaded-file-removal
 dz.shouldSinkCompleted           <-> sink-completed
 dz.shouldKeepAliveWhenRemoved    <-> keep-alive-when-removed
-dz.shouldHighlightOnPageDrag     <-> highlight-on-page-drag   (armed while files are dragged over
-                                     the page: `armed` attr + :state(armed), dz.isArmed;
-                                     card bg --dz-dropzone-bg-armed; off by default)
+dz.shouldHighlightOnPageDrag     <-> highlight-on-page-drag   (drop-active while files are dragged over
+                                     the page: `drop-active` attr + :state(drop-active), dz.isDropActive;
+                                     card bg --dz-dropzone-bg-drop-active; off by default)
 dz.renderMode                    <-> render-mode   (bulk | structural | headless)
 
 PROPERTY WRITES ARE COALESCED
@@ -173,7 +173,7 @@ dz.maxFileCount = 3;
 await dz.whenSettled();
 
 Batch several inputs synchronously:
-dz.setAttributes({ maxFileCount: 3, accept: 'image/*' });   // camelCase keys
+dz.setProperties({ maxFileCount: 3, accept: 'image/*' });   // camelCase keys
 dz.batch(() => { dz.accept = '.pdf'; dz.maxFileSize = 1048576; });
 
 READY

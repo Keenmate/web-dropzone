@@ -11,6 +11,24 @@ No stable 1.0.0 is published, so the break ships as the next release
 candidate — but `^1.0.0-rc02` consumers will pull it: the event,
 callback and store-access API below is breaking.
 
+### Changed — BREAKING: built on core `1.0.0-rc26` (the naming release) (2026-11-23)
+- Both packages need `@keenmate/web-components-core` **`^1.0.0-rc26`**.
+- **BREAKING: `el.setAttributes({ … })` → `el.setProperties({ … })`** on every element (core's inherited batch
+  writer, renamed in core rc26; same behaviour, no alias). `el.batch(fn)` is unchanged.
+- **The page-drag highlight state is `drop-active`** (core rc26 renamed `armed`; new in this rc, so no alias):
+  `highlight-on-page-drag` now sets the `drop-active` attribute + `:state(drop-active)` on `<web-dropzone>` /
+  `<web-dropzone-picker>`, `el.isArmed` → **`el.isDropActive`**, token `--dz-dropzone-bg-armed` →
+  **`--dz-dropzone-bg-drop-active`** (`:host([drop-active])`). The older entries below still say `armed`.
+- The re-exported loader type `RenderLoaderCallback` (new in this rc) is core's **`RenderLoadingCallback`**.
+- `el.labels = null` now clears the overrides (back to the defaults, like `undefined`) instead of being refused
+  with `input-rejected` (core rc26 `toObject`: null = unset when the row has no default).
+- Internal: core renames adopted — `watchPageDrag` → `observePageDrag`, `applyArmedState` → `setDropActiveState`,
+  option fields `on*` → `*Callback` (`closeCallback`, `backCallback`, `dismissCallback`, `doneCallback`,
+  `changeCallback`), `shouldObserveKeyboardInset` → `shouldFitToVisibleViewport`, `createStateStore` `getConfig()`
+  (both packages).
+- Docs, `ai/*.txt`, release notes; e2e `armed.spec.ts` / `test/armed.html` → `drop-active.spec.ts` /
+  `test/drop-active.html`.
+
 ### Changed — BREAKING: label templates read the text's context (`{ctx.*}`, `ctx.count`) (2026-11-23)
 - **BREAKING: every dynamic label passes its text spot's context as `{ ctx }`** (core rc25 dotted-path labels,
   rulebook D-NC-24) — templates read `{ctx.<path>}`, numbers locale-formatted; a `translateCallback` gets the context

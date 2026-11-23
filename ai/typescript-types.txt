@@ -44,7 +44,7 @@ class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneController>
   // BlissElement (core): destroy(): void (final; isDestroyed); release(): void;
   //   whenReady(): Promise<void>; isReady; shouldDefer (attr defer);
   //   whenSettled(): Promise<void>; flush(): void;
-  //   setAttributes(values: Record<string, unknown>): void; batch(fn): void
+  //   setProperties(values: Record<string, unknown>): void; batch(fn): void
 
 Note: element addFiles has no opts; Mode B opts go through
 el.controller.addFiles(files, opts).
@@ -56,7 +56,7 @@ exactly the element's input rows - no isHeadless / container / hostElement.
 import type { DropzoneElementConfig } from '@keenmate/web-dropzone';
 const dz = document.querySelector('web-dropzone')!;   // DropzoneElement (tag map shipped)
 dz.uploadFileCallback = upload;
-dz.setAttributes({ uploadFileCallback: upload, maxFileCount: 5 });
+dz.setProperties({ uploadFileCallback: upload, maxFileCount: 5 });
 
 SATELLITE ELEMENTS
 ------------------

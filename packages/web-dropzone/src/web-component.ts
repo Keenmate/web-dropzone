@@ -39,8 +39,8 @@ import {
     createCustomStyles,
     createStateStore,
     toBool,
-    watchPageDrag,
-    applyArmedState,
+    observePageDrag,
+    setDropActiveState,
     toBytes,
     keepScrollAcrossMove,
     toEnum,
@@ -53,9 +53,7 @@ import {
     type InputDef,
     type Converter,
     type EventDef,
-    type RenderLoaderCallback,
-    type LoadStateCallback,
-    type SaveStateCallback,
+    type RenderLoadingCallback,
 } from '@keenmate/web-components-core';
 import { WebDropzone } from './dropzone';
 import { linkStoreController, linkStoreReorder, linkStoreActions, announceStoreBuild } from './store-link';
@@ -201,7 +199,7 @@ const INPUTS: readonly InputDef[] = [
         },
     ), shouldReflect: true, on: 'update', type: 'HTMLElement | string', description: 'Element (or selector string) that acts as the full-viewport drag-overlay target. Assign an HTMLElement via the property; a selector string via the `overlay-target` attribute.' },
     { configKey: 'overlayIcon',             attribute: 'overlay-icon',        converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'Drag-overlay icon — markup (starts with `<`, inserted raw), a built-in icon name (`check`, `close`, … masked from `--base-icon-<name>`), a name `renderIconCallback` maps, an icon-font class list (`fa-solid fa-upload` → `<i class="dz__icon …">`), or text (an emoji).' },
-    { configKey: 'shouldHighlightOnPageDrag', attribute: 'highlight-on-page-drag', converter: defaultFlag('shouldHighlightOnPageDrag'), default: DEFAULT_CONFIG.shouldHighlightOnPageDrag,                                         on: 'update', type: 'boolean', description: 'Arm the drop target while FILES are dragged anywhere over the page: the host gets the `armed` attribute + `:state(armed)` and the card takes `--dz-dropzone-bg-armed` (the card under the pointer keeps `--dz-dropzone-bg-active`). Cleared on drop anywhere, when the drag leaves the window, on Escape / `dragend`, and on disconnect. Never armed while disabled / read-only; text and other non-file drags never arm. One shared page listener for all instances.' },
+    { configKey: 'shouldHighlightOnPageDrag', attribute: 'highlight-on-page-drag', converter: defaultFlag('shouldHighlightOnPageDrag'), default: DEFAULT_CONFIG.shouldHighlightOnPageDrag,                                         on: 'update', type: 'boolean', description: 'Mark the drop target drop-active while FILES are dragged anywhere over the page: the host gets the `drop-active` attribute + `:state(drop-active)` and the card takes `--dz-dropzone-bg-drop-active` (the card under the pointer keeps `--dz-dropzone-bg-active`). Cleared on drop anywhere, when the drag leaves the window, on Escape / `dragend`, and on disconnect. Never drop-active while disabled / read-only; text and other non-file drags never activate it. One shared page listener for all instances.' },
 
     // ── Form integration ──────────────────────────────────────────────────────
     { configKey: 'name',                    attribute: 'name',                converter: text(),                                                                       shouldReflect: true, on: 'update', description: 'Form field name. Files submit as real FormData blobs under this name.' },
@@ -310,7 +308,7 @@ export type DropzoneElementConfig = Omit<
     shouldKeepAliveWhenRemoved?: boolean;
     /** Required: no file selected → `valueMissing` (core, SPEC §6.6). */
     isRequired?: boolean;
-    renderLoadingCallback?: RenderLoaderCallback | null;
+    renderLoadingCallback?: RenderLoadingCallback | null;
 };
 
 /**
@@ -353,9 +351,9 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
     readonly #layerStyles = new Set<CustomStylesHandle>();
     /** Unsubscribe from the shared page-drag tracker (set while `highlight-on-page-drag` is live). */
     #unsubscribePageDrag?: () => void;
-    /** A file drag is over the page (core `watchPageDrag`). */
+    /** A file drag is over the page (core `observePageDrag`). */
     #isPageDragging = false;
-    #isArmed = false;
+    #isDropActive = false;
 
     /**
      * What the engine reports to — built once, so every engine (each rebuild)
@@ -369,9 +367,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
      * the store) so it outlives a rebuild; injected through the engine host.
      */
     readonly #stateStore = createStateStore<DropzoneState>(this, {
-        getKey: () => this.config.storageKey as string | null,
-        getLoadCallback: () => this.config.loadStateCallback as LoadStateCallback<DropzoneState> | null,
-        getSaveCallback: () => this.config.saveStateCallback as SaveStateCallback<DropzoneState> | null,
+        getConfig: () => this.config,
         toContext: (data) => this.withContext(data),
     });
 
@@ -437,17 +433,17 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
      */
     protected override disabledChanged(isDisabled: boolean): void {
         this.#dropzone?.setOptions({ isDisabled });
-        this.#syncArmed();
+        this.#syncDropActive();
         this.#syncValidity(this.#dropzone?.getFiles().length ?? 0);
     }
 
     /**
-     * True while the dropzone is armed (`highlight-on-page-drag` + files are
-     * dragged over the page + it accepts drops). Mirrors the `armed` attribute
-     * / `:state(armed)`.
+     * True while the dropzone is drop-active (`highlight-on-page-drag` + files are
+     * dragged over the page + it accepts drops). Mirrors the `drop-active` attribute
+     * / `:state(drop-active)`.
      */
-    get isArmed(): boolean {
-        return this.#isArmed;
+    get isDropActive(): boolean {
+        return this.#isDropActive;
     }
 
     // ── core lifecycle hooks ──────────────────────────────────────────────────
@@ -638,21 +634,21 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
         this.#customStyles = null;
     }
 
-    // ── armed (highlight-on-page-drag) ───────────────────────────────────────
+    // ── drop-active (highlight-on-page-drag) ─────────────────────────────────────
 
     /**
      * Join / leave the shared page-drag tracker per `highlight-on-page-drag`
      * and the connection state (one page listener set for every instance),
-     * then re-derive the armed state.
+     * then re-derive the drop-active state.
      */
     #syncPageDrag(): void {
         const shouldTrack = this.isConnected && !!this.config.shouldHighlightOnPageDrag;
         if (shouldTrack && !this.#unsubscribePageDrag) {
-            this.#unsubscribePageDrag = watchPageDrag({
+            this.#unsubscribePageDrag = observePageDrag({
                 types: ['Files'],
-                onChange: (isDragging) => {
+                changeCallback: (isDragging) => {
                     this.#isPageDragging = isDragging;
-                    this.#syncArmed();
+                    this.#syncDropActive();
                 },
             });
         } else if (!shouldTrack && this.#unsubscribePageDrag) {
@@ -660,18 +656,18 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
             this.#unsubscribePageDrag = undefined;
             this.#isPageDragging = false;
         }
-        this.#syncArmed();
+        this.#syncDropActive();
     }
 
-    /** Armed = tracking + a file drag over the page + the dropzone accepts drops. */
-    #syncArmed(): void {
-        const isArmed = !!this.#unsubscribePageDrag
+    /** Drop-active = tracking + a file drag over the page + the dropzone accepts drops. */
+    #syncDropActive(): void {
+        const isDropActive = !!this.#unsubscribePageDrag
             && this.#isPageDragging
             && !this.isEffectivelyDisabled
             && !this.config.isReadonly;
-        if (isArmed === this.#isArmed) return;
-        this.#isArmed = isArmed;
-        applyArmedState(this, this.internals, isArmed);
+        if (isDropActive === this.#isDropActive) return;
+        this.#isDropActive = isDropActive;
+        setDropActiveState(this, this.internals, isDropActive);
     }
 
     /** Destroy `engine` (if it is still the live store) and clear the form value. */
