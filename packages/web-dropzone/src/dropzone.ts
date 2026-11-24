@@ -8,7 +8,7 @@
  * the DOM event wiring. Public API of `WebDropzone` is unchanged — both
  * core methods (inherited) and renderer methods are reachable as before.
  *
- * State-change wiring: the engine's `notify()` calls the renderer's
+ * State-change wiring: the engine's `dispatchEngineEvent()` calls the renderer's
  * `onEngineEvent` hook (`file-progress`, `file-status-change`,
  * `file-update`, `file-add`, `file-remove`, `change`) BEFORE the event is
  * emitted, and the renderer patches the DOM there. Lifecycle hooks (`render`, `renderFileList`, `attach/
@@ -2476,7 +2476,7 @@ export class WebDropzone extends DropzoneEngine {
 
     /**
      * Renderer-side reactions to engine happenings — called by the engine's
-     * `notify` BEFORE the event is emitted, so the DOM is current when
+     * `dispatchEngineEvent` BEFORE the event is emitted, so the DOM is current when
      * consumers' listeners run. Inactive between `detachEventListeners` and
      * `attachEventListeners` (an `setOptions` re-render, destroy).
      */
@@ -2745,13 +2745,13 @@ export class WebDropzone extends DropzoneEngine {
             if (!this.dragOverlay || isOverlayHovered) return;
             isOverlayHovered = true;
             this.dragOverlay.classList.add('dz__overlay--hover');
-            this.notify('overlay-enter', { overlayElement: this.dragOverlay });
+            this.dispatchEngineEvent('overlay-enter', { overlayElement: this.dragOverlay });
         };
         const leaveOverlayHover = (): void => {
             if (!this.dragOverlay || !isOverlayHovered) return;
             isOverlayHovered = false;
             this.dragOverlay.classList.remove('dz__overlay--hover');
-            this.notify('overlay-leave', { overlayElement: this.dragOverlay });
+            this.dispatchEngineEvent('overlay-leave', { overlayElement: this.dragOverlay });
         };
 
         this.dragOverlay.addEventListener('dragenter', (e) => {

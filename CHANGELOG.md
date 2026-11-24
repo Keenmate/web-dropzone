@@ -16,6 +16,14 @@ callback and store-access API below is breaking.
   → **`reconcileRowOrder(id, becomingComplete)`** — a custom renderer subclassing the engine overrides the new name.
 - Satellite elements (`<web-dropzone-list>`, `-picker`, `-indicator`, `-progress`): protected
   `emitStoreEvent(name)` → **`dispatchStoreEvent(name)`** (only a subclass sees it).
+- `DropzoneEngine` event reporting (rulebook D-NC-30: `notify*` is reserved for a visible user message; firing an
+  event is `dispatch*`): the protected `notify(name, detail)` → **`dispatchEngineEvent(name, detail)`**, and the
+  `DropzoneEngineHost` contract member `notify(name, detail)` → **`dispatchEngineEvent(name, detail)`** (a custom
+  host passed to the engine implements the new name). Not plain `dispatch` — it would read as core's free
+  `dispatch()` that the same method calls. The protected per-event helpers follow: `emitAddEvent` / `emitRemoveEvent`
+  / `emitChangeEvent` / `emitConfigChangedEvent` / `emitRejectEvent` / `emitRetryEvent` / `emitUploadedEvent` /
+  `emitCancelEvent` / `emitDeleteEvent` → **`dispatch*Event`**, `emitFileProgress` / `emitFileStatusChanged` /
+  `emitFileUpdated` → **`dispatchFileProgress`** / **`dispatchFileStatusChanged`** / **`dispatchFileUpdated`**.
 - Private / module-local renames (no API effect): `sync*` → `reconcile*` (form value, validity, page drag,
   drop-active, drawer closed, remove-button hidden state, row buttons disabled), `#applyCustomStyles` →
   `#reconcileCustomStyles`, `applyPopoverPresentation` → `reconcilePopoverPresentation`, indicator

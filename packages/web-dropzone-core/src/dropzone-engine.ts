@@ -6,10 +6,10 @@
  * the overall-progress aggregate. No DOM. `WebDropzone` (the renderer)
  * extends it and overrides the protected lifecycle hooks.
  *
- * Interaction model (web-components-core SPEC §12.5): the engine NOTIFIES,
- * the element EMITS. Every happening goes through `notify(name, detail)`:
+ * Interaction model (web-components-core SPEC §12.5): the engine REPORTS,
+ * the element EMITS. Every happening goes through `dispatchEngineEvent(name, detail)`:
  * the renderer's `onEngineEvent` hook reacts first (DOM patches), then the
- * host's `notify` (`<web-dropzone>` → `this.emit()`: the `on*` twin + a
+ * host's `dispatchEngineEvent` (`<web-dropzone>` → `this.emit()`: the `on*` twin + a
  * non-composed DOM event on the host). A standalone engine (no host) attaches
  * its own context and dispatches the same non-composed events on its
  * `element`. Every callback gets ONE ctx built by `ctx()` / `contextBase`,
@@ -77,7 +77,7 @@ const DETACHED: unique symbol = Symbol('detached');
 
 /**
  * The host an engine reports to — `<web-dropzone>` passes itself, its
- * controller getter and a `notify` that routes to `emit()`.
+ * controller getter and a `dispatchEngineEvent` that routes to `emit()`.
  */
 export interface DropzoneEngineHost {
     /** The host element — `element` on every ctx / event detail. */
@@ -85,7 +85,7 @@ export interface DropzoneEngineHost {
     /** The public facade — `controller` on every ctx / event detail. */
     getController(): DropzoneController;
     /** Emit a public event (the element attaches the context). */
-    notify<K extends DropzoneEngineEventName>(name: K, detail: EngineEventDetail<K>): void;
+    dispatchEngineEvent<K extends DropzoneEngineEventName>(name: K, detail: EngineEventDetail<K>): void;
     /**
      * The persisted-UI-state handle (core `createStateStore()`, SPEC §12.17),
      * made by the element on itself so it outlives a store rebuild. Without a
@@ -220,7 +220,7 @@ export class DropzoneEngine {
     protected readonly filesChangedFrame: FrameScheduler = createFrameScheduler(() => {
         const changedIds = Array.from(this.dirtyFileIds);
         this.dirtyFileIds.clear();
-        this.notify('files-change', { changedIds, files: this.getFiles() });
+        this.dispatchEngineEvent('files-change', { changedIds, files: this.getFiles() });
     });
 
     // ---- Interaction model -----------------------------------------------
@@ -320,12 +320,12 @@ export class DropzoneEngine {
      * then the host emits it (or, standalone, a non-composed `CustomEvent`
      * with the context attached is dispatched on `element`).
      */
-    protected notify<K extends DropzoneEngineEventName>(name: K, detail: EngineEventDetail<K>): void {
+    protected dispatchEngineEvent<K extends DropzoneEngineEventName>(name: K, detail: EngineEventDetail<K>): void {
         // A destroyed store is silent: late handler results, timers and
         // previews resolving after teardown must not reach the host.
         if (this.isDestroyed) return;
         this.onEngineEvent(name, detail);
-        if (this.host) this.host.notify(name, detail);
+        if (this.host) this.host.dispatchEngineEvent(name, detail);
         else dispatch(this.element, name, this.ctx(detail as object));
     }
 
@@ -340,7 +340,7 @@ export class DropzoneEngine {
     //
     // Only structural / lifecycle hooks live here. State-driven updates
     // (per-file patches, popover refresh, summary / selector badge / overall
-    // progress) flow through `notify()` → the renderer's `onEngineEvent`
+    // progress) flow through `dispatchEngineEvent()` → the renderer's `onEngineEvent`
     // hook (`file-progress`, `file-status-change`, `file-update`,
     // `file-add`, `file-remove`, `change`) and `onConfigApplied`.
     //
@@ -512,10 +512,10 @@ export class DropzoneEngine {
         // renderer reacts to file-remove (drops cached row element) and to
         // change (refreshes summary / selector badge / overall progress).
         for (const file of removed) {
-            this.emitRemoveEvent(file);
-            if (this.hasServerSideState(file)) this.emitDeleteEvent(file);
+            this.dispatchRemoveEvent(file);
+            if (this.hasServerSideState(file)) this.dispatchDeleteEvent(file);
         }
-        this.emitChangeEvent();
+        this.dispatchChangeEvent();
 
         // Re-render the row set — per-tick updates flow through events,
         // but add / remove / clear still rebuild the inline list.
@@ -627,7 +627,7 @@ export class DropzoneEngine {
             },
             emitAction: (d) => {
                 d.files = this.getFiles();
-                this.notify('action', d);
+                this.dispatchEngineEvent('action', d);
             }
         });
     }
@@ -681,7 +681,7 @@ export class DropzoneEngine {
         this.render();
         this.attachEventListeners();
         this.renderFileList();
-        this.emitConfigChangedEvent();
+        this.dispatchConfigChangedEvent();
 
         // Overlay target replumb only if the target actually changed —
         // listeners on document are cheap but the cleanup is observable
@@ -850,10 +850,10 @@ export class DropzoneEngine {
                 (oldStatus === 'complete' || file.status === 'complete')) {
                 this.scheduleReorder(file.id, file.status === 'complete');
             }
-            this.emitFileStatusChanged(file, oldStatus, file.status);
+            this.dispatchFileStatusChanged(file, oldStatus, file.status);
         }
         if (file.progress !== prevProgress) {
-            this.emitFileProgress(file);
+            this.dispatchFileProgress(file);
         }
     }
 
@@ -892,7 +892,7 @@ export class DropzoneEngine {
         file.error = undefined;
         this.mutateFileState(file, wasCancelled ? { status: 'pending', progress: 0 } : { status: 'pending' });
         fileLogger.debug('File retry requested', { id, name: file.name, startPercent: file.progress });
-        this.emitRetryEvent(file);
+        this.dispatchRetryEvent(file);
         // Component-driven mode: re-queue via the worker pool. A call made
         // mid-drain joins it and refills idle workers up to `concurrency`, so
         // retryAll calling retryFile in a loop runs the retries in parallel.
@@ -1108,7 +1108,7 @@ export class DropzoneEngine {
         if (!file || this.isDestroyed) return Promise.resolve(null);
         if (!CANCELLABLE.has(file.status)) return Promise.resolve(null);
         const cancel = this.performCancel(file).then(result => {
-            if (result) this.emitCancelEvent(file, result);
+            if (result) this.dispatchCancelEvent(file, result);
             return result;
         }).finally(() => {
             if (this.cancels.get(id) === cancel) this.cancels.delete(id);
@@ -1350,9 +1350,9 @@ export class DropzoneEngine {
                 if (result.previewUrl !== undefined)  { file.previewUrl  = result.previewUrl;  didMerge = true; }
                 if (result.name !== undefined)        { file.name        = result.name;        didMerge = true; }
             }
-            if (didMerge) this.emitFileUpdated(file);
+            if (didMerge) this.dispatchFileUpdated(file);
             this.mutateFileState(file, { status: 'complete', progress: 100 });
-            this.emitUploadedEvent(file);
+            this.dispatchUploadedEvent(file);
             return null;
         } catch (err) {
             if (!isCurrent()) return null; // stale — ignore the late failure
@@ -1588,14 +1588,14 @@ export class DropzoneEngine {
             });
 
             // Emit events
-            acceptedFiles.forEach(file => this.emitAddEvent(file));
-            this.emitChangeEvent();
+            acceptedFiles.forEach(file => this.dispatchAddEvent(file));
+            this.dispatchChangeEvent();
         }
 
         // Handle rejected files
         if (rejectedFiles.length > 0) {
             fileLogger.warn('Files rejected', { count: rejectedFiles.length, rejectedFiles });
-            this.emitRejectEvent(rejectedFiles);
+            this.dispatchRejectEvent(rejectedFiles);
         }
 
         // ONE screen-reader announcement per drop / pick: the added count, then each rejection.
@@ -1606,7 +1606,7 @@ export class DropzoneEngine {
 
         // Re-render the row set. Per-file events were already reported
         // above (`file-add` for each accepted file, `change` from
-        // `emitChangeEvent`); the renderer's `onEngineEvent` picks up the
+        // `dispatchChangeEvent`); the renderer's `onEngineEvent` picks up the
         // summary / selector badge / overall-progress refresh AND the
         // open-popover refresh.
         this.renderFileList();
@@ -1640,7 +1640,7 @@ export class DropzoneEngine {
             // renderer's hook patches the row (grid mode swaps the
             // placeholder for the data URL; other modes are no-op
             // visually but still keep the DOM in sync with FileState).
-            this.emitFileUpdated(fileState);
+            this.dispatchFileUpdated(fileState);
         } catch (error) {
             fileLogger.warn('Failed to generate preview', { id: fileState.id, error });
         }
@@ -1850,13 +1850,13 @@ export class DropzoneEngine {
     // EVENT EMISSION
     // ========================================================================
 
-    protected emitAddEvent(file: FileState): void {
-        this.notify('file-add', { file });
+    protected dispatchAddEvent(file: FileState): void {
+        this.dispatchEngineEvent('file-add', { file });
         this.markFilesChanged(file.id);
     }
 
-    protected emitRemoveEvent(file: FileState): void {
-        this.notify('file-remove', { file });
+    protected dispatchRemoveEvent(file: FileState): void {
+        this.dispatchEngineEvent('file-remove', { file });
         this.markFilesChanged(file.id);
     }
 
@@ -1873,8 +1873,8 @@ export class DropzoneEngine {
         this.filesChangedFrame.schedule();
     }
 
-    protected emitChangeEvent(): void {
-        this.notify('change', { files: this.getFiles() });
+    protected dispatchChangeEvent(): void {
+        this.dispatchEngineEvent('change', { files: this.getFiles() });
     }
 
     /**
@@ -1887,26 +1887,26 @@ export class DropzoneEngine {
      * dispatched (not bubbling, not composed) on the host element, where the
      * satellites bound to this store listen.
      */
-    protected emitConfigChangedEvent(): void {
+    protected dispatchConfigChangedEvent(): void {
         this.onConfigApplied();
         dispatch(this.contextElement, 'dz-config-changed', undefined, { bubbles: false });
     }
 
-    protected emitRejectEvent(rejectedFiles: RejectedFile[]): void {
-        this.notify('file-reject', { rejectedFiles });
+    protected dispatchRejectEvent(rejectedFiles: RejectedFile[]): void {
+        this.dispatchEngineEvent('file-reject', { rejectedFiles });
     }
 
-    protected emitRetryEvent(file: FileState): void {
-        this.notify('file-retry', { file });
+    protected dispatchRetryEvent(file: FileState): void {
+        this.dispatchEngineEvent('file-retry', { file });
     }
 
-    protected emitUploadedEvent(file: FileState): void {
-        this.notify('file-upload', { file });
+    protected dispatchUploadedEvent(file: FileState): void {
+        this.dispatchEngineEvent('file-upload', { file });
     }
 
     /** `file-cancel` — a cancel finished (see {@link cancelFile}). */
-    protected emitCancelEvent(file: FileState, result: FileCancelResult): void {
-        this.notify('file-cancel', {
+    protected dispatchCancelEvent(file: FileState, result: FileCancelResult): void {
+        this.dispatchEngineEvent('file-cancel', {
             file,
             result,
             uploadedBytes: Math.floor(file.size * (file.progress / 100)),
@@ -1914,8 +1914,8 @@ export class DropzoneEngine {
         });
     }
 
-    protected emitDeleteEvent(file: FileState): void {
-        this.notify('file-delete', { file });
+    protected dispatchDeleteEvent(file: FileState): void {
+        this.dispatchEngineEvent('file-delete', { file });
     }
 
     /**
@@ -1924,8 +1924,8 @@ export class DropzoneEngine {
      * value changes — including the implicit 0→100 jump on `setFileStatus`
      * → 'complete'. See ARCHITECTURE.md.
      */
-    protected emitFileProgress(file: FileState): void {
-        this.notify('file-progress', {
+    protected dispatchFileProgress(file: FileState): void {
+        this.dispatchEngineEvent('file-progress', {
             id: file.id, progress: file.progress, status: file.status, file
         });
         this.markFilesChanged(file.id);
@@ -1936,12 +1936,12 @@ export class DropzoneEngine {
      * `oldStatus !== newStatus` is guaranteed (no-op mutations are
      * suppressed in `mutateFileState`).
      */
-    protected emitFileStatusChanged(
+    protected dispatchFileStatusChanged(
         file: FileState,
         oldStatus: FileState['status'],
         newStatus: FileState['status']
     ): void {
-        this.notify('file-status-change', {
+        this.dispatchEngineEvent('file-status-change', {
             id: file.id, oldStatus, newStatus, file
         });
         this.markFilesChanged(file.id);
@@ -1958,8 +1958,8 @@ export class DropzoneEngine {
      * (`file-progress`, `file-status-change`) so subscribers can opt
      * into the granularity they care about.
      */
-    protected emitFileUpdated(file: FileState): void {
-        this.notify('file-update', { file });
+    protected dispatchFileUpdated(file: FileState): void {
+        this.dispatchEngineEvent('file-update', { file });
         this.markFilesChanged(file.id);
     }
 

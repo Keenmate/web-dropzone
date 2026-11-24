@@ -123,7 +123,7 @@ examples-upload.html (`dz-upload-*`). New pages use `attachControlsPersistence`.
 
 **dropzone-engine.ts**
 - `DropzoneEngine` class — the headless store. Owns `FileState[]`, validation, upload worker pool, persistence, the overall-progress aggregate.
-- No DOM rendering. It NOTIFIES (`notify(name, detail)`); the hosting element EMITS (`<web-dropzone>` → core `this.emit()`: the `on*` twin + a bubbling, non-composed event). A standalone engine dispatches the same non-composed events on its own `element`.
+- No DOM rendering. It REPORTS (`dispatchEngineEvent(name, detail)`); the hosting element EMITS (`<web-dropzone>` → core `this.emit()`: the `on*` twin + a bubbling, non-composed event). A standalone engine dispatches the same non-composed events on its own `element`.
 
 **controller.ts**
 - `DropzoneController` — the public facade (`el.controller`, and the `controller` on every callback ctx / event detail). Built once per host; delegates to the CURRENT engine, so it survives rebuilds. Every satellite (built-in or BYO) depends on it, never on the engine.

@@ -16,9 +16,9 @@
  * `destroy()` and the tag definition (`registerComponent()` in `index.ts`) come
  * from core.
  *
- * Interaction model (web-components-core SPEC §12.5): the engine notifies,
+ * Interaction model (web-components-core SPEC §12.5): the engine reports,
  * the element emits. Every engine happening arrives through the host's
- * `notify` and goes out via `this.emit()` — the camelCase `on*` twin gets the
+ * `dispatchEngineEvent` and goes out via `this.emit()` — the camelCase `on*` twin gets the
  * detail, then a bubbling, non-composed DOM event fires on the host; every
  * detail carries `controller` (`el.controller`, a `DropzoneController`) and
  * `element`. The engine itself is never exposed.
@@ -359,7 +359,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
 
     /**
      * What the engine reports to — built once, so every engine (each rebuild)
-     * shares it: `element` / `controller` for every ctx, and `notify` routing
+     * shares it: `element` / `controller` for every ctx, and `dispatchEngineEvent` routing
      * engine happenings to `emit()`.
      */
     /**
@@ -377,7 +377,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
         element: this,
         stateStore: this.#stateStore,
         getController: () => this.controller,
-        notify: (name, detail) => {
+        dispatchEngineEvent: (name, detail) => {
             // Re-stamp the form value before listeners run, so a `change`
             // handler reading the form sees the new selection.
             if (name === 'change') this.#reconcileFormValue();

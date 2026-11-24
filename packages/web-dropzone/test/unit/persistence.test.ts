@@ -50,7 +50,7 @@ describe('DropzoneEngine persisted UI state', () => {
 
     it('a host store is used instead of the engine own one', async () => {
         const hostStore = { load: async () => ({ popoverWidth: 1 }), save: async () => {}, clear: async () => {} };
-        const host = { element: document.createElement('div'), getController: () => ({}), notify: () => {}, stateStore: hostStore };
+        const host = { element: document.createElement('div'), getController: () => ({}), dispatchEngineEvent: () => {}, stateStore: hostStore };
         const engine = make({ storageKey: 'k' }, host);
         expect(engine.store).toBe(hostStore);
     });

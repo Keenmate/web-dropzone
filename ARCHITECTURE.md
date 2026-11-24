@@ -69,7 +69,7 @@ The renderer talks to the core through exactly two surfaces — nothing else.
    - **Lifecycle:** `ready` (core `BlissElement`: fires ONCE, after the first build; + `ready` attribute, `:state(ready)`, `whenReady()`). Satellites resolve their `for=` reference race-free on an internal, non-bubbling `dz-store-build` signal fired after EVERY store build (first build, mode-flip rebuild, re-add after a removal) — with `controller.isReady`.
    - **Drag:** `overlay-enter`, `overlay-leave`.
 
-   Satellites listen on the store element itself, so non-composed events reach them from any shadow root. The engine never dispatches public events itself when hosted: it calls `notify(name, detail)`, the renderer's `onEngineEvent` hook patches the DOM first, then `<web-dropzone>` `emit()`s. (`dz-config-changed` is an internal, non-bubbling re-render signal for satellites — not public API.)
+   Satellites listen on the store element itself, so non-composed events reach them from any shadow root. The engine never dispatches public events itself when hosted: it calls `dispatchEngineEvent(name, detail)`, the renderer's `onEngineEvent` hook patches the DOM first, then `<web-dropzone>` `emit()`s. (`dz-config-changed` is an internal, non-bubbling re-render signal for satellites — not public API.)
 
 `WebDropzone` (the renderer's `<web-dropzone>` class) extends `DropzoneEngine` purely so the convenience-form back-compat case stays a single element — it then drives its internal picker/list via the same events any external satellite would consume. The split would still hold if `WebDropzone` had `core: DropzoneEngine` instead of `extends DropzoneEngine`; the inheritance is convenience, not architectural.
 
