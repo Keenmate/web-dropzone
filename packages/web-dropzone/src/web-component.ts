@@ -380,7 +380,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
         notify: (name, detail) => {
             // Re-stamp the form value before listeners run, so a `change`
             // handler reading the form sees the new selection.
-            if (name === 'change') this.#syncFormValue();
+            if (name === 'change') this.#reconcileFormValue();
             this.emit(name, detail as never);
         }
     };
@@ -435,8 +435,8 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
      */
     protected override disabledChanged(isDisabled: boolean): void {
         this.#dropzone?.setOptions({ isDisabled });
-        this.#syncDropActive();
-        this.#syncValidity(this.#dropzone?.getFiles().length ?? 0);
+        this.#reconcileDropActive();
+        this.#reconcileValidity(this.#dropzone?.getFiles().length ?? 0);
     }
 
     /**
@@ -453,7 +453,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
     /** Structural change (or first connect): rebuild the store from scratch. */
     protected override reinit(): void {
         this.#rebuildStore();
-        this.#syncPageDrag();
+        this.#reconcilePageDrag();
     }
 
     /**
@@ -465,7 +465,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
      * (`createLayer({ customStylesOptions })`, engine option) — core refreshes
      * that layer's copy with this handle.
      */
-    #applyCustomStyles(): void {
+    #reconcileCustomStyles(): void {
         if (this.#customStyles) return this.#customStyles.refresh();
         this.#customStyles = createCustomStyles(this, this.#shadow, this.#customStylesOptions);
     }
@@ -487,7 +487,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
      * (matching the pre-core behaviour, where a mode flip reset the selection).
      */
     protected override update(partial: Record<string, unknown>): void {
-        if ('shouldHighlightOnPageDrag' in partial || 'isReadonly' in partial) this.#syncPageDrag();
+        if ('shouldHighlightOnPageDrag' in partial || 'isReadonly' in partial) this.#reconcilePageDrag();
         if (
             'renderMode' in partial ||
             'displayMode' in partial ||
@@ -522,12 +522,12 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
         // read-only and the labels only affect validity (`isRequired` is core's,
         // re-evaluated after every flush).
         if ('name' in partial) {
-            this.#syncFormValue();
+            this.#reconcileFormValue();
         } else if (
             'minFileCount' in partial || 'maxFileCount' in partial || 'isReadonly' in partial ||
             'labels' in partial || 'translateCallback' in partial || 'locale' in partial
         ) {
-            this.#syncValidity(this.#dropzone?.getFiles().length ?? 0);
+            this.#reconcileValidity(this.#dropzone?.getFiles().length ?? 0);
         }
     }
 
@@ -541,7 +541,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
     protected override localeChanged(): void {
         if (!this.#dropzone) return;
         this.#dropzone.refreshLabels();
-        this.#syncValidity(this.#dropzone.getFiles().length);
+        this.#reconcileValidity(this.#dropzone.getFiles().length);
     }
 
     /**
@@ -564,7 +564,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
     protected override connect(): void {
         if (this.#dropzone) this.#dropzone.activate();
         else this.#buildStore();
-        this.#syncPageDrag();
+        this.#reconcilePageDrag();
 
         initLogger.debug('DropzoneElement connected');
     }
@@ -576,7 +576,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
      */
     protected override disconnect(): void {
         this.#dropzone?.deactivate();
-        this.#syncPageDrag();
+        this.#reconcilePageDrag();
         initLogger.debug('DropzoneElement disconnected');
     }
 
@@ -621,14 +621,14 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
      * and the connection state (one page listener set for every instance),
      * then re-derive the drop-active state.
      */
-    #syncPageDrag(): void {
+    #reconcilePageDrag(): void {
         const shouldTrack = this.isConnected && !!this.config.shouldHighlightOnPageDrag;
         if (shouldTrack && !this.#unsubscribePageDrag) {
             this.#unsubscribePageDrag = observePageDrag({
                 types: ['Files'],
                 changeCallback: (isDragging) => {
                     this.#isPageDragging = isDragging;
-                    this.#syncDropActive();
+                    this.#reconcileDropActive();
                 },
             });
         } else if (!shouldTrack && this.#unsubscribePageDrag) {
@@ -636,11 +636,11 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
             this.#unsubscribePageDrag = undefined;
             this.#isPageDragging = false;
         }
-        this.#syncDropActive();
+        this.#reconcileDropActive();
     }
 
     /** Drop-active = tracking + a file drag over the page + the dropzone accepts drops. */
-    #syncDropActive(): void {
+    #reconcileDropActive(): void {
         const isDropActive = !!this.#unsubscribePageDrag
             && this.#isPageDragging
             && !this.isEffectivelyDisabled
@@ -655,7 +655,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
         if (this.#dropzone !== engine) return;
         engine.destroy();
         this.#dropzone = undefined;
-        this.#syncFormValue();
+        this.#reconcileFormValue();
     }
 
     // ── store lifecycle ───────────────────────────────────────────────────────
@@ -678,10 +678,10 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
 
     #buildStore(): void {
         const config = this.#assembleConfig();
-        this.#applyCustomStyles();
+        this.#reconcileCustomStyles();
 
         this.#dropzone = new WebDropzone(this.#container, config, this.#engineHost);
-        this.#syncFormValue();
+        this.#reconcileFormValue();
 
         // The store is live: `el.controller` now reaches it. Satellites that
         // are waiting for a store (connected first, or mounted by the store
@@ -746,7 +746,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
      * would. If `internals` is unavailable (older browser, jsdom), this is a
      * no-op and consumers can still read `this.files` programmatically.
      */
-    #syncFormValue(): void {
+    #reconcileFormValue(): void {
         const internals = this.internals;
         if (!internals) return;
         const files = this.#dropzone?.getFiles() ?? [];
@@ -762,7 +762,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
             internals.setFormValue(formData);
         }
 
-        this.#syncValidity(files.length);
+        this.#reconcileValidity(files.length);
     }
 
     /**
@@ -778,7 +778,7 @@ export class DropzoneElement extends BlissElement<DropzoneEventMap, DropzoneCont
      * Read-only / disabled (native: barred from constraint validation) clear
      * both. Then `refreshRequired()` re-evaluates `valueMissing`.
      */
-    #syncValidity(fileCount: number): void {
+    #reconcileValidity(fileCount: number): void {
         const options = this.#dropzone?.getOptions();
         const label = this.#dropzone?.label ?? defaultLabel;
         const isChecked = !this.config.isReadonly && !this.isEffectivelyDisabled;

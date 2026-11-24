@@ -163,7 +163,7 @@ export class DropzonePickerElement extends SatelliteElement {
         document.removeEventListener('dragend', this.handleDocReset);
         this.dragActive = false;
         this.dragCounter = 0;
-        this.syncPageDrag();
+        this.reconcilePageDrag();
     }
 
     /**
@@ -313,7 +313,7 @@ export class DropzonePickerElement extends SatelliteElement {
         this.container.innerHTML = inner;
         this.inputEl = this.container.querySelector('input.dz__dropzone-input');
         this.attachInteractionHandlers();
-        this.syncPageDrag();
+        this.reconcilePageDrag();
     }
 
     // ========================================================================
@@ -327,14 +327,14 @@ export class DropzonePickerElement extends SatelliteElement {
     }
 
     /** Join / leave the shared page-drag tracker (one page listener set for every instance). */
-    private syncPageDrag(): void {
+    private reconcilePageDrag(): void {
         const shouldTrack = this.isConnected && !!this.store && this.isPageDragHighlighted();
         if (shouldTrack && !this.unsubscribePageDrag) {
             this.unsubscribePageDrag = observePageDrag({
                 types: ['Files'],
                 changeCallback: (isDragging) => {
                     this.isPageDragging = isDragging;
-                    this.syncDropActive();
+                    this.reconcileDropActive();
                 },
             });
         } else if (!shouldTrack && this.unsubscribePageDrag) {
@@ -342,11 +342,11 @@ export class DropzonePickerElement extends SatelliteElement {
             this.unsubscribePageDrag = null;
             this.isPageDragging = false;
         }
-        this.syncDropActive();
+        this.reconcileDropActive();
     }
 
     /** Drop-active = tracking + a file drag over the page + the picker accepts drops. */
-    private syncDropActive(): void {
+    private reconcileDropActive(): void {
         const isDropActive = !!this.unsubscribePageDrag && this.isPageDragging && !this.isAddBlocked();
         if (isDropActive === this.isDropActiveState) return;
         this.isDropActiveState = isDropActive;

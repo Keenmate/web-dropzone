@@ -205,7 +205,7 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
             // retried row left the bucket) — internal store signal.
             'dz-reorder': (e) => {
                 const { id, isComplete } = (e as CustomEvent<{ id: string; isComplete: boolean }>).detail;
-                this.applyReorder(id, isComplete);
+                this.reconcileRowOrder(id, isComplete);
             },
             // progress / status changes → patch the affected row in place
             // (rendering at 50ms ticks across 20 files would burn DOM otherwise).
@@ -407,7 +407,7 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
         const line = this.container.querySelector('.dz__summary-line');
         if (!line) return;
         const fire = () => {
-            if (!this.isStoreDisabled) this.emitStoreEvent('summary-activate');
+            if (!this.isStoreDisabled) this.dispatchStoreEvent('summary-activate');
         };
         line.addEventListener('click', fire);
         line.addEventListener('keydown', (e) => {
@@ -494,7 +494,7 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
      * flip the row's bucket so the CSS `order` moves it. With a
      * `max-visible-file-count` cap the visible window changes too, so re-render.
      */
-    private applyReorder(id: string, isComplete: boolean): void {
+    private reconcileRowOrder(id: string, isComplete: boolean): void {
         const cap = this.store?.getOptions().maxVisibleFileCount ?? 0;
         if (cap > 0 && !this.showAll) {
             this.scheduleRenderAll();
@@ -621,7 +621,7 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
             queueBtn.innerHTML = '<span class="dz__rolling-queue-count"></span>';
             queueBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                this.emitStoreEvent('queue-open');
+                this.dispatchStoreEvent('queue-open');
             });
             wrapper.appendChild(queueBtn);
         }

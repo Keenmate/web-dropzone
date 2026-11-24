@@ -12,7 +12,7 @@
  * `onEngineEvent` hook (`file-progress`, `file-status-change`,
  * `file-update`, `file-add`, `file-remove`, `change`) BEFORE the event is
  * emitted, and the renderer patches the DOM there. Lifecycle hooks (`render`, `renderFileList`, `attach/
- * detachEventListeners`, `setup/cleanupOverlay`, `applyReorderToRenderer`,
+ * detachEventListeners`, `setup/cleanupOverlay`, `reconcileRowOrder`,
  * `onDestroy`) stay as method overrides — they're not state-driven.
  *
  * Module-level helpers (`formatFileSize`, `isImageFile`, etc.) moved to
@@ -279,7 +279,7 @@ export class WebDropzone extends DropzoneEngine {
         this.isActive = true;
         this.setupOverlayTarget();
         // An open popover kept through a DOM move is positioned again (not a phone sheet).
-        this.applyPopoverPresentation();
+        this.reconcilePopoverPresentation();
         uiLogger.debug('Activated');
     }
 
@@ -719,7 +719,7 @@ export class WebDropzone extends DropzoneEngine {
      * re-renders the cap-bounded list so any newly-eligible row drops out
      * of the visible window (and the next hidden file slides up).
      */
-    protected override applyReorderToRenderer(id: string, becomingComplete: boolean): void {
+    protected override reconcileRowOrder(id: string, becomingComplete: boolean): void {
         // Inline-list row: flip `data-reorder-bucket` so the CSS
         // `order: 1` rule kicks in (or releases). Doubles as the
         // visual state used by getOrderedFiles via isReorderEligible
@@ -933,7 +933,7 @@ export class WebDropzone extends DropzoneEngine {
 
                 // The delayed visual reorder (sinkCompletedDelay) is
                 // scheduled by the engine's mutateFileState on the
-                // complete-boundary crossing; applyReorderToRenderer flips
+                // complete-boundary crossing; reconcileRowOrder flips
                 // the row bucket when it fires.
             }
 
@@ -1014,7 +1014,7 @@ export class WebDropzone extends DropzoneEngine {
             !!this.config.isDisabled
         );
 
-        this.syncRemoveButtonHiddenState(
+        this.reconcileRemoveButtonHiddenState(
             row.querySelector('.dz__popover-remove'),
             file,
             'dz__popover-remove--hidden'
@@ -1150,7 +1150,7 @@ export class WebDropzone extends DropzoneEngine {
                 ? '.dz__preview-item-remove'
                 : '.dz__file-item-remove';
         const hiddenClass = removeSelector.slice(1) + '--hidden';
-        this.syncRemoveButtonHiddenState(
+        this.reconcileRemoveButtonHiddenState(
             row.querySelector(removeSelector),
             file,
             hiddenClass
@@ -1160,7 +1160,7 @@ export class WebDropzone extends DropzoneEngine {
     /** Toggle the `--hidden` modifier on a per-row remove button plus the
      *  matching aria/tabindex attrs. Shared across all the patcher
      *  variants so the rules for hiding stay in one place. */
-    private syncRemoveButtonHiddenState(
+    private reconcileRemoveButtonHiddenState(
         btn: Element | null,
         file: FileState,
         hiddenClass: string
@@ -1849,7 +1849,7 @@ export class WebDropzone extends DropzoneEngine {
         // backed by localStorage (synchronous, just await ms), but the
         // callback flavour may go to the network. Apply width/height once
         // resolved — autoUpdate re-positions on the size change.
-        // A phone sheet ignores it (applyPopoverPresentation).
+        // A phone sheet ignores it (reconcilePopoverPresentation).
         void this.stateStore.load().then(state => {
             if (!this.popover || !state) return;
             const size = this.popoverIsSheet ? this.popoverAnchoredSize : this.popover.style;
@@ -1917,8 +1917,8 @@ export class WebDropzone extends DropzoneEngine {
         // re-decided when the device / breakpoint changes.
         this.popoverHandle.setAnchored(false);
         this.popoverHandle.open();
-        this.stopPopoverPhoneWatch = observePhoneSheet(() => this.applyPopoverPresentation());
-        this.applyPopoverPresentation();
+        this.stopPopoverPhoneWatch = observePhoneSheet(() => this.reconcilePopoverPresentation());
+        this.reconcilePopoverPresentation();
 
         // Add event handlers
         // The sheet's close button (phones only): the modal session's end() gives focus back.
@@ -2326,7 +2326,7 @@ export class WebDropzone extends DropzoneEngine {
      * above the line the anchored panel gets it again. Detached (moved) dropzones
      * stay un-anchored until `activate()`.
      */
-    private applyPopoverPresentation(): void {
+    private reconcilePopoverPresentation(): void {
         if (!this.popover || !this.popoverHandle) return;
         const isSheet = isPhoneSheet();
         if (isSheet !== this.popoverIsSheet) {
@@ -2741,13 +2741,13 @@ export class WebDropzone extends DropzoneEngine {
         // Hover state — emits overlay-enter / overlay-leave on the host so
         // consumers can surface contextual info (remaining quota, hint text, …).
         let isOverlayHovered = false;
-        const applyOverlayHover = (): void => {
+        const enterOverlayHover = (): void => {
             if (!this.dragOverlay || isOverlayHovered) return;
             isOverlayHovered = true;
             this.dragOverlay.classList.add('dz__overlay--hover');
             this.notify('overlay-enter', { overlayElement: this.dragOverlay });
         };
-        const revertOverlayHover = (): void => {
+        const leaveOverlayHover = (): void => {
             if (!this.dragOverlay || !isOverlayHovered) return;
             isOverlayHovered = false;
             this.dragOverlay.classList.remove('dz__overlay--hover');
@@ -2757,7 +2757,7 @@ export class WebDropzone extends DropzoneEngine {
         this.dragOverlay.addEventListener('dragenter', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            applyOverlayHover();
+            enterOverlayHover();
         });
 
         this.dragOverlay.addEventListener('dragover', (e) => {
@@ -2765,7 +2765,7 @@ export class WebDropzone extends DropzoneEngine {
             // Not stopped: core's page watcher (window, capture) sees it anyway.
             // Belt-and-braces: if the overlay was inserted under an existing
             // drag, dragenter may not fire — dragover still does.
-            applyOverlayHover();
+            enterOverlayHover();
         });
 
         this.dragOverlay.addEventListener('drop', (e) => {
@@ -2789,7 +2789,7 @@ export class WebDropzone extends DropzoneEngine {
             // stays while the drag is live anywhere on the page (core's
             // watcher ends it), so crossing a gap between two split-overlay
             // targets doesn't flicker.
-            revertOverlayHover();
+            leaveOverlayHover();
         });
 
         uiLogger.debug('Overlay created');

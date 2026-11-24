@@ -27,7 +27,7 @@
  * is replaceable independently — you can override progress but keep the
  * built-in file info, or vice versa.
  *
- * All three callbacks go through core `renderSlot` (`applySurfaceSlot`):
+ * All three callbacks go through core `renderSlot` (`renderSurfaceSlot`):
  * string = HTML (skipped when equal to the previous string), Node = mounted
  * (skipped when already the only child), `null` / `undefined` = the default,
  * `false` = hidden. That's what lets a cached loader survive across 50ms
@@ -53,7 +53,7 @@ import { renderDzIcon, ICON_NAME_ATTR } from './row-templates';
 import { adoptStyles, ICON_CSS, animateOut, createMicrotaskScheduler, createSheetHeader, keepScrollAcrossMove, renderLoader, renderSlot, SHEET_CHROME_CSS, startModalSession, startPanelSession, toEnum, toFunction, type InputDef, type ModalSession, type PanelSession, type PanelDismissReason } from '@keenmate/web-components-core';
 import { isPhoneSheet } from './phone-sheet';
 import { createPopover, type PopoverHandle } from '@keenmate/web-components-core/positioning';
-import { applySurfaceSlot, buildStatusSurfaceArgs } from './status-surface';
+import { renderSurfaceSlot, buildStatusSurfaceArgs } from './status-surface';
 import type {
     StatusSurfaceArgs,
     StatusSurfaceCallback
@@ -205,13 +205,13 @@ export class DropzoneIndicatorElement extends SatelliteElement {
      */
     protected override inputsChanged(partial: Record<string, unknown>): void {
         if ('position' in partial) {
-            this.applyPosition();
+            this.reconcilePosition();
             // Inline = a popover in the overlay tree; an edge = a modal drawer.
             this.destroyDrawerHandle();
             if (this.resolvePosition() === 'inline') this.createInlineDrawerHandle();
         }
         if ('drawer' in partial) {
-            this.applyDrawerMode();
+            this.reconcileDrawerMode();
             this.bindEmbeddedList();
         }
         if ('renderBodyCallback' in partial) this.resetMemoization();
@@ -229,8 +229,8 @@ export class DropzoneIndicatorElement extends SatelliteElement {
     }
 
     protected setupBeforeBind(): void {
-        this.applyPosition();
-        this.applyDrawerMode();
+        this.reconcilePosition();
+        this.reconcileDrawerMode();
     }
 
     protected onStoreReady(): void {
@@ -250,11 +250,11 @@ export class DropzoneIndicatorElement extends SatelliteElement {
         return this.config.drawer as DrawerMode;
     }
 
-    private applyPosition(): void {
+    private reconcilePosition(): void {
         this.shadow.host.setAttribute('data-position', this.resolvePosition());
     }
 
-    private applyDrawerMode(): void {
+    private reconcileDrawerMode(): void {
         const mode = this.resolveDrawerMode();
         this.shadow.host.setAttribute('data-drawer', mode);
 
@@ -316,7 +316,7 @@ export class DropzoneIndicatorElement extends SatelliteElement {
             // Only while attached; Escape gives focus back to the chip (the reference).
             shouldCloseOnEscape: () => this.isConnected,
             shouldCloseOnOutsideClick: () => this.isConnected,
-            closeCallback: () => this.syncDrawerClosed(),
+            closeCallback: () => this.reconcileDrawerClosed(),
         });
     }
 
@@ -329,7 +329,7 @@ export class DropzoneIndicatorElement extends SatelliteElement {
         this.drawerExit?.cancel();
         this.drawerExit = null;
         this.resetDrawerPresentation();
-        this.syncDrawerClosed();
+        this.reconcileDrawerClosed();
     }
 
     // ========================================================================
@@ -497,13 +497,13 @@ export class DropzoneIndicatorElement extends SatelliteElement {
     private refreshFileInfoSlot(args: StatusSurfaceArgs): void {
         if (!this.fileInfoSlotEl) return;
         const cb = this.fileInfoCallback;
-        applySurfaceSlot(this.fileInfoSlotEl, cb ? () => cb(args) : null, () => this.defaultFileInfo(args));
+        renderSurfaceSlot(this.fileInfoSlotEl, cb ? () => cb(args) : null, () => this.defaultFileInfo(args));
     }
 
     private refreshProgressSlot(args: StatusSurfaceArgs): void {
         if (!this.progressSlotEl) return;
         const cb = this.progressCallback;
-        applySurfaceSlot(this.progressSlotEl, cb ? () => cb(args) : null, () => this.defaultProgress(args));
+        renderSurfaceSlot(this.progressSlotEl, cb ? () => cb(args) : null, () => this.defaultProgress(args));
 
         // The label sits between the two slots and reads from the
         // aggregate. Auto-hide it when the consumer has provided either a
@@ -567,7 +567,7 @@ export class DropzoneIndicatorElement extends SatelliteElement {
      * filled by core `renderLoader()` — the store's `renderLoadingCallback`,
      * else `window.components.renderLoadingCallback`, else the default
      * `.dz__loader`. Drawn once per upload run and reused across refreshes so
-     * the animation never restarts (`applySurfaceSlot` short-circuits
+     * the animation never restarts (`renderSurfaceSlot` short-circuits
      * when the returned element is already mounted); released (hook cleanup)
      * when the focal file stops uploading or the store binding goes away.
      */
@@ -611,7 +611,7 @@ export class DropzoneIndicatorElement extends SatelliteElement {
         if (this.drawerOpen === open) return;
         if (!open) {
             if (this.drawerSession) return this.closeModalDrawer();
-            this.drawerHandle?.close(); // → onClose → syncDrawerClosed()
+            this.drawerHandle?.close(); // → onClose → reconcileDrawerClosed()
             return;
         }
         const isSheet = isPhoneSheet();
@@ -678,7 +678,7 @@ export class DropzoneIndicatorElement extends SatelliteElement {
         const drawer = this.drawerEl;
         // The chip shows again first, so the session can give focus back to it
         // (not after a click outside a non-modal drawer: the page took focus).
-        this.syncDrawerClosed();
+        this.reconcileDrawerClosed();
         this.endDrawerSession(reason !== 'outside-click');
         if (!drawer || !drawer.classList.contains('km-drawer')) {
             this.resetDrawerPresentation();
@@ -722,7 +722,7 @@ export class DropzoneIndicatorElement extends SatelliteElement {
     }
 
     /** The drawer closed (any reason): state, host attribute, the chip's aria-expanded. */
-    private syncDrawerClosed(): void {
+    private reconcileDrawerClosed(): void {
         this.drawerOpen = false;
         this.shadow.host.setAttribute('data-drawer-open', 'false');
         if (this.chipEl instanceof HTMLButtonElement) this.chipEl.setAttribute('aria-expanded', 'false');

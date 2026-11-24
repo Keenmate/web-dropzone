@@ -185,7 +185,7 @@ examples-upload.html (`dz-upload-*`). New pages use `attachControlsPersistence`.
 **store-link.ts** — the store's satellite-side controller + the internal `dz-store-build` signal.
 
 **status-surface.ts**
-- Renderer-side implementation of the `StatusSurfaceCallback` contract from core (`buildStatusSurfaceArgs`, `computeStatusAggregate`, `pickCurrentFile`), `applySurfaceSlot` (core `renderSlot` + a default-content memo) and `renderRollingSurface` — the ONE rolling renderer for `<web-dropzone>` and `<web-dropzone-list>`. Indicator + rolling-list both go through this.
+- Renderer-side implementation of the `StatusSurfaceCallback` contract from core (`buildStatusSurfaceArgs`, `computeStatusAggregate`, `pickCurrentFile`), `renderSurfaceSlot` (core `renderSlot` + a default-content memo) and `renderRollingSurface` — the ONE rolling renderer for `<web-dropzone>` and `<web-dropzone-list>`. Indicator + rolling-list both go through this.
 
 **row-templates.ts / row-patching.ts**
 - Per-row template strings and in-place patchers for list / detailed / grid / badges / popover modes. The hot path under upload progress ticks.

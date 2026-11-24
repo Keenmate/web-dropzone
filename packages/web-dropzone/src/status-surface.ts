@@ -56,7 +56,7 @@ import type {
     StatusSurfaceResult
 } from '@keenmate/web-dropzone-core';
 import { listProgressInner } from './row-templates';
-import { syncRowButtonsDisabled } from './row-patching';
+import { reconcileRowButtonsDisabled } from './row-patching';
 
 // Re-export the public surface types so existing renderer-internal imports
 // keep working — they import these symbols from `./status-surface` today.
@@ -179,7 +179,7 @@ const defaultHtml = new WeakMap<HTMLElement, string>();
  * Node (skipped when already mounted — a cached loader keeps animating).
  * Without `renderDefaultContent` a default result leaves the slot as it is.
  */
-export function applySurfaceSlot(
+export function renderSurfaceSlot(
     el: HTMLElement,
     result: StatusSurfaceResult | (() => StatusSurfaceResult),
     renderDefaultContent?: () => string | Node
@@ -208,7 +208,7 @@ const lastKinds = new WeakMap<HTMLElement, SlotKind>();
  * leaves it alone, unless a custom / hidden result replaced it — then
  * `restore()` writes the default back.
  */
-function applyRestorableSlot(el: HTMLElement, result: () => StatusSurfaceResult, restore: () => string): void {
+function renderRestorableSlot(el: HTMLElement, result: () => StatusSurfaceResult, restore: () => string): void {
     const prev = lastKinds.get(el);
     const kind = renderSlot(el, result, {
         renderDefault: (c) => { if (prev !== undefined && prev !== 'default') c.innerHTML = restore(); },
@@ -279,8 +279,8 @@ function renderRollingDefault(wrapper: HTMLElement, o: RollingSurfaceOptions): v
     if (previousCurrent && previousCurrent.dataset.frontId === front.id) {
         // Same front: per-row ticks land via the row patchers; refresh the
         // slot callbacks (a status change re-renders them) + the badge.
-        applyRollingSlots(previousCurrent, o, front);
-        syncRowButtonsDisabled(previousCurrent, front, o.isDisabled);
+        renderRollingSlots(previousCurrent, o, front);
+        reconcileRowButtonsDisabled(previousCurrent, front, o.isDisabled);
         o.updateQueueButton(wrapper, queueCount, showQueueBtn);
         return;
     }
@@ -289,7 +289,7 @@ function renderRollingDefault(wrapper: HTMLElement, o: RollingSurfaceOptions): v
     newCurrentEl.className = 'dz__rolling-current';
     newCurrentEl.dataset.frontId = front.id;
     newCurrentEl.innerHTML = o.renderRow(front);
-    applyRollingSlots(newCurrentEl, o, front);
+    renderRollingSlots(newCurrentEl, o, front);
 
     if (previousCurrent && o.rotation !== 'slide-in') {
         // True rotation — the outgoing slot stays mounted so its keyframe
@@ -309,15 +309,15 @@ function renderRollingDefault(wrapper: HTMLElement, o: RollingSurfaceOptions): v
 }
 
 /** The rolling file-info + progress callbacks into the front row's slots (only when set). */
-function applyRollingSlots(currentEl: HTMLElement, o: RollingSurfaceOptions, front: FileState): void {
+function renderRollingSlots(currentEl: HTMLElement, o: RollingSurfaceOptions, front: FileState): void {
     const fileInfo = o.fileInfoCallback;
     const fileInfoSlot = currentEl.querySelector<HTMLElement>('.dz__file-item-name');
     if (fileInfo && fileInfoSlot) {
-        applyRestorableSlot(fileInfoSlot, () => fileInfo(o.args), () => escapeHtml(front.name));
+        renderRestorableSlot(fileInfoSlot, () => fileInfo(o.args), () => escapeHtml(front.name));
     }
     const progress = o.progressCallback;
     const progressSlot = currentEl.querySelector<HTMLElement>('.dz__file-item-progress');
     if (progress && progressSlot) {
-        applyRestorableSlot(progressSlot, () => progress(o.args), () => listProgressInner(front, o.label, o.locale));
+        renderRestorableSlot(progressSlot, () => progress(o.args), () => listProgressInner(front, o.label, o.locale));
     }
 }

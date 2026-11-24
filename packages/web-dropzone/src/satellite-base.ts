@@ -374,7 +374,7 @@ export abstract class SatelliteElement<TEvents extends EventMap = Record<string,
      * (the store's `el.controller`) and `element` (the `<web-dropzone>`),
      * non-enumerable — attached up front, so core keeps them.
      */
-    protected emitStoreEvent<K extends keyof TEvents & string>(name: K): boolean {
+    protected dispatchStoreEvent<K extends keyof TEvents & string>(name: K): boolean {
         const storeEl = this.storeEl;
         const detail = storeEl ? withComponentContext({}, storeEl.controller, storeEl as HTMLElement) : {};
         return this.emit(name, detail as never);

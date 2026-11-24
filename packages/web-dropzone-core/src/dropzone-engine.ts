@@ -363,7 +363,7 @@ export class DropzoneEngine {
      *  from `scheduleReorder`'s `apply()` callback. Kept as a hook (rather
      *  than an event) because it's purely internal coordination — no
      *  consumer-facing reason to surface it. */
-    protected applyReorderToRenderer(
+    protected reconcileRowOrder(
         _id: string,
         _becomingComplete: boolean
     ): void { /* renderer override */ }
@@ -1711,7 +1711,7 @@ export class DropzoneEngine {
             // re-sort, and capped-list re-render; satellites (the
             // `<web-dropzone-list>`) hear the internal `dz-reorder` signal
             // (non-bubbling, not public API — like `dz-config-changed`).
-            this.applyReorderToRenderer(id, becomingComplete);
+            this.reconcileRowOrder(id, becomingComplete);
             dispatch(this.contextElement, 'dz-reorder', { id, isComplete: becomingComplete }, { bubbles: false });
         };
 

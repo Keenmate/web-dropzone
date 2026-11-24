@@ -184,7 +184,7 @@ export function patchActionButton(
  * row). Disabled store → all three `disabled` (core SPEC §6.4); cancel /
  * remove also stay disabled while the file is `cancelling`.
  */
-export function syncRowButtonsDisabled(row: ParentNode, file: FileState, isDisabled: boolean): void {
+export function reconcileRowButtonsDisabled(row: ParentNode, file: FileState, isDisabled: boolean): void {
     row.querySelectorAll<HTMLButtonElement>('[data-dz-action="row-action"]').forEach((btn) => { btn.disabled = isDisabled; });
     row.querySelectorAll<HTMLButtonElement>('[data-dz-action="cancel"], [data-dz-action="remove"]').forEach((btn) => {
         btn.disabled = isDisabled || file.status === 'cancelling';

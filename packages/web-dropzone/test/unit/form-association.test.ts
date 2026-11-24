@@ -16,7 +16,7 @@ import '../../src/index'; // registers <web-dropzone> (core registerComponent)
  * `attachInternals`. The REAL browser wiring — `event.target.form` resolving an
  * actual `<form>` — is covered in `e2e/form-delegation.spec.ts` (Chromium).
  *
- * NOTE: dropzone reads `this.internals` during connect (its `syncFormValue`
+ * NOTE: dropzone reads `this.internals` during connect (its `reconcileFormValue`
  * stamps the FormData via `setFormValue`), so a connected element attaches
  * internals as part of building its store — hence the mock also stubs
  * `setFormValue` / `setValidity`.
@@ -30,7 +30,7 @@ afterEach(() => {
     vi.restoreAllMocks();
 });
 
-/** A minimal ElementInternals stand-in that dropzone's syncFormValue can call. */
+/** A minimal ElementInternals stand-in that dropzone's reconcileFormValue can call. */
 function fakeInternals(form: HTMLFormElement | null): Partial<ElementInternals> {
     return { form, setFormValue() {}, setValidity() {} } as Partial<ElementInternals>;
 }
@@ -62,7 +62,7 @@ describe('<web-dropzone> form association', () => {
             calls += 1;
             return fakeInternals(form);
         };
-        // Connecting builds the store, whose syncFormValue reads `this.internals`
+        // Connecting builds the store, whose reconcileFormValue reads `this.internals`
         // once — the single attach. Reading `el.form` afterwards must not re-attach.
         document.body.appendChild(el);
         void el.form;

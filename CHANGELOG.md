@@ -11,6 +11,17 @@ No stable 1.0.0 is published, so the break ships as the next release
 candidate — but `^1.0.0-rc02` consumers will pull it: the event,
 callback and store-access API below is breaking.
 
+### Changed — BREAKING (renames, no aliases) — internal verbs per rulebook D-NC-30 (C-NC-16) (2026-11-24)
+- `DropzoneEngine` (`@keenmate/web-dropzone-core`) protected renderer hook `applyReorderToRenderer(id, becomingComplete)`
+  → **`reconcileRowOrder(id, becomingComplete)`** — a custom renderer subclassing the engine overrides the new name.
+- Satellite elements (`<web-dropzone-list>`, `-picker`, `-indicator`, `-progress`): protected
+  `emitStoreEvent(name)` → **`dispatchStoreEvent(name)`** (only a subclass sees it).
+- Private / module-local renames (no API effect): `sync*` → `reconcile*` (form value, validity, page drag,
+  drop-active, drawer closed, remove-button hidden state, row buttons disabled), `#applyCustomStyles` →
+  `#reconcileCustomStyles`, `applyPopoverPresentation` → `reconcilePopoverPresentation`, indicator
+  `applyPosition` / `applyDrawerMode` → `reconcilePosition` / `reconcileDrawerMode`, status-surface
+  `apply*Slot(s)` → `render*Slot(s)`, the list's `applyReorder` → `reconcileRowOrder`.
+
 ### Changed — own timers / observers replaced by core helpers (audit (T) items) (2026-11-24)
 - Per-file progress throttle (`progressThrottle`): one core `createThrottle` (leading + trailing) per file instead of
   three maps of timestamps / timers / held values; the latest value still flushes on the trailing edge, a changed
