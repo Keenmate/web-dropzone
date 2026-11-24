@@ -100,3 +100,83 @@ export function actionForStatus(status: FileStatus): RowAction | null {
     if (status === 'error' || status === 'cancelled') return 'retry';
     return null;
 }
+
+/**
+ * The dropzone's own icons BY NAME (rulebook C-CA-42) — the `defaults` of every
+ * core `renderIcon` call the family makes. A page replaces one through the
+ * `icons` input (`el.icons = { rowRetry: 'fa-solid fa-rotate' }`), the page-wide
+ * `window.components.icons` (`'web-dropzone.rowRetry'` before `'rowRetry'`) or a
+ * `renderIconCallback`; unreplaced, the name draws the Lucide glyph below. None
+ * of the names is a core built-in (`BUILT_IN_ICON_NAMES`), so the built-in
+ * glyphs never stand in for these. `rowRemove` is `''`: the Remove button keeps
+ * its CSS-masked ✕ (`--dz-icon-remove`) unless a map / hook gives it an icon.
+ * The uploading status draws a loader, not an icon.
+ */
+export const DEFAULT_ICONS = Object.freeze({
+    /** The drop-area prompt + the picker (cloud-upload). */
+    prompt: UI_ICONS.cloudUpload,
+    /** The full-element drag overlay (upload). */
+    overlay: UI_ICONS.upload,
+    /** The compact summary line while idle (paperclip). */
+    summary: UI_ICONS.paperclip,
+    /** Row Cancel (⊘) button. */
+    rowCancel: CANCEL_ICON,
+    /** Row Remove (✕) button — `''` = the CSS-masked glyph. */
+    rowRemove: '',
+    /** Row Pause button. */
+    rowPause: ACTION_ICONS.pause,
+    /** Row Resume button. */
+    rowResume: ACTION_ICONS.resume,
+    /** Row Retry button. */
+    rowRetry: ACTION_ICONS.retry,
+    /** Status glyphs (rows, popover, summary, indicator chip). */
+    statusPending: STATUS_ICONS.pending,
+    statusPaused: STATUS_ICONS.paused,
+    statusComplete: STATUS_ICONS.complete,
+    statusError: STATUS_ICONS.error,
+    statusCancelling: STATUS_ICONS.cancelling,
+    statusCancelled: STATUS_ICONS.cancelled,
+    /** File-type icons (`fileIcons` / `getFileIconCallback` come first). */
+    fileImage: FILE_TYPE_ICONS.image,
+    fileVideo: FILE_TYPE_ICONS.video,
+    fileAudio: FILE_TYPE_ICONS.audio,
+    filePdf: FILE_TYPE_ICONS.pdf,
+    fileDoc: FILE_TYPE_ICONS.doc,
+    fileSpreadsheet: FILE_TYPE_ICONS.spreadsheet,
+    fileArchive: FILE_TYPE_ICONS.archive,
+    fileCode: FILE_TYPE_ICONS.code,
+    fileText: FILE_TYPE_ICONS.text,
+    fileDefault: FILE_TYPE_ICONS.default
+});
+
+/** A dropzone icon name — a key of {@link DEFAULT_ICONS} (the `icons` input's keys). */
+export type DropzoneIconName = keyof typeof DEFAULT_ICONS;
+
+/** The `icons` input: icon name → icon string (markup, a core built-in name, another name, an icon-font class list, text). */
+export type DropzoneIcons = Partial<Record<DropzoneIconName, string>>;
+
+const STATUS_ICON_NAMES: Record<Exclude<FileStatus, 'uploading'>, DropzoneIconName> = {
+    pending: 'statusPending',
+    paused: 'statusPaused',
+    complete: 'statusComplete',
+    error: 'statusError',
+    cancelling: 'statusCancelling',
+    cancelled: 'statusCancelled'
+};
+
+/** The icon name of a status glyph (`uploading` draws a loader — none). */
+export function statusIconName(status: Exclude<FileStatus, 'uploading'>): DropzoneIconName {
+    return STATUS_ICON_NAMES[status];
+}
+
+const ROW_ACTION_ICON_NAMES: Record<RowAction, DropzoneIconName> = { pause: 'rowPause', resume: 'rowResume', retry: 'rowRetry' };
+
+/** The icon name of a row action button. */
+export function rowActionIconName(action: RowAction): DropzoneIconName {
+    return ROW_ACTION_ICON_NAMES[action];
+}
+
+/** The icon name of a file-type category (`image` → `fileImage`). */
+export function fileTypeIconName(category: FileTypeCategory): DropzoneIconName {
+    return `file${category.charAt(0).toUpperCase()}${category.slice(1)}` as DropzoneIconName;
+}

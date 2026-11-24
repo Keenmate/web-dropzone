@@ -48,7 +48,7 @@ export type {
     ProgressCountsLabelContext,
     UploadResultLabelContext
 } from '@keenmate/web-dropzone-core';
-export type { RowAction } from '@keenmate/web-dropzone-core';
+export type { RowAction, DropzoneIconName, DropzoneIcons } from '@keenmate/web-dropzone-core';
 // Shared loader (renderLoadingCallback / window.components.renderLoadingCallback)
 export type { LoaderRenderContext, RenderLoadingCallback, LoadStateCallback, SaveStateCallback } from '@keenmate/web-components-core';
 
@@ -113,7 +113,7 @@ export type {
     QueueOpenEventDetail
 } from '@keenmate/web-dropzone-core';
 
-export { FILE_TYPE_ICONS, UI_ICONS } from '@keenmate/web-dropzone-core';
+export { FILE_TYPE_ICONS, UI_ICONS, DEFAULT_ICONS } from '@keenmate/web-dropzone-core';
 
 // Export logging utilities for runtime control
 export {

@@ -390,6 +390,9 @@ Every spec runs in three Playwright projects — chromium, firefox and webkit
 | Page hook assigned later repaints store + satellites in place (rows / focus kept, C-CA-40) | ✓ | `icons.spec.ts` | `icons.html` |
 | `fileIcons` value through core `renderIcon`: class list → `<i class="dz__icon …">` (store row + bound list) | ✓ | `icons.spec.ts` | `icons.html` |
 | `fileIcons` name answered by a later page hook repaints file icons in place (ctx `{ file }`) | ✓ | `icons.spec.ts` | `icons.html` |
+| Icon names (C-CA-42): unreplaced names draw the Lucide defaults (status, file type, row cancel) | ✓ | `icons.spec.ts` | `icons.html` |
+| `icons` JSON attribute + `el.icons` replace named icons (prompt, status, file type) | ✓ | `icons.spec.ts` | `icons.html` |
+| `window.components.icons['web-dropzone.<name>']` repaints a bound list in place; the store `icons` wins | ✓ | `icons.spec.ts` | `icons.html` |
 
 ## 22. Keyboard + accessibility
 

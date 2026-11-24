@@ -44,11 +44,12 @@ import {
 } from './satellite-base';
 import {
     escapeHtml,
-    STATUS_ICONS,
+    statusIconName,
     formatFileSize,
     fileStatusLabel
 } from '@keenmate/web-dropzone-core';
-import { adoptStyles, animateOut, createMicrotaskScheduler, createSheetHeader, keepScrollAcrossMove, renderLoader, renderSlot, SHEET_CHROME_CSS, startModalSession, startPanelSession, toEnum, toFunction, type InputDef, type ModalSession, type PanelSession, type PanelDismissReason } from '@keenmate/web-components-core';
+import { renderDzIcon, ICON_NAME_ATTR } from './row-templates';
+import { adoptStyles, ICON_CSS, animateOut, createMicrotaskScheduler, createSheetHeader, keepScrollAcrossMove, renderLoader, renderSlot, SHEET_CHROME_CSS, startModalSession, startPanelSession, toEnum, toFunction, type InputDef, type ModalSession, type PanelSession, type PanelDismissReason } from '@keenmate/web-components-core';
 import { isPhoneSheet } from './phone-sheet';
 import { createPopover, type PopoverHandle } from '@keenmate/web-components-core/positioning';
 import { applySurfaceSlot, buildStatusSurfaceArgs } from './status-surface';
@@ -188,6 +189,7 @@ export class DropzoneIndicatorElement extends SatelliteElement {
         adoptStyles(this.shadow, indicatorStyles);
         // The drawer header + close button are core's sheet chrome.
         adoptStyles(this.shadow, SHEET_CHROME_CSS);
+        adoptStyles(this.shadow, ICON_CSS);   // named icons (core renderIcon, SPEC §12.33)
 
         // Chip is built on connect (and rebuilt on drawer flips) because
         // its element kind depends on attribute state.
@@ -213,6 +215,16 @@ export class DropzoneIndicatorElement extends SatelliteElement {
         }
         if ('renderBodyCallback' in partial) this.resetMemoization();
         if (this.store) this.scheduleRefresh();
+    }
+
+    /**
+     * The page-wide `window.components.renderIconCallback` / `window.components.icons`
+     * changed (core, C-CA-40 / C-CA-42): redraw the chip's status icon (a string
+     * slot — an unchanged one isn't rewritten). The embedded drawer list
+     * repaints itself.
+     */
+    protected override iconsChanged(): void {
+        if (this.store) this.refresh();
     }
 
     protected setupBeforeBind(): void {
@@ -525,10 +537,18 @@ export class DropzoneIndicatorElement extends SatelliteElement {
             return this.getUploadLoader();
         }
         this.releaseUploadLoader();
-        const status = args.currentFile.status as FileStatus;
+        const status = args.currentFile.status as Exclude<FileStatus, 'uploading'>;
         // Static glyph for non-uploading focal states (paused / error /
-        // complete). Returned as a string so it memoizes by equality.
-        return `<span class="dz__indicator-file-info-icon" data-status="${status}" title="${escapeHtml(fileStatusLabel(this.label, args.currentFile))}">${STATUS_ICONS[status]}</span>`;
+        // complete) — the status icon by NAME, drawn with the store's icon
+        // map / hook. Returned as a string so it memoizes by equality.
+        const cfg = this.store?.getOptions();
+        const icon = renderDzIcon(statusIconName(status), {
+            host: cfg?.hostElement ?? this.storeEl ?? this,
+            renderIconCallback: cfg?.renderIconCallback,
+            icons: cfg?.icons,
+            context: { file: args.currentFile }
+        });
+        return `<span class="dz__indicator-file-info-icon" data-status="${status}" ${ICON_NAME_ATTR}="${statusIconName(status)}" title="${escapeHtml(fileStatusLabel(this.label, args.currentFile))}">${icon}</span>`;
     }
 
     /**

@@ -74,6 +74,13 @@
         <web-dropzone-list id="fi-list" for="fi" list-appearance="badges"></web-dropzone-list>
     </div>
 
+    <div class="fixture">
+        <div class="fixture-label">icons map BY NAME (C-CA-42): #nm (icons JSON attribute: prompt), #nm-store + #nm-list (bound list draws with the store map)</div>
+        <web-dropzone id="nm" accept="*/*" display-mode="detailed" icons='{"prompt": "fa-solid fa-cloud-arrow-up"}'></web-dropzone>
+        <web-dropzone id="nm-store" accept="*/*" list-appearance="none"></web-dropzone>
+        <web-dropzone-list id="nm-list" for="nm-store" list-appearance="detailed"></web-dropzone-list>
+    </div>
+
     <script type="module">
         import '/src/index.ts';
         import { installAddNamed } from './fixture-kit.js';

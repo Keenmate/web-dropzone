@@ -169,15 +169,34 @@ dz.getFileIconCallback = ({ file }) =>
   file.name.endsWith('.sketch') ? '<svg>...</svg>' : null;   // null -> fall through
 
 Resolution order: getFileIconCallback -> fileIcons[extension] ->
-fileIcons[category] -> built-in category icon. Both are property-only,
-raw HTML, NOT sanitized. FILE_TYPE_ICONS / UI_ICONS export the built-ins.
+fileIcons[category] -> the category's icon NAME (fileImage, filePdf, ...;
+see ICON NAMES) -> built-in Lucide icon. Both are property-only, raw HTML,
+NOT sanitized. DEFAULT_ICONS / FILE_TYPE_ICONS / UI_ICONS export the built-ins.
 
 OTHER RAW-HTML INPUTS
 ---------------------
-icon           prompt icon (card / minimal)       default UI_ICONS.cloudUpload
-overlay-icon   drag overlay icon                  default UI_ICONS.upload
-cancel-icon    row Cancel button glyph            default CANCEL_ICON
-remove-icon    row Remove button glyph            default CSS-masked x (--dz-icon-remove)
+icon           prompt icon (card / minimal)       unset = the `prompt` icon name
+overlay-icon   drag overlay icon                  unset = `overlay`
+cancel-icon    row Cancel button glyph            unset = `rowCancel`
+remove-icon    row Remove button glyph            unset = `rowRemove` ('' = CSS-masked x, --dz-icon-remove)
+
+ICON NAMES (rulebook C-CA-42)
+-----------------------------
+Every icon the dropzone draws has a name (DEFAULT_ICONS): prompt, overlay,
+summary, rowCancel, rowRemove, rowPause, rowResume, rowRetry, statusPending,
+statusPaused, statusComplete, statusError, statusCancelling, statusCancelled,
+fileImage, fileVideo, fileAudio, filePdf, fileDoc, fileSpreadsheet,
+fileArchive, fileCode, fileText, fileDefault. Replace one per element with
+the `icons` input (object or JSON attribute) or page-wide with
+window.components.icons ('web-dropzone.<name>' before '<name>'):
+
+dz.icons = { rowRetry: 'fa-solid fa-rotate', statusComplete: 'check' };
+window.components.icons = { 'web-dropzone.prompt': '<svg>...</svg>' };
+
+Order (core renderIcon): markup -> el.icons -> window.components.icons ->
+core built-in name -> renderIconCallback (element, page) -> the Lucide
+default -> class list -> text. None of the names is a core built-in. Bound
+satellites draw with their store's map. A change repaints in place.
 
 XSS: icon, overlay-icon, cancel-icon, remove-icon, fileIcons,
 getFileIconCallback and every render*Callback are inserted via innerHTML

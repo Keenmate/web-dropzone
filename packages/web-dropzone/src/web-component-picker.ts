@@ -26,7 +26,7 @@ import {
     subscribeStoreEvents,
     type SatelliteElementConfig
 } from './satellite-base';
-import { escapeHtml, UI_ICONS } from '@keenmate/web-dropzone-core';
+import { escapeHtml } from '@keenmate/web-dropzone-core';
 import { renderDzIcon } from './row-templates';
 import type { DropzoneElement } from './web-component';
 import type {
@@ -38,7 +38,8 @@ import type {
 const SELECTOR_APPEARANCES = ['card', 'button', 'minimal', 'native'] as const;
 const CARD_SIZES = ['minimal', 'compact', 'big'] as const;
 
-const DEFAULT_ICON = UI_ICONS.cloudUpload;
+/** The prompt icon's NAME (`DEFAULT_ICONS.prompt`, replaceable through the store's `icons` / the page-wide map). */
+const DEFAULT_ICON = 'prompt';
 /** Id of the card prompt text (scoped to this shadow root) — names the card's file input via `aria-labelledby`. */
 const PROMPT_TEXT_ID = 'dz-prompt-text';
 
@@ -52,7 +53,7 @@ const INPUTS: readonly InputDef[] = [
     { configKey: 'cardSize', attribute: 'card-size', converter: toEnum(CARD_SIZES, { default: 'compact' }), shouldReflect: true, on: 'update', description: 'Card size for the card appearance.' },
     { configKey: 'accept', attribute: 'accept', converter: toText({ isNullable: true }), shouldReflect: true, on: 'update', description: 'Accepted file types for this picker\'s file dialog. Unset = the bound store\'s `accept` (the store validates every file either way).' },
     { configKey: 'isMultiple', attribute: 'multiple', converter: toBool('tristate'), on: 'update', type: 'boolean | null', description: 'Allow choosing several files in the dialog. Unset = the bound store\'s `multiple`.' },
-    { configKey: 'icon', attribute: 'icon', converter: toText({ isNullable: true }), shouldReflect: true, on: 'update', description: 'Prompt icon — markup (starts with `<`, inserted raw — NOT sanitized), a built-in icon name (`check`, `close`, … masked from `--base-icon-<name>`), a name `renderIconCallback` maps, an icon-font class list (`fa-solid fa-upload` → `<i class="dz__icon …">`), or text (an emoji). Unset = the bound store\'s `icon`, else the built-in upload icon.' },
+    { configKey: 'icon', attribute: 'icon', converter: toText({ isNullable: true }), shouldReflect: true, on: 'update', description: 'Prompt icon — markup (starts with `<`, inserted raw — NOT sanitized), a built-in icon name (`check`, `close`, … masked from `--base-icon-<name>`), a name `renderIconCallback` maps, an icon-font class list (`fa-solid fa-upload` → `<i class="dz__icon …">`), or text (an emoji). Unset = the bound store\'s `icon`, else the `prompt` icon (the store `icons` map / the page-wide `window.components.icons` may replace it).' },
     { configKey: 'isDisabled', attribute: 'disabled', converter: toBool('presence'), shouldReflect: true, on: 'update', type: 'boolean', description: 'Disable this picker (like a native control: no clicks / drops, not focusable, greyed). A disabled store disables it too.' },
     { configKey: 'isReadonly', attribute: 'readonly', converter: toBool('presence'), shouldReflect: true, on: 'update', type: 'boolean', description: 'Read-only (like a native control): this picker adds no files, but stays visible and focusable. A read-only store makes it read-only too.' },
     { configKey: 'isFilesInside', attribute: 'inside', converter: toBool('default-false'), on: 'update', type: 'boolean', description: 'Files-inside layout: the card slots its light-DOM children (a `<web-dropzone-list nested>`) below the prompt. Set by the store when it mounts the picker itself.' },
@@ -112,8 +113,8 @@ export class DropzonePickerElement extends SatelliteElement {
     }
 
     /**
-     * The page-wide `window.components.renderIconCallback` changed (core,
-     * C-CA-40): repaint the prompt icon in place — no re-render, so focus
+     * The page-wide `window.components.renderIconCallback` / `window.components.icons`
+     * changed (core, C-CA-40 / C-CA-42): repaint the prompt icon in place — no re-render, so focus
      * on the picker's control is kept.
      */
     protected override iconsChanged(): void {
@@ -127,7 +128,7 @@ export class DropzonePickerElement extends SatelliteElement {
         const storeCfg = this.store!.getOptions();
         return renderDzIcon((this.config.icon as string | null) ?? storeCfg.icon ?? DEFAULT_ICON,
             // The store's icon hook, with the store element as its ctx `element`.
-            { host: storeCfg.hostElement ?? this, renderIconCallback: storeCfg.renderIconCallback });
+            { host: storeCfg.hostElement ?? this, renderIconCallback: storeCfg.renderIconCallback, icons: storeCfg.icons });
     }
 
     /** Core reports a flip of the picker's own `disabled`. */

@@ -102,6 +102,7 @@ file-cancel -> events-callbacks.txt, upload-pipeline.txt
 file-delete -> events-callbacks.txt, upload-pipeline.txt
 file-row-update -> custom-rendering.txt
 fileIcons / getFileIconCallback -> custom-rendering.txt
+icons (icon names, window.components.icons) -> custom-rendering.txt
 files-change -> events-callbacks.txt, advanced-patterns.txt
 files-inside -> display-modes.txt, satellites.txt (inside / nested)
 file-reject / validation codes -> validation.txt

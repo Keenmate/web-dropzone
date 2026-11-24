@@ -194,7 +194,7 @@
         },
         {
           "name": "icon",
-          "description": "Prompt icon — markup (starts with `<`, inserted raw — NOT sanitized), a built-in icon name (`check`, `close`, … masked from `--base-icon-<name>`), a name `renderIconCallback` maps, an icon-font class list (`fa-solid fa-upload` → `<i class=\"dz__icon …\">`), or text (an emoji). Unset = the bound store's `icon`, else the built-in upload icon.",
+          "description": "Prompt icon — markup (starts with `<`, inserted raw — NOT sanitized), a built-in icon name (`check`, `close`, … masked from `--base-icon-<name>`), a name `renderIconCallback` maps, an icon-font class list (`fa-solid fa-upload` → `<i class=\"dz__icon …\">`), or text (an emoji). Unset = the bound store's `icon`, else the `prompt` icon (the store `icons` map / the page-wide `window.components.icons` may replace it).",
           "values": []
         },
         {
@@ -567,6 +567,11 @@
           "name": "storage-key",
           "description": "Key of the persisted UI state (popover size; core SPEC §12.17). Unset / empty = off; set = localStorage `km-state:web-dropzone:<key>`, or `loadStateCallback` / `saveStateCallback`.",
           "values": []
+        },
+        {
+          "name": "icons",
+          "description": "Icon overrides BY NAME (core icon maps, rulebook C-CA-42) — `{ rowRetry: 'fa-solid fa-rotate' }`; a value is an icon string (markup raw — NOT sanitized; a core built-in name; another name; an icon-font class list; text). Names (`DEFAULT_ICONS`): `prompt`, `overlay`, `summary`, `rowCancel`, `rowRemove`, `rowPause`, `rowResume`, `rowRetry`, `statusPending`, `statusPaused`, `statusComplete`, `statusError`, `statusCancelling`, `statusCancelled`, `fileImage`, `fileVideo`, `fileAudio`, `filePdf`, `fileDoc`, `fileSpreadsheet`, `fileArchive`, `fileCode`, `fileText`, `fileDefault`. Asked before the page-wide `window.components.icons` (`'web-dropzone.<name>'`, then `'<name>'`), the built-ins, the `renderIconCallback`s and the Lucide defaults; an explicit `icon` / `cancel-icon` / `remove-icon` / `overlay-icon` / `fileIcons` value wins. Bound satellites draw with this map. Property (object) or JSON attribute. Live (repainted in place).",
+          "values": [{ "name": "DropzoneIcons" }]
         },
         {
           "name": "custom-styles",

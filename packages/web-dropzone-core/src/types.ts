@@ -651,7 +651,7 @@ export interface DropzoneEngineOptions {
     /** Show files inside the dropzone area instead of a separate list below (HTML attr: `files-inside`) */
     isFilesInside?: boolean;
     /** Icon for the dropzone prompt. Read by core `renderIcon`: markup (starts with `<`) raw — ⚠️ NOT sanitized; a built-in name (`check`, `close`, … — `BUILT_IN_ICON_NAMES`) masked from `--base-icon-<name>` in `currentColor`; then `renderIconCallback` / the page-wide hook; an ASCII class list (`fa-solid fa-upload`) → an icon-font `<i class="dz__icon …">`; anything else (an emoji) escaped text. */
-    icon?: string;
+    icon?: string;  // unset = the `prompt` icon name
     /**
      * UI strings (`labels` input) — a partial {@link DropzoneLabels} object
      * (flat `<elementType>.<name>` keys: `buttons.selectFiles`,
@@ -756,6 +756,18 @@ export interface DropzoneEngineOptions {
      * ⚠️ The returned markup is inserted raw — NOT sanitized.
      */
     renderIconCallback?: RenderIconCallback | null;
+
+    /**
+     * Icon overrides BY NAME (rulebook C-CA-42) — `{ rowRetry: 'fa-solid fa-rotate' }`. The names are the
+     * dropzone's own icons (`DEFAULT_ICONS`): `prompt`, `overlay`, `summary`, `rowCancel`, `rowRemove`,
+     * `rowPause`, `rowResume`, `rowRetry`, `statusPending` / `statusPaused` / `statusComplete` / `statusError` /
+     * `statusCancelling` / `statusCancelled`, `fileImage` / `fileVideo` / `fileAudio` / `filePdf` / `fileDoc` /
+     * `fileSpreadsheet` / `fileArchive` / `fileCode` / `fileText` / `fileDefault`. A value is an icon string read
+     * by core `renderIcon` (markup raw — ⚠️ NOT sanitized; a core built-in name; a class list; text). Asked
+     * first, before the page-wide `window.components.icons` (`'web-dropzone.<name>'`, then `'<name>'`), the
+     * built-ins, the `renderIconCallback`s and the Lucide defaults. Bound satellites draw with their store's map.
+     */
+    icons?: Readonly<Record<string, string>> | null;
 
     /**
      * This element's translation hook — `translateCallback({ component, key,

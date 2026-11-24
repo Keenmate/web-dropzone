@@ -24,9 +24,9 @@ import {
     getFileIcon,
     isImageFile,
     escapeHtml,
-    STATUS_ICONS,
-    ACTION_ICONS,
-    CANCEL_ICON,
+    DEFAULT_ICONS,
+    statusIconName,
+    rowActionIconName,
     actionForStatus,
     defaultLabel,
     fileStatusLabel,
@@ -47,23 +47,32 @@ export interface DzIconOptions {
     renderIconCallback?: RenderIconCallback | null;
     /** Extras for the hooks' ctx (`{ file }` on a row button). */
     context?: Readonly<Record<string, unknown>>;
+    /**
+     * The store's `icons` map (a satellite draws with its store's). Unset →
+     * core reads `host.icons`.
+     */
+    icons?: Readonly<Record<string, string>> | null;
 }
 
 /**
- * An icon input (`icon`, `cancel-icon`, `remove-icon`, `overlay-icon`) → HTML,
- * through core's one icon rule (SPEC §12.33), first match wins: a value
- * starting with `<` is markup, inserted raw; a built-in name (`check`,
- * `close`, …) is a `.km-icon` glyph masked from `--base-icon-<name>` in
- * `currentColor` (classes `dz__icon dz__icon--<name>`); then the element's
- * `renderIconCallback`, then `window.components.renderIconCallback`; an ASCII
- * class list (`fa-solid fa-upload`) → `<i class="dz__icon fa-solid fa-upload">`;
+ * An icon value or one of the dropzone's icon NAMES (`DEFAULT_ICONS`: `prompt`,
+ * `rowRetry`, `statusError`, `filePdf`, …) → HTML, through core's one icon rule
+ * (SPEC §12.33, rulebook C-CA-42), first match wins: a value starting with `<`
+ * is markup, inserted raw; the store's `icons` map, then the page-wide
+ * `window.components.icons` (`'web-dropzone.<name>'`, then `'<name>'`); a core
+ * built-in name (`check`, `close`, …) is a `.km-icon` glyph masked from
+ * `--base-icon-<name>` (classes `dz__icon dz__icon--<name>`); then the element's
+ * `renderIconCallback`, then `window.components.renderIconCallback`; then the
+ * dropzone's own Lucide glyph for its names (`DEFAULT_ICONS`); an ASCII class
+ * list (`fa-solid fa-upload`) → `<i class="dz__icon fa-solid fa-upload">`;
  * anything else (an emoji) is escaped text. `''` for none. Every root an icon
  * renders in adopts core `ICON_CSS`.
  */
 export function renderDzIcon(icon: string | null | undefined, opts: DzIconOptions = {}): string {
-    const options: RenderIconOptions = { prefix: 'dz', host: opts.host ?? null };
+    const options: RenderIconOptions = { prefix: 'dz', host: opts.host ?? null, defaults: DEFAULT_ICONS };
     if (opts.context) options.context = opts.context;
     if (opts.renderIconCallback != null) options.renderIconCallback = opts.renderIconCallback;
+    if (opts.icons !== undefined) options.icons = opts.icons;
     return renderIcon(icon, options);
 }
 
@@ -89,9 +98,20 @@ export function rowActionTexts(action: RowAction, file: Pick<FileState, 'name' |
  */
 export const INLINE_LOADER = '<span class="dz__loader dz__loader--inline" aria-hidden="true"></span>';
 
-/** A status glyph — the inline loader while uploading, the Lucide icon otherwise. */
-export function statusGlyph(status: FileStatus): string {
-    return status === 'uploading' ? INLINE_LOADER : STATUS_ICONS[status];
+/**
+ * Marks an element whose whole content is one named icon (`data-dz-icon-name="statusError"`),
+ * so {@link repaintNamedIcons} can redraw it in place.
+ */
+export const ICON_NAME_ATTR = 'data-dz-icon-name';
+
+/** ` data-dz-icon-name="<name>"` for a status glyph slot ('' while uploading — a loader, no icon). */
+export function statusIconNameAttr(status: FileStatus): string {
+    return status === 'uploading' ? '' : ` ${ICON_NAME_ATTR}="${statusIconName(status)}"`;
+}
+
+/** A status glyph — the inline loader while uploading, else the status icon (`statusPending`, … — {@link renderDzIcon}). */
+export function statusGlyph(status: FileStatus, iconOptions?: DzIconOptions): string {
+    return status === 'uploading' ? INLINE_LOADER : renderDzIcon(statusIconName(status), iconOptions);
 }
 
 /** `aria-busy` for a row root while its file uploads. */
@@ -100,11 +120,11 @@ export function busyAttr(file: Pick<FileState, 'status'>): string {
 }
 
 /** Status pill — glyph + the status name as tooltip / accessible name (`labels`). */
-export function renderStatusPill(file: FileState, cls: string, label: LabelFn = defaultLabel): string {
+export function renderStatusPill(file: FileState, cls: string, label: LabelFn = defaultLabel, iconOptions?: DzIconOptions): string {
     const statusName = fileStatusLabel(label, file);
     const name = escapeHtml(statusName);
     const aria = escapeHtml(label('ariaLabels.status', { ctx: { status: file.status, statusName } }));
-    return `<span class="${cls} ${cls}--${file.status}" title="${name}" aria-label="${aria}" data-status="${file.status}">${statusGlyph(file.status)}</span>`;
+    return `<span class="${cls} ${cls}--${file.status}" title="${name}" aria-label="${aria}" data-status="${file.status}"${statusIconNameAttr(file.status)}>${statusGlyph(file.status, rowIconOptions(file, iconOptions))}</span>`;
 }
 
 export { escapeHtml };
@@ -171,9 +191,9 @@ export interface RowTemplateOptions {
      * (no handler) every file stays `pending` and there is nothing to cancel.
      */
     hasUploadHandler?: boolean;
-    /** `cancel-icon` — the Cancel glyph, read by {@link renderDzIcon} (default {@link CANCEL_ICON}). */
+    /** `cancel-icon` — the Cancel glyph, read by {@link renderDzIcon} (unset: the `rowCancel` icon). */
     cancelIcon?: string;
-    /** `remove-icon` — the Remove glyph, read by {@link renderDzIcon} (default: the CSS-masked ✕). */
+    /** `remove-icon` — the Remove glyph, read by {@link renderDzIcon} (unset: the `rowRemove` icon — default the CSS-masked ✕). */
     removeIcon?: string;
     /** Who draws `cancelIcon` / `removeIcon` and the file-type icon (host + `renderIconCallback`); the row's `{ file }` is added to the ctx. */
     iconOptions?: DzIconOptions;
@@ -218,7 +238,7 @@ export function renderCancelButton(file: FileState, baseClass: string, opts: Row
     const ctx = fileLabelContext(file);
     const aria = escapeHtml(label('ariaLabels.cancelFile', { ctx }));
     const title = escapeHtml(label('tooltips.cancelFile', { ctx }));
-    return `<button type="button" class="${cls}" data-dz-action="cancel" data-file-id="${file.id}" aria-label="${aria}" title="${title}"${inert}${disabled}>${renderDzIcon(opts.cancelIcon, rowIconOptions(file, opts.iconOptions)) || CANCEL_ICON}</button>`;
+    return `<button type="button" class="${cls}" data-dz-action="cancel" data-file-id="${file.id}" aria-label="${aria}" title="${title}"${inert}${disabled}>${renderDzIcon(opts.cancelIcon || 'rowCancel', rowIconOptions(file, opts.iconOptions))}</button>`;
 }
 
 /**
@@ -239,12 +259,30 @@ export function repaintRowIcons(
         if (!file) return;
         const opts = rowIconOptions(file, iconOptions);
         if (btn.dataset.dzAction === 'cancel') {
-            btn.innerHTML = renderDzIcon(cancelIcon, opts) || CANCEL_ICON;
+            btn.innerHTML = renderDzIcon(cancelIcon || 'rowCancel', opts);
         } else {
-            const html = renderDzIcon(removeIcon, opts);
+            const html = renderDzIcon(removeIcon || 'rowRemove', opts);
             btn.toggleAttribute('data-custom-icon', !!html);
             btn.innerHTML = html;
         }
+    });
+}
+
+/**
+ * Repaint every named icon slot under `root` ({@link ICON_NAME_ATTR}: status
+ * glyphs, row Pause / Resume / Retry buttons, the summary icon) in place — an
+ * icon map or hook changed (core `iconsChanged()`, C-CA-40 / C-CA-42). A slot
+ * inside a row gets the row's `{ file }` in the hooks' ctx.
+ */
+export function repaintNamedIcons(
+    root: ParentNode,
+    findFile: (id: string) => FileState | undefined,
+    iconOptions: DzIconOptions
+): void {
+    root.querySelectorAll<HTMLElement>(`[${ICON_NAME_ATTR}]`).forEach((el) => {
+        const id = el.closest<HTMLElement>('[data-file-id]')?.dataset.fileId;
+        const file = id ? findFile(id) : undefined;
+        el.innerHTML = renderDzIcon(el.getAttribute(ICON_NAME_ATTR), file ? rowIconOptions(file, iconOptions) : iconOptions);
     });
 }
 
@@ -255,7 +293,7 @@ export function repaintRowIcons(
  * (`data-custom-icon` switches the mask off).
  */
 export function renderRemoveButton(file: FileState, baseClass: string, removable = true, icon?: string | null, label: LabelFn = defaultLabel, isDisabled = false, iconOptions?: DzIconOptions): string {
-    const html = renderDzIcon(icon, rowIconOptions(file, iconOptions));
+    const html = renderDzIcon(icon || 'rowRemove', rowIconOptions(file, iconOptions));
     const custom = html ? ' data-custom-icon' : '';
     return `<button type="button" ${removeButtonAttrs(file, baseClass, removable, label, isDisabled)}${custom}>${html}</button>`;
 }
@@ -326,7 +364,7 @@ export function repaintFileIcons(
  * `--hidden` modifier hides the button visually and drops it from the tab
  * order.
  */
-export function renderRowActionButton(file: FileState, baseClass: string, labelFn: LabelFn = defaultLabel, isDisabled = false): string {
+export function renderRowActionButton(file: FileState, baseClass: string, labelFn: LabelFn = defaultLabel, isDisabled = false, iconOptions?: DzIconOptions): string {
     const action = actionForStatus(file.status);
     const hidden = !action;
     const cls = hidden ? `${baseClass} ${baseClass}--hidden` : baseClass;
@@ -335,8 +373,9 @@ export function renderRowActionButton(file: FileState, baseClass: string, labelF
     const label = texts ? escapeHtml(texts.aria) : '';
     const title = texts ? escapeHtml(texts.title) : '';
     const dataAction = action ?? '';
-    const icon = action ? ACTION_ICONS[action] : '';
-    return `<button type="button" class="${cls}" data-dz-action="row-action" data-row-action="${dataAction}" data-file-id="${file.id}" aria-label="${label}" title="${title}"${inert}${isDisabled ? ' disabled' : ''}>${icon}</button>`;
+    const icon = action ? renderDzIcon(rowActionIconName(action), rowIconOptions(file, iconOptions)) : '';
+    const iconName = action ? ` ${ICON_NAME_ATTR}="${rowActionIconName(action)}"` : '';
+    return `<button type="button" class="${cls}" data-dz-action="row-action" data-row-action="${dataAction}" data-file-id="${file.id}" aria-label="${label}" title="${title}"${iconName}${inert}${isDisabled ? ' disabled' : ''}>${icon}</button>`;
 }
 
 /**
@@ -367,10 +406,10 @@ export function renderListItem(file: FileState, opts: RowTemplateOptions = {}): 
     return `
         <div class="dz__file-item dz__file-item--list" data-file-id="${file.id}" data-status="${file.status}"${reorderAttr}${busyAttr(file)}>
             ${showPart(p, 'name') ? `<span class="dz__file-item-name">${escapeHtml(file.name)}</span>` : ''}
-            ${showPart(p, 'action') ? renderRowActionButton(file, 'dz__file-item-action', label, opts.isDisabled) : ''}
+            ${showPart(p, 'action') ? renderRowActionButton(file, 'dz__file-item-action', label, opts.isDisabled, opts.iconOptions) : ''}
             ${showPart(p, 'cancel') ? renderCancelButton(file, 'dz__file-item-action', opts) : ''}
             ${showPart(p, 'progress') ? `<div class="dz__file-item-progress">${listProgressInner(file, label, opts.locale)}</div>` : ''}
-            ${showPart(p, 'status') ? renderStatusPill(file, 'dz__file-item-status', label) : ''}
+            ${showPart(p, 'status') ? renderStatusPill(file, 'dz__file-item-status', label, opts.iconOptions) : ''}
             ${showPart(p, 'remove') ? renderRemoveButton(file, 'dz__file-item-remove', removable, opts.removeIcon, label, opts.isDisabled, opts.iconOptions) : ''}
         </div>
     `;
@@ -412,9 +451,9 @@ export function renderDetailedItem(file: FileState, opts: RowTemplateOptions = {
                     <span class="dz__file-item-progress-text">${escapeHtml(progressLabel(file, label, opts.locale))}</span>
                 </div>` : ''}
             </div>
-            ${showPart(p, 'action') ? renderRowActionButton(file, 'dz__file-item-action', label, opts.isDisabled) : ''}
+            ${showPart(p, 'action') ? renderRowActionButton(file, 'dz__file-item-action', label, opts.isDisabled, opts.iconOptions) : ''}
             ${showPart(p, 'cancel') ? renderCancelButton(file, 'dz__file-item-action', opts) : ''}
-            ${showPart(p, 'status') ? renderStatusPill(file, 'dz__file-item-status', label) : ''}
+            ${showPart(p, 'status') ? renderStatusPill(file, 'dz__file-item-status', label, opts.iconOptions) : ''}
             ${showPart(p, 'remove') ? renderRemoveButton(file, 'dz__file-item-remove', removable, opts.removeIcon, label, opts.isDisabled, opts.iconOptions) : ''}
         </div>
     `;
@@ -443,12 +482,12 @@ export function renderGridItem(file: FileState, opts: RowTemplateOptions = {}): 
             ${showName ? `<div class="dz__preview-item-overlay">
                 <span class="dz__preview-item-name">${escapeHtml(file.name)}</span>
             </div>` : ''}
-            ${showPart(p, 'status') ? renderStatusPill(file, 'dz__preview-item-status', label) : ''}
+            ${showPart(p, 'status') ? renderStatusPill(file, 'dz__preview-item-status', label, opts.iconOptions) : ''}
             ${showPart(p, 'progress') ? `<div class="dz__preview-item-progress-bar">
                 <div class="dz__preview-item-progress-fill" style="width: ${file.progress}%"></div>
             </div>` : ''}
             ${(showAction || showCancel || showRemove) ? `<div class="dz__preview-item-hover-actions">
-                ${showAction ? renderRowActionButton(file, 'dz__preview-item-action', label, opts.isDisabled) : ''}
+                ${showAction ? renderRowActionButton(file, 'dz__preview-item-action', label, opts.isDisabled, opts.iconOptions) : ''}
                 ${showCancel ? renderCancelButton(file, 'dz__preview-item-action', opts) : ''}
                 ${showRemove ? renderRemoveButton(file, 'dz__preview-item-remove', removable, opts.removeIcon, label, opts.isDisabled, opts.iconOptions) : ''}
             </div>` : ''}
@@ -469,9 +508,9 @@ export function renderBadgeItem(file: FileState, opts: RowTemplateOptions = {}):
             <span class="dz__badge-text" title="${escapeHtml(file.name)}">
                 ${showPart(p, 'icon') ? `<span class="dz__badge-icon"${fileIconSlotAttr(file, useThumbnail)}>${inner}</span>` : ''}
                 ${showPart(p, 'name') ? `<span class="dz__badge-name">${escapeHtml(file.name)}</span>` : ''}
-                ${showPart(p, 'action') ? renderRowActionButton(file, 'dz__badge-action', label, opts.isDisabled) : ''}
+                ${showPart(p, 'action') ? renderRowActionButton(file, 'dz__badge-action', label, opts.isDisabled, opts.iconOptions) : ''}
                 ${showPart(p, 'cancel') ? renderCancelButton(file, 'dz__badge-action', opts) : ''}
-                ${showPart(p, 'status') ? renderStatusPill(file, 'dz__badge-status', label) : ''}
+                ${showPart(p, 'status') ? renderStatusPill(file, 'dz__badge-status', label, opts.iconOptions) : ''}
             </span>
             ${showPart(p, 'remove') ? renderRemoveButton(file, 'dz__badge-remove', removable, opts.removeIcon, label, opts.isDisabled, opts.iconOptions) : ''}
         </span>

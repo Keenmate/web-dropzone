@@ -20,13 +20,14 @@
  */
 
 import {
-    ACTION_ICONS,
+    rowActionIconName,
+    statusIconName,
     actionForStatus,
     defaultLabel,
     fileStatusLabel
 } from '@keenmate/web-dropzone-core';
 import type { FileState, LabelFn } from '@keenmate/web-dropzone-core';
-import { progressLabel, isCancelOffered, rowActionTexts, statusGlyph } from './row-templates';
+import { progressLabel, isCancelOffered, rowActionTexts, statusGlyph, renderDzIcon, ICON_NAME_ATTR, type DzIconOptions } from './row-templates';
 
 /**
  * Set the progress-bar fill's width. Idempotent — assigning the same
@@ -68,7 +69,8 @@ export function patchStatusIcon(
     row: HTMLElement,
     statusClass: string,
     file: FileState,
-    label: LabelFn = defaultLabel
+    label: LabelFn = defaultLabel,
+    iconOptions?: DzIconOptions
 ): void {
     const status = file.status;
     // The row is busy while its file uploads (the inline loader has no role="status").
@@ -81,7 +83,9 @@ export function patchStatusIcon(
     const name = fileStatusLabel(label, file);
     el.title = name;
     el.setAttribute('aria-label', label('ariaLabels.status', { ctx: { status: file.status, statusName: name } }));
-    el.innerHTML = statusGlyph(status);
+    if (status === 'uploading') el.removeAttribute(ICON_NAME_ATTR);
+    else el.setAttribute(ICON_NAME_ATTR, statusIconName(status));
+    el.innerHTML = statusGlyph(status, { ...iconOptions, context: { ...iconOptions?.context, file } });
 }
 
 /**
@@ -144,7 +148,8 @@ export function patchActionButton(
     btn: HTMLElement | null,
     file: FileState,
     baseClass: string,
-    label: LabelFn = defaultLabel
+    label: LabelFn = defaultLabel,
+    iconOptions?: DzIconOptions
 ): void {
     if (!btn) return;
     const action = actionForStatus(file.status);
@@ -155,7 +160,9 @@ export function patchActionButton(
     btn.dataset.rowAction = target;
     const hidden = !action;
     btn.className = hidden ? `${baseClass} ${baseClass}--hidden` : baseClass;
-    btn.innerHTML = action ? ACTION_ICONS[action] : '';
+    btn.innerHTML = action ? renderDzIcon(rowActionIconName(action), { ...iconOptions, context: { ...iconOptions?.context, file } }) : '';
+    if (action) btn.setAttribute(ICON_NAME_ATTR, rowActionIconName(action));
+    else btn.removeAttribute(ICON_NAME_ATTR);
 
     if (action) {
         const texts = rowActionTexts(action, file, label);

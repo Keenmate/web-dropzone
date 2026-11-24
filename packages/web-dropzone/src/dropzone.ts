@@ -75,7 +75,7 @@ export {
 
 // Status / action icons live in `../core/icons` so the satellite renderers
 // and any user-provided callbacks can share the same Lucide SVG family.
-import { actionForStatus, UI_ICONS, statusLabel } from '@keenmate/web-dropzone-core';
+import { actionForStatus, statusLabel } from '@keenmate/web-dropzone-core';
 // Row templates (list / detailed / grid / badges) are shared with the
 // `<web-dropzone-list>` satellite via `./row-templates` — single source of
 // truth so the polished styling in `_file-item.css` applies identically
@@ -998,12 +998,13 @@ export class WebDropzone extends DropzoneEngine {
 
         patchProgressFill(row, 'dz__popover-progress-fill', file.progress);
         patchProgressText(row, 'dz__popover-progress-text', file, this.label, this.config.locale);
-        patchStatusIcon(row, 'dz__popover-status', file, this.label);
+        patchStatusIcon(row, 'dz__popover-status', file, this.label, this.iconOptions());
         patchRowActionButton(
             row.querySelector('.dz__popover-row-action[data-dz-action="row-action"]'),
             file,
             'dz__popover-row-action',
-                this.label
+            this.label,
+            this.iconOptions()
         );
         patchCancelButton(
             row.querySelector('[data-dz-action="cancel"]'),
@@ -1074,12 +1075,13 @@ export class WebDropzone extends DropzoneEngine {
             row.className = file.status !== 'pending'
                 ? `dz__badge dz__badge--${file.status}`
                 : 'dz__badge';
-            patchStatusIcon(row, 'dz__badge-status', file, this.label);
+            patchStatusIcon(row, 'dz__badge-status', file, this.label, this.iconOptions());
             patchRowActionButton(
                 row.querySelector('.dz__badge-action[data-dz-action="row-action"]'),
                 file,
                 'dz__badge-action',
-                this.label
+                this.label,
+            this.iconOptions()
             );
             // One-shot icon → <img> swap when previewUrl lands (show-thumbnails).
             if (this.shouldShowThumbnails('badges')) {
@@ -1094,12 +1096,13 @@ export class WebDropzone extends DropzoneEngine {
         if (appearance === 'list' || appearance === 'detailed' || appearance === 'rolling') {
             patchProgressFill(row, 'dz__file-item-progress-fill', file.progress);
             patchProgressText(row, 'dz__file-item-progress-text', file, this.label, this.config.locale);
-            patchStatusIcon(row, 'dz__file-item-status', file, this.label);
+            patchStatusIcon(row, 'dz__file-item-status', file, this.label, this.iconOptions());
             patchRowActionButton(
                 row.querySelector('.dz__file-item-action[data-dz-action="row-action"]'),
                 file,
                 'dz__file-item-action',
-                this.label
+                this.label,
+            this.iconOptions()
             );
             // Detailed is the only file-item shape that honors thumbnails
             // (list / rolling templates are icon-only). Swap on previewUrl.
@@ -1111,12 +1114,13 @@ export class WebDropzone extends DropzoneEngine {
         if (appearance === 'grid') {
             // Grid tiles get a bottom-edge progress bar and a corner status pill.
             patchProgressFill(row, 'dz__preview-item-progress-fill', file.progress);
-            patchStatusIcon(row, 'dz__preview-item-status', file, this.label);
+            patchStatusIcon(row, 'dz__preview-item-status', file, this.label, this.iconOptions());
             patchRowActionButton(
                 row.querySelector('.dz__preview-item-action[data-dz-action="row-action"]'),
                 file,
                 'dz__preview-item-action',
-                this.label
+                this.label,
+            this.iconOptions()
             );
 
             // One-shot placeholder → <img> swap when previewUrl arrives.
@@ -1547,15 +1551,17 @@ export class WebDropzone extends DropzoneEngine {
      * (passed explicitly so a standalone engine without an element has it too).
      */
     private iconOptions(): DzIconOptions {
-        return { host: this.config.hostElement ?? null, renderIconCallback: this.config.renderIconCallback };
+        return { host: this.config.hostElement ?? null, renderIconCallback: this.config.renderIconCallback, icons: this.config.icons };
     }
 
     /**
      * Repaint every icon this store drew through core `renderIcon` in place —
-     * the page-wide `window.components.renderIconCallback` changed (the
-     * element's `iconsChanged()`, C-CA-40). Only the icon slots are replaced
-     * (prompt icon, row Cancel / Remove buttons and file-type icons in the list and the open
-     * popover), so files, scroll, focus and the open popover are kept. The
+     * the page-wide `window.components.renderIconCallback` / `window.components.icons`
+     * or the element's `icons` changed (the element's `iconsChanged()`, C-CA-40 /
+     * C-CA-42). Only the icon slots are replaced (prompt icon, row Cancel / Remove /
+     * Pause / Resume / Retry buttons, status glyphs, the summary icon and file-type
+     * icons in the list and the open popover), so files, scroll, focus and the open
+     * popover are kept. The
      * drag overlay is built per drag, so its next build reads the new hook.
      * Bound satellites repaint themselves (their own `iconsChanged()`).
      */
@@ -1570,6 +1576,7 @@ export class WebDropzone extends DropzoneEngine {
             const findFile = (id: string) => this.files.find((f) => f.id === id);
             RowTemplate.repaintRowIcons(root, findFile, this.config.cancelIcon, this.config.removeIcon, opts);
             RowTemplate.repaintFileIcons(root, findFile, { iconOverrides: this.config, iconContext: this.renderContextBase, iconOptions: opts });
+            RowTemplate.repaintNamedIcons(root, findFile, opts);
         }
     }
 
@@ -1646,11 +1653,11 @@ export class WebDropzone extends DropzoneEngine {
                     <span class="dz__popover-progress-text">${escapeHtml(RowTemplate.progressLabel(file, this.label, this.config.locale))}</span>
                 </td>
                 <td class="dz__popover-cell dz__popover-cell--action">
-                    ${RowTemplate.renderRowActionButton(file, 'dz__popover-row-action', this.label, !!this.config.isDisabled)}
+                    ${RowTemplate.renderRowActionButton(file, 'dz__popover-row-action', this.label, !!this.config.isDisabled, this.iconOptions())}
                     ${RowTemplate.renderCancelButton(file, 'dz__popover-row-action', this.rowOpts(file, 'popover'))}
                 </td>
                 <td class="dz__popover-cell dz__popover-cell--status">
-                    ${RowTemplate.renderStatusPill(file, 'dz__popover-status', this.label)}
+                    ${RowTemplate.renderStatusPill(file, 'dz__popover-status', this.label, this.iconOptions())}
                 </td>
                 <td class="dz__popover-cell dz__popover-cell--actions">
                     ${RowTemplate.renderRemoveButton(file, 'dz__popover-remove', removable, this.config.removeIcon, this.label, !!this.config.isDisabled, this.iconOptions())}
@@ -1669,12 +1676,12 @@ export class WebDropzone extends DropzoneEngine {
     private renderSummaryIcon(): string {
         const overall = this.getOverallProgress();
         if (!overall.hasActivity) {
-            return `<span class="dz__summary-icon" data-status="pending">${UI_ICONS.paperclip}</span>`;
+            return `<span class="dz__summary-icon" data-status="pending" ${RowTemplate.ICON_NAME_ATTR}="summary">${RowTemplate.renderDzIcon('summary', this.iconOptions())}</span>`;
         }
         const s = overall.aggregateStatus;
         const aria = escapeHtml(this.label('ariaLabels.status', { ctx: { status: s, statusName: statusLabel(this.label, s) } }));
         const busy = s === 'uploading' ? ' aria-busy="true"' : '';
-        return `<span class="dz__summary-icon dz__summary-icon--${s}" data-status="${s}" aria-label="${aria}"${busy}>${RowTemplate.statusGlyph(s)}</span>`;
+        return `<span class="dz__summary-icon dz__summary-icon--${s}" data-status="${s}" aria-label="${aria}"${busy}${RowTemplate.statusIconNameAttr(s)}>${RowTemplate.statusGlyph(s, this.iconOptions())}</span>`;
     }
 
     /**

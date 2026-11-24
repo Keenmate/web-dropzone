@@ -119,7 +119,8 @@ shadow root (`custom-styles` / `getCustomStylesCallback`, page-wide per tag) is 
 | `files-inside` | `isFilesInside` | `boolean` | `false` | Render the file list inside the drop area. |
 | `cancel-icon` | `cancelIcon` |  |  | Row Cancel (⊘) button glyph — markup (starts with `<`, inserted raw — NOT sanitized), an icon name (masked from `--base-icon-<name>`), or text (an emoji). Unset = built-in icon. See [Icons](#icons). |
 | `remove-icon` | `removeIcon` |  |  | Row Remove (✕) button glyph — markup (starts with `<`, inserted raw — NOT sanitized), an icon name (masked from `--base-icon-<name>`), or text (an emoji). Unset = built-in icon. See [Icons](#icons). |
-| `icon` | `icon` |  |  | Prompt icon (emoji or markup). |
+| `icon` | `icon` |  |  | Prompt icon (emoji or markup). Unset = the `prompt` [icon name](#icon-names). |
+| `icons` | `icons` | `DropzoneIcons` |  | Icon overrides BY NAME — `{ rowRetry: 'fa-solid fa-rotate' }` (JSON attribute or object). See [Icon names](#icon-names). Live. |
 | `labels` | `labels` | `DropzoneLabelOverrides` |  | Every UI string (see `DropzoneLabels` / `DEFAULT_LABELS`): flat `<elementType>.<name>` keys (`buttons.selectFiles`, `ariaLabels.cancelFile`; the full `web-dropzone.<key>` works too), merged per key over the built-in English; `{ctx.name}` / `{ctx.count}` / `{ctx.size}` / … placeholders: prompt, hint, empty, summary, status names, row + bulk buttons, popover, limits line, progress strip, validation messages. Satellites inherit them (and take their own `labels` on top). Property (object) or JSON attribute. Live. |
 | `locale` | `locale` | `string \| null` |  | BCP-47 locale for the numbers the dropzone formats — file sizes (rows, summary, popover totals, limits line, progress counts, size validation messages; `1,5 MB` in `cs`), the progress percents (`12,5%`) and the `{ctx.count}` numbers in labels — or unset (the page-wide `window.components.locale`, else the browser language; `auto` = unset). Bound satellites follow it. UI strings are `labels`. Live. |
 | `popover-placement` | `popoverPlacement` | `'top' \| 'top-start' \| 'top-end' \| 'bottom' \| 'bottom-start' \| 'bottom-end' \| 'left' \| 'left-start' \| 'left-end' \| 'right' \| 'right-start' \| 'right-end'` | `'bottom-start'` | Placement of the compact-mode popover relative to the summary (floating-ui placement). |
@@ -410,7 +411,9 @@ dropzone.getFileIconCallback = ({ file }) =>
   file.name.endsWith('.sketch') ? '<svg>…</svg>' : null;
 ```
 
-**Resolution order** (first hit wins): `getFileIconCallback` → `fileIcons[extension]` → `fileIcons[category]` → built-in category icon.
+**Resolution order** (first hit wins): `getFileIconCallback` → `fileIcons[extension]` → `fileIcons[category]` → the category's
+[icon name](#icon-names) (`fileImage`, `filePdf`, … — replaceable through `icons` / `window.components.icons`, else the
+built-in Lucide icon).
 
 The picked value is drawn like every [icon input](#icons) (core `renderIcon`): markup (starts with `<`) raw, a
 built-in name masked from `--base-icon-<name>`, a name the element's / page-wide `renderIconCallback` maps (ctx
@@ -423,16 +426,19 @@ icon-font `<i class="dz__icon …">`, anything else escaped text. The built-in c
 
 ## Icons
 
-The icon inputs — `icon`, `cancel-icon`, `remove-icon`, `overlay-icon` (and the picker satellite's `icon`), plus the
-[file-type icon](#file-type-icons) values (`fileIcons` / `getFileIconCallback`) — follow
-core's one icon rule (`renderIcon`), first match wins:
+The icon inputs — `icon`, `cancel-icon`, `remove-icon`, `overlay-icon` (and the picker satellite's `icon`), the
+[file-type icon](#file-type-icons) values (`fileIcons` / `getFileIconCallback`) and the dropzone's own
+[icon names](#icon-names) — follow core's one icon rule (`renderIcon`), first match wins:
 
 | Value | Renders as |
 |-------|-----------|
 | starts with `<` (`<svg …>`, `<img …>`, `<i class="fa …">`) | the markup, inserted raw (NOT sanitized) |
-| a built-in name (`delete`, `close`, `check`, `download`, … — core `BUILT_IN_ICON_NAMES`) | `<span class="km-icon dz__icon dz__icon--<name>">` — a glyph masked from the `--base-icon-<name>` token, drawn in `currentColor`. Reserved: never sent to a hook |
+| a name in the element's `icons` map | that map value, read by these same rules |
+| a name in the page-wide `window.components.icons` (`'web-dropzone.<name>'`, then `'<name>'`) | that map value, read by these same rules |
+| a built-in name (`delete`, `close`, `check`, `download`, … — core `BUILT_IN_ICON_NAMES`) | `<span class="km-icon dz__icon dz__icon--<name>">` — a glyph masked from the `--base-icon-<name>` token, drawn in `currentColor`. Never sent to a hook |
 | a name the element's `renderIconCallback(name, ctx)` answers | its markup (`''` = no icon; `null` / `undefined` = not mine → next row) |
 | a name the page-wide `window.components.renderIconCallback(name, ctx)` answers | its markup (same contract) |
+| one of the dropzone's [icon names](#icon-names) | its built-in Lucide glyph |
 | an ASCII class list (`fa-solid fa-trash`, `bi-paperclip`) | `<i class="dz__icon fa-solid fa-trash" aria-hidden="true">` — an icon font |
 | anything else (`📎`, `+`) | escaped text |
 
@@ -442,6 +448,35 @@ core's one icon rule (`renderIcon`), first match wins:
 `window.components.renderIconCallback` later repaints the icons (store and bound satellites, in place). An
 icon-font `<i>` needs the font's class rules inside the shadow root — pass them through `custom-styles` / the
 page-wide `window.components['web-dropzone'].customStyles` (an `@import` is also linked once in the document head).
+
+### Icon names
+
+Every icon the dropzone draws itself has a NAME (`DEFAULT_ICONS`, rulebook C-CA-42). Replace one for an element
+with `icons`, or for the page with `window.components.icons` (one flat map; `'web-dropzone.<name>'` before
+`'<name>'`); unreplaced, the name draws the built-in Lucide glyph. An explicit `icon` / `cancel-icon` / `remove-icon` /
+`overlay-icon` / `fileIcons` value wins over the name. A bound satellite draws with its store's map. A change repaints
+the icons in place (rows, focus, an open popover kept).
+
+| Name | Where |
+|------|-------|
+| `prompt` | the drop-area prompt + the picker (cloud-upload) |
+| `overlay` | the drag overlay (upload) |
+| `summary` | the compact summary line while idle (paperclip) |
+| `rowCancel` / `rowRemove` | the row Cancel (⊘) / Remove (✕) buttons — `rowRemove` defaults to `''`: the CSS-masked ✕ (`--dz-icon-remove`) |
+| `rowPause` / `rowResume` / `rowRetry` | the row action button |
+| `statusPending` / `statusPaused` / `statusComplete` / `statusError` / `statusCancelling` / `statusCancelled` | status glyphs (rows, popover, summary, indicator chip); uploading draws a loader |
+| `fileImage` / `fileVideo` / `fileAudio` / `filePdf` / `fileDoc` / `fileSpreadsheet` / `fileArchive` / `fileCode` / `fileText` / `fileDefault` | file-type icons (after `getFileIconCallback` / `fileIcons`) |
+
+```html
+<web-dropzone icons='{"rowRetry": "fa-solid fa-rotate", "statusComplete": "check"}'></web-dropzone>
+<script>
+  window.components.icons = { 'web-dropzone.prompt': '<svg …>…</svg>' };   // every dropzone on the page
+</script>
+```
+
+None of the names is a core built-in, so a theme's `--base-icon-*` glyphs never stand in for them; map a name to a
+built-in (`"statusComplete": "check"`) to use the theme glyph. The hooks (`renderIconCallback`) are asked for these
+names too — return `null` for a name that isn't yours.
 
 ```html
 <style>

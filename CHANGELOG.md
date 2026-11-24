@@ -11,6 +11,30 @@ No stable 1.0.0 is published, so the break ships as the next release
 candidate — but `^1.0.0-rc02` consumers will pull it: the event,
 callback and store-access API below is breaking.
 
+### Added — icons by name: the `icons` input + `window.components.icons` (core rc26, rulebook C-CA-42) (2026-11-24)
+- Every icon the dropzone draws itself has a NAME (`DEFAULT_ICONS`, exported with the `DropzoneIconName` /
+  `DropzoneIcons` types): `prompt`, `overlay`, `summary`, `rowCancel`, `rowRemove`, `rowPause`, `rowResume`,
+  `rowRetry`, `statusPending` / `statusPaused` / `statusComplete` / `statusError` / `statusCancelling` /
+  `statusCancelled`, `fileImage` / `fileVideo` / `fileAudio` / `filePdf` / `fileDoc` / `fileSpreadsheet` /
+  `fileArchive` / `fileCode` / `fileText` / `fileDefault`. None is a core built-in name (the theme's
+  `--base-icon-*` glyphs never stand in; map a name to a built-in to use one). Unreplaced, a name draws the same
+  Lucide glyph as before (`rowRemove` = `''`: the CSS-masked ✕).
+- New input **`icons`** (object or JSON attribute, `toObject({ validate: isIconMap })`): `{ rowRetry: 'fa-solid fa-rotate' }`.
+  Core `renderIcon` order: markup → `el.icons` → the page-wide `window.components.icons` (`'web-dropzone.<name>'`, then
+  `'<name>'`) → a core built-in → the element's / page-wide `renderIconCallback` → the Lucide default → class list →
+  text. An explicit `icon` / `cancel-icon` / `remove-icon` / `overlay-icon` / `fileIcons` value still wins. Bound
+  satellites (picker, list, indicator) draw with their store's map.
+- The status glyphs, the row Pause / Resume / Retry buttons and the summary icon now go through core `renderIcon` too
+  (before: raw markup) — so the maps and the `renderIconCallback`s reach them; `iconsChanged()` (a page-wide map /
+  hook change) repaints them in place (`data-dz-icon-name` slots), rows, focus and an open popover kept. The
+  indicator chip adopts core `ICON_CSS` and repaints its status icon.
+- Changed: the `renderIconCallback`s are now also asked for the dropzone's own names (`statusPending`, `fileText`,
+  …) — return `null` for a name that isn't yours. `getFileIcon(file)` returns the category's icon NAME (`fileText`)
+  instead of its markup when no override applies (it returns an icon VALUE, drawn through `renderIcon`);
+  `DEFAULT_CONFIG.icon` / `.overlayIcon` are the names `prompt` / `overlay`.
+- Docs: `docs/usage.md` Icons (the maps-first order) + "Icon names", `ai/custom-rendering.txt`. e2e `icons.spec.ts`
+  "icons by name" (defaults, JSON attribute + `el.icons`, page-wide map repaint in a bound list, the store map wins).
+
 ### Added — render callbacks get `labels` / `isReadonly` / `isDisabled` and re-run in place when they change (2026-11-24)
 - Every render callback's ctx (`DropzoneRenderContext`, the web-treeview / web-multiselect / web-grid / web-editor
   shape) carries `labels` (core `createLabelsView`: `ctx.labels.text(key, params)` / `ctx.labels.html(key, params)` —

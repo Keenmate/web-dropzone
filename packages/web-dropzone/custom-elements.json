@@ -39,7 +39,7 @@
                   "text": "void"
                 }
               },
-              "description": "Repaint every icon this store drew through core `renderIcon` in place —\nthe page-wide `window.components.renderIconCallback` changed (the\nelement's `iconsChanged()`, C-CA-40). Only the icon slots are replaced\n(prompt icon, row Cancel / Remove buttons and file-type icons in the list and the open\npopover), so files, scroll, focus and the open popover are kept. The\ndrag overlay is built per drag, so its next build reads the new hook.\nBound satellites repaint themselves (their own `iconsChanged()`)."
+              "description": "Repaint every icon this store drew through core `renderIcon` in place —\nthe page-wide `window.components.renderIconCallback` / `window.components.icons`\nor the element's `icons` changed (the element's `iconsChanged()`, C-CA-40 /\nC-CA-42). Only the icon slots are replaced (prompt icon, row Cancel / Remove /\nPause / Resume / Retry buttons, status glyphs, the summary icon and file-type\nicons in the list and the open popover), so files, scroll, focus and the open\npopover are kept. The\ndrag overlay is built per drag, so its next build reads the new hook.\nBound satellites repaint themselves (their own `iconsChanged()`)."
             }
           ],
           "superclass": {
@@ -325,6 +325,22 @@
           "name": "RowAction",
           "declaration": {
             "name": "RowAction",
+            "package": "@keenmate/web-dropzone-core"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "DropzoneIconName",
+          "declaration": {
+            "name": "DropzoneIconName",
+            "package": "@keenmate/web-dropzone-core"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "DropzoneIcons",
+          "declaration": {
+            "name": "DropzoneIcons",
             "package": "@keenmate/web-dropzone-core"
           }
         },
@@ -821,6 +837,14 @@
           "name": "UI_ICONS",
           "declaration": {
             "name": "UI_ICONS",
+            "package": "@keenmate/web-dropzone-core"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "DEFAULT_ICONS",
+          "declaration": {
+            "name": "DEFAULT_ICONS",
             "package": "@keenmate/web-dropzone-core"
           }
         },
@@ -4694,7 +4718,7 @@
               },
               "attribute": "icon",
               "reflects": true,
-              "description": "Prompt icon — markup (starts with `<`, inserted raw — NOT sanitized), a built-in icon name (`check`, `close`, … masked from `--base-icon-<name>`), a name `renderIconCallback` maps, an icon-font class list (`fa-solid fa-upload` → `<i class=\"dz__icon …\">`), or text (an emoji). Unset = the bound store's `icon`, else the built-in upload icon."
+              "description": "Prompt icon — markup (starts with `<`, inserted raw — NOT sanitized), a built-in icon name (`check`, `close`, … masked from `--base-icon-<name>`), a name `renderIconCallback` maps, an icon-font class list (`fa-solid fa-upload` → `<i class=\"dz__icon …\">`), or text (an emoji). Unset = the bound store's `icon`, else the `prompt` icon (the store `icons` map / the page-wide `window.components.icons` may replace it)."
             },
             {
               "kind": "field",
@@ -5190,7 +5214,7 @@
               "type": {
                 "text": "string | null"
               },
-              "description": "Prompt icon — markup (starts with `<`, inserted raw — NOT sanitized), a built-in icon name (`check`, `close`, … masked from `--base-icon-<name>`), a name `renderIconCallback` maps, an icon-font class list (`fa-solid fa-upload` → `<i class=\"dz__icon …\">`), or text (an emoji). Unset = the bound store's `icon`, else the built-in upload icon."
+              "description": "Prompt icon — markup (starts with `<`, inserted raw — NOT sanitized), a built-in icon name (`check`, `close`, … masked from `--base-icon-<name>`), a name `renderIconCallback` maps, an icon-font class list (`fa-solid fa-upload` → `<i class=\"dz__icon …\">`), or text (an emoji). Unset = the bound store's `icon`, else the `prompt` icon (the store `icons` map / the page-wide `window.components.icons` may replace it)."
             },
             {
               "name": "disabled",
@@ -9266,6 +9290,16 @@
             },
             {
               "kind": "field",
+              "name": "icons",
+              "privacy": "public",
+              "type": {
+                "text": "DropzoneIcons"
+              },
+              "attribute": "icons",
+              "description": "Icon overrides BY NAME (core icon maps, rulebook C-CA-42) — `{ rowRetry: 'fa-solid fa-rotate' }`; a value is an icon string (markup raw — NOT sanitized; a core built-in name; another name; an icon-font class list; text). Names (`DEFAULT_ICONS`): `prompt`, `overlay`, `summary`, `rowCancel`, `rowRemove`, `rowPause`, `rowResume`, `rowRetry`, `statusPending`, `statusPaused`, `statusComplete`, `statusError`, `statusCancelling`, `statusCancelled`, `fileImage`, `fileVideo`, `fileAudio`, `filePdf`, `fileDoc`, `fileSpreadsheet`, `fileArchive`, `fileCode`, `fileText`, `fileDefault`. Asked before the page-wide `window.components.icons` (`'web-dropzone.<name>'`, then `'<name>'`), the built-ins, the `renderIconCallback`s and the Lucide defaults; an explicit `icon` / `cancel-icon` / `remove-icon` / `overlay-icon` / `fileIcons` value wins. Bound satellites draw with this map. Property (object) or JSON attribute. Live (repainted in place)."
+            },
+            {
+              "kind": "field",
               "name": "translateCallback",
               "privacy": "public",
               "type": {
@@ -10082,6 +10116,14 @@
               "name": "storage-key",
               "fieldName": "storageKey",
               "description": "Key of the persisted UI state (popover size; core SPEC §12.17). Unset / empty = off; set = localStorage `km-state:web-dropzone:<key>`, or `loadStateCallback` / `saveStateCallback`."
+            },
+            {
+              "name": "icons",
+              "fieldName": "icons",
+              "type": {
+                "text": "DropzoneIcons"
+              },
+              "description": "Icon overrides BY NAME (core icon maps, rulebook C-CA-42) — `{ rowRetry: 'fa-solid fa-rotate' }`; a value is an icon string (markup raw — NOT sanitized; a core built-in name; another name; an icon-font class list; text). Names (`DEFAULT_ICONS`): `prompt`, `overlay`, `summary`, `rowCancel`, `rowRemove`, `rowPause`, `rowResume`, `rowRetry`, `statusPending`, `statusPaused`, `statusComplete`, `statusError`, `statusCancelling`, `statusCancelled`, `fileImage`, `fileVideo`, `fileAudio`, `filePdf`, `fileDoc`, `fileSpreadsheet`, `fileArchive`, `fileCode`, `fileText`, `fileDefault`. Asked before the page-wide `window.components.icons` (`'web-dropzone.<name>'`, then `'<name>'`), the built-ins, the `renderIconCallback`s and the Lucide defaults; an explicit `icon` / `cancel-icon` / `remove-icon` / `overlay-icon` / `fileIcons` value wins. Bound satellites draw with this map. Property (object) or JSON attribute. Live (repainted in place)."
             },
             {
               "name": "custom-styles",

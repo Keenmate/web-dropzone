@@ -85,9 +85,13 @@ export {
     actionForStatus,
     CANCEL_ICON,
     FILE_TYPE_ICONS,
-    UI_ICONS
+    UI_ICONS,
+    DEFAULT_ICONS,
+    statusIconName,
+    rowActionIconName,
+    fileTypeIconName
 } from './icons';
-export type { RowAction } from './icons';
+export type { RowAction, DropzoneIconName, DropzoneIcons } from './icons';
 
 // ---- UI strings (`labels`) ----------------------------------------------
 export {

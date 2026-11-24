@@ -213,3 +213,51 @@ test('a fileIcons name the page hook answers later repaints the file icons in pl
         await page.evaluate(() => { (window as any).components.renderIconCallback = null; });
     }
 });
+
+// ── icons map by name (rulebook C-CA-42): el.icons → window.components.icons → … → DEFAULT_ICONS ────
+
+test.describe('icons by name', () => {
+    test.afterEach(async ({ page }) => {
+        await page.evaluate(() => { (window as any).components.icons = {}; });
+    });
+
+    test('unreplaced names draw the Lucide defaults (no icon-font <i> for a name)', async ({ page }) => {
+        await page.evaluate(() => (window as any).__addNamed('nm', ['a.txt']));
+        const row = dz(page, 'nm').locator('.dz__file-item');
+        await expect(row.locator('.dz__file-item-status[data-dz-icon-name="statusPending"] svg')).toHaveCount(1);
+        await expect(row.locator('.dz__file-item-icon svg')).toHaveCount(1);
+        await expect(row.locator('[data-dz-action="cancel"] svg')).toHaveCount(1);   // no handler: hidden, still the rowCancel glyph
+        await expect(dz(page, 'nm').locator('.dz__file-list i.dz__icon')).toHaveCount(0);
+    });
+
+    test('the icons JSON attribute + el.icons replace named icons (prompt, status, file type)', async ({ page }) => {
+        await expect(dz(page, 'nm').locator('.dz__dropzone-icon i.dz__icon.fa-solid.fa-cloud-arrow-up')).toHaveCount(1);
+        await page.evaluate(() => (window as any).__addNamed('nm', ['a.txt']));
+        await page.evaluate(async () => {
+            const el = document.getElementById('nm') as any;
+            el.icons = { statusPending: '<b class="nm-status">S</b>', fileText: 'fa-solid fa-file-lines' };
+            await el.whenSettled();
+        });
+        const row = dz(page, 'nm').locator('.dz__file-item');
+        await expect(row.locator('.dz__file-item-status .nm-status')).toHaveText('S');
+        await expect(row.locator('.dz__file-item-icon i.dz__icon.fa-solid.fa-file-lines')).toHaveCount(1);
+        await expect(dz(page, 'nm').locator('.dz__dropzone-icon svg')).toHaveCount(1);   // the attribute map replaced: prompt back to the default
+    });
+
+    test('window.components.icons (web-dropzone.<name>) repaints the store map + a bound list in place', async ({ page }) => {
+        await page.evaluate(() => (window as any).__addNamed('nm-store', ['a.txt']));
+        const listStatus = page.locator('#nm-list').locator('.dz__file-item-status');
+        await expect(listStatus.locator('svg')).toHaveCount(1);
+        await listStatus.evaluate((el) => { (window as any).__nmStatus = el; });
+        await page.evaluate(() => { (window as any).components.icons = { 'web-dropzone.statusPending': '<b class="pg-status">G</b>' }; });
+        await expect(listStatus.locator('.pg-status')).toHaveText('G');
+        expect(await listStatus.evaluate((el) => el === (window as any).__nmStatus)).toBe(true);   // repainted, not re-rendered
+        // The store's own map wins over the page-wide one.
+        await page.evaluate(async () => {
+            const el = document.getElementById('nm-store') as any;
+            el.icons = { statusPending: '<b class="own-status">O</b>' };
+            await el.whenSettled();
+        });
+        await expect(page.locator('#nm-list').locator('.dz__file-item-status .own-status')).toHaveText('O');
+    });
+});

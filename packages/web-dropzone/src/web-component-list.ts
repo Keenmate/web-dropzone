@@ -33,7 +33,7 @@ import {
     isImageFile,
     createImagePreview,
     formatFileSize,
-    UI_ICONS,
+    statusIconName,
     statusLabel,
     DEFAULT_CONFIG
 } from '@keenmate/web-dropzone-core';
@@ -54,10 +54,13 @@ import {
     renderBadgeItem,
     repaintRowIcons,
     repaintFileIcons,
+    repaintNamedIcons,
+    renderDzIcon,
+    ICON_NAME_ATTR,
     FILE_ICON_ATTR,
     statusGlyph
 } from './row-templates';
-import type { RowTemplateOptions } from './row-templates';
+import type { DzIconOptions, RowTemplateOptions } from './row-templates';
 import type { DropzoneContext, DropzoneListEventMap, QueueOpenEventDetail, SummaryActivateEventDetail } from '@keenmate/web-dropzone-core';
 import { buildStatusSurfaceArgs, renderRollingSurface } from './status-surface';
 import type { DropzoneElement } from './web-component';
@@ -131,6 +134,16 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
     /** Context prototype for per-row icon ctx — rebuilt when the bound store changes. */
     private contextBase: { storeEl: DropzoneElement; base: DropzoneContext } | null = null;
 
+    /**
+     * Who draws this list's icons: the store element (its tag + `icons` map +
+     * `renderIconCallback` — a satellite draws with its store's, so the
+     * page-wide `window.components.icons['web-dropzone.<name>']` applies).
+     */
+    private iconOptions(): DzIconOptions {
+        const cfg = this.store?.getOptions();
+        return { host: cfg?.hostElement ?? this, renderIconCallback: cfg?.renderIconCallback, icons: cfg?.icons };
+    }
+
     private iconContext(): DropzoneContext | undefined {
         const storeEl = this.storeEl;
         if (!storeEl) return undefined;
@@ -168,9 +181,10 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
         const cfg = store.getOptions();
         const files = store.getFiles();
         const findFile = (id: string) => files.find((f) => f.id === id);
-        const iconOptions = { host: cfg.hostElement ?? this, renderIconCallback: cfg.renderIconCallback };
+        const iconOptions = this.iconOptions();
         repaintRowIcons(this.container, findFile, cfg.cancelIcon, cfg.removeIcon, iconOptions);
         repaintFileIcons(this.container, findFile, { iconOverrides: cfg, iconContext: this.iconContext(), iconOptions });
+        repaintNamedIcons(this.container, findFile, iconOptions);
     }
 
     // ========================================================================
@@ -368,9 +382,11 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
         const cfg = this.store.getOptions();
         const args = buildStatusSurfaceArgs(files, this.storeEl!.controller, this.storeEl!, this.renderState);
         const status = args.overallStatus === 'idle' ? 'pending' : args.overallStatus;
+        const iconName = status === 'pending' ? 'summary' : statusIconName(status as Exclude<FileStatus, 'uploading'>);
         const icon = status === 'pending'
-            ? UI_ICONS.paperclip
-            : statusGlyph(status as FileStatus);
+            ? renderDzIcon('summary', this.iconOptions())
+            : statusGlyph(status as FileStatus, this.iconOptions());
+        const iconNameAttr = status === 'uploading' ? '' : ` ${ICON_NAME_ATTR}="${iconName}"`;
         const iconClass = status === 'pending'
             ? 'dz__summary-icon'
             : `dz__summary-icon dz__summary-icon--${status}`;
@@ -382,7 +398,7 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
         this.container.innerHTML = `
             <div class="dz__summary">
                 <div class="dz__summary-line" ${this.isStoreDisabled ? 'tabindex="-1" aria-disabled="true"' : 'tabindex="0"'} role="button" aria-label="${escapeHtml(this.label('ariaLabels.viewFiles'))}">
-                    <span class="${iconClass}" data-status="${status}" aria-label="${escapeHtml(this.label('ariaLabels.status', { ctx: { status, statusName } }))}"${status === 'uploading' ? ' aria-busy="true"' : ''}>${icon}</span>
+                    <span class="${iconClass}" data-status="${status}" aria-label="${escapeHtml(this.label('ariaLabels.status', { ctx: { status, statusName } }))}"${status === 'uploading' ? ' aria-busy="true"' : ''}${iconNameAttr}>${icon}</span>
                     <span class="dz__summary-text">${escapeHtml(text)}</span>
                 </div>
             </div>
@@ -428,7 +444,7 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
             removeIcon: cfg?.removeIcon,
             // The store's icon hook, with the store element as its ctx `element`
             // (a bulk dropzone draws through internal satellites).
-            iconOptions: { host: cfg?.hostElement ?? this, renderIconCallback: cfg?.renderIconCallback },
+            iconOptions: this.iconOptions(),
             isDisabled: this.isStoreDisabled
         };
         if (appearance === 'badges')   return renderBadgeItem(file, opts);
@@ -724,12 +740,13 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
                 row.dataset.status = file.status;
                 row.className = `dz__badge dz__badge--${file.status}`;
             }
-            patchStatusIcon(row, 'dz__badge-status', file, this.label);
+            patchStatusIcon(row, 'dz__badge-status', file, this.label, this.iconOptions());
             patchActionButton(
                 row.querySelector<HTMLElement>('[data-dz-action="row-action"]'),
                 file,
                 'dz__badge-action',
-            this.label
+                this.label,
+                this.iconOptions()
             );
             patchRemoveButton(
                 row.querySelector<HTMLElement>('[data-dz-action="remove"]'),
@@ -752,12 +769,13 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
         if (appearance !== 'grid') {
             patchProgressText(row, `${prefix}-progress-text`, file, this.label, this.storeLocale);
         }
-        patchStatusIcon(row, `${prefix}-status`, file, this.label);
+        patchStatusIcon(row, `${prefix}-status`, file, this.label, this.iconOptions());
         patchActionButton(
             row.querySelector<HTMLElement>('[data-dz-action="row-action"]'),
             file,
             `${prefix}-action`,
-            this.label
+            this.label,
+            this.iconOptions()
         );
         patchRemoveButton(
             row.querySelector<HTMLElement>('[data-dz-action="remove"]'),

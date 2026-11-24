@@ -18,7 +18,7 @@ import type {
 import type { FileIconContext } from './interaction';
 import { createId } from '@keenmate/web-components-core';
 import { formatNumber } from '@keenmate/web-components-core/locale';
-import { FILE_TYPE_ICONS, UI_ICONS } from './icons';
+import { FILE_TYPE_ICONS, fileTypeIconName } from './icons';
 
 /**
  * Default configuration values — the ONE source of the defaults: the engine
@@ -31,7 +31,7 @@ import { FILE_TYPE_ICONS, UI_ICONS } from './icons';
  * `isThumbnailsShown`, `controls`, …) or a runtime-resolved reference
  * (`container`, `hostElement`, `overlayTarget`).
  */
-export const DEFAULT_CONFIG: Required<Omit<DropzoneEngineOptions, 'fileIcons' | 'getFileIconCallback' | 'renderIconCallback' | 'translateCallback' | 'validateCallback' | 'beforeFilesAddCallback' | 'beforeFilesRemoveCallback' | 'beforeFilesCancelCallback' | 'beforeActionCallback' | 'labels' | 'cancelIcon' | 'removeIcon' | 'uploadFileCallback' | 'renderFileItemCallback' | 'renderListWrapperCallback' | 'renderPromptCallback' | 'renderSummaryCallback' | 'getCustomStylesCallback' | 'saveStateCallback' | 'loadStateCallback' | 'storageKey' | 'container' | 'hostElement' | 'customStylesOptions' | 'overlayTarget' | 'selectorAppearance' | 'listAppearance' | 'controls' | 'itemControls' | 'cardSize' | 'isThumbnailsShown' | 'retryPolicy' | 'isHeadless' | 'renderRollingBodyCallback' | 'renderRollingFileInfoCallback' | 'renderRollingProgressCallback'>> = {
+export const DEFAULT_CONFIG: Required<Omit<DropzoneEngineOptions, 'fileIcons' | 'getFileIconCallback' | 'renderIconCallback' | 'icons' | 'translateCallback' | 'validateCallback' | 'beforeFilesAddCallback' | 'beforeFilesRemoveCallback' | 'beforeFilesCancelCallback' | 'beforeActionCallback' | 'labels' | 'cancelIcon' | 'removeIcon' | 'uploadFileCallback' | 'renderFileItemCallback' | 'renderListWrapperCallback' | 'renderPromptCallback' | 'renderSummaryCallback' | 'getCustomStylesCallback' | 'saveStateCallback' | 'loadStateCallback' | 'storageKey' | 'container' | 'hostElement' | 'customStylesOptions' | 'overlayTarget' | 'selectorAppearance' | 'listAppearance' | 'controls' | 'itemControls' | 'cardSize' | 'isThumbnailsShown' | 'retryPolicy' | 'isHeadless' | 'renderRollingBodyCallback' | 'renderRollingFileInfoCallback' | 'renderRollingProgressCallback'>> = {
     isMultiple: true,
     accept: '',
     maxFileSize: 0,
@@ -53,9 +53,9 @@ export const DEFAULT_CONFIG: Required<Omit<DropzoneEngineOptions, 'fileIcons' | 
     gridStatus: 'badge',
     rollingRotation: 'slide-in',
     isFilesInside: false,
-    icon: UI_ICONS.cloudUpload,
+    icon: 'prompt',
     popoverPlacement: 'bottom-start',
-    overlayIcon: UI_ICONS.upload,
+    overlayIcon: 'overlay',
     shouldHighlightOnPageDrag: false,
     name: '',
     concurrency: 1,
@@ -155,7 +155,8 @@ function lookupIconMap(map: Record<string, string>, probe: string): string | und
  *   1. `overrides.getFileIconCallback({ file })` (non-null return)
  *   2. `overrides.fileIcons[<extension>]`  (e.g. `psd`)
  *   3. `overrides.fileIcons[<category>]`   (e.g. `archive`)
- *   4. built-in Lucide category icon
+ *   4. the category's icon NAME (`fileImage`, `filePdf`, … — `DEFAULT_ICONS`):
+ *      the `icons` maps / hooks may replace it, else the built-in Lucide glyph
  *
  * `overrides` is any object exposing `fileIcons` / `getFileIconCallback` — a
  * full `DropzoneEngineOptions` qualifies, so renderers pass `this.config` directly.
@@ -182,7 +183,7 @@ export function getFileIcon(file: File, overrides?: FileIconOverrides, contextBa
         if (byCategory !== undefined) return byCategory;
     }
 
-    return FILE_ICONS[getFileTypeCategory(file)];
+    return fileTypeIconName(getFileTypeCategory(file));
 }
 
 /**
