@@ -135,7 +135,7 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
         const storeEl = this.storeEl;
         if (!storeEl) return undefined;
         if (this.contextBase?.storeEl !== storeEl) {
-            this.contextBase = { storeEl, base: createStoreContextBase(storeEl) };
+            this.contextBase = { storeEl, base: createStoreContextBase(storeEl, () => this.renderState) };
         }
         return this.contextBase.base;
     }
@@ -366,7 +366,7 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
     private renderSummary(files: FileState[]): void {
         if (!this.store) return;
         const cfg = this.store.getOptions();
-        const args = buildStatusSurfaceArgs(files, this.storeEl!.controller, this.storeEl!);
+        const args = buildStatusSurfaceArgs(files, this.storeEl!.controller, this.storeEl!, this.renderState);
         const status = args.overallStatus === 'idle' ? 'pending' : args.overallStatus;
         const icon = status === 'pending'
             ? UI_ICONS.paperclip
@@ -572,7 +572,7 @@ export class DropzoneListElement extends SatelliteElement<DropzoneListEventMap> 
         // The shared rolling renderer (status-surface.ts) — the same one the
         // store's in-class list uses; callbacks through core `renderSlot`.
         renderRollingSurface(wrapper, {
-            args: buildStatusSurfaceArgs(files, this.storeEl!.controller, this.storeEl!),
+            args: buildStatusSurfaceArgs(files, this.storeEl!.controller, this.storeEl!, this.renderState),
             front: this.getFrontFile(files),
             rotation,
             bodyCallback: cfg.renderRollingBodyCallback,

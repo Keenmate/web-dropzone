@@ -17,6 +17,7 @@ export type { DropzoneController } from './controller';
 // ---- Interaction model: callback contexts, event details, event map -----
 export type {
     DropzoneContext,
+    DropzoneRenderContext,
     ValidateContext,
     BeforeFilesAddContext,
     BeforeFilesRemoveContext,
@@ -101,7 +102,7 @@ export {
     isLabelsValue,
     fileLabelContext
 } from './labels';
-export type { DropzoneLabels, DropzoneLabelKey, DropzoneLabelOverrides, LabelFn, LabelParams, LabelSources } from './labels';
+export type { DropzoneLabels, DropzoneLabelKey, DropzoneLabelOverrides, LabelFn, BoundLabelFn, DropzoneLabelsView, LabelParams, LabelSources } from './labels';
 export type {
     FileLabelContext,
     RejectedFileLabelContext,

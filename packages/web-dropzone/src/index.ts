@@ -36,6 +36,7 @@ export type {
     DropzoneLabelKey,
     DropzoneLabelOverrides,
     LabelFn,
+    DropzoneLabelsView,
     LabelParams,
     FileLabelContext,
     RejectedFileLabelContext,
@@ -79,6 +80,7 @@ export type {
     // Interaction model — controller, callback contexts, event details
     DropzoneController,
     DropzoneContext,
+    DropzoneRenderContext,
     ValidateContext,
     BeforeFilesAddContext,
     BeforeFilesRemoveContext,

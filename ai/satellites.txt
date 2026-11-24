@@ -200,6 +200,8 @@ StatusSurfaceArgs:
   overallStatus       = aggregate.overallStatus
   files               read-only list
   controller, element (non-enumerable) - the bound store
+  labels, isReadonly, isDisabled - the render ctx (the satellite's labels
+                      over the store's; the store's read-only / disabled)
 
 Returns: null/undefined = library default; false = hide (body: whole surface);
 string = innerHTML, skipped when equal to the last string; HTMLElement =

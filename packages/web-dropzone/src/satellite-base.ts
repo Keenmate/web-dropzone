@@ -11,7 +11,8 @@
  */
 
 import type { DropzoneElement } from './web-component';
-import type { DropzoneController, DropzoneContext, DropzoneLabelOverrides, LabelFn } from '@keenmate/web-dropzone-core';
+import type { BoundLabelFn, DropzoneController, DropzoneContext, DropzoneLabelOverrides, DropzoneRenderContext } from '@keenmate/web-dropzone-core';
+import type { SurfaceRenderState } from './status-surface';
 import { createLabelFn, pageLabelsFor } from '@keenmate/web-dropzone-core';
 import { BlissElement, createCustomStyles, toFunction, toText, withComponentContext, type CustomStylesHandle, type EventMap, type InputDef } from '@keenmate/web-components-core';
 import { storeControllerOf, STORE_BUILD_EVENT } from './store-link';
@@ -84,15 +85,19 @@ export function whenStoreReady(
 }
 
 /**
- * A context prototype for a store: `controller` / `element` as getters, so
- * a ctx built with `Object.create(base)` inherits them non-enumerably (the
- * per-row icon callback ctx in the list satellite).
+ * A render-context prototype for a store: `controller` / `element` and the
+ * render values (`labels`, `isReadonly`, `isDisabled` — from `getState`, read
+ * live) as getters, so a ctx built with `Object.create(base)` inherits them
+ * non-enumerably (the per-row icon callback ctx in the list satellite).
  */
-export function createStoreContextBase(storeEl: DropzoneElement): DropzoneContext {
+export function createStoreContextBase(storeEl: DropzoneElement, getState: () => SurfaceRenderState): DropzoneRenderContext {
     return Object.create(Object.prototype, {
         controller: { get: () => storeEl.controller },
-        element: { get: () => storeEl }
-    }) as DropzoneContext;
+        element: { get: () => storeEl },
+        labels: { get: () => getState().labels },
+        isReadonly: { get: () => getState().isReadonly },
+        isDisabled: { get: () => getState().isDisabled }
+    }) as DropzoneRenderContext;
 }
 
 /**
@@ -215,11 +220,21 @@ export abstract class SatelliteElement<TEvents extends EventMap = Record<string,
      * `web-dropzone` labels → built-in English. Keys none of those set go to the
      * bound store's `translateCallback`, then the page-wide one.
      */
-    protected readonly label: LabelFn = createLabelFn(() => [
+    protected readonly label: BoundLabelFn = createLabelFn(() => [
         this.config.labels as DropzoneLabelOverrides | null | undefined,
         pageLabelsFor(this.localName),
         this.store?.getOptions().labels
     ], () => this, () => this.store?.getOptions().translateCallback, () => this.storeLocale);
+
+    /**
+     * The render values of this satellite's callback ctx: its labels (own
+     * `labels` over the store's), the bound store's read-only and effective
+     * disabled state (a satellite follows its store).
+     */
+    protected get renderState(): SurfaceRenderState {
+        const options = this.store?.getOptions();
+        return { labels: this.label.view, isReadonly: !!options?.isReadonly, isDisabled: !!options?.isDisabled };
+    }
 
     /**
      * The bound store's `locale` (a satellite has no `locale` input — it follows

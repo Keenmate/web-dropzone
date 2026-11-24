@@ -22,7 +22,7 @@
 import { fileLogger, initLogger, uiLogger } from './logger';
 import { announce, createStateStore, dispatch, runBeforeCallback, withComponentContext, type StateStore } from '@keenmate/web-components-core';
 import { createDropzoneController, type DropzoneController } from './controller';
-import { createLabelFn, fileLabelContext, labelTemplate, type DropzoneLabelKey, type LabelFn, type LabelParams } from './labels';
+import { createLabelFn, fileLabelContext, labelTemplate, type BoundLabelFn, type DropzoneLabelKey, type LabelFn, type LabelParams } from './labels';
 import { runAction, type ActionSource } from '@keenmate/web-components-core/actions';
 import type {
     DropzoneAction,
@@ -31,6 +31,7 @@ import type {
     DropzoneActionItem,
     DropzoneContext,
     DropzoneEngineEventName,
+    DropzoneRenderContext,
     EngineEventDetail,
     FileUploadContext
 } from './interaction';
@@ -69,6 +70,9 @@ import {
 const CANCELLABLE: ReadonlySet<FileState['status']> = new Set(['uploading', 'pending', 'paused']);
 
 /** Sentinel: an upload attempt was detached by a cancel that timed out. */
+/** The options a render callback's ctx reflects (`labels`, `isReadonly`, `isDisabled`) or that change its strings. */
+const RENDER_CONTEXT_KEYS = ['labels', 'locale', 'translateCallback', 'isReadonly', 'isDisabled'] as const;
+
 const DETACHED: unique symbol = Symbol('detached');
 
 /**
@@ -230,13 +234,25 @@ export class DropzoneEngine {
      * allocation per ctx).
      */
     readonly contextBase: DropzoneContext;
+    /**
+     * {@link contextBase} plus the render values (`labels`, `isReadonly`,
+     * `isDisabled` — read live) for a hot-path RENDER ctx (`getFileIconCallback`).
+     */
+    readonly renderContextBase: DropzoneRenderContext;
+    /**
+     * Bumped when a value a render callback receives changes (`labels`,
+     * `locale`, `translateCallback`, the page-wide locale, `isReadonly`,
+     * `isDisabled`): the renderer re-runs the callbacks it would otherwise
+     * reuse (an element row returned by `renderFileItemCallback`).
+     */
+    protected renderContextVersion = 0;
 
     /**
      * UI-string lookup over `config.labels` (per-key overrides → built-in
      * English) — `label('ariaLabels.cancelFile', { name })`. Reads the live config, so a
      * `labels` change applies on the next render.
      */
-    readonly label: LabelFn = createLabelFn(
+    readonly label: BoundLabelFn = createLabelFn(
         () => this.config.labels,
         () => this.config.hostElement ?? this.element,
         () => this.config.translateCallback,
@@ -252,6 +268,11 @@ export class DropzoneEngine {
             controller: { get: () => engine.controller },
             element: { get: () => engine.contextElement }
         }) as DropzoneContext;
+        this.renderContextBase = Object.create(this.contextBase, {
+            labels: { get: () => engine.label.view },
+            isReadonly: { get: () => !!engine.config.isReadonly },
+            isDisabled: { get: () => !!engine.config.isDisabled }
+        }) as DropzoneRenderContext;
         initLogger.debug('DropzoneEngine initialized', { config: this.config });
     }
 
@@ -269,6 +290,28 @@ export class DropzoneEngine {
     /** Attach `controller` + `element` (non-enumerable) to a callback ctx, in place. */
     ctx<T extends object>(fields: T): T & DropzoneContext {
         return withComponentContext(fields, this.controller, this.contextElement);
+    }
+
+    /**
+     * A RENDER callback's ctx: {@link ctx} plus `labels` (the label lookup as a
+     * core `LabelsView`), `isReadonly` and `isDisabled` (the effective state).
+     */
+    renderCtx<T extends object>(fields: T): T & DropzoneRenderContext {
+        return this.ctx(Object.assign(fields, {
+            labels: this.label.view,
+            isReadonly: !!this.config.isReadonly,
+            isDisabled: !!this.config.isDisabled
+        }));
+    }
+
+    /**
+     * The page-wide labels / locale changed (core `localeChanged()`): re-render
+     * in place with the same config — the labels resolve the new strings and
+     * the render callbacks re-run.
+     */
+    refreshLabels(): void {
+        this.renderContextVersion++;
+        this.setOptions({});
     }
 
     /**
@@ -613,6 +656,7 @@ export class DropzoneEngine {
      */
     setOptions(partial: Partial<DropzoneEngineOptions>): void {
         const prevOverlayTarget = this.config.overlayTarget;
+        if (RENDER_CONTEXT_KEYS.some((key) => key in partial && partial[key] !== this.config[key])) this.renderContextVersion++;
         this.config = { ...this.config, ...partial };
         initLogger.debug('Config updated', { config: this.config });
 

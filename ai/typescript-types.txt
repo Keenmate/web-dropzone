@@ -156,12 +156,17 @@ CONTEXT & CALLBACK CONTEXTS
 type DropzoneContext = ComponentContext<DropzoneController, HTMLElement>;
 // => { readonly controller: DropzoneController; readonly element: HTMLElement }
 //    (non-enumerable at runtime)
+interface DropzoneRenderContext extends DropzoneContext {   // every RENDER callback's ctx
+  labels: DropzoneLabelsView;   // core LabelsView: text(key, params) / html(key, params)
+  isReadonly: boolean;          // the store's on a satellite
+  isDisabled: boolean;          // effective (disabled or a disabled <fieldset>)
+}
 
 ValidateContext          { file: File; existingFiles: FileState[] }
 BeforeFilesAddContext    { files: File[]; existingFiles: FileState[] }
 BeforeFilesRemoveContext { files: FileState[]; allFiles: FileState[] }
 BeforeFilesCancelContext  { files: FileState[]; allFiles: FileState[] }
-FileIconContext          { file: File }
+FileIconContext          { file: File }                 (render ctx)
 FileUploadContext        { file: File; signal: AbortSignal; setProgress(p: number): void;
                            startBytes: number; startPercent: number;
                            metadata: Readonly<Record<string, unknown>> | undefined;
@@ -172,10 +177,11 @@ SaveStateCallback<DropzoneState>  (ctx: { key; state: DropzoneState }) => void |
 FileItemRenderContext    { file: FileState; fileIndex: number; displayMode: DisplayMode;
                            isInPopover: boolean }
 ListWrapperRenderContext { rowsHtml: string; files: FileState[] }
-PromptRenderContext      = DropzoneContext
+PromptRenderContext      = DropzoneRenderContext
 SummaryRenderContext     { files: FileState[] }
 CustomStylesContext      = DropzoneContext
-(all extend DropzoneContext)
+(all extend DropzoneContext; FileIcon / FileItem / ListWrapper / Prompt / Summary
+ Render contexts and StatusSurfaceArgs extend DropzoneRenderContext)
 
 EVENT DETAILS
 -------------
@@ -213,7 +219,7 @@ STATUS SURFACE
 --------------
 interface StatusAggregate { total; uploading; paused; pending; complete; error;
                             cancelled: number; overallStatus: FileStatus | 'idle' }
-interface StatusSurfaceArgs extends DropzoneContext {
+interface StatusSurfaceArgs extends DropzoneRenderContext {   // + labels, isReadonly, isDisabled
   currentFile: FileState | undefined; currentFilePercent: number | undefined;
   currentFileStatus: FileStatus | undefined; aggregate: StatusAggregate;
   overallPercent: number; overallStatus: FileStatus | 'idle';

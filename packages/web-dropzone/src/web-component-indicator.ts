@@ -408,7 +408,7 @@ export class DropzoneIndicatorElement extends SatelliteElement {
         if (!this.store) return;
         this.refreshStaticLabels();
         const files = this.store.getFiles();
-        const args = buildStatusSurfaceArgs(files, this.storeEl!.controller, this.storeEl!);
+        const args = buildStatusSurfaceArgs(files, this.storeEl!.controller, this.storeEl!, this.renderState);
 
         // ---- Chip dataset (drives color + 'empty' state via CSS) --------
         const newStatus = args.overallStatus;

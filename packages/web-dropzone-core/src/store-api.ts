@@ -9,7 +9,7 @@
  */
 
 import type { FileState, FileStatus } from './types';
-import type { DropzoneContext } from './interaction';
+import type { DropzoneRenderContext } from './interaction';
 
 /**
  * Aggregate view of a store's file list, recomputed once per refresh cycle.
@@ -38,7 +38,7 @@ export interface StatusAggregate {
  * slice (undefined when nothing's uploading) and the queue-wide aggregate
  * (always present), so any callback can pick the slice it needs.
  */
-export interface StatusSurfaceArgs extends DropzoneContext {
+export interface StatusSurfaceArgs extends DropzoneRenderContext {
     // ---- Per-current-file slice -------------------------------------------
     /** The "focal" file — the first uploading file, or the most recent. */
     currentFile: FileState | undefined;
@@ -57,8 +57,9 @@ export interface StatusSurfaceArgs extends DropzoneContext {
     // ---- Escape hatch -----------------------------------------------------
     /** Full file list, read-only. Rarely needed once aggregate is available. */
     files: ReadonlyArray<FileState>;
-    // `controller` (act: `controller.pauseAll()`, `controller.removeFile(id)`)
-    // and `element` (the `<web-dropzone>` store host) come from DropzoneContext.
+    // `controller` (act: `controller.pauseAll()`, `controller.removeFile(id)`),
+    // `element` (the `<web-dropzone>` store host), `labels`, `isReadonly` and
+    // `isDisabled` come from DropzoneRenderContext.
 }
 
 /**

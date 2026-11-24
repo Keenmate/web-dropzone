@@ -195,6 +195,8 @@ export class WebDropzone extends DropzoneEngine {
      * `removeFile`.
      */
     private fileRowElements: Map<string, HTMLElement> = new Map();
+    /** The engine's `renderContextVersion` the cached element rows were rendered with. */
+    private rowRenderContextVersion = 0;
 
 
     // Drag overlay elements
@@ -310,12 +312,19 @@ export class WebDropzone extends DropzoneEngine {
             uiLogger.debug('Component is headless — skipping render');
             return;
         }
+        // An open popover mounted in the element survives the re-render (a
+        // labels / read-only / disabled change re-renders in place): taken out
+        // before the wipe, put back after; `onConfigApplied` re-anchors it to
+        // the new trigger.
+        const keptPopover = this.isPopoverOpen && this.popover?.parentNode === this.element ? this.popover : null;
+        keptPopover?.remove();
         this.element.innerHTML = this.renderComponent();
         this.satellitePickerEl = null;
         if (this.shouldUseSatelliteRendering()) {
             this.mountSatellites();
         }
         this.cacheElements();
+        if (keptPopover) this.element.appendChild(keptPopover);
         const r = resolveDisplayConfig(this.config);
         uiLogger.debug('Component rendered', {
             displayMode: this.config.displayMode,
@@ -656,7 +665,7 @@ export class WebDropzone extends DropzoneEngine {
         // HTML string): string = HTML, Node = its markup, null / undefined =
         // the default prompt below, false = no prompt.
         const cb = this.isStructuralMode() ? this.config.renderPromptCallback : null;
-        return renderSlotHtml(cb ? () => cb(this.ctx({})) : null, () => this.renderDefaultCardContent(cardSize));
+        return renderSlotHtml(cb ? () => cb(this.renderCtx({})) : null, () => this.renderDefaultCardContent(cardSize));
     }
 
     /** The built-in card prompt: icon, text, Browse button (big), hint. */
@@ -1171,6 +1180,14 @@ export class WebDropzone extends DropzoneEngine {
         const targetEl = this.config.isFilesInside ? this.filesInsideEl : this.fileListEl;
         if (!targetEl) return;
 
+        // A value the row callback receives changed (labels, locale, read-only,
+        // disabled): re-run it for every row — an element row it returns again
+        // keeps its identity (no replace), a new one takes its place.
+        if (this.rowRenderContextVersion !== this.renderContextVersion) {
+            this.fileRowElements.clear();
+            this.rowRenderContextVersion = this.renderContextVersion;
+        }
+
         if (this.files.length === 0) {
             this.fileRowElements.clear();
             // labels.noData '' = deliberately empty: render nothing.
@@ -1244,7 +1261,7 @@ export class WebDropzone extends DropzoneEngine {
         // the list hidden. Element identity of the rows is sacrificed in the
         // wrapper (`rowsHtml` is a string) — documented.
         const kind = renderSlot(targetEl, wrapperCb
-            ? () => wrapperCb(this.ctx({ rowsHtml: rows.map(r => typeof r.node === 'string' ? r.node : r.node.outerHTML).join(''), files: visible }))
+            ? () => wrapperCb(this.renderCtx({ rowsHtml: rows.map(r => typeof r.node === 'string' ? r.node : r.node.outerHTML).join(''), files: visible }))
             : null, { renderDefault: renderRows });
         if (kind === 'custom') {
             // The show-more toggle sits after the wrapper (an unchanged
@@ -1275,7 +1292,7 @@ export class WebDropzone extends DropzoneEngine {
         const cb = this.isStructuralMode() ? this.config.renderFileItemCallback : null;
         if (cb) {
             const displayMode = this.config.displayMode ?? this.deriveLegacyDisplayMode(listAppearance);
-            const result = cb(this.ctx({ file, fileIndex: index, displayMode, isInPopover: false }));
+            const result = cb(this.renderCtx({ file, fileIndex: index, displayMode, isInPopover: false }));
             // An element row is mounted as itself (identity → `file-row-update`).
             if (result instanceof HTMLElement) return result;
             // Everything else reads like core `renderSlotHtml`: string = HTML,
@@ -1346,7 +1363,7 @@ export class WebDropzone extends DropzoneEngine {
         // `<web-dropzone-list>` satellite uses; callbacks through core `renderSlot`.
         const structural = this.isStructuralMode();
         renderRollingSurface(targetEl, {
-            args: buildStatusSurfaceArgs(this.files, this.controller, this.contextElement),
+            args: buildStatusSurfaceArgs(this.files, this.controller, this.contextElement, this.renderContextBase),
             front: this.getFrontFile(),
             rotation: (this.config.rollingRotation ?? DEFAULT_CONFIG.rollingRotation) as RollingRotation,
             bodyCallback: structural ? this.config.renderRollingBodyCallback : null,
@@ -1453,7 +1470,7 @@ export class WebDropzone extends DropzoneEngine {
         const cb = this.isStructuralMode() ? this.config.renderFileItemCallback : null;
         if (cb) {
             const displayMode = this.config.displayMode ?? this.deriveLegacyDisplayMode(listAppearance);
-            return renderSlotHtml(() => cb(this.ctx({ file, fileIndex: index, displayMode, isInPopover })),
+            return renderSlotHtml(() => cb(this.renderCtx({ file, fileIndex: index, displayMode, isInPopover })),
                 () => this.renderDefaultFileItem(file, listAppearance, isInPopover)).html;
         }
         return this.renderDefaultFileItem(file, listAppearance, isInPopover);
@@ -1552,7 +1569,7 @@ export class WebDropzone extends DropzoneEngine {
             });
             const findFile = (id: string) => this.files.find((f) => f.id === id);
             RowTemplate.repaintRowIcons(root, findFile, this.config.cancelIcon, this.config.removeIcon, opts);
-            RowTemplate.repaintFileIcons(root, findFile, { iconOverrides: this.config, iconContext: this.contextBase, iconOptions: opts });
+            RowTemplate.repaintFileIcons(root, findFile, { iconOverrides: this.config, iconContext: this.renderContextBase, iconOptions: opts });
         }
     }
 
@@ -1576,7 +1593,7 @@ export class WebDropzone extends DropzoneEngine {
             // config satisfies FileIconOverrides structurally, so pass it whole;
             // the context base gives the per-row ctx its controller / element.
             iconOverrides: this.config,
-            iconContext: this.contextBase,
+            iconContext: this.renderContextBase,
             label: this.label,
             locale: this.config.locale,
             hasUploadHandler: this.hasUploadHandler(file),
@@ -1700,7 +1717,7 @@ export class WebDropzone extends DropzoneEngine {
         // (skipped when unchanged), Node = mounted, null / undefined = the
         // built-in summary line, false = the summary hidden.
         const cb = this.isStructuralMode() ? this.config.renderSummaryCallback : null;
-        renderSlot(this.summaryEl, cb ? () => cb(this.ctx({ files: this.getFiles() })) : null, {
+        renderSlot(this.summaryEl, cb ? () => cb(this.renderCtx({ files: this.getFiles() })) : null, {
             renderDefault: (el) => { el.innerHTML = this.renderDefaultSummary(); },
         });
 
@@ -2498,7 +2515,14 @@ export class WebDropzone extends DropzoneEngine {
 
     /** A config re-render (`setOptions`) refreshes the same surfaces as `change`. */
     protected override onConfigApplied(): void {
-        if (this.isEngineEventWiringActive) this.refreshAggregateSurfaces();
+        if (!this.isEngineEventWiringActive) return;
+        this.refreshAggregateSurfaces();
+        // A popover kept open through the re-render follows the new trigger;
+        // none any more (the list appearance changed) closes it.
+        if (this.isPopoverOpen) {
+            if (this.getPopoverAnchor()) this.popoverHandle?.reanchor();
+            else this.closePopover();
+        }
     }
 
     /**

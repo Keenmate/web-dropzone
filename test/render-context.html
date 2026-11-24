@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — render callback ctx: labels / isReadonly / isDisabled, re-run in place</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-dropzone, web-dropzone-indicator { display: block; max-width: 420px; }
+    </style>
+</head>
+<body>
+    <h1>Every render callback's ctx carries labels / isReadonly / isDisabled; a change re-runs it in place</h1>
+    <p>Targeted by <code>e2e/render-context.spec.ts</code>. Each callback prints
+        <code>ctx.labels.text('labels.statusPending')</code>, <code>ctx.isReadonly</code>, <code>ctx.isDisabled</code>.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">#ctx — structural: renderPromptCallback + an element-returning renderFileItemCallback (one cached element per file)</div>
+        <web-dropzone id="ctx" render-mode="structural" list-appearance="list" accept="*/*"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">#pop — structural compact: renderPromptCallback; the popover's built-in rows</div>
+        <web-dropzone id="pop" render-mode="structural" selector-appearance="card" list-appearance="popover" accept="*/*"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">#roll — structural rolling: renderRollingFileInfoCallback</div>
+        <web-dropzone id="roll" render-mode="structural" list-appearance="rolling" accept="*/*"></web-dropzone>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">#ind-store + #ind — indicator renderFileInfoCallback (the store's state, the satellite's labels)</div>
+        <web-dropzone id="ind-store" list-appearance="none" accept="*/*"></web-dropzone>
+        <web-dropzone-indicator id="ind" for="ind-store" position="inline"></web-dropzone-indicator>
+    </div>
+
+    <script type="module">
+        import '/src/index.ts';
+        import { installAddNamed } from './fixture-kit.js';
+        installAddNamed();
+
+        await customElements.whenDefined('web-dropzone');
+        await customElements.whenDefined('web-dropzone-indicator');
+        const $ = (id) => document.getElementById(id);
+        const show = (ctx) => `${ctx.labels.text('labels.statusPending')}|R:${ctx.isReadonly}|D:${ctx.isDisabled}`;
+
+        window.__calls = {};
+        const count = (key) => { window.__calls[key] = (window.__calls[key] ?? 0) + 1; };
+
+        $('ctx').renderPromptCallback = (ctx) => { count('prompt'); return `<div class="cb-prompt">${show(ctx)}</div>`; };
+        const rows = new Map();
+        $('ctx').renderFileItemCallback = (ctx) => {
+            count('row');
+            let row = rows.get(ctx.file.id);
+            if (!row) {
+                row = document.createElement('div');
+                row.className = 'dz__file-item cb-row';
+                row.dataset.fileId = ctx.file.id;
+                rows.set(ctx.file.id, row);
+            }
+            row.textContent = `${ctx.file.name}|${ctx.file.progress}|${show(ctx)}`;
+            return row;
+        };
+
+        $('pop').renderPromptCallback = (ctx) => `<div class="cb-pop">${show(ctx)}</div>`;
+
+        $('roll').renderRollingFileInfoCallback = (ctx) => `<span class="cb-roll">${show(ctx)}</span>`;
+
+        $('ind').renderFileInfoCallback = (ctx) => `<span class="cb-ind">${show(ctx)}</span>`;
+
+        window.__ready = true;
+    </script>
+</body>
+</html>

@@ -11,6 +11,28 @@ No stable 1.0.0 is published, so the break ships as the next release
 candidate — but `^1.0.0-rc02` consumers will pull it: the event,
 callback and store-access API below is breaking.
 
+### Added — render callbacks get `labels` / `isReadonly` / `isDisabled` and re-run in place when they change (2026-11-24)
+- Every render callback's ctx (`DropzoneRenderContext`, the web-treeview / web-multiselect / web-grid / web-editor
+  shape) carries `labels` (core `createLabelsView`: `ctx.labels.text(key, params)` / `ctx.labels.html(key, params)` —
+  instance `labels` → own / page-wide `translateCallback` → page-wide labels → English), `isReadonly` and
+  `isDisabled` (the effective state, a disabled `<fieldset>` included): `renderFileItemCallback`,
+  `renderListWrapperCallback`, `renderPromptCallback`, `renderSummaryCallback`,
+  `renderRolling{Body,FileInfo,Progress}Callback`, `getFileIconCallback` and the indicator's
+  `render{Body,FileInfo,Progress}Callback` (`StatusSurfaceArgs`; on a satellite: its own `labels` over the store's,
+  the store's read-only / disabled). `renderLoadingCallback` keeps core's `LoaderRenderContext`.
+- A change of `labels`, `locale`, `translateCallback`, the page-wide `window.components.locale`, `read-only` or the
+  effective disabled state re-runs them IN PLACE — the files, their upload progress, running uploads and an open
+  popover are kept. An element row `renderFileItemCallback` returned is now re-asked on such a change (before, a
+  cached element row never saw a labels / state change); returned again, it keeps its identity. An unrelated input
+  still doesn't re-run it.
+- Fix: **an open compact popover survived no config change** — every in-place re-render (a `labels` / `locale` /
+  read-only / disabled / any other input change) wiped it out of the element while it still counted as open. It is
+  now kept and re-anchored to the new trigger (closed only when the list appearance no longer has one).
+- New exported types: `DropzoneRenderContext`, `DropzoneLabelsView`, `BoundLabelFn` (`createLabelFn(...)` now also
+  has `.view`, the same lookup as a core `LabelsView`); `buildStatusSurfaceArgs` takes the render state.
+- Docs: `docs/usage.md` "The render ctx", the callback tables, `ai/custom-rendering.txt`, `ai/satellites.txt`,
+  `ai/typescript-types.txt`. e2e `render-context.spec.ts` (`test/render-context.html`).
+
 ### Changed — the drag overlay's custom CSS comes from core `createLayer({ customStylesOptions })` (2026-11-24)
 - The drag overlay's core layer gets the element's `customStyles` / `getCustomStylesCallback` (page-wide +
   instance) through core's `createLayer(host, { customStylesOptions })` (core rc26) — core creates, refreshes

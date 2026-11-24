@@ -1550,7 +1550,7 @@
               },
               {
                 "name": "getFileIconCallback",
-                "description": "Full-control file-icon resolver. `ctx`: `{ file }`. Return an icon value — the same forms as `fileIcons` (markup NOT sanitized) — or null to fall back to fileIcons / category.",
+                "description": "Full-control file-icon resolver. `ctx`: `{ file }` + `labels`, `isReadonly`, `isDisabled`. Return an icon value — the same forms as `fileIcons` (markup NOT sanitized) — or null to fall back to fileIcons / category.",
                 "type": "(ctx: FileIconContext) => string | null | undefined"
               },
               {
@@ -1565,22 +1565,22 @@
               },
               {
                 "name": "renderFileItemCallback",
-                "description": "Custom render for a single file row (structural mode). `ctx`: `{ file, fileIndex, displayMode, isInPopover }`. Result: string = the row HTML, HTMLElement = the row itself (kept across updates; `file-row-update` fires on it), `null` / `undefined` = the built-in row, `false` = no row.",
+                "description": "Custom render for a single file row (structural mode). `ctx`: `{ file, fileIndex, displayMode, isInPopover }` + `labels`, `isReadonly`, `isDisabled` (re-run in place when they change). Result: string = the row HTML, HTMLElement = the row itself (kept across updates; `file-row-update` fires on it), `null` / `undefined` = the built-in row, `false` = no row.",
                 "type": "(ctx: FileItemRenderContext) => RenderCallbackResult"
               },
               {
                 "name": "renderListWrapperCallback",
-                "description": "Custom wrapper around the rendered file rows (structural mode). `ctx`: `{ rowsHtml, files }`. Result: string = HTML, Node = mounted, `null` / `undefined` = the plain rows, `false` = the list hidden.",
+                "description": "Custom wrapper around the rendered file rows (structural mode). `ctx`: `{ rowsHtml, files }` + `labels`, `isReadonly`, `isDisabled`. Result: string = HTML, Node = mounted, `null` / `undefined` = the plain rows, `false` = the list hidden.",
                 "type": "(ctx: ListWrapperRenderContext) => RenderCallbackResult"
               },
               {
                 "name": "renderPromptCallback",
-                "description": "Custom render for the drop-area prompt (structural mode). `ctx`: context only. Result: string = HTML, Node = its markup (serialized), `null` / `undefined` = the built-in prompt, `false` = no prompt.",
+                "description": "Custom render for the drop-area prompt (structural mode). `ctx`: `labels`, `isReadonly`, `isDisabled` (re-run in place when they change). Result: string = HTML, Node = its markup (serialized), `null` / `undefined` = the built-in prompt, `false` = no prompt.",
                 "type": "(ctx: PromptRenderContext) => RenderCallbackResult"
               },
               {
                 "name": "renderSummaryCallback",
-                "description": "Custom render for the compact-mode summary (structural mode). `ctx`: `{ files }`. Result: string = HTML, Node = mounted, `null` / `undefined` = the built-in summary line, `false` = hidden.",
+                "description": "Custom render for the compact-mode summary (structural mode). `ctx`: `{ files }` + `labels`, `isReadonly`, `isDisabled`. Result: string = HTML, Node = mounted, `null` / `undefined` = the built-in summary line, `false` = hidden.",
                 "type": "(ctx: SummaryRenderContext) => RenderCallbackResult"
               },
               {

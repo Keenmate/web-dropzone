@@ -468,3 +468,7 @@ Every spec runs in three Playwright projects — chromium, firefox and webkit
 | `renderSummaryCallback`: Node mounted (listener survives), `null` default, `false` hidden | ✓ | `render-slots.spec.ts` | `render-slots.html` |
 | Rolling body / file-info (store + list satellite, one renderer) | ✓ | `render-slots.spec.ts` | `render-slots.html` |
 | Indicator `renderFileInfoCallback`: string, `false`, `null` | ✓ | `render-slots.spec.ts` | `render-slots.html` |
+| Render ctx `labels` / `isReadonly` / `isDisabled`: prompt + element row re-run in place on labels / readonly / disabled (files, progress, row element kept) | ✓ | `render-context.spec.ts` | `render-context.html` |
+| A disabled `<fieldset>` reaches `ctx.isDisabled`; the page-wide locale re-runs; an unrelated input runs no row callback | ✓ | `render-context.spec.ts` | `render-context.html` |
+| An open popover stays open (re-anchored) through a labels / readonly re-render | ✓ | `render-context.spec.ts` | `render-context.html` |
+| Rolling file-info + indicator ctx (store state, the satellite's own labels) | ✓ | `render-context.spec.ts` | `render-context.html` |

@@ -48,7 +48,7 @@
 
 import { animateOut, renderSlot, withComponentContext, type SlotKind } from '@keenmate/web-components-core';
 import { escapeHtml } from '@keenmate/web-dropzone-core';
-import type { FileState, DropzoneController, LabelFn } from '@keenmate/web-dropzone-core';
+import type { FileState, DropzoneController, DropzoneRenderContext, LabelFn } from '@keenmate/web-dropzone-core';
 import type {
     StatusAggregate,
     StatusSurfaceArgs,
@@ -137,15 +137,20 @@ export function pickCurrentFile(files: ReadonlyArray<FileState>): FileState | un
     return files[files.length - 1];
 }
 
+/** The render values of a status surface's ctx — `labels`, `isReadonly`, `isDisabled` (read once per build). */
+export type SurfaceRenderState = Pick<DropzoneRenderContext, 'labels' | 'isReadonly' | 'isDisabled'>;
+
 /**
  * Builds a fully-populated `StatusSurfaceArgs` from a file list + the store's
- * `controller` / `element` (attached non-enumerably — the component context).
+ * `controller` / `element` (attached non-enumerably — the component context)
+ * and the render values (`labels`, `isReadonly`, `isDisabled`).
  * Used by every surface to standardize the data passed to callbacks.
  */
 export function buildStatusSurfaceArgs(
     files: ReadonlyArray<FileState>,
     controller: DropzoneController,
-    element: HTMLElement
+    element: HTMLElement,
+    state: SurfaceRenderState
 ): StatusSurfaceArgs {
     const aggregate = computeStatusAggregate(files);
     const overallPercent = computeOverallPercent(files);
@@ -157,7 +162,10 @@ export function buildStatusSurfaceArgs(
         aggregate,
         overallPercent,
         overallStatus: aggregate.overallStatus,
-        files
+        files,
+        labels: state.labels,
+        isReadonly: state.isReadonly,
+        isDisabled: state.isDisabled
     }, controller, element);
 }
 

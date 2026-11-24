@@ -17,7 +17,8 @@
  * it builds HTML.
  */
 
-import { createLabels, formatLabel, getPageLocale, resolveLabel as resolveCoreLabel, type Labels, type TranslateCallback } from '@keenmate/web-components-core/locale';
+import { escapeHtml } from '@keenmate/web-components-core';
+import { createLabels, createLabelsView, formatLabel, getPageLocale, resolveLabel as resolveCoreLabel, type Labels, type LabelsView, type TranslateCallback } from '@keenmate/web-components-core/locale';
 import type { FileState, FileStatus, FileLabelContext } from './types';
 
 /** The component name — the prefix of the full label keys of the whole dropzone family. */
@@ -289,6 +290,19 @@ export type LabelParams = Readonly<{ ctx: object }>;
 /** A bound label lookup — `(key, { ctx }) => string`. */
 export type LabelFn = (key: DropzoneLabelKey, params?: LabelParams) => string;
 
+/**
+ * The UI strings a render callback reads (`ctx.labels`, core `createLabelsView`): `ctx.labels.text(key, params)` /
+ * `ctx.labels.html(key, params)` — instance `labels` → own / page-wide `translateCallback` → page-wide labels →
+ * built-in English, `{ctx.*}` numbers locale-formatted.
+ */
+export type DropzoneLabelsView = LabelsView<DropzoneLabels>;
+
+/** A {@link LabelFn} bound by {@link createLabelFn}, plus the same lookup as a {@link DropzoneLabelsView} (`view`). */
+export interface BoundLabelFn extends LabelFn {
+    /** The same lookup for a render callback's `ctx.labels` (stable object, reads live). */
+    readonly view: DropzoneLabelsView;
+}
+
 /** A labels source, or several — most specific first (a satellite's own `labels`, then its store's). */
 export type LabelSources =
     | DropzoneLabelOverrides
@@ -354,12 +368,13 @@ export function createLabelFn(
     getHost?: () => Element | null | undefined,
     getTranslateCallback?: () => TranslateCallback | null | undefined,
     getLocale?: () => string | null | undefined
-): LabelFn {
+): BoundLabelFn {
     let labels: Labels<DropzoneLabels> | null = null;
     let labelsHost: Element | null = null;
-    return (key, params) => {
+    /** The core labels for the current host — null without a document (SSR / a bare engine). */
+    const current = (): Labels<DropzoneLabels> | null => {
         const host = getHost?.() ?? (typeof document !== 'undefined' ? document.documentElement : null);
-        if (!host) return resolveLabel(getOverrides(), key, params);
+        if (!host) return null;
         if (!labels || labelsHost !== host) {
             labels = createLabels(host, DEFAULT_LABELS, () => mergeSources(getOverrides()), {
                 tag: LABELS_TAG,
@@ -368,8 +383,14 @@ export function createLabelFn(
             });
             labelsHost = host;
         }
-        return labels.text(key, params);
+        return labels;
     };
+    const fn = ((key, params) => current()?.text(key, params) ?? resolveLabel(getOverrides(), key, params)) as LabelFn;
+    const view = createLabelsView<DropzoneLabels>({
+        text: (key, params, options) => current()?.text(key, params, options) ?? resolveLabel(getOverrides(), key as DropzoneLabelKey, params as LabelParams | undefined),
+        html: (key, params, options) => current()?.html(key, params, options) ?? escapeHtml(resolveLabel(getOverrides(), key as DropzoneLabelKey, params as LabelParams | undefined)),
+    } as Labels<DropzoneLabels>);
+    return Object.assign(fn, { view }) as BoundLabelFn;
 }
 
 /**

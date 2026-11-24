@@ -160,13 +160,13 @@ Properties with no attribute (objects, callbacks, read-only state). Callbacks ar
 | `uploadFileCallback` | `(ctx: FileUploadContext) => Promise<void \| FileUploadResult>` | Component-driven upload handler; added files run through the worker pool. `ctx`: `{ file, signal, setProgress, startBytes, startPercent, metadata, setMetadata, uploadMetadata }`. |
 | `retryPolicy` | `RetryPolicy` | Retry policy applied when uploadFileCallback rejects. Property-only object. |
 | `fileIcons` | `Record<string, string>` | Icon overrides keyed by extension or category. A value is markup (starts with `<`, inserted raw — NOT sanitized), a built-in icon name (`check`, `close`, … masked from `--base-icon-<name>`), a name `renderIconCallback` maps (ctx `{ file }`), an icon-font class list (`fa-solid fa-file-pdf` → `<i class="dz__icon …">`), or text (an emoji). Property-only object. |
-| `getFileIconCallback` | `(ctx: FileIconContext) => string \| null \| undefined` | Full-control file-icon resolver. `ctx`: `{ file }`. Return an icon value — the same forms as `fileIcons` (markup NOT sanitized) — or null to fall back to fileIcons / category. |
+| `getFileIconCallback` | `(ctx: FileIconContext) => string \| null \| undefined` | Full-control file-icon resolver. `ctx`: `{ file }` + `labels`, `isReadonly`, `isDisabled`. Return an icon value — the same forms as `fileIcons` (markup NOT sanitized) — or null to fall back to fileIcons / category. |
 | `renderIconCallback` | `(name: string, ctx: IconRenderContext) => string \| null \| undefined` | This element’s icon hook for the icon inputs (`icon`, `cancel-icon`, `remove-icon`, `overlay-icon`; a bound satellite’s `icon` too) — asked after markup and the built-in names (never sent here), before the page-wide `window.components.renderIconCallback`. `ctx`: `{ component, element, prefix }` + `{ file }` on a row button. Return markup (raw — NOT sanitized; empty string = no icon) or `null` / `undefined` = not mine. Live. |
 | `translateCallback` | `TranslateCallback` | This element’s translation hook (core `/locale`): `({ component, key, template, params, locale }) => string \| null \| undefined`, asked for every label key this instance’s `labels` did not set, before the page-wide `window.components.locale.translateCallback`; bound satellites use it too. Return the finished text, or `null` / `undefined` = not mine. Live. |
-| `renderFileItemCallback` | `(ctx: FileItemRenderContext) => RenderCallbackResult` | Custom render for a single file row (structural mode). `ctx`: `{ file, fileIndex, displayMode, isInPopover }`. Result: string = the row HTML, HTMLElement = the row itself (kept; `file-row-update` fires on it), `null` / `undefined` = the built-in row, `false` = no row. |
-| `renderListWrapperCallback` | `(ctx: ListWrapperRenderContext) => RenderCallbackResult` | Custom wrapper around the rendered file rows (structural mode). `ctx`: `{ rowsHtml, files }`. Result: string = HTML, Node = mounted, `null` / `undefined` = the plain rows, `false` = the list hidden. |
-| `renderPromptCallback` | `(ctx: PromptRenderContext) => RenderCallbackResult` | Custom render for the drop-area prompt (structural mode). `ctx`: context only. Result: string = HTML, Node = its markup (serialized), `null` / `undefined` = the built-in prompt, `false` = no prompt. |
-| `renderSummaryCallback` | `(ctx: SummaryRenderContext) => RenderCallbackResult` | Custom render for the compact-mode summary (structural mode). `ctx`: `{ files }`. Result: string = HTML, Node = mounted, `null` / `undefined` = the built-in summary line, `false` = hidden. See [Render callback results](#render-callback-results). |
+| `renderFileItemCallback` | `(ctx: FileItemRenderContext) => RenderCallbackResult` | Custom render for a single file row (structural mode). `ctx`: `{ file, fileIndex, displayMode, isInPopover }` + `labels`, `isReadonly`, `isDisabled` (re-run in place when they change). Result: string = the row HTML, HTMLElement = the row itself (kept; `file-row-update` fires on it), `null` / `undefined` = the built-in row, `false` = no row. |
+| `renderListWrapperCallback` | `(ctx: ListWrapperRenderContext) => RenderCallbackResult` | Custom wrapper around the rendered file rows (structural mode). `ctx`: `{ rowsHtml, files }` + `labels`, `isReadonly`, `isDisabled`. Result: string = HTML, Node = mounted, `null` / `undefined` = the plain rows, `false` = the list hidden. |
+| `renderPromptCallback` | `(ctx: PromptRenderContext) => RenderCallbackResult` | Custom render for the drop-area prompt (structural mode). `ctx`: `labels`, `isReadonly`, `isDisabled` (re-run in place when they change). Result: string = HTML, Node = its markup (serialized), `null` / `undefined` = the built-in prompt, `false` = no prompt. |
+| `renderSummaryCallback` | `(ctx: SummaryRenderContext) => RenderCallbackResult` | Custom render for the compact-mode summary (structural mode). `ctx`: `{ files }` + `labels`, `isReadonly`, `isDisabled`. Result: string = HTML, Node = mounted, `null` / `undefined` = the built-in summary line, `false` = hidden. See [Render callback results](#render-callback-results). |
 | `renderRollingBodyCallback` | `StatusSurfaceCallback` | Rolling list appearance (structural mode): replace the whole rolling body. `ctx`: `StatusSurfaceArgs`. Result: string = HTML, Node = mounted, `null` / `undefined` = the built-in rolling block, `false` = hidden. See [Render callback results](#render-callback-results). |
 | `renderRollingFileInfoCallback` | `StatusSurfaceCallback` | Rolling list appearance (structural mode): the file-info slot of the current row. `ctx`: `StatusSurfaceArgs`. Result: string = HTML, Node = mounted, `null` / `undefined` = the built-in file name, `false` = hidden. See [Render callback results](#render-callback-results). |
 | `renderRollingProgressCallback` | `StatusSurfaceCallback` | Rolling list appearance (structural mode): the progress slot of the current row. `ctx`: `StatusSurfaceArgs`. Result: string = HTML, Node = mounted, `null` / `undefined` = the built-in bar + percent, `false` = hidden. See [Render callback results](#render-callback-results). |
@@ -321,17 +321,41 @@ Every callback takes **one** `ctx` object that also carries `controller` / `elem
 | `beforeFilesCancelCallback` | `{ files, allFiles }` | `false` vetoes (`cancelFile`, row ⊘; `cancelAll` / Cancel all ask once) |
 | `beforeActionCallback` | the `action` event detail (`{ action, item, source, file?, files, … }`) | `false` cancels the button (no `onClick`, no built-in, no `action` event); runs before the per-purpose gates above |
 | `uploadFileCallback` | `{ file, signal, setProgress, startBytes, startPercent, metadata, setMetadata, uploadMetadata }` | `Promise<void \| { metadata, downloadUrl, previewUrl, name }>` |
-| `getFileIconCallback` | `{ file }` | an icon value (markup / name / class list / text — see [File-type icons](#file-type-icons)), or `null` to fall through |
+| `getFileIconCallback` | `{ file }` + the render ctx | an icon value (markup / name / class list / text — see [File-type icons](#file-type-icons)), or `null` to fall through |
 | `renderIconCallback` | `(name, { component, element, prefix, file? })` | icon markup, or `null` = not mine (page hook / icon font next); never asked for a built-in name |
 | `translateCallback` | `{ component, key, template, params, locale }` (`key` = the full `web-dropzone.<key>`) | the finished text, or `null` = not mine (the page-wide `translateCallback` next); never asked for a key the instance `labels` set |
-| `renderFileItemCallback` | `{ file, fileIndex, displayMode, isInPopover }` | `RenderCallbackResult` (structural mode) |
-| `renderListWrapperCallback` | `{ rowsHtml, files }` | `RenderCallbackResult` (structural mode) |
-| `renderPromptCallback` | context only | `RenderCallbackResult` (structural mode) |
-| `renderSummaryCallback` | `{ files }` | `RenderCallbackResult` (structural mode) |
-| `renderRolling{Body,FileInfo,Progress}Callback` | `StatusSurfaceArgs` (`currentFile`, `aggregate`, `overallPercent`, …) | `RenderCallbackResult` (structural mode, rolling list) |
+| `renderFileItemCallback` | `{ file, fileIndex, displayMode, isInPopover }` + the render ctx | `RenderCallbackResult` (structural mode) |
+| `renderListWrapperCallback` | `{ rowsHtml, files }` + the render ctx | `RenderCallbackResult` (structural mode) |
+| `renderPromptCallback` | the render ctx | `RenderCallbackResult` (structural mode) |
+| `renderSummaryCallback` | `{ files }` + the render ctx | `RenderCallbackResult` (structural mode) |
+| `renderRolling{Body,FileInfo,Progress}Callback` | `StatusSurfaceArgs` (`currentFile`, `aggregate`, `overallPercent`, …) + the render ctx | `RenderCallbackResult` (structural mode, rolling list) |
 | `getCustomStylesCallback` | context only | CSS string injected into the shadow root |
 | `renderLoadingCallback` | `{ component, context: 'upload', containerElement, element, label }` | fill `containerElement`; optional cleanup function — the indicator chip's upload loader (beats `window.components.renderLoadingCallback`) |
 | `saveStateCallback` / `loadStateCallback` | `{ key, state }` (the WHOLE state) / `{ key }` | — / `DropzoneState \| null` (may be async) |
+
+### The render ctx
+
+Every render callback's `ctx` (`DropzoneRenderContext` — the same fields every Keenmate component's render ctx
+has) carries, on top of `controller` / `element`:
+
+| Field | Value |
+|-------|-------|
+| `labels` | the UI strings (core `createLabelsView`): `ctx.labels.text('labels.statusPending')`, `ctx.labels.html(key, { ctx })` — instance `labels` → own / page-wide `translateCallback` → page-wide labels → English; on a satellite its own `labels` first |
+| `isReadonly` | `read-only` (the store's on a satellite) |
+| `isDisabled` | the effective disabled state — `disabled` or a disabled `<fieldset>` (the store's on a satellite) |
+
+The callbacks: `renderFileItemCallback`, `renderListWrapperCallback`, `renderPromptCallback`, `renderSummaryCallback`,
+`renderRolling{Body,FileInfo,Progress}Callback`, the indicator's `render{Body,FileInfo,Progress}Callback` and
+`getFileIconCallback`. A change of `labels`, `locale`, `translateCallback`, the page-wide `window.components.locale`,
+`read-only` or the effective disabled state re-runs them **in place**: the files, their upload progress, running
+uploads and an open popover are kept; an element row `renderFileItemCallback` returns again keeps its identity.
+An unrelated input doesn't re-run an element row. (`renderLoadingCallback` keeps core's `LoaderRenderContext`;
+`getCustomStylesCallback` stays context only.)
+
+```js
+dz.renderPromptCallback = ({ labels, isReadonly, isDisabled }) =>
+    isDisabled || isReadonly ? `<p>${labels.html('labels.prompt')} (locked)</p>` : null;
+```
 
 ### Render callback results
 
@@ -952,7 +976,8 @@ share one shape: `(args: StatusSurfaceArgs) => RenderCallbackResult`.
 `args`: `currentFile` (first uploading / cancelling, else first pending, else first paused / error /
 cancelled, else the last file), `currentFilePercent`, `currentFileStatus`, `aggregate`
 (`{ total, uploading, paused, pending, complete, error, cancelled, overallStatus }`),
-`overallPercent` (byte-weighted, rounded), `overallStatus`, `files`, plus `controller` / `element`.
+`overallPercent` (byte-weighted, rounded), `overallStatus`, `files`, plus `controller` / `element` and
+the [render ctx](#the-render-ctx) (`labels`, `isReadonly`, `isDisabled`).
 Returns (core `renderSlot`, see [Render callback results](#render-callback-results)): a string = HTML
 (skipped when equal to the last one); a Node = mounted (skipped when already the slot's only child);
 `null` / `undefined` = the library default; `false` = hidden. One renderer draws the rolling block for

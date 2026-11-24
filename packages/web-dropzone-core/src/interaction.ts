@@ -19,11 +19,32 @@ import type { ComponentContext } from '@keenmate/web-components-core';
 import type { ActionEventDetail, ActionItem } from '@keenmate/web-components-core/actions';
 import type { DropzoneController } from './controller';
 import type { FileState, RejectedFile, DisplayMode, DropzoneState, FileCancelResult } from './types';
+import type { DropzoneLabelsView } from './labels';
 
 export type { DropzoneController } from './controller';
 
 /** The component context every dropzone ctx / event detail carries. */
 export type DropzoneContext = ComponentContext<DropzoneController, HTMLElement>;
+
+/**
+ * The values every RENDER callback's `ctx` carries on top of {@link DropzoneContext} — the same fields every
+ * Keenmate component's render ctx has: `renderFileItemCallback`, `renderListWrapperCallback`,
+ * `renderPromptCallback`, `renderSummaryCallback`, `renderRolling{Body,FileInfo,Progress}Callback`, the
+ * indicator's `render{Body,FileInfo,Progress}Callback` ({@link StatusSurfaceArgs}) and `getFileIconCallback`.
+ * A change of any value here (`labels` / `locale` / `translateCallback`, the page-wide locale, `isReadonly`, the
+ * effective disabled state) re-runs the rendered callbacks in place — the files, running uploads and an open
+ * popover are kept. (`renderLoadingCallback` keeps core's `LoaderRenderContext`; `getCustomStylesCallback` is CSS.)
+ */
+export interface DropzoneRenderContext extends DropzoneContext {
+    /** The dropzone's UI strings (core `createLabelsView`): `ctx.labels.text(key, params)` / `ctx.labels.html(key, params)` —
+     *  instance `labels` → own / page-wide `translateCallback` → page-wide labels → English, `{ctx.*}` numbers locale-formatted.
+     *  On a satellite: its own `labels` first, then the bound store's. */
+    labels: DropzoneLabelsView;
+    /** Read-only (`isReadonly`, the store's on a satellite): the user can't add / remove files. */
+    isReadonly: boolean;
+    /** The effective disabled state (`isDisabled`, or a disabled `<fieldset>`; the store's on a satellite). */
+    isDisabled: boolean;
+}
 
 // ============================================================================
 // CALLBACK CONTEXTS
@@ -77,7 +98,7 @@ export interface BeforeFilesCancelContext extends DropzoneContext {
 }
 
 /** `getFileIconCallback(ctx)` — return an icon value (markup / name / class list, read by core `renderIcon`), or `null` to fall through. */
-export interface FileIconContext extends DropzoneContext {
+export interface FileIconContext extends DropzoneRenderContext {
     /** The file whose icon is resolved. */
     file: File;
 }
@@ -112,7 +133,7 @@ export interface FileUploadContext extends DropzoneContext {
 }
 
 /** `renderFileItemCallback(ctx)` — one file row (structural mode). */
-export interface FileItemRenderContext extends DropzoneContext {
+export interface FileItemRenderContext extends DropzoneRenderContext {
     /** The file to render. */
     file: FileState;
     /** Index of the file in the rendered list. */
@@ -124,18 +145,18 @@ export interface FileItemRenderContext extends DropzoneContext {
 }
 
 /** `renderListWrapperCallback(ctx)` — the wrapper around the rows (structural mode). */
-export interface ListWrapperRenderContext extends DropzoneContext {
+export interface ListWrapperRenderContext extends DropzoneRenderContext {
     /** The rendered rows, as one HTML string. */
     rowsHtml: string;
     /** The files those rows show. */
     files: FileState[];
 }
 
-/** `renderPromptCallback(ctx)` — the drop-area prompt (structural mode). Context only. */
-export type PromptRenderContext = DropzoneContext;
+/** `renderPromptCallback(ctx)` — the drop-area prompt (structural mode). The render context only. */
+export type PromptRenderContext = DropzoneRenderContext;
 
 /** `renderSummaryCallback(ctx)` — the compact-mode summary line (structural mode). */
-export interface SummaryRenderContext extends DropzoneContext {
+export interface SummaryRenderContext extends DropzoneRenderContext {
     /** Every file in the dropzone. */
     files: FileState[];
 }

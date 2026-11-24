@@ -21,6 +21,18 @@ Every callback takes ONE ctx object. ctx also carries `controller`
 (DropzoneController) and `element` (the <web-dropzone>), non-enumerable -
 destructure them when needed.
 
+Every RENDER callback's ctx (DropzoneRenderContext) also carries:
+  labels      ctx.labels.text(key, params) / ctx.labels.html(key, params) -
+              the dropzone's UI strings (instance labels -> translateCallback
+              -> page-wide labels -> English; a satellite's own labels first)
+  isReadonly  read-only (the store's on a satellite)
+  isDisabled  effective disabled (disabled or a disabled <fieldset>)
+A change of labels / locale / translateCallback / window.components.locale /
+readonly / disabled re-runs the rendered callbacks IN PLACE (files, upload
+progress and an open popover kept; an element row returned again keeps its
+identity). Applies to the render*Callbacks below, the indicator's
+render{Body,FileInfo,Progress}Callback and getFileIconCallback.
+
 CALLBACK OVERVIEW
 -----------------
 renderFileItemCallback({ file, fileIndex, displayMode, isInPopover })  -> string | HTMLElement
