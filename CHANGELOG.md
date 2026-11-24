@@ -11,6 +11,16 @@ No stable 1.0.0 is published, so the break ships as the next release
 candidate — but `^1.0.0-rc02` consumers will pull it: the event,
 callback and store-access API below is breaking.
 
+### Changed — own timers / observers replaced by core helpers (audit (T) items) (2026-11-24)
+- Per-file progress throttle (`progressThrottle`): one core `createThrottle` (leading + trailing) per file instead of
+  three maps of timestamps / timers / held values; the latest value still flushes on the trailing edge, a changed
+  `progressThrottle` remakes the file's throttle.
+- `files-change` coalescing: core `createFrameScheduler` instead of an own `requestAnimationFrame` handle.
+- The popover's user-resize save (`storage-key`): core `observeElementSize` + `createDebounce` (250 ms, flushed on
+  close) instead of an own `ResizeObserver` + `setTimeout`.
+- The indicator chip's percent goes through `formatPercent` with the store's `locale`, like every other surface
+  (was the raw `${percent}%`).
+
 ### Added — icons by name: the `icons` input + `window.components.icons` (core rc26, rulebook C-CA-42) (2026-11-24)
 - Every icon the dropzone draws itself has a NAME (`DEFAULT_ICONS`, exported with the `DropzoneIconName` /
   `DropzoneIcons` types): `prompt`, `overlay`, `summary`, `rowCancel`, `rowRemove`, `rowPause`, `rowResume`,

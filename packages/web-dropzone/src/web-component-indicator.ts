@@ -46,6 +46,7 @@ import {
     escapeHtml,
     statusIconName,
     formatFileSize,
+    formatPercent,
     fileStatusLabel
 } from '@keenmate/web-dropzone-core';
 import { renderDzIcon, ICON_NAME_ATTR } from './row-templates';
@@ -558,7 +559,7 @@ export class DropzoneIndicatorElement extends SatelliteElement {
      */
     private defaultProgress(args: StatusSurfaceArgs): string {
         if (args.aggregate.uploading === 0) return '';
-        return `<span class="dz__indicator-percent">${args.overallPercent}%</span>`;
+        return `<span class="dz__indicator-percent">${formatPercent(args.overallPercent, 0, this.storeLocale)}</span>`;
     }
 
     /**

@@ -20,7 +20,7 @@
  */
 
 import { fileLogger, initLogger, uiLogger } from './logger';
-import { announce, createStateStore, dispatch, runBeforeCallback, withComponentContext, type StateStore } from '@keenmate/web-components-core';
+import { announce, createFrameScheduler, createStateStore, createThrottle, dispatch, runBeforeCallback, withComponentContext, type FrameScheduler, type StateStore, type Throttle } from '@keenmate/web-components-core';
 import { createDropzoneController, type DropzoneController } from './controller';
 import { createLabelFn, fileLabelContext, labelTemplate, type BoundLabelFn, type DropzoneLabelKey, type LabelFn, type LabelParams } from './labels';
 import { runAction, type ActionSource } from '@keenmate/web-components-core/actions';
@@ -199,17 +199,14 @@ export class DropzoneEngine {
 
     // ---- Progress throttling ---------------------------------------------
     /**
-     * Per-file progress throttling. `lastFireAt` holds the last
-     * `performance.now()` we ran the tick for each file. When a new
-     * progress call lands within the throttle window, the latest value is
-     * stashed in `pendingProgress` and a trailing-edge timer
-     * (`pendingTimer`) fires it after the window elapses. The final value
-     * (e.g. 100%) is never dropped — held values flush as a single trailing
-     * tick. See `progressThrottle` config.
+     * Per-file progress throttling: one core leading + trailing
+     * `createThrottle` per file (made with the `progressThrottle` window it
+     * was created for — remade when that changes). The latest value waits in
+     * `latestProgress`; the trailing run flushes it, so the final value (e.g.
+     * 100%) is never dropped. See `progressThrottle` config.
      */
-    protected throttleLastFireAt: Map<string, number> = new Map();
-    protected throttlePendingTimer: Map<string, ReturnType<typeof setTimeout>> = new Map();
-    protected throttlePendingProgress: Map<string, number> = new Map();
+    protected progressThrottles: Map<string, { ms: number; throttle: Throttle }> = new Map();
+    protected latestProgress: Map<string, number> = new Map();
 
     // ---- Coalesced files-change event state ------------------------------
     /**
@@ -220,7 +217,11 @@ export class DropzoneEngine {
      * four granular ones to get one diff per frame.
      */
     protected dirtyFileIds: Set<string> = new Set();
-    protected filesChangedRafHandle: number | null = null;
+    protected readonly filesChangedFrame: FrameScheduler = createFrameScheduler(() => {
+        const changedIds = Array.from(this.dirtyFileIds);
+        this.dirtyFileIds.clear();
+        this.notify('files-change', { changedIds, files: this.getFiles() });
+    });
 
     // ---- Interaction model -----------------------------------------------
     /** The host this engine reports to (`<web-dropzone>`); null when standalone. */
@@ -542,8 +543,8 @@ export class DropzoneEngine {
             clearTimeout(pendingReorder);
             this.reorderTimers.delete(id);
         }
-        this.throttleLastFireAt.delete(id);
         this.clearThrottlePending(id);
+        this.progressThrottles.delete(id);
     }
 
     /**
@@ -711,14 +712,11 @@ export class DropzoneEngine {
         this.attempts.clear();
         this.clearAllReorderTimers();
 
-        // Cancel coalesced rAF; clear all per-file throttle timers.
-        if (this.filesChangedRafHandle !== null) {
-            cancelAnimationFrame(this.filesChangedRafHandle);
-            this.filesChangedRafHandle = null;
-        }
-        for (const handle of this.throttlePendingTimer.values()) clearTimeout(handle);
-        this.throttlePendingTimer.clear();
-        this.throttlePendingProgress.clear();
+        // Cancel the coalesced files-change frame; drop every per-file throttle.
+        this.filesChangedFrame.cancel();
+        for (const { throttle } of this.progressThrottles.values()) throttle.cancel();
+        this.progressThrottles.clear();
+        this.latestProgress.clear();
 
         this.detachEventListeners();
         this.cleanupOverlay();
@@ -751,34 +749,23 @@ export class DropzoneEngine {
             return;
         }
 
-        const now = performance.now();
-        const lastFire = this.throttleLastFireAt.get(id) ?? 0;
-        const elapsed = now - lastFire;
-
-        if (elapsed >= throttleMs) {
-            // Cooldown elapsed — fire immediately, mark timestamp.
-            this.flushProgressTick(id, progress);
-            this.throttleLastFireAt.set(id, performance.now());
-            this.clearThrottlePending(id);
-            return;
+        // Core leading + trailing throttle per file: runs now when the window
+        // has passed, else once at its end with the latest value.
+        this.latestProgress.set(id, progress);
+        let entry = this.progressThrottles.get(id);
+        if (!entry || entry.ms !== throttleMs) {
+            entry?.throttle.cancel();
+            entry = {
+                ms: throttleMs,
+                throttle: createThrottle(() => {
+                    const latest = this.latestProgress.get(id);
+                    this.latestProgress.delete(id);
+                    if (latest !== undefined) this.flushProgressTick(id, latest);
+                }, throttleMs)
+            };
+            this.progressThrottles.set(id, entry);
         }
-
-        // Within cooldown — overwrite pending value; schedule a
-        // trailing-edge fire if one isn't already queued.
-        this.throttlePendingProgress.set(id, progress);
-        if (!this.throttlePendingTimer.has(id)) {
-            const wait = throttleMs - elapsed;
-            const handle = setTimeout(() => {
-                this.throttlePendingTimer.delete(id);
-                const pending = this.throttlePendingProgress.get(id);
-                this.throttlePendingProgress.delete(id);
-                if (pending !== undefined) {
-                    this.flushProgressTick(id, pending);
-                    this.throttleLastFireAt.set(id, performance.now());
-                }
-            }, wait);
-            this.throttlePendingTimer.set(id, handle);
-        }
+        entry.throttle.schedule();
     }
 
     /**
@@ -805,11 +792,10 @@ export class DropzoneEngine {
         fileLogger.debug('File progress updated', { id, progress: file.progress, status: file.status });
     }
 
+    /** Drop a file's held progress tick (a queued trailing run). */
     protected clearThrottlePending(id: string): void {
-        const handle = this.throttlePendingTimer.get(id);
-        if (handle !== undefined) clearTimeout(handle);
-        this.throttlePendingTimer.delete(id);
-        this.throttlePendingProgress.delete(id);
+        this.progressThrottles.get(id)?.throttle.cancel();
+        this.latestProgress.delete(id);
     }
 
     /**
@@ -1884,13 +1870,7 @@ export class DropzoneEngine {
      */
     protected markFilesChanged(id: string): void {
         this.dirtyFileIds.add(id);
-        if (this.filesChangedRafHandle !== null) return;
-        this.filesChangedRafHandle = requestAnimationFrame(() => {
-            this.filesChangedRafHandle = null;
-            const changedIds = Array.from(this.dirtyFileIds);
-            this.dirtyFileIds.clear();
-            this.notify('files-change', { changedIds, files: this.getFiles() });
-        });
+        this.filesChangedFrame.schedule();
     }
 
     protected emitChangeEvent(): void {

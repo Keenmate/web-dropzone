@@ -24,7 +24,7 @@
 
 import { createLayer, createPopover } from '@keenmate/web-components-core/positioning';
 import type { Layer, Placement, PopoverHandle } from '@keenmate/web-components-core/positioning';
-import { adoptStyles, createId, deepActiveElement, dispatch, ICON_CSS, renderSlot, renderSlotHtml, SHEET_CHROME_CSS, startModalSession, observePageDrag, Z_INDEX, type ModalSession, type SlotHtml } from '@keenmate/web-components-core';
+import { adoptStyles, createDebounce, createId, deepActiveElement, dispatch, ICON_CSS, renderSlot, renderSlotHtml, SHEET_CHROME_CSS, startModalSession, observeElementSize, observePageDrag, Z_INDEX, type ModalSession, type SlotHtml } from '@keenmate/web-components-core';
 import styles from './css/main.css?inline';
 import { isPhoneSheet, observePhoneSheet } from './phone-sheet';
 import {
@@ -142,13 +142,13 @@ export class WebDropzone extends DropzoneEngine {
     /** Core `createPopover()` handle of the open popover (positioning, the
      *  overlay tree's outside click / Escape); null while it is closed. */
     private popoverHandle: PopoverHandle | null = null;
-    /** ResizeObserver watching the popover for user-driven resize. Saves
-     *  the resulting dimensions to persisted state. Disconnected in
-     *  closePopover so it doesn't leak past popover lifetime. */
-    private popoverResizeObserver: ResizeObserver | null = null;
-    /** Debounce handle for the resize → save flow. ResizeObserver fires on
-     *  every drag tick; we only want to persist the final dimension. */
-    private popoverSaveTimer: number | null = null;
+    /** Stops core's size watch on the popover (user-driven resize → saved
+     *  to persisted state). Called in closePopover so it doesn't leak past
+     *  the popover's lifetime. */
+    private stopPopoverSizeWatch: (() => void) | null = null;
+    /** The resize → save flow, debounced (core): a drag resize reports every
+     *  tick; only the final dimension is persisted. */
+    private readonly popoverSizeSave = createDebounce(() => this.flushPopoverSize(), 250);
     /** Follows core's phone presentation while the popover is open (a sheet on a phone, un-anchored). */
     private stopPopoverPhoneWatch: (() => void) | null = null;
     /** Core modal session while the popover is a phone sheet (SPEC §12.19): page inert, Tab trapped,
@@ -1968,15 +1968,8 @@ export class WebDropzone extends DropzoneEngine {
         // drag tick; debounce ~250ms so we only write once the user
         // settles. Skipped when persistence is disabled — the observer
         // itself is cheap but the storage round-trip isn't free.
-        if (this.config.storageKey && typeof ResizeObserver !== 'undefined') {
-            this.popoverResizeObserver = new ResizeObserver(() => {
-                if (this.popoverSaveTimer !== null) clearTimeout(this.popoverSaveTimer);
-                this.popoverSaveTimer = window.setTimeout(() => {
-                    this.popoverSaveTimer = null;
-                    this.flushPopoverSize();
-                }, 250);
-            });
-            this.popoverResizeObserver.observe(this.popover);
+        if (this.config.storageKey) {
+            this.stopPopoverSizeWatch = observeElementSize(this.popover, () => this.popoverSizeSave.schedule());
         }
 
         uiLogger.debug('Popover opened');
@@ -2293,13 +2286,9 @@ export class WebDropzone extends DropzoneEngine {
 
         // Tear down the user-resize observer + flush any pending save so
         // a quick close-after-resize doesn't lose the final dimension.
-        this.popoverResizeObserver?.disconnect();
-        this.popoverResizeObserver = null;
-        if (this.popoverSaveTimer !== null) {
-            clearTimeout(this.popoverSaveTimer);
-            this.popoverSaveTimer = null;
-            this.flushPopoverSize();
-        }
+        this.stopPopoverSizeWatch?.();
+        this.stopPopoverSizeWatch = null;
+        this.popoverSizeSave.flush();
 
         // Stops positioning, leaves the overlay tree and unmounts the panel
         // (its onClose('api') lands here again — a no-op by now).
