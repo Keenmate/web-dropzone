@@ -208,7 +208,6 @@ export class WebDropzone extends DropzoneEngine {
     private stopOverlayDragWatch: (() => void) | null = null;
     // Keeps the layer's theme attributes in step with the host's while the
     // overlay is shown (a theme switch mid-drag).
-    private overlaySchemeObserver: MutationObserver | null = null;
 
     // Event handler references for cleanup
     private boundHandleDragOver: (e: DragEvent) => void;
@@ -2730,14 +2729,6 @@ export class WebDropzone extends DropzoneEngine {
             </div>
         `;
 
-        // The page can flip the host's theme mid-drag; core re-writes
-        // `data-context-theme` on a page / theme-source change.
-        this.overlaySchemeObserver = new MutationObserver(() => layer.syncTheme());
-        this.overlaySchemeObserver.observe(host, {
-            attributes: true,
-            attributeFilter: ['data-theme', 'data-context-theme', 'data-motion'],
-        });
-
         // Hover state — emits overlay-enter / overlay-leave on the host so
         // consumers can surface contextual info (remaining quota, hint text, …).
         let isOverlayHovered = false;
@@ -2797,8 +2788,6 @@ export class WebDropzone extends DropzoneEngine {
 
     private removeOverlay(): void {
         if (!this.dragOverlay) return;
-        this.overlaySchemeObserver?.disconnect();
-        this.overlaySchemeObserver = null;
         this.overlayLayer?.destroy();
         this.overlayLayer = null;
         this.dragOverlay = null;

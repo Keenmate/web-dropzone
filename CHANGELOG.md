@@ -11,6 +11,12 @@ No stable 1.0.0 is published, so the break ships as the next release
 candidate — but `^1.0.0-rc02` consumers will pull it: the event,
 callback and store-access API below is breaking.
 
+### Changed — the drag overlay takes the theme when it opens, like every core layer (audit G3) (2026-11-27)
+- The overlay layer copies the host's theme attributes (`data-theme`, `data-bs-theme`, `data-context-theme`,
+  `data-motion`) when the drag starts (core `createLayer`); dropzone's own `MutationObserver` that re-copied them
+  while a drag was in progress is gone. A theme flip reaches the next drag's overlay, the same model as every other
+  component's layers (grid's reorder ghost, treeview's drop pads). The dropzone itself re-themes live as before.
+
 ### Changed — BREAKING (renames, no aliases) — internal verbs per rulebook D-NC-30 (C-NC-16) (2026-11-24)
 - `DropzoneEngine` (`@keenmate/web-dropzone-core`) protected renderer hook `applyReorderToRenderer(id, becomingComplete)`
   → **`reconcileRowOrder(id, becomingComplete)`** — a custom renderer subclassing the engine overrides the new name.

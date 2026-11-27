@@ -66,12 +66,18 @@ test('no per-instance theme → the overlay follows the host context', async ({ 
     expect((await overlayScheme(page)).scheme).toBe('dark');
 });
 
-test('a host theme change while the overlay is shown re-schemes it live', async ({ page }) => {
+// A layer takes the host's theme when it is created (core createLayer, like every component's
+// layer): a theme flip reaches the next drag's overlay, not one already shown.
+test('a host theme change reaches the next drag overlay', async ({ page }) => {
     await dragFiles(page.locator('body'), 'dragenter');
     await expect(overlay(page)).toHaveCount(1);
     expect((await overlayScheme(page)).scheme).toBe('dark');
+    await page.keyboard.press('Escape');
+    await expect(overlay(page)).toHaveCount(0);
     await page.locator('#dz').evaluate((el) => el.setAttribute('data-theme', 'light'));
-    await expect.poll(async () => (await overlayScheme(page)).scheme).toBe('light');
+    await dragFiles(page.locator('body'), 'dragenter');
+    await expect(overlay(page)).toHaveCount(1);
+    expect((await overlayScheme(page)).scheme).toBe('light');
 });
 
 test('a per-instance --dz-overlay-* token set on the host reaches the overlay layer', async ({ page }) => {
