@@ -11,6 +11,10 @@ No stable 1.0.0 is published, so the break ships as the next release
 candidate — but `^1.0.0-rc02` consumers will pull it: the event,
 callback and store-access API below is breaking.
 
+### Changed — `@keenmate/base-css-variables` `^2.2.0` (2026-11-27)
+- base-css-variables `^2.2.0`: without pure-admin the dropzone now renders at its intended size (the contract's
+  `--base-rem` is 10px, was 1rem); the `--base-rem` contract allowance is gone (dropzone never needed one).
+
 ### Internal — core `^1.0.0-rc27` (2026-11-27)
 - Both packages depend on `@keenmate/web-components-core` `^1.0.0-rc27` (core's renamed verbs; built-in icons draw
   without base-css-variables). The engine's `runAction()` call passes `{ dispatchAction }` (was `{ emitAction }`); no
