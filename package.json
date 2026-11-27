@@ -51,15 +51,14 @@
       "dev": 12500,
       "image": 12510
     },
-    "theme": {
-      "accentColor": "#667eea",
-      "accentEndColor": "#764ba2"
+    "examples": {
+      "canonicalOrigin": "https://examples.web-dropzone.keenmate.dev"
     },
     "analytics": {
       "plausibleSiteId": "pa-dvZF3eSW2ZTof8_N7gKC8"
     },
     "image": {
-      "name": "registry.km8.es/web-dropzone-examples:prod",
+      "name": "registry.keenmate.dev/web-dropzone-examples:prod",
       "runner": "podman",
       "packageJsonPaths": [
         "package.json",
@@ -85,7 +84,7 @@
     ]
   },
   "devDependencies": {
-    "@keenmate/web-components-devkit": "^1.0.0-rc14",
+    "@keenmate/web-components-devkit": "^1.0.0-rc15",
     "@playwright/test": "^1.60.0",
     "rimraf": "^5.0.5",
     "typescript": "^5.3.3",
