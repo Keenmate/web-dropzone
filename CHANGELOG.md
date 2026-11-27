@@ -11,6 +11,33 @@ No stable 1.0.0 is published, so the break ships as the next release
 candidate — but `^1.0.0-rc02` consumers will pull it: the event,
 callback and store-access API below is breaking.
 
+### Internal — core `^1.0.0-rc27` (2026-11-27)
+- Both packages depend on `@keenmate/web-components-core` `^1.0.0-rc27` (core's renamed verbs; built-in icons draw
+  without base-css-variables). The engine's `runAction()` call passes `{ dispatchAction }` (was `{ emitAction }`); no
+  other core rename (`notifyListeners`, `notifyOverlayActivated`, `syncTheme()`) was in use. No API change.
+- A built-in icon name (`icon="check"`, `fileIcons: { pdf: 'close' }`, …) now draws its glyph on a page without
+  `base-variables.css` (core `ICON_CSS` carries the contract SVGs); a page `--base-icon-<name>` still wins. The
+  dropzone's own Lucide defaults (`UI_ICONS`, `STATUS_ICONS`, `CANCEL_ICON`, `FILE_TYPE_ICONS`) are markup, not
+  built-in-name fallbacks, and stay.
+
+### Internal — repo tooling, docs and housekeeping without an API change (2026-10-27 → 2026-11-27)
+- `@keenmate/web-components-devkit` `^1.0.0-rc15` (2026-11-27): the examples accent comes from the devkit registry
+  (`kmwc.theme` removed), `kmwc.examples.canonicalOrigin` for link previews, `social.png` (`og:image` /
+  `twitter:image`), `kmwc sync` (Makefile image targets, CLAUDE.md block).
+- `@keenmate/web-components-devkit` `^1.0.0-rc12` (2026-11-10): the architecture page's store event log writes
+  through the kit's `appendLogLine` (a file name is text, no longer parsed as markup), the kit's `mapToEscapedHtml`
+  and control-panel CSS replace page-local copies; `@keenmate/web-dropzone` ships `release-notes/`.
+- Core `BeforeCallbackResult.isCancelled` → `isRejected` adopted inside the engine (2026-10-27).
+- The indicator host's `display: contents` carries the rulebook zero-footprint host marker (C-TC-7, 2026-11-10).
+- `/publish`: release-notes wiring (C-PC-11 / C-PC-12, a quiet patch may skip notes), the WIP heading dated in
+  canonical form (2026-11-10 / 2026-11-22).
+- The Plausible snippet is injected by the Docker build only (2026-10-28).
+- The company name is Keenmate (Keenmate s.r.o.) in docs, comments, package `author` fields and the
+  `registerComponent` author default (2026-11-10).
+- GitHub links `blob/main` → `blob/prod` in both package READMEs and docs (2026-11-22); the localization page's code
+  blocks are reference snippets (`data-kmwc-snippet`, 2026-11-21); obsolete `.km-drawer` notes dropped from
+  `VALIDATION-NOTES.md` (2026-11-21).
+
 ### Changed — the drag overlay takes the theme when it opens, like every core layer (audit G3) (2026-11-27)
 - The overlay layer copies the host's theme attributes (`data-theme`, `data-bs-theme`, `data-context-theme`,
   `data-motion`) when the drag starts (core `createLayer`); dropzone's own `MutationObserver` that re-copied them

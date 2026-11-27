@@ -625,7 +625,7 @@ export class DropzoneEngine {
                 if (this.isDestroyed) return;
                 return request.runBuiltIn ? request.runBuiltIn(d) : this.runBuiltInAction(d.action, d.file?.id);
             },
-            emitAction: (d) => {
+            dispatchAction: (d) => {
                 d.files = this.getFiles();
                 this.dispatchEngineEvent('action', d);
             }
